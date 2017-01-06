@@ -1,0 +1,22 @@
+--require("Std/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("Compare")
+export("Hash")
+export("Nil")
+export("New")
+export("NewAtomic")
+export("_alloc")
+export("_new")
+export("_FromVal")
+export("FromVal")
+export("FromRef")
+export("ToVal")
+export("ToRef")

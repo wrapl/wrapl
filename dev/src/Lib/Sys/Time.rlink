@@ -1,0 +1,16 @@
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+export("T")
+export("PreciseT")
+export("Now")
+export("New")
+export("_new")
+
+submodule("Precise")
+subexport("Precise", "PreciseT", "T")
+subexport("Precise", "PreciseNow", "Now")
+subexport("Precise", "PreciseNew", "New")

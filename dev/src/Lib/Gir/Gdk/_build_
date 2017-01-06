@@ -1,0 +1,6 @@
+CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags gtk+-3.0"), "-include gdk/gdk.h -include gdk-pixbuf/gdk-pixbuf.h -include gdk-pixbuf/gdk-pixdata.h")
+LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l gtk+-3.0"))
+
+detect_modules("Gir/Gdk")
+
+riva_module("Gir/Gdk/Init", {file("Init.o")})

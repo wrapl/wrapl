@@ -1,0 +1,16 @@
+CFLAGS += -std=gnu99 -s
+LDFLAGS += Std.rlib Agg.rlib Riva.rlib
+
+RivaModule(Sys/Thread, Thread)
+RivaModule(Sys/Coexpr, Coexpr)
+RivaModule(Sys/Module, Module)
+RivaModule(Sys/Environ, Environ)
+RivaModule(Sys/FileSys, FileSys)
+RivaModule(Sys/Time, Time)
+RivaModule(Sys/Memory, Memory)
+RivaModule(Sys/Program, Program)
+RivaModule(Sys/Config, Config)
+RivaModule(Sys/Log, Log)
+RivaModule(Sys/Service, Service)
+RivaModule(Sys/Signal, Signal)
+

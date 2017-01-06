@@ -1,0 +1,23 @@
+require("Sys/Methods")
+
+if LINUX then
+	library("libpthread.rlib")
+end
+
+if MACOSX then
+	library("libpthread.rlib")
+end
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("Self")
+export("Yield")
+export("Switch")
+export("Caller")

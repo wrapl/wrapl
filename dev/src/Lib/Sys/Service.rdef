@@ -1,0 +1,17 @@
+library("libpthread.rlib")
+library("Agg/StringTable.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("_new")
+export("_start")
+export("_get")
+export("New")
+export("Start")
+export("Get")

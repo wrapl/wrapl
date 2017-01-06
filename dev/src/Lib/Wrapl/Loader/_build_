@@ -1,0 +1,39 @@
+local libudis86 = file("../../../Rlink/libudis86.a")
+
+LDFLAGS = extend(LDFLAGS, "-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", libudis86)
+CFLAGS = extend(CFLAGS, "-x", "c++", "-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", libudis86:dir())
+
+local Files = {
+	file("assembler.o"),
+	file("bitset.o"),
+	file("compiler.o"),
+	file("debugger.o"),
+	file("dso_handle.o"),
+	file("integertable.o"),
+	file("missing.o"),
+	file("parser.o"),
+	file("scanner.o"),
+	file("stringtable.o"),
+	file("system.o"),
+	file("wrapl.o")
+}
+
+file("assembler.o"){libudis86, file("assembler-internal.c")}
+
+file("assembler-internal.c"){file("assembler-internal.dasc")}:build(function(Target)
+	execute{"lua", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", file("assembler-internal.c")}
+end)
+
+--file("scanner.o"){file("keywords.c")}
+
+file("keywords.c"){file("keywords.lst")}:build(function(Target)
+	execute{"gperf", "-S3", "-LC++", "-C", "-t", "-KName", "-Zkeyword", "-Hhash", "-Nlookup", file("keywords.lst"), ">", file("keywords.c")}
+end)
+
+file("system.o"){file("build")}
+
+file("build"):build(function(Target)
+	execute{"svnversion", "-n", "../../../..", ">", file("build")}
+end)
+
+riva_module("Wrapl/Loader", Files)

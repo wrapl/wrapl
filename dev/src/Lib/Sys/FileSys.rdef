@@ -1,0 +1,36 @@
+library("Sys/Time.rlib")
+library("Sys/Module.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("BaseName")
+export("DirName")
+export("MakeDir")
+export("MakePipe")
+export("RemoveDir")
+export("ListDir")
+export("ListDirInfo")
+export("Exists")
+export("FileSize")
+export("FileType")
+export("FileInfo")
+export("FileTime")
+export("TempFile")
+export("Remove")
+export("Link")
+export("SymLink")
+export("Rename")
+export("SetPermissions")
+export("Message")
+export("Type")
+export("BLOCKFILE")
+export("CHARFILE")
+export("FIFOFILE")
+export("REGFILE")
+export("DIRFILE")
+export("LINKFILE")

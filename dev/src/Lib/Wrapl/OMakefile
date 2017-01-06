@@ -1,0 +1,20 @@
+mkdir(-p Loader)
+.SUBDIRS: Loader
+#.SUBDIRS: Compiler Runtime
+
+#.SUBDIRS: Loader2
+
+if $(defined LOADERX)
+	mkdir(-p LoaderX)
+	.SUBDIRS: LoaderX
+
+if $(equal $(SYSNAME), Linux)
+	mkdir(-p Debugger)
+	#.SUBDIRS: Debugger
+
+if $(defined DEBUGGER2)
+	mkdir(-p Debugger2)
+	.SUBDIRS: Debugger2
+
+WraplModule(Wrapl/Preproc, Preproc)
+WraplModule(Wrapl, Wrapl)

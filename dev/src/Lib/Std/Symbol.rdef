@@ -1,0 +1,27 @@
+require("Std/Methods")
+library("Riva/Debug.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Internal, External)
+		if External == nil then
+			External = Internal
+		end
+		_export("_" .. Internal, External)
+	end
+end
+
+export("T")
+export("T.invoke")
+export("ArrayT")
+export("NoMethodMessageT")
+export("nomethod.invoke")
+export("_new")
+export("_new_string")
+export("_add_methods")
+export("_typetable_put")
+export("_valuetable_put")
+export("New")
+export("Set")
+export("Get")
+export("Default")

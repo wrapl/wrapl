@@ -1,0 +1,44 @@
+--require("Std/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(internal, external)
+		if not external then
+			external = internal
+		end
+		_export("_" .. internal, external)
+	end
+end
+
+export("T")
+export("Nil")
+export("Empty")
+export("Lower")
+export("Upper")
+export("_alloc")
+--export("Riva$Memory$_freeze_stubborn", "_freeze")
+export("_freeze")
+export("_new")
+export("_copy")
+export("_new_length")
+export("_copy_length")
+export("_new_char")
+export("_flatten")
+export("_flatten_to")
+export("_content")
+export("_content_to")
+export("_new_format")
+export("GetBlockAddress")
+export("GetBlockLength")
+export("GetBlocks")
+export("Ord")
+export("Chr")
+export("Add")
+export("Add.invoke")
+export("_add")
+export("_slice")
+export("Hash")
+export("Compare")
+export("Create")
+export("FromAddress")
+export("New")

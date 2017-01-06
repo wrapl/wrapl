@@ -1,0 +1,41 @@
+include("libpthread.rlib")
+include("Riva/System.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+if LINUX then
+	export("Signal_SIGHUP", "HUP")
+	export("Signal_SIGINT", "INT")
+	export("Signal_SIGQUIT", "QUIT")
+	export("Signal_SIGILL", "ILL")
+	export("Signal_SIGABRT", "ABRT")
+	export("Signal_SIGFPE", "FPE")
+	export("Signal_SIGKILL", "KILL")
+	export("Signal_SIGSEGV", "SEGV")
+	export("Signal_SIGPIPE", "PIPE")
+	export("Signal_SIGALRM", "ALRM")
+	export("Signal_SIGTERM", "TERM")
+	export("Signal_SIGUSR1", "USR1")
+	export("Signal_SIGUSR2", "USR2")
+	export("Signal_SIGCHLD", "CHLD")
+	export("Signal_SIGCONT", "CONT")
+	export("Signal_SIGSTOP", "STOP")
+	export("Signal_SIGTSTP", "TSTP")
+end
+
+export("T")
+export("SetT")
+export("SetNew")
+export("Wait")
+export("Block")
+export("Unblock")
+export("SetMask")

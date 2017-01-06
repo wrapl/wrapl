@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module path="Wrapl/Preproc">
+	<type name="T">
+A preprocessor object.
+	</type>
+	<method name="include">
+		<parameter name="proc" type="T"/>
+		<parameter name="stream" type="IO/Stream/ReaderT"/>
+		<parameter name="strip" value="NIL"/>
+Reads all input from <var>stream</var>, processes the text using <var>proc</var> and writes the output to <code>proc:out</code>. If <var>strip</var> is <code>:strip</code>, then empty lines in <var>stream</var> are not written to <code>proc:out</code>.
+	</method>
+	<method name="include">
+		<parameter name="proc" type="T"/>
+		<parameter name="filename" type="Std/String/T"/>
+		<parameter name="strip" value="NIL"/>
+Reads all input from the file <var>filename</var>, processes the text using <var>proc</var> and writes the output to <code>proc:out</code>. If <var>strip</var> is <code>:strip</code>, then empty lines in <var>stream</var> are not written to <code>proc:out</code>.
+	</method>
+	<method name="session" type="Wrapl/Loader/SessionT">
+		<parameter name="proc" type="T"/>
+Returns the Wrapl session used to evalute embedded Wrapl code.
+	</method>
+	<function name="New" type="T">
+		<parameter name="out" type="IO/Stream/WriterT"/>
+		<parameter name="includes" type="Agg/List/T"/>
+Returns a new preprocessor object which writes the processed text to <var>out</var>. <var>includes</var> should be a list of directories to be searched when files are included.
+	</function>
+</module>

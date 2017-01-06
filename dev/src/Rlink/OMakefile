@@ -1,0 +1,41 @@
+RLINK_SRC = $(SRC_DIR)Rlink/
+RLINK_OBJ = $(OBJ_DIR)Rlink/
+
+CFLAGS += -std=gnu99 -g -DPACKAGE -DPACKAGE_VERSION
+
+FILES[] =
+	rlink
+	#stringtable
+
+if $(not $(defined PACKAGE))
+	#LDFLAGS += $(file ../Riva/libudis86.a)
+	LDFLAGS += $(file libudis86.a)
+	CFLAGS += -DUSE_UDIS -I$(OBJ_DIR)Riva -g
+	export
+
+if $(equal $(OSTYPE), Cygwin)
+	LDFLAGS += -llua -lbfd -lintl -liberty -lz -s
+	export
+
+if $(equal $(OSTYPE), Unix)
+	LDFLAGS += -lz -llua5.1 -L. -lbfd -lHX -ldl -liberty -g
+	ASFLAGS += -gdwarf2
+	export
+
+if $(equal $(OSTYPE), Mingw)
+	LDFLAGS += -lz -llua -lbfd -lintl -liberty -s
+	export
+
+libudis86.a:
+	if $(not $(file-exists udis86/README))
+		$(system wget -nv http://downloads.sourceforge.net/sourceforge/udis86/udis86-1.7.tar.gz -O- | tar xvzP)
+		$(system mv udis86-1.7 udis86)
+	cd(udis86, $(system ./configure $(HOST) --disable-shared --enable-static --prefix=$(absname ..) --includedir=$(absname ..) --libdir=$(absname ..) CFLAGS="$(CFLAGS) -O2" --without-man-pages))
+	cd(udis86, $(system make mostlyclean))
+	cd(udis86, $(system make TARGET_LIBS="static"))
+	cd(udis86, $(system make install))
+
+#rlink.o: $(file ../Riva/libudis86.a)
+rlink.o: $(file libudis86.a)
+CProgram($(DEV_BIN)rlink, $(FILES))
+

@@ -1,0 +1,37 @@
+--library("libgcc.rlib")
+library("libpthread.rlib")
+library("IO/Socket.rlib")
+library("IO/Posix.rlib")
+library("IO/Encoder.rlib")
+library("IO/Decoder.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("WraplT")
+export("LoadModule")
+export("SessionNew")
+export("SessionEval")
+export("SessionLine")
+export("SessionDef")
+export("SessionVar")
+export("ErrorMessageT")
+export("Message")
+export("IncorrectTypeMessageT")
+export("Build")
+export("Image")
+export("SetMissingIDFunc");
+export("LoadExpr")
+export("ReadExpr")
+export("ScopeNew")
+export("ExecNew")
+export("ExecMark")
+export("ExecJump")
+export("VariadicT")
+export("VariadicNew")
+export("VariadicSet")
+export("VariadicIndex")

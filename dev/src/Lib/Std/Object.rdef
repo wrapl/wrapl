@@ -1,0 +1,23 @@
+--require("Std/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("Nil")
+export("New")
+export("Create")
+export("Less")
+export("Equal")
+export("Greater")
+export("Compare")
+export("Hash")
+export("Field")
+export("IsEqual")
+export("IsNotEq")
+export("RegisterFinalizer")
+export("_in")

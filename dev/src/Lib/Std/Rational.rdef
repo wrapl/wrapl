@@ -1,0 +1,18 @@
+require("Std/Methods")
+library("Std/Number.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("_alloc")
+export("_new")
+export("_new_string")
+export("_new_small_small")
+--export("New")
+export("Hash")
+export("Compare")

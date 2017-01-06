@@ -1,0 +1,16 @@
+require("Std/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("T.invoke")
+export("Of")
+export("_is")
+export("New")
+export("New.invoke")
+export("Fields")

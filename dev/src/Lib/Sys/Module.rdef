@@ -1,0 +1,22 @@
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("_new")
+export("_load")
+export("_import")
+export("_export")
+export("AddDirectory")
+export("Load")
+export("LoadFile")
+export("FromVal")
+export("FromRef")
+export("New")
+export("_get_path")
+export("_set_path")
+export("GetInfo")
+export("LoadSymbol")

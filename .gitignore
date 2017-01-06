@@ -1,0 +1,12 @@
+.metadata
+**/.svn
+**/*.omc
+dev/obj/*
+web/*
+web-sf/*
+lib/*
+doc/*
+bin/*
+dev/bin/*
+dev/doc/*
+dev/rst/*

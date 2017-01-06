@@ -1,0 +1,1297 @@
+|.arch x86
+|.section code, data
+|.type STATE, Std$Function$state_t
+|.type BSTATE, bstate_t
+|.type DSTATE, dstate_t
+|.type THREAD, debug_thread_t
+|.type CLOSURE, closure_t
+|.type CODE, code_t
+|.type VALUE, Std$Object_t
+|.type TYPE, Std$Type_t
+|.type LIST, Agg$List_t
+|.type LISTNODE, Agg$List_node
+|.type SMALL, Std$Integer_smallt
+|.type VARIADIC, variadic_t
+
+|.actionlist ActionList
+|.globals Globals_
+
+extern Std$Type_t VariadicT[];
+static variadic_t EmptyVariadic[1] = {{VariadicT, {Std$Integer$SmallT, 0}}};
+
+void encode_entry(assembler_t *Assembler) {
+	|.code
+	//| int3
+	if (Assembler->NoOfParams) {
+		| mov ebx, esi
+	};
+	if ((Assembler->NoOfUpValues) || (Assembler->NoOfUpTemps)) {
+		//| int3
+		| lea esi, CLOSURE:ecx->Values
+	};
+	| push ebp
+
+	if (Assembler->CanSuspend) {
+		| push dword Assembler->Size
+		| call &Riva$Memory$alloc
+		| mov ebp, eax
+		//| mov [esp], eax
+		| add esp, 4
+	} else {
+		| sub esp, dword Assembler->Size
+		| mov ebp, esp
+	};
+
+	if ((Assembler->NoOfUpValues) || (Assembler->NoOfUpTemps)) {
+		if (Assembler->NoOfParams) {
+			| push edi
+		};
+		if (Assembler->NoOfUpValues) {
+			| lea edi, [ebp + Assembler->UpValues]
+			| mov ecx, Assembler->NoOfUpValues
+			| rep; movsd
+		};
+		if (Assembler->NoOfUpTemps) {
+			| lea edi, [ebp + Assembler->UpTemps]
+			| mov ecx, 2 * Assembler->NoOfUpTemps
+			| rep; movsd
+		};
+		if (Assembler->NoOfParams) {
+			| pop edi
+		};
+	};
+	if (Assembler->NoOfParams) {
+		parameter_t *Param = Assembler->Params;
+		if (Assembler->Variadic) {
+			--Assembler->NoOfParams;
+			Param = Param->Next;
+			| cmp ebx, Assembler->NoOfParams
+			| ja >1
+			| mov dword [ebp + Assembler->Locals + 4 * Assembler->NoOfParams], EmptyVariadic
+			| jmp >2
+			| 1:
+			if (Assembler->NoOfParams) {
+				| sub ebx, Assembler->NoOfParams
+				| lea esi, [edi + 8 * Assembler->NoOfParams]
+			} else {
+				| mov esi, edi
+			};
+			| call &create_variadic
+			if (Assembler->NoOfParams) {
+				| add ebx, Assembler->NoOfParams
+			};
+			| mov [ebp + Assembler->Locals + 4 * Assembler->NoOfParams], eax
+			| 2:
+		};
+		for (int I = Assembler->NoOfParams; --I >= 0;) {
+			if (Param->Indirect) {
+				if (Param->Default) {
+					| cmp ebx, I
+					if (!Assembler->CanSuspend) {
+						| mov dword [ebp + Assembler->Locals + 4 * I], 0
+					};
+					| jbe >5
+				} else {
+					| mov edx, Std$Object$Nil
+					| cmp ebx, I
+					| jbe >3
+				};
+				| mov eax, [edi + 8 * I + 4]
+				| test eax, eax
+				| mov edx, [edi + 8 * I]
+				| jnz >4
+				| 3:
+				| push edx
+				| call &alloc_local
+				| pop dword [edx]
+				| 4:
+				| mov [ebp + Assembler->Locals + 4 * I], eax
+				| 5:
+			} else {
+				if (Param->Default) {
+					| cmp ebx, I
+					if (!Assembler->CanSuspend) {
+						| mov dword [ebp + Assembler->Locals + 4 * I], 0
+					};
+					| jbe >5
+					| call &alloc_local
+					| mov ecx, [edi + 8 * I]
+					| mov [eax], ecx
+					| mov [ebp + Assembler->Locals + 4 * I], eax
+					| 5:
+				} else {
+					| mov eax, Std$Object$Nil
+					| cmp ebx, I
+					| cmova eax, [edi + 8 * I]
+					| push eax
+					| call &alloc_local
+					| pop dword [eax]
+					| mov [ebp + Assembler->Locals + 4 * I], eax
+				};
+			};
+			Param = Param->Next;
+		};
+	};
+	| mov STATE:ebp->Run, dword &run_state
+	| mov BSTATE:ebp->Handler, =>Assembler->Resend
+	if (Assembler->DebugInfo) {
+		| mov DSTATE:ebp->Function, dword Assembler->DebugInfo
+		| push ebp
+		| call &debug_enter
+		| add esp, 4
+	};
+	| xor edx, edx
+};
+
+void test_param_inst_t::encode(assembler_t *Assembler) {
+	| cmp dword [ebp + Assembler->Locals + 4 * Index], 0
+	| jne =>Continue
+};
+
+void default_param_inst_t::encode(assembler_t *Assembler) {
+	if (Reference) {
+		| test edx, edx
+		| jnz >1
+		| push ecx
+		| call &alloc_local
+		| mov edx, eax
+		| pop dword [eax]
+		| 1:
+		| mov [ebp + Assembler->Locals + 4 * Index], edx
+	} else {
+		| push ecx
+		| call &alloc_local
+		| pop dword [eax]
+		| mov [ebp + Assembler->Locals + 4 * Index], eax
+	};
+};
+
+void label_t::encode(assembler_t *Assembler) {
+	if (Referenced) {
+		| =>this:
+	};
+};
+
+void link_inst_t::encode(assembler_t *Assembler) {
+	| jmp =>Link
+};
+
+void init_trap_inst_t::encode(assembler_t *Assembler) {
+	//TRAP TEST!!!
+	//| lea eax, [ebp + Assembler->Temps + 8 * Trap + 4]
+	//| mov [eax - 4], eax
+	//| mov [eax], =>Failure
+	| mov dword [ebp + Assembler->Temps + 8 * Trap], 0
+	| mov dword [ebp + Assembler->Temps + 8 * Trap + 4], =>Failure
+};
+
+void push_trap_inst_t::encode(assembler_t *Assembler) {
+	| lea ebx, [ebp + Assembler->Temps + 8 * Temp]
+	| mov eax, [ebp + Assembler->Temps + 8 * Trap]
+	| mov [ebp + Assembler->Temps + 8 * Trap], ebx
+	| mov STATE:ebx->Run, =>Failure
+	| mov STATE:ebx->Chain, eax
+};
+
+void store_trap_inst_t::encode(assembler_t *Assembler) {
+	| mov dword [ebp + Assembler->Temps + 8 * Temp], =>Failure
+};
+
+void resume_inst_t::encode(assembler_t *Assembler) {
+	//TRAP TEST!!!
+	//| add esp, 12
+	| add esp, 4
+};
+
+void local_inst_t::encode(assembler_t *Assembler) {
+	//| push 4
+	//| call &Riva$Memory$alloc
+	//| pop ecx
+	| call &alloc_local
+	| mov [eax], dword Std$Object$Nil
+	| mov [ebp + Assembler->Locals + 4 * Index], eax
+	//| mov dword [eax], Std$Object$Nil
+};
+
+void store_local_inst_t::encode(assembler_t *Assembler) {
+	| push ecx
+	| call &alloc_local
+	| pop dword [eax]
+	| mov [ebp + Assembler->Locals + 4 * Index], eax
+};
+
+static inline void load_closure(assembler_t *Assembler, operand_t *Operand) {
+	int NoOfUpValues = 0, NoOfUpTemps = 0, NoOfDefaults = 0;
+	for (upvalue_t *UpValue = Operand->UpValues; UpValue; UpValue = UpValue->Next) ++NoOfUpValues;
+	for (uptemp_t *UpTemp = Operand->UpTemps; UpTemp; UpTemp = UpTemp->Next) ++NoOfUpTemps;
+	| push sizeof(closure_t) + 4 * NoOfUpValues + 8 * NoOfUpTemps
+	| call &Riva$Memory$alloc
+	| pop ecx
+	| mov dword VALUE:eax->Type, WraplT
+	| mov dword CLOSURE:eax->Entry, Operand->Entry
+	int I = 0;
+	for (upvalue_t *UpValue = Operand->UpValues; UpValue; UpValue = UpValue->Next, I++) {
+		| mov ecx, [ebp + Assembler->Locals + 4 * UpValue->Index]
+		| mov CLOSURE:eax->Values[I], ecx
+	};
+	for (uptemp_t *UpTemp = Operand->UpTemps; UpTemp; UpTemp = UpTemp->Next, I = I + 2) {
+		| mov ecx, [ebp + Assembler->Temps + 8 * UpTemp->Index]
+		| mov edx, [ebp + Assembler->Temps + 8 * UpTemp->Index + 4]
+		| mov CLOSURE:eax->Values[I], ecx
+		| mov CLOSURE:eax->Values[I + 1], edx
+	};
+	| mov ecx, eax
+};
+
+void load_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::CNST: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, Operand->Value
+			break;
+		};
+		case LOAD_REF: {
+			| xor edx, edx
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			| mov ecx, Operand->Value
+			| xor edx, edx
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::GVAR: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [Operand->Address]
+			break;
+		};
+		case LOAD_REF:
+		case LOAD_ARG: {
+			| mov edx, Operand->Address
+			break;
+		};
+		case LOAD_BOTH: {
+			| mov edx, Operand->Address
+			| mov ecx, [edx]
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::LVAR: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [ebp + Assembler->Locals + 4 * Operand->Index]
+			break;
+		};
+		case LOAD_REF: {
+			| xor edx, edx
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			| mov ecx, [ebp + Assembler->Locals + 4 * Operand->Index]
+			| xor edx, edx
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::LREF: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [ebp + Assembler->Locals + 4 * Operand->Index]
+			| mov ecx, [ecx]
+			break;
+		};
+		case LOAD_REF:
+		case LOAD_ARG: {
+			| mov edx, [ebp + Assembler->Locals + 4 * Operand->Index]
+			break;
+		};
+		case LOAD_BOTH: {
+			| mov edx, [ebp + Assembler->Locals + 4 * Operand->Index]
+			| mov ecx, [edx]
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::TVAR: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+			break;
+		};
+		case LOAD_REF: {
+			| xor edx, edx
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+			| xor edx, edx
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::TREF: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			| mov ecx, [ecx]
+			break;
+		};
+		case LOAD_REF: {
+			| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			| mov ecx, [edx]
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::TREG: {
+		switch (Type) {
+		case LOAD_VAL: {
+			| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			| test ecx, ecx
+			| jnz >1
+			| lea ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+			| 1:
+			| mov ecx, [ecx]
+			break;
+		};
+		case LOAD_REF: {
+			| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+			| test edx, edx
+			| jz >1
+			| mov ecx, [edx]
+			| jmp >2
+			| 1:
+			| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+			| 2:
+			break;
+		};
+		};
+		break;
+	};
+	case operand_t::CLSR: {
+		switch (Type) {
+		case LOAD_VAL: {
+			load_closure(Assembler, Operand);
+			break;
+		};
+		case LOAD_REF: {
+			| xor edx, edx
+			break;
+		};
+		case LOAD_ARG:
+		case LOAD_BOTH: {
+			load_closure(Assembler, Operand);
+			| xor edx, edx
+			break;
+		};
+		};
+		break;
+	};
+	};
+};
+
+static inline void store_reg(assembler_t *Assembler, operand_t *Operand) {
+	switch (Operand->Type) {
+	case operand_t::CNST: {
+		| jmp &incorrect_assign
+		break;
+	};
+	case operand_t::GVAR: {
+		| mov [Operand->Address], ecx
+		break;
+	};
+	case operand_t::LVAR: {
+		| jmp &incorrect_assign
+		break;
+	};
+	case operand_t::LREF: {
+		| mov eax, [ebp + Assembler->Locals + 4 * Operand->Index]
+		| mov [eax], ecx
+		break;
+	};
+	case operand_t::TVAR: {
+		| jmp &incorrect_assign
+		break;
+	};
+	case operand_t::TREF: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+        | test eax, eax
+        | jz &incorrect_assign
+		| mov [eax], ecx
+		break;
+	};
+	case operand_t::TREG: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+        | test eax, eax
+        | jz &incorrect_assign
+		| mov [eax], ecx
+		break;
+	};
+	case operand_t::REGR: {
+        | test edx, edx
+        | jz &incorrect_assign
+		| mov dword [edx], ecx
+		break;
+	};
+	};
+};
+
+void store_reg_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::TVAR: {
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index], ecx
+		break;
+	};
+	case operand_t::TREG: {
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index], ecx
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index + 4], edx
+		break;
+	};
+	default: {
+		| jmp &incorrect_assign
+		break;
+	};
+	};
+};
+
+void store_con_inst_t::encode(assembler_t *Assembler) {
+	switch (Type) {
+	case LOAD_NONE:
+		switch (Operand->Type) {
+		case operand_t::CNST: {
+			| jmp &incorrect_assign
+			break;
+		};
+		case operand_t::GVAR: {
+			| mov dword [Operand->Address], Value
+			break;
+		};
+		case operand_t::LVAR: {
+			| jmp &incorrect_assign
+			break;
+		};
+		case operand_t::LREF: {
+			| mov eax, [ebp + Assembler->Locals + 4 * Operand->Index]
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::TVAR: {
+			| jmp &incorrect_assign
+			break;
+		};
+		case operand_t::TREF: {
+			| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+            | test eax, eax
+            | jz &incorrect_assign
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::TREG: {
+			| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+            | test eax, eax
+            | jz &incorrect_assign
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::REGR: {
+            | test edx, edx
+            | jz &incorrect_assign
+			| mov dword [edx], Value
+			break;
+		};
+		};
+		break;
+	case LOAD_VAL:
+		| mov ecx, Value
+		store_reg(Assembler, Operand);
+		break;
+	case LOAD_REF:
+		switch (Operand->Type) {
+		case operand_t::CNST: {
+			| jmp &incorrect_assign
+			break;
+		};
+		case operand_t::GVAR: {
+			| mov dword [Operand->Address], Value
+			break;
+		};
+		case operand_t::LVAR: {
+			| jmp &incorrect_assign
+			break;
+		};
+		case operand_t::LREF: {
+			| mov eax, [ebp + Assembler->Locals + 4 * Operand->Index]
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::TVAR: {
+			| mov dword [ebp + Assembler->Temps + 8 * Operand->Index], Value
+			break;
+		};
+		case operand_t::TREF: {
+			| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+            | test eax, eax
+            | jz &incorrect_assign
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::TREG: {
+			| mov eax, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+            | test eax, eax
+            | jz &incorrect_assign
+			| mov dword [eax], Value
+			break;
+		};
+		case operand_t::REGR: {
+            | test edx, edx
+            | jz &incorrect_assign
+			| mov dword [edx], Value
+			break;
+		};
+		};
+		| xor edx, edx;
+		break;
+	case LOAD_ARG: case LOAD_BOTH:
+		| mov ecx, Value
+		store_reg(Assembler, Operand);
+		| xor edx, edx
+		break;
+	};
+};
+
+void store_val_inst_t::encode(assembler_t *Assembler) {
+	store_reg(Assembler, Operand);
+};
+
+void store_ref_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::LREF: {
+		| mov [ebp + Assembler->Locals + 4 * Operand->Index], edx
+		break;
+	};
+	case operand_t::TREF: {
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index + 4], edx
+		break;
+	};
+	default: {
+		| jmp &incorrect_assign
+		break;
+	};
+	};
+};
+
+void store_arg_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::CNST: {
+		| mov dword [ebp + Assembler->Temps + 8 * Index], Operand->Value
+		| mov dword [ebp + Assembler->Temps + 8 * Index + 4], 0
+		break;
+	};
+	case operand_t::GVAR: {
+		| mov dword [ebp + Assembler->Temps + 8 * Index + 4], Operand->Value
+		break;
+	};
+	case operand_t::LVAR: {
+		| mov ecx, [ebp + Assembler->Locals + 4 * Operand->Index]
+		| mov dword [ebp + Assembler->Temps + 8 * Index + 4], 0
+		| mov dword [ebp + Assembler->Temps + 8 * Index], ecx
+		break;
+	};
+	case operand_t::LREF: {
+		| mov edx, [ebp + Assembler->Locals + 4 * Operand->Index]
+		| mov [ebp + Assembler->Temps + 8 * Index + 4], edx
+		break;
+	};
+	case operand_t::TVAR: {
+		| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+		| mov dword [ebp + Assembler->Temps + 8 * Index + 4], 0
+		| mov [ebp + Assembler->Temps + 8 * Index], ecx
+		break;
+	};
+	case operand_t::TREF: {
+		| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+		| mov [ebp + Assembler->Temps + 8 * Index + 4], edx
+		break;
+	};
+	case operand_t::TREG: {
+		| mov ecx, [ebp + Assembler->Temps + 8 * Operand->Index]
+		| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+		| mov [ebp + Assembler->Temps + 8 * Index], ecx
+		| mov [ebp + Assembler->Temps + 8 * Index + 4], edx
+		break;
+	};
+	case operand_t::CLSR: {
+		load_closure(Assembler, Operand);
+		| mov [ebp + Assembler->Temps + 8 * Index], ecx
+		| mov dword [ebp + Assembler->Temps + 8 * Index + 4], 0
+		break;
+	};
+	case operand_t::REGR: {
+		| mov [ebp + Assembler->Temps + 8 * Index], ecx
+		| mov [ebp + Assembler->Temps + 8 * Index + 4], edx
+		break;
+	};
+	};
+};
+
+void fixup_arg_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::CNST: {
+		break;
+	};
+	case operand_t::GVAR: {
+		| mov eax, [Operand->Address]
+		| mov [ebp + Assembler->Temps + 8 * Index], eax
+		break;
+	};
+	case operand_t::LVAR: {
+		break;
+	};
+	case operand_t::LREF: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Index + 4]
+		| mov eax, [eax]
+		| mov [ebp + Assembler->Temps + 8 * Index], eax
+		break;
+	};
+	case operand_t::TVAR: {
+		break;
+	};
+	case operand_t::TREF: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Index + 4]
+		| mov eax, [eax]
+		| mov [ebp + Assembler->Temps + 8 * Index], eax
+		break;
+	};
+	case operand_t::TREG: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Index + 4]
+		| test eax, eax
+		| jz >1
+		| mov eax, [eax]
+		| mov [ebp + Assembler->Temps + 8 * Index], eax
+		| 1:
+		break;
+	};
+	case operand_t::CLSR: {
+		break;
+	};
+	case operand_t::REGR: {
+		| mov eax, [ebp + Assembler->Temps + 8 * Index + 4]
+		| test eax, eax
+		| jz >1
+		| mov eax, [eax]
+		| mov [ebp + Assembler->Temps + 8 * Index], eax
+		| 1:
+		break;
+	};
+	};
+};
+
+void invoke_inst_t::encode(assembler_t *Assembler) {
+	if (Count) {
+		| mov esi, Count
+		| lea edi, [ebp + Assembler->Temps + 8 * Args]
+	} else {
+		| xor esi, esi
+	};
+	| mov eax, VALUE:ecx->Type
+	| call dword TYPE:eax->Invoke
+	
+	//TRAP TEST!!!
+	//| mov esi, >1
+	//| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	//| jmp dword [eax * 4 + return_table]
+	//| 1:
+	| 1:
+	| mov esi, <1
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	| call dword [eax * 4 + return_table]
+};
+
+void back_inst_t::encode(assembler_t *Assembler) {
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	| jmp &backtrack
+};
+
+void ret_inst_t::encode(assembler_t *Assembler) {
+	if (Assembler->DebugInfo) {
+		| push ecx
+		| push edx
+		| push ebp
+		| call &debug_exit
+		| add esp, 4
+		| pop edx
+		| pop ecx
+	};
+	| xor eax, eax
+	if (Assembler->CanSuspend) {
+		//| pop ebp
+	} else {
+		| add esp, dword Assembler->Size
+	};
+	| pop ebp
+	| ret
+};
+
+void susp_inst_t::encode(assembler_t *Assembler) {
+	if (Assembler->DebugInfo) {
+		| push ecx
+		| push edx
+		| push ebp
+		| call &debug_exit
+		| add esp, 4
+		| pop edx
+		| pop ecx
+	};
+	| mov BSTATE:ebx, ebp
+	| mov BSTATE:ebx->Val, ecx
+	| mov BSTATE:ebx->Ref, edx
+	| mov BSTATE:ebx->Code, dword >1
+	| or eax, -1
+	//| pop ebp
+	| pop ebp
+	| ret
+	| 1:
+	//| push ebp
+};
+
+void fail_inst_t::encode(assembler_t *Assembler) {
+	if (Assembler->DebugInfo) {
+		| push ebp
+		| call &debug_exit
+		| add esp, 4
+	};
+	| xor eax, eax
+	if (Assembler->CanSuspend) {
+		//| pop ebp
+	} else {
+		| add esp, dword Assembler->Size
+	};
+	| pop ebp
+	| inc eax
+	| ret
+};
+
+void recv_inst_t::encode(assembler_t *Assembler) {
+	if (Handler) {
+		| mov BSTATE:ebp->Handler, =>Handler
+	} else {
+		| mov BSTATE:ebp->Handler, =>Assembler->Resend
+	};
+};
+
+void send_inst_t::encode(assembler_t *Assembler) {
+	| mov eax, 2
+	| jmp dword BSTATE:ebp->Handler
+};
+
+void resend_inst_t::encode(assembler_t *Assembler) {
+	if (Assembler->DebugInfo) {
+		| push ecx
+		| push edx
+		| push ebp
+		| call &debug_exit
+		| add esp, 4
+		| pop edx
+		| pop ecx
+	};
+	if (Assembler->CanSuspend) {
+		//| pop ebp
+	} else {
+		| add esp, dword Assembler->Size
+	};
+	| pop ebp
+	| ret
+};
+
+void comp_inst_t::encode(assembler_t *Assembler) {
+	switch (Operand->Type) {
+	case operand_t::CNST: {
+		| xor edx, edx
+		| cmp ecx, Operand->Value
+		break;
+	};
+	case operand_t::GVAR: {
+		| lea edx, [Operand->Address]
+		| cmp ecx, [edx]
+		
+		break;
+	};
+	case operand_t::LVAR: {
+		| lea edx, [ebp + Assembler->Locals + 4 * Operand->Index]
+		| cmp ecx, [edx]
+		break;
+	};
+	case operand_t::LREF: {
+		| mov edx, [ebp + Assembler->Locals + 4 * Operand->Index]
+		| cmp ecx, [edx]
+		break;
+	};
+	case operand_t::TVAR: {
+		| lea edx, [ebp + Assembler->Temps + 8 * Operand->Index]
+		| cmp ecx, [edx]
+		break;
+	};
+	case operand_t::TREF: {
+		| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+		| cmp ecx, [edx]
+		break;
+	};
+	case operand_t::TREG: {
+		| mov edx, [ebp + Assembler->Temps + 8 * Operand->Index + 4]
+		| test edx, edx
+		| jnz >1
+		| lea edx, [ebp + Assembler->Temps + 8 * Operand->Index]
+		| 1:
+		| cmp ecx, [edx]
+		break;
+	};
+	case operand_t::CLSR: {
+		| cmp ecx, 0
+		break;
+	};
+	};
+	if (Equal) {
+		| jne =>Failure
+	} else {
+		| je =>Failure
+	};
+};
+
+typedef struct select_integer_entry_t {
+	uint32_t Key;
+	label_t *Label;
+} select_integer_entry_t;
+
+static void select_integer_entries_sort(select_integer_entry_t *A, select_integer_entry_t *B) {
+	if (A >= B) return;
+	select_integer_entry_t *C = A, *D = B;
+	select_integer_entry_t T = *A, S = *B;
+	while (C < D) {
+		if (S.Key < T.Key) {
+			*C = S;
+			++C;
+			S = *C;
+		} else {
+			*D = S;
+			--D;
+			S = *D;
+		};
+	};
+	*C = T;
+	select_integer_entries_sort(A, C - 1);
+	select_integer_entries_sort(C + 1, B);
+};
+
+void select_integer_inst_t::encode(assembler_t *Assembler) {
+	select_integer_case_t *Case;
+	
+	| push dword Std$Integer$SmallT
+	| push dword VALUE:ecx->Type
+	| call &Std$Type$is
+	| lea esp, [esp + 8]
+	| jne &incorrect_type
+
+	Case = Cases;
+	int Min = Case->Min, Max = Case->Max;
+	int Count = Max - Min + 1;
+	while (Case = Case->Next) {
+		if (Case->Min < Min) Min = Case->Min;
+		if (Case->Max > Max) Max = Case->Max;
+		Count += (Case->Max - Case->Min + 1);
+	};
+	int Range = Max - Min + 1;
+	int DispFix = 1;
+	if (Range > 2 * Count) {
+		select_integer_entry_t Entries[2 * Count];
+		uint32_t M = Count;
+	next:
+		memset(Entries, 0, M * sizeof(select_integer_entry_t));
+		for (Case = Cases; Case; Case = Case->Next) {
+			int32_t K = Case->Max;
+			uint32_t T = K - Case->Min + 1;
+			uint32_t I = ((K % M) + M) % M;
+			do {
+				if (Entries[I].Label) {
+					if (Entries[I].Key == K) {
+						printf("Stupid user has duplicate keys: %d\n", K);
+					} else if (++M >= Count * 2) {
+						M = 1; while (M < Count) M <<= 1;
+						uint32_t A = (M - Count) / 2;
+						uint32_t B = (M - Count) - A;
+						select_integer_entry_t *Top = Entries;
+						for (Case = Cases; Case; Case = Case->Next) {
+							for (I = Case->Min; I <= Case->Max; ++I) {
+								Top->Key = I;
+								Top->Label = Case->Body;
+								++Top;
+							};
+						};
+						--Top;
+						select_integer_entries_sort(Entries, Top);
+						| mov eax, [ecx + 4]
+						| mov edx, M / 2
+						| mov ebx, M / 2 - 1
+						| 1:
+						| cmp eax, [ebx * 8 + >2]
+						| ja >3
+						| jb >4
+						| jmp dword [ebx * 8 + >5]
+						| 3:
+						| shr edx, 1
+						| jz =>Default
+						| add ebx, edx
+						| jmp <1
+						| 4:
+						| shr edx, 1
+						| jz =>Default
+						| sub ebx, edx
+						| jmp <1
+						| 2:
+						for (int I = 0; I < A; ++I) {
+							| .dword Entries[0].Key
+							if (DispFix) {
+								| 5:
+								DispFix = 0;
+							};
+							| .aword =>Entries[0].Label
+						};
+						for (int I = 0; I < Count; ++I) {
+							| .dword Entries[I].Key
+							if (DispFix) {
+								| 5:
+								DispFix = 0;
+							};
+							| .aword =>Entries[I].Label
+						};
+						for (int I = 0; I < B; ++I) {
+							| .dword Top->Key
+							if (DispFix) {
+								| 5:
+								DispFix = 0;
+							};
+							| .aword =>Top->Label;
+						};
+						return;
+					};
+					goto next;
+				};
+				Entries[I].Key = K;
+				Entries[I].Label = Case->Body;
+				I = I ? I - 1 : M - 1;
+				--K;
+			} while (--T);
+		};
+		| mov ecx, [ecx + 4]
+		| mov eax, ecx
+		| xor edx, edx
+		| mov ebx, M
+		| div ebx
+		| cmp [edx * 8 + >1], ecx
+		| jne =>Default
+		| jmp dword [edx * 8 + >2]
+		| 1:
+		for (int I = 0; I < M; ++I) {
+			| .dword Entries[I].Key
+			if (DispFix) {
+				| 2:
+				DispFix = 0;
+			};
+			if (Entries[I].Label) {
+				| .aword =>Entries[I].Label
+			} else {
+				| .aword =>Default
+			};
+		};
+		return;
+	} else {
+		label_t *Labels[Range];
+		memset(Labels, 0, Range * sizeof(label_t *));
+		for (Case = Cases; Case; Case = Case->Next) {
+			for (int I = Case->Min; I <= Case->Max; ++I) Labels[I - Min] = Case->Body;
+		};
+		| mov eax, [ecx + 4]
+		| sub eax, Min
+		| js =>Default
+		| cmp eax, Max - Min
+		| ja =>Default
+		| jmp dword [eax * 4 + >1]
+		| .align 4
+		| 1:
+		for (int I = 0; I < Range; ++I) {
+			if (Labels[I]) {
+				| .aword =>Labels[I]
+			} else {
+				| .aword =>Default
+			}
+		};
+	};
+};
+
+void select_real_inst_t::encode(assembler_t *Assembler) {
+	| push dword Std$Real$T
+	| push dword VALUE:ecx->Type
+	| call &Std$Type$is
+	| lea esp, [esp + 8]
+	| jne &incorrect_type
+	| fld qword [ecx + 4]
+	if (CmovSupport) {
+		double *Ptr = Constants;
+		for (select_real_case_t *Case = Cases; Case; Case = Case->Next) {
+			| fld qword [Ptr]
+			Ptr++;
+			| fcomip st0, st1
+			| ja >1
+			| fld qword [Ptr]
+			Ptr++;
+			| fcomip st0, st1
+			| jb >1
+			| mov edx, =>Case->Body
+			| jmp >2
+			| 1:
+		};
+		| mov edx, =>Default
+		| 2:
+		| fstp st0
+		| jmp edx
+	};
+};
+
+void select_string_inst_t::encode(assembler_t *Assembler) {
+	| call &select_string
+	| .dword 0
+	| .aword 0
+	| .aword =>Default
+	for (select_string_case_t *Case = Cases; Case; Case = Case->Next) {
+		| .dword Case->Length
+		| .aword Case->Key
+		| .aword =>Case->Body
+	};
+	| .dword 0
+	| .aword 0
+	| .aword =>Default
+};
+
+void select_type_inst_t::encode(assembler_t *Assembler) {
+	| mov eax, VALUE:ecx->Type
+	| mov eax, TYPE:eax->Types
+	| mov ebx, [eax]
+	| 1:
+	| add eax, 4
+	for (select_type_case_t *Case = Cases; Case; Case = Case->Next) {
+		| cmp ebx, Case->Type
+		| je =>Case->Body
+	};
+	| mov ebx, [eax]
+	| test ebx, ebx
+	| jnz <1
+	| jmp =>Default
+};
+
+void select_object_inst_t::encode(assembler_t *Assembler) {
+	for (select_object_case_t *Case = Cases; Case; Case = Case->Next) {
+		| cmp ecx, Case->Object
+		| je =>Case->Body
+	};
+	| jmp =>Default
+};
+
+void store_link_inst_t::encode(assembler_t *Assembler) {
+	| mov dword [ebp + Assembler->Temps + 8 * Temp], =>Target
+};
+
+void jump_link_inst_t::encode(assembler_t *Assembler) {
+	| jmp dword [ebp + Assembler->Temps + 8 * Temp]
+};
+
+void test_limit_inst_t::encode(assembler_t *Assembler) {
+	| dec dword [ebp + Assembler->Temps + 8 * Temp]
+	| jle =>Target
+};
+
+void limit_inst_t::encode(assembler_t *Assembler) {
+	| cmp dword VALUE:ecx->Type, Std$Integer$SmallT
+	| jne &incorrect_type
+	| mov ecx, SMALL:ecx->Value
+
+	//| mov edi, Assembler->Temps + 8 * Trap
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+
+	| test ecx, ecx
+	| jle &backtrack
+	| mov [ebp + Assembler->Temps + 8 * Temp], ecx
+};
+
+void skip_inst_t::encode(assembler_t *Assembler) {
+	| cmp dword VALUE:ecx->Type, Std$Integer$SmallT
+	| jne &incorrect_type
+	| mov ecx, SMALL:ecx->Value
+	| mov [ebp + Assembler->Temps + 8 * Temp], ecx
+};
+
+void test_skip_inst_t::encode(assembler_t *Assembler) {
+	| dec dword [ebp + Assembler->Temps + 8 * Temp]
+
+	//| mov edi, Assembler->Temps + 8 * Trap
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+
+	| jns &backtrack
+	| inc dword [ebp + Assembler->Temps + 8 * Temp]
+};
+
+void type_of_inst_t::encode(assembler_t *Assembler) {
+	switch (Type) {
+	case LOAD_VAL: {
+		| mov ecx, VALUE:ecx->Type
+		break;
+	};
+	case LOAD_REF: {
+		| xor edx, edx
+		break;
+	};
+	case LOAD_ARG:
+	case LOAD_BOTH: {
+		| mov ecx, VALUE:ecx->Type
+		| xor edx, edx
+		break;
+	};
+	};
+};
+
+void value_of_inst_t::encode(assembler_t *Assembler) {
+	switch (Type) {
+	case LOAD_VAL: {
+		break;
+	};
+	case LOAD_REF: {
+		| xor edx, edx
+		break;
+	};
+	case LOAD_ARG:
+	case LOAD_BOTH: {
+		| xor edx, edx
+		break;
+	};
+	};
+};
+
+void new_list_inst_t::encode(assembler_t *Assembler) {
+	| push sizeof(Agg$List_t);
+	| call &Riva$Memory$alloc
+	| pop edx
+	| mov dword LIST:eax->Type, Agg$List$T
+	| mov dword LIST:eax->Access, 4
+	| mov [ebp + Assembler->Temps + 8 * Index], eax
+	| mov dword [ebp + Assembler->Temps + 8 * Index + 4], 0
+};
+
+void store_list_inst_t::encode(assembler_t *Assembler) {
+	| mov ebx, ecx
+	| push sizeof(Agg$List_node);
+	| call &Riva$Memory$alloc
+	| pop edx
+	| mov LISTNODE:eax->Value, ebx
+	| mov edx, [ebp + Assembler->Temps + 8 * Index]
+	| inc dword LIST:edx->Length
+	| mov ecx, LIST:edx->Tail
+	| test ecx, ecx
+	| jz >1
+	| mov LISTNODE:eax->Prev, ecx
+	| mov LISTNODE:ecx->Next, eax
+	| jmp >2
+	| 1:
+	| mov LIST:edx->Head, eax
+	| mov LIST:edx->Cache, eax
+	| inc dword LIST:edx->Index
+	| 2:
+	| mov LIST:edx->Tail, eax
+};
+
+void new_table_inst_t::encode(assembler_t *Assembler) {
+	| push 0
+	| push 0
+	| call &Agg$Table$new
+	| add esp, 8
+	| mov [ebp + Assembler->Temps + 8 * Index], eax
+};
+
+void store_table_inst_t::encode(assembler_t *Assembler) {
+	| push dword Std$Object$Nil
+	| push ecx
+	| push dword [ebp + Assembler->Temps + 8 * Index]
+	| call &Agg$Table$insert
+	| add esp, 12
+};
+
+void new_count_inst_t::encode(assembler_t *Assembler) {
+	| push sizeof(Std$Integer_smallt);
+	| call &Riva$Memory$alloc
+	| pop edx
+	| mov dword SMALL:eax->Type, Std$Integer$SmallT
+	| mov [ebp + Assembler->Temps + 8 * Index], eax
+};
+
+void inc_count_inst_t::encode(assembler_t *Assembler) {
+	| mov edx, [ebp + Assembler->Temps + 8 * Index]
+	| inc dword SMALL:edx->Value
+};
+
+void load_code_inst_t::encode(assembler_t *Assembler) {
+	| push sizeof(code_t)
+	| call &Riva$Memory$alloc
+	| pop ecx
+	| mov dword VALUE:eax->Type, CodeT
+	| mov dword CODE:eax->Entry, =>Code
+	| mov dword CODE:eax->Frame, ebp
+	| mov ecx, eax
+	| xor edx, edx
+};
+
+void encode_potential_breakpoint(assembler_t *Assembler, uint32_t LineNo, uint32_t InstType) {
+	debug_function_t *DebugInfo = Assembler->DebugInfo;
+	void *Breakpoints = debug_breakpoints(DebugInfo->Module, LineNo);
+	| test [Breakpoints], byte (1 << LineNo % 8)
+	| jnz >1
+	| mov eax, DSTATE:ebp->Thread
+	| cmp byte THREAD:eax->StepIn, 0
+	| jne >1
+	| cmp ebp, THREAD:eax->StepOverInstance
+	| je >1
+	if (InstType != INSTTYPE_DEFAULT) {
+		| cmp ebp, THREAD:eax->StepOutInstance
+		| je >1
+	}
+	| cmp dword THREAD:eax->RunToModule, dword DebugInfo->Module
+	| jne >3
+	| cmp dword THREAD:eax->RunToLine, dword LineNo
+	| je >1
+	| jmp >3
+	| 1:
+	| push dword LineNo
+	| push ebp
+	| call &debug_break
+	| add esp, 8
+	| 3:
+};

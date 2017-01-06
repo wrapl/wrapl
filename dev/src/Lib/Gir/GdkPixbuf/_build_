@@ -1,0 +1,4 @@
+CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags gdk-pixbuf-2.0"), "-include gdk-pixbuf/gdk-pixbuf.h -include gdk-pixbuf/gdk-pixdata.h")
+LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0"))
+
+detect_modules("Gir/GdkPixbuf")

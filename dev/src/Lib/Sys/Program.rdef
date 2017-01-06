@@ -1,0 +1,28 @@
+library("IO/Socket.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("Args")
+export("Exit")
+export("Break")
+
+if LINUX then
+	library("libpthread.rlib")
+	export("Sleep")
+	export("OnInt")
+	export("OnUrg")
+end
+
+if MACOSX then
+	library("libpthread.rlib")
+	export("Sleep")
+end
+
+if WINDOWS then
+	_export("__Sleep", "Sleep")
+end

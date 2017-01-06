@@ -1,0 +1,33 @@
+MOD Wrapl;
+
+IMP Wrapl.Loader!;
+
+DEF LoadModule! Loader.LoadModule;
+DEF LoadExpr! Loader.LoadExpr;
+
+DEF Build! Loader.Build;
+DEF Image! Loader.Image;
+
+DEF Variadic! MOD
+	DEF T! Loader.VariadicT;
+	DEF New! Loader.VariadicNew;
+	DEF Set! Loader.VariadicSet;
+	DEF Index! Loader.VariadicIndex;
+END;
+
+DEF Session! MOD
+	DEF New! Loader.SessionNew;
+	DEF Def! Loader.SessionDef;
+	DEF Var! Loader.SessionVar;
+	DEF Eval! Loader.SessionEval;
+END;
+
+DEF Exec! MOD
+	DEF New! Loader.ExecNew;
+	DEF Mark! Loader.ExecMark;
+	DEF Jump! Loader.ExecJump;
+END;
+
+DEF ErrorMessageT! Loader.ErrorMessageT;
+
+END Wrapl.
