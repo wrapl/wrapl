@@ -1,0 +1,8 @@
+module("IO", "Terminal")
+if WINDOWS then
+	prefix("_IO$Terminal$")
+else
+	prefix("IO$Terminal$")
+end
+export("In")
+export("Out")

@@ -1,0 +1,14 @@
+module("IO", "Windows")
+if WINDOWS then
+	prefix("_IO$Windows$")
+else
+	prefix("IO$Windows$")
+end
+export("T")
+export("_new")
+export("_register_finalizer")
+export("ReaderT")
+export("WriterT")
+export("SeekerT")
+export("TextReaderT")
+export("TextWriterT")

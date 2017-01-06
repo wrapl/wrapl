@@ -1,0 +1,8 @@
+module("Math", "Random")
+if WINDOWS then
+	prefix("_Math$Random$")
+else
+	prefix("Math$Random$")
+end
+import("T")
+import("_uniform01")

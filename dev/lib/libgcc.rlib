@@ -1,0 +1,6 @@
+if WINDOWS then
+	include("cyggcc_s-1.rlib")
+else
+--	include("libgcc.a")
+	include("libgcc_eh.a")
+end

@@ -1,0 +1,33 @@
+module("Std", "Integer")
+if WINDOWS then
+	prefix("_Std$Integer$")
+else
+	prefix("Std$Integer$")
+end
+export("T")
+export("SmallT")
+export("BigT")
+export("New")
+export("CompareSmall")
+export("Compare")
+export("HashSmall")
+export("HashBig")
+
+export("ToSmallSmall")
+export("MinusOne")
+export("Zero")
+export("One")
+export("_new_small")
+export("_new_big")
+export("_new_string")
+export("_new_string_base")
+export("_alloc_small")
+export("_alloc_big")
+export("_new_u64")
+export("_new_s64")
+export("_get_u64")
+export("_get_s64")
+
+export("_int")
+
+export("New")

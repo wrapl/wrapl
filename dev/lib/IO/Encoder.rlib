@@ -1,0 +1,8 @@
+module("IO", "Encoder")
+if WINDOWS then
+	prefix("_IO$Encoder$")
+else
+	prefix("IO$Encoder$")
+end
+export("T")
+export("_new")

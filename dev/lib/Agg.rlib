@@ -1,0 +1,7 @@
+module("Agg")
+include("Agg/List.rlib")
+include("Agg/Table.rlib")
+include("Agg/TypeTable.rlib")
+include("Agg/ObjectTable.rlib")
+include("Agg/StringTable.rlib")
+include("Agg/IntegerTable.rlib")

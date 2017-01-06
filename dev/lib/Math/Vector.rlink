@@ -1,0 +1,7 @@
+module("Math", "Vector")
+if WINDOWS then
+	prefix("_Math$Vector$")
+else
+	prefix("Math$Vector$")
+end
+import("T")

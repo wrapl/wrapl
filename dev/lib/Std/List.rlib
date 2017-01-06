@@ -1,0 +1,15 @@
+module("Std", "List")
+if WINDOWS then
+	prefix("_Std$List$")
+else
+	prefix("Std$List$")
+end
+export("T")
+export("New")
+export("_new")
+export("_new0")
+export("Make")
+export("_put")
+export("_push")
+export("_pop")
+export("_pull")

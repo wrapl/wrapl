@@ -1,0 +1,17 @@
+module("Agg", "List")
+if WINDOWS then
+	prefix("_Agg$List$")
+else
+	prefix("Agg$List$")
+end
+export("T")
+export("New")
+export("_new")
+export("_new0")
+export("Make")
+export("_empty")
+export("_find_node")
+export("_put")
+export("_push")
+export("_pop")
+export("_pull")

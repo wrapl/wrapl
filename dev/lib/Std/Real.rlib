@@ -1,0 +1,16 @@
+module("Std", "Real")
+if WINDOWS then
+	prefix("_Std$Real$")
+else
+	prefix("Std$Real$")
+end
+export("T")
+export("Hash")
+export("Compare")
+export("New")
+export("Zero")
+export("One")
+export("_new_string")
+export("_new")
+export("_alloc")
+export("_double")

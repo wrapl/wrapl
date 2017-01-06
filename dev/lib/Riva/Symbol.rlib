@@ -1,0 +1,6 @@
+module("Riva", "Symbol")
+if WINDOWS then
+	prefix("_Riva$Symbol$")
+else
+	prefix("Riva$Symbol$")
+end

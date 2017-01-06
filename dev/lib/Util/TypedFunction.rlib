@@ -1,0 +1,8 @@
+module("Util", "TypedFunction")
+if WINDOWS then
+	prefix("_Util$TypedFunction$")
+else
+	prefix("Util$TypedFunction$")
+end
+export("_set")
+export("_get")

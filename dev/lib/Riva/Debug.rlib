@@ -1,0 +1,8 @@
+module("Riva", "Debug")
+if WINDOWS then
+	prefix("_Riva$Debug$")
+else
+	prefix("Riva$Debug$")
+end
+export("Key")
+export("_stack_trace")

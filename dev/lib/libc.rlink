@@ -1,0 +1,6 @@
+include("libc.rlib")
+
+module("libc")
+import("stat")
+import("atexit")
+import("__dso_handle")

@@ -1,0 +1,8 @@
+module("IO", "Decoder")
+if WINDOWS then
+	prefix("_IO$Decoder$")
+else
+	prefix("IO$Decoder$")
+end
+export("T")
+export("_new")

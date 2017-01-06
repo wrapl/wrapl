@@ -1,0 +1,22 @@
+module("Agg", "Table")
+if WINDOWS then
+	prefix("_Agg$Table$")
+else
+	prefix("Agg$Table$")
+end
+export("T")
+export("New")
+export("Make")
+export("_new")
+export("_insert")
+export("_delete")
+export("_index")
+export("_size")
+export("_generation")
+export("_foreach")
+export("_trav_new")
+export("_trav_first")
+export("_trav_next")
+export("_node_key")
+export("_node_value")
+export("_node_value_ref")

@@ -1,0 +1,14 @@
+module("Std", "Address")
+if WINDOWS then
+	prefix("_Std$Address$")
+else
+	prefix("Std$Address$")
+end
+export("T")
+export("Compare")
+export("Hash")
+export("New")
+export("_alloc")
+export("_new")
+export("FromVal")
+export("FromRef")

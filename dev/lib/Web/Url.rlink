@@ -1,0 +1,9 @@
+module("Web", "Url")
+
+if WINDOWS then
+	prefix("_Web$Url$")
+else
+	prefix("Web$Url$")
+end
+
+import("_decode")

@@ -1,0 +1,8 @@
+module("Sys", "Signal")
+if WINDOWS then
+	prefix("_Sys$Signal$")
+else
+	prefix("Sys$Signal$")
+end
+import("T")
+import("SetT")

@@ -1,0 +1,9 @@
+module("Std", "Array")
+if WINDOWS then
+	prefix("_Std$Array$")
+else
+	prefix("Std$Array$")
+end
+export("T")
+export("New")
+export("_new")

@@ -1,0 +1,10 @@
+module("Sys", "Service")
+if WINDOWS then
+	prefix("_Sys$Service$")
+else
+	prefix("Sys$Service$")
+end
+export("T")
+export("_new")
+export("_start")
+export("_get")

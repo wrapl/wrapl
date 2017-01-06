@@ -1,0 +1,8 @@
+module("Util", "Base64")
+if WINDOWS then
+	prefix("_Util$Base64$")
+else
+	prefix("Util$Base64$")
+end
+import("_encode")
+import("_decode")

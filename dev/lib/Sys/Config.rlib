@@ -1,0 +1,8 @@
+module("Sys", "Config")
+if WINDOWS then
+	prefix("_Sys$Config$")
+else
+	prefix("Sys$Config$")
+end
+export("Get")
+export("Set")

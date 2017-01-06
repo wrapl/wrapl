@@ -1,0 +1,30 @@
+module("Alg", "UUID")
+
+export("uuid_clear")
+export("uuid_compare")
+export("uuid_copy")
+export("uuid_generate")
+export("uuid_generate_random")
+export("__uuid_generate_random")
+export("uuid_generate_time_safe")
+export("uuid_generate_time")
+export("__uuid_generate_time")
+export("uuid_is_null")
+export("uuid_pack")
+export("uuid_parse")
+export("uuid_unpack")
+export("uuid_unparse")
+export("uuid_unparse_upper")
+export("uuid_unparse_lower")
+export("uuid_variant")
+export("uuid_type")
+export("uuid_time")
+export("random_get_bytes")
+export("random_get_fd")
+
+if WINDOWS then
+	prefix("_Alg$UUID$")
+else
+	prefix("Alg$UUID$")
+end
+export("T")

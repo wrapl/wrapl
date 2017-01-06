@@ -1,0 +1,10 @@
+module("Agg", "TypeTable")
+if WINDOWS then
+	prefix("_Agg$TypeTable$")
+else
+	prefix("Agg$TypeTable$")
+end
+export("T")
+export("_init")
+export("_get")
+export("_put")

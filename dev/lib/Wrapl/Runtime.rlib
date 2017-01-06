@@ -1,0 +1,14 @@
+module("Wrapl", "Runtime")
+if WINDOWS then
+	prefix("_Wrapl$Runtime$")
+else
+	prefix("Wrapl$Runtime$")
+end
+
+export("WraplT")
+export("_run_state")
+export("_send_message")
+export("_resend_message")
+export("_invoke_function")
+export("_backtrack")
+export("CreateStringBlock")

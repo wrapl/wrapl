@@ -1,0 +1,7 @@
+module("Stat", "Dist")
+if WINDOWS then
+	prefix("_Stat$Dist$")
+else
+	prefix("Stat$Dist$")
+end
+import("T")

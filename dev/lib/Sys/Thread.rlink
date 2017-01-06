@@ -1,0 +1,45 @@
+module("Sys", "Thread")
+if WINDOWS then
+	prefix("_Sys$Thread$")
+else
+	prefix("Sys$Thread$")
+end
+import("T")
+import("New")
+import("Self")
+import("Kill")
+import("Return")
+import("Fail")
+import("Send")
+import("Sleep")
+
+import("MutexT")
+import("MutexNew")
+import("MutexLock")
+import("MutexTryLock")
+import("MutexUnlock")
+
+import("KeyT")
+import("KeyNew")
+import("KeyGet")
+import("KeySet")
+
+import("CondT")
+import("CondNew")
+import("CondWait")
+import("CondSignal")
+import("CondBroadcast")
+
+import("RWLockT")
+import("RWLockNew")
+import("RWLockRdLock")
+import("RWLockWrLock")
+import("RWLockUnlock")
+
+import("QueueT")
+import("QueueNew")
+import("QueuePush")
+import("QueuePut")
+import("QueuePop")
+import("QueuePeek")
+import("QueueLength")

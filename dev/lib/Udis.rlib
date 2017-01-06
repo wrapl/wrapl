@@ -1,0 +1,11 @@
+module("libudis")
+
+export("ud_disassemble")
+export("ud_insn_off")
+export("ud_insn_asm")
+export("ud_set_syntax")
+export("ud_translate_intel")
+export("ud_set_pc")
+export("ud_set_mode")
+export("ud_set_input_buffer")
+export("ud_init")

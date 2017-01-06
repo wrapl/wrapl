@@ -1,0 +1,7 @@
+module("IO", "Socket")
+if WINDOWS then
+	prefix("_IO$Socket$")
+else
+	prefix("IO$Socket$")
+end
+export("T")

@@ -1,0 +1,15 @@
+module("Sys", "Module")
+if WINDOWS then
+	prefix("_Sys$Module$")
+else
+	prefix("Sys$Module$")
+end
+export("T")
+export("_import")
+export("_export")
+export("_load")
+export("_new")
+export("_get_path")
+export("_set_path")
+export("FromVal")
+export("FromRef")

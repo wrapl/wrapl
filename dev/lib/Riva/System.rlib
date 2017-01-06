@@ -1,0 +1,9 @@
+module("Riva", "System")
+if WINDOWS then
+	prefix("_Riva$System$")
+else
+	prefix("Riva$System$")
+end
+export("_Args")
+export("_NoOfArgs")
+export("_get_errno")

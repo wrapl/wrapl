@@ -1,0 +1,23 @@
+module("Riva", "Module")
+if WINDOWS then
+	prefix("_Riva$Module$")
+else
+	prefix("Riva$Module$")
+end
+export("_load")
+export("_load_file")
+export("_get_path")
+export("_get_name")
+export("_import")
+export("_lookup")
+export("_new")
+export("_add_alias")
+export("_set_path")
+export("_export")
+export("_add_directory")
+export("_add_loader")
+export("_set_import_func")
+export("_get_default_provider")
+export("_set_version")
+export("_get_version")
+export("_load_symbol")

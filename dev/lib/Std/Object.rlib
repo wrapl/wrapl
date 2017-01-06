@@ -1,0 +1,16 @@
+module("Std", "Object")
+if WINDOWS then
+	prefix("_Std$Object$")
+else
+	prefix("Std$Object$")
+end
+export("T")
+export("Nil")
+export("New")
+export("Create")
+export("Less")
+export("Equal")
+export("Greater")
+export("Compare")
+export("Hash")
+export("_in")

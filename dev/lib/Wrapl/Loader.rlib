@@ -1,0 +1,12 @@
+module("Wrapl", "Loader")
+if WINDOWS then
+	prefix("_Wrapl$Loader$")
+else
+	prefix("Wrapl$Loader$")
+end
+export("SessionNew")
+export("SessionEval")
+export("ErrorMessageT")
+export("Build")
+export("_enable_debug")
+export("_disable_debug")

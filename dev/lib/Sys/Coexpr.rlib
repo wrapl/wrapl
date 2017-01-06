@@ -1,0 +1,10 @@
+module("Sys", "Coexpr")
+if WINDOWS then
+	prefix("_Sys$Coexpr$")
+else
+	prefix("Sys$Coexpr$")
+end
+export("T")
+export("New")
+export("Self")
+export("Yield")

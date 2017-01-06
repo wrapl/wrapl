@@ -1,0 +1,14 @@
+module("Std", "Rational")
+if WINDOWS then
+	prefix("_Std$Rational$")
+else
+	prefix("Std$Rational$")
+end
+export("T")
+export("New")
+export("_alloc")
+export("_new")
+export("_new_string")
+export("_new_small_small")
+export("Hash")
+export("Compare")

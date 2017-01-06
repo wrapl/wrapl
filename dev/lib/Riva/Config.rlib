@@ -1,0 +1,8 @@
+module("Riva", "Config")
+if WINDOWS then
+	prefix("_Riva$Config$")
+else
+	prefix("Riva$Config$")
+end
+export("_get")
+export("_set")

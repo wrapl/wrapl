@@ -1,0 +1,7 @@
+module("IO", "File")
+if WINDOWS then
+	prefix("_IO$File$")
+else
+	prefix("IO$File$")
+end
+export("_open")

@@ -1,0 +1,10 @@
+module("IO", "Poll")
+if WINDOWS then
+	prefix("_IO$Poll$")
+else
+	prefix("IO$Poll$")
+end
+export("T")
+export("_add")
+export("_mod")
+export("_del")
