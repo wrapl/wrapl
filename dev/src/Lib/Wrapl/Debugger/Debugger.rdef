@@ -1,0 +1,15 @@
+library("Wrapl/Loader.rlib")
+library("Agg/Table.rlib")
+library("Agg/List.rlib")
+library("Sys/Service.rlib")
+library("libpthread.rlib")
+require("Gtk/Gtk/Init")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("Break")

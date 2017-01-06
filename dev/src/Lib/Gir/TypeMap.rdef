@@ -1,0 +1,13 @@
+library("Agg/StringTable.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Alias)
+		if Alias == nil then
+			Alias = Name
+		end
+		_export("_" .. Name, Alias)
+	end
+end
+
+export("Table")

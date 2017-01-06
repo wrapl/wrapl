@@ -1,0 +1,182 @@
+MOD Xml;
+
+IMP Std USE String, Symbol, Address;
+IMP Agg USE List, Table;
+IMP IO.File, IO.Stream, IO.Escaped;
+IMP Xml.Parser;
+
+DEF SpecialChars ["<", ">", "&", "\"", "\'"];
+DEF HtmlEntities ["&lt;", "&gt;", "&amp;", "&quot;", "&apos;"];
+
+DEF EscapeMap! Escaped.MapNew({
+	"<" IS "&lt;",
+	">" IS "&gt;",
+	"&" IS "&amp;",
+	"\"" IS "&quot;",
+	"\'" IS "&apos;"
+});
+
+DEF NoText! 1;
+
+DEF NodeT! <[] parent, tag, attrs, content>;
+
+DEF New! :?;
+
+METH New(tag @ Symbol.T) NodeT(NIL, tag, {}, []);
+METH New(tag @ Symbol.T, attrs @ Table.T) NodeT(NIL, tag, attrs, []);
+METH New(tag @ Symbol.T, attrs @ Table.T, content @ List.T) NodeT(NIL, tag, attrs, content);
+METH New(xml @ String.T) IS LoadString;
+
+DEF AppendNew(parent, child) (
+	child:parent <- parent;
+	parent:content:put(child);
+	RET child;
+);
+
+METH New(parent @ NodeT, tag @ Symbol.T) AppendNew(parent, NodeT(NIL, tag, {}, []));
+METH New(parent @ NodeT, tag @ Symbol.T, attrs @ Table.T) AppendNew(parent, NodeT(NIL, tag, attrs, []));
+METH New(parent @ NodeT, tag @ Symbol.T, attrs @ Table.T, content @ List.T) AppendNew(parent, NodeT(NIL, tag, attrs, content));
+METH New(parent @ NodeT, xml @ String.T) AppendNew(parent, LoadString(xml));
+
+METH :append(node+ @ NodeT, child @ NodeT) (
+	(NIL ~== child:parent):content:remove(child);
+	child:parent <- node;
+	node:content:put(child);
+	RET node;
+);
+
+METH :prepend(node+ @ NodeT, child @ NodeT) (
+	(NIL ~== child:parent):content:remove(child);
+	child:parent <- node;
+	node:content:push(child);
+	RET node;
+);
+
+METH :append(node+ @ NodeT, text @ String.T) (
+	node:content:put(text);
+	RET node;
+);
+
+METH :prepend(node+ @ NodeT, text @ String.T) (
+	node:content:push(text);
+	RET node;
+);
+
+METH :detach(node+ @ NodeT) node:parent:content:remove(node);
+
+METH :"@"(node @ NodeT, =String.T) (
+	VAR s <- "<" + node:tag @ String.T;
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{(v @ String.T):map(SpecialChars, HtmlEntities)}"';
+	node:content:length = 0 => RET s + "/>";
+	s <- s + ">";
+	VAR child; EVERY child <- node:content:values DO (
+		?child == String.T => (
+			s <- s + child:map(SpecialChars, HtmlEntities);
+		) // (
+			s <- s + child @ String.T;
+		);
+	);
+	s <- '{s}</{node:tag}>';
+	RET s;
+);
+
+METH :write(s @ Stream.T, node @ NodeT) (
+	s:write("<" + node:tag @ String.T);
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{(v @ String.T):map(SpecialChars, HtmlEntities)}"');
+	node:content:length = 0 => RET s:write("/>");
+	s:write(">");
+	VAR child; EVERY child <- node:content:values DO (
+		?child == String.T => (
+			s:write(child:map(SpecialChars, HtmlEntities));
+		) // (
+			s:write(child);
+		);
+	);
+	RET s:write('</{node:tag}>');
+);
+
+METH :"."(node @ NodeT, attr) node:attrs[attr];
+
+METH :"[]"(node+ @ NodeT) EVERY SUSP node:content:values \ ?$ == NodeT;
+
+METH :"[]"(node+ @ NodeT, tag @ Symbol.T) EVERY SUSP node:content:values \ (?$ == NodeT & $:tag == tag);
+
+METH :"[]"(node+ @ NodeT, tag @ Symbol.T, attrs @ Table.T) (
+	VAR child, value;
+	EVERY child <- node[tag] DO (child:attrs[attrs:keys(value)] ~= value) // SUSP child;
+);
+
+METH :"[]"(node+ @ NodeT, tag @ Symbol.T, filter) EVERY SUSP node:content:values \ (?$ == NodeT & $:tag == tag & filter($));
+
+METH :text(node @ NodeT) (
+	VAR s <- "";
+	EVERY s <- s + (node:content:values \ ?$ == String.T);
+	RET s;
+);
+
+DEF Find(node+, filter) (
+	filter(node) => SUSP node;
+	?node == NodeT => EVERY SUSP Find(node:content:values \ ?$ == NodeT, filter);
+);
+
+METH :find(node @ NodeT, filter) IS Find;
+
+DEF Loader! MOD
+	DEF New!(flags) (
+		VAR parser <- Parser.New();
+		(NIL == flags) <- 0;
+		parser:userdata <- NIL;
+		parser:onstartelement <- <node+, tag, attrs> (
+			VAR child <- NodeT(node, tag, attrs, []);
+			(NIL ~== node):content:put(child);
+			node <- child;
+		);
+		parser:onendelement <- <node+, tag> (
+			node <- NIL ~== node:parent;
+		);
+		flags:covers(NoText) // (
+			parser:oncharacterdata <- <node+, data> (
+				VAR content <- node:content;
+				((content[-1] \ ?$ == String.T) <- $ + data) // content:put(data);
+			);
+		);
+		RET parser;
+	);
+END;
+
+DEF Load! :?;
+
+METH Load(@Stream.ReaderT) IS <stream, flags> (
+	VAR loader <- Loader.New(flags);
+	stream:copy(loader);
+	loader:finish;
+	RET loader:userdata;
+);
+
+METH Load(@String.T) IS <string, flags> (
+	VAR loader <- Loader.New(flags);
+	loader:write(string);
+	loader:finish;
+	RET loader:userdata;
+);
+
+DEF LoadFile!(filename, flags) (
+	VAR file <- File.Open(filename, File.Flag.Read);
+	VAR parser <- Loader.New(flags);
+	REP WHILE parser:parse(file:read(128));
+	parser:finish;
+	file:close;
+	RET parser:userdata;
+);
+
+DEF LoadString!(string, flags) (
+	VAR parser <- Loader.New(flags);
+	VAR i; EVERY i <- 1:to(string:length + 1, 128) DO parser:parse(string[i, i + 128]);
+	parser:parse(string[i, 0]);
+	parser:finish;
+	RET parser:userdata;
+);
+
+DEF Escape!(text) text:any("<>&'\"") => text:map(SpecialChars, HtmlEntities) // text;
+
+END Xml.

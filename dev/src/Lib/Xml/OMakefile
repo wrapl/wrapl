@@ -1,0 +1,13 @@
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Agg.rlib Riva.rlib
+
+if $(equal $(OSTYPE), Unix)
+	LDFLAGS += libexpat.rlib
+	export
+
+if $(equal $(OSTYPE), Cygwin)
+	LDFLAGS += /usr/lib/libexpat.a
+	export
+
+RivaModule(Xml/Parser, Parser)
+WraplModule(Xml, Xml)

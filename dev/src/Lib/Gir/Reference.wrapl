@@ -1,0 +1,135 @@
+MOD Reference;
+
+IMP Std.Integer;
+IMP .Type;
+IMP .Common USE BlockT;
+
+DEF T <- <[Type.T]
+    base, ctype,
+    headers, libraries
+>;
+
+DEF RefT! <- <[T]>;
+
+DEF RefNew!(base) (
+	base <- Type.Lookup(base);
+    VAR type <- RefT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :rtype(type@RefT) "Std$Address$T";
+
+TO :riva_to_c(type@RefT, in, out, tmp) [
+	'{out} = ({type:ctype})Std$Address$get_value({in});'
+];
+
+TO :c_to_riva(type@RefT, in, out, tmp) [
+	'{out} = Std$Address$new({in});'
+];
+
+DEF OutT! <- <[T]>;
+
+DEF OutNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- OutT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :signature(type@OutT) "ANY";
+
+TO :c_precall(type@OutT, argindex, paramindex) [
+    '{type:base:ctype} param{paramindex}_value;',
+    'memset(&param{paramindex}_value, 0, sizeof(param{paramindex}_value));',
+    '{type:base:ctype} *param{paramindex} = Args[{argindex}].Ref ? &param{paramindex}_value : 0;'
+];
+
+TO :c_postcall(type@OutT, argindex, paramindex) [
+    'if (Args[{argindex}].Ref) \{'
+] + (ALL '\t' + type:base:c_to_riva('param{paramindex}_value', 'Args[{argindex}].Ref[0]', 'postcall{paramindex}'):values) + [
+    '};'
+];
+
+TO :riva_precall(type@OutT, argindex, paramindex) [
+    'Params[{paramindex}].Val = Std$Object$Nil;',
+    'Params[{paramindex}].Ref = &Params[{paramindex}].Val;'
+];
+
+TO :riva_postcall(type@OutT, argindex, paramindex)
+    type:base:riva_to_c('Params[{paramindex}].Val', 'arg{argindex}[0]', 'postcall{paramindex}');
+
+DEF InOutT! <- <[T]>;
+
+DEF InOutNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- InOutT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :signature(type@InOutT) "TYP, " + type:base:rtype;
+
+TO :c_precall(type@InOutT, argindex, paramindex) [
+    '{type:base:ctype} param{paramindex}_value;',
+    '{type:base:ctype} *param{paramindex} = &param{paramindex}_value;'
+] + type:base:riva_to_c('Args[{argindex}].Val', 'param{paramindex}_value', 'precall{paramindex}');
+
+TO :c_postcall(type@InOutT, argindex, paramindex)
+    type:base:c_to_riva('param{paramindex}_value', 'Args[{argindex}].Ref[0]', 'postcall{paramindex}');
+
+TO :riva_precall(type@InOutT, argindex, paramindex)
+    type:base:c_to_riva('arg{argindex}[0]', 'Params[{paramindex}].Val', 'precall{paramindex}') +
+    ['Params[{paramindex}].Ref = &Params[{paramindex}].Val;'];
+
+TO :riva_postcall(type@InOutT, argindex, paramindex)
+    type:base:riva_to_c('Params[{paramindex}].Val', 'arg{argindex}[0]', 'postcall{paramindex}');
+
+DEF ReturnT! <- <[T]>;
+
+DEF ReturnNew!(base) (
+	base <- Type.Lookup(base);
+    VAR type <- ReturnT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :ctype(type@ReturnT) "int";
+TO :rtype(type@ReturnT) FAIL;
+
+TO :c_argcount(type@ReturnT) 0;
+TO :c_precall(type@ReturnT, argindex, paramindex) [
+    '{type:base:ctype} param{paramindex}_value;',
+    'memset(&param{paramindex}_value, 0, sizeof(param{paramindex}_value));',
+    '{type:base:ctype} *param{paramindex} = &param{paramindex}_value;'
+];
+
+DEF ParamT! <- <[Type.T] base, index>;
+
+DEF ParamNew!(base) (
+	VAR index <- base:before(":") @ Integer.T;
+	base <- Type.Lookup(base:after(":"));
+    VAR type <- ParamT();
+    type:index <- index;
+    type:base <- base;
+    RET type;
+);
+
+TO :ctype(type@ParamT) "void";
+TO :rtype(type@ParamT) FAIL;
+
+TO :c_return(type@ParamT) type:base:c_to_riva('param{type:index}_value', "Result->Val", "return");
+
+END Reference.

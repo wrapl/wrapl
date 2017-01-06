@@ -1,0 +1,119 @@
+MOD Object;
+
+IMP .Type, .API;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    parent, interfaces,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF S! <- <[Type.T]
+    namespace, name,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:parent <- parent;
+    type:interfaces <- [];
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gir${namespace}${name}$T';
+    type:headers <- {'Gir/{namespace}/{name}.h', 'Gir/GObject/Riva.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib', 'Gir/GObject/Riva.rlib'};
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    VAR struct <- S();
+    struct:namespace <- namespace;
+    struct:name <- name;
+    struct:cname <- cname;
+    struct:ctype <- cname;
+    struct:rtype <- 'Gir${namespace}${name}$T';
+    struct:headers <- {'Gir/{namespace}/{name}.h'};
+    struct:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('!{namespace}.{name}', struct);
+    
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gir$GObject$Object$t *){in})->Handle;'];
+TO :c_to_riva(type@T, in, out, tmp) ['{out} = Gir$GObject$Riva$object_to_riva({in});'];
+
+VAR gobject <- New("GObject", "Object", "GObject", NIL);
+
+TO :parents(type@T) (
+	DEF fakeparents <- {NIL, "GInitiallyUnowned", "GObject"};
+	VAR parent <- type:parent;
+	VAR interface;
+	REP (UNTIL fakeparents[parent];
+		parent <- Type.Lookup(parent);
+		SUSP parent;
+		EVERY interface <- parent:interfaces:values DO (
+			interface IN type:interfaces // type:interfaces:put(interface);
+		);
+		parent <- parent:parent;
+	);
+	RET gobject;
+);
+
+TO :base_headers(type@T) (
+    VAR h <- {};
+    EVERY h:insert(type:parents:headers:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):headers:keys);
+    RET h;
+);
+
+TO :base_libraries(type@T) (
+    VAR h <- {};
+    EVERY h:insert(type:parents:libraries:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):libraries:keys);
+    RET h;
+);
+
+TO :generate_c(type@T) (
+    VAR r <- [""];
+    VAR line <- "TYPE(T";
+    EVERY line <- line + ', {type:parents:rtype}';
+    EVERY line <- line + ', {Type.Lookup(type:interfaces:values):rtype}';
+    r:put(line + ");");
+    r:put('//  <external path="{API.GetType(type:cname)}"/>');
+    r:put("");
+    r:put("GLOBAL(T, Gir$GObject$Object$t, Nil)[] = {{T, 0}};");
+    RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gir${type:namespace}${type:name}$t \{',
+    '\tStd$Type$t *Type;',
+    '\tGObject *Handle;',
+    '} Gir${type:namespace}${type:name}$t;',
+    '',
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];',
+    'extern Gir${type:namespace}${type:name}$t Gir${type:namespace}${type:name}$Nil[];'
+];
+
+TO :generate_rdef(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :c_to_riva(type@S, in, out, tmp) ['{out} = Gir$GObject$Riva$object_to_riva(&{in});'];
+
+END Object.

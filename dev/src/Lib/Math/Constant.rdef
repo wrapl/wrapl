@@ -1,0 +1,15 @@
+if WINDOWS then
+	_export = export
+	export = function(Internal, External)
+		if External == nil then
+			External = Internal
+		end
+		_export("_" .. Internal, External)
+	end
+end
+
+export("Pi")
+export("E")
+export("Infinity")
+export("E", "ℯ")
+export("Pi", "π")

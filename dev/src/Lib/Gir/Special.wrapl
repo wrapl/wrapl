@@ -1,0 +1,202 @@
+MOD Special;
+
+IMP IO.Terminal USE Out;
+IMP .Common, .Class, .Struct, .Opaque, .Callback;
+
+DEF New!(namespace, name+, cname) (
+	DEF Specials <- {
+		-="GtkInit_" IS GtkInitNew,
+		"GdkEvent_" IS GdkEventNew,
+		"GMenuTreeItem" IS GMenuTreeItemNew,
+		"VteIsSelectedFunc" IS VteIsSelectedFuncNew,
+		"ClutterInit_" IS ClutterInitNew,
+		"GdomeDOMString" IS GdomeDOMStringNew,
+		"xmlNode" IS xmlNodeNew=-
+	};
+	name:begins("GtkSource") ⇒ (name ← $[10, 0]; FAIL);
+	VAR fn <- Specials[cname] | FAIL;
+	RET fn(namespace, name, cname);
+);
+
+DEF ItemT! <- <[Common.ItemT]
+    headers, libraries,
+    generate_c,
+    generate_rdef,
+    generate_h,
+    generate_rlib
+>;
+
+DEF GtkInitNew(namespace, name, cname) (
+    VAR type <- Class.New(namespace, name, cname);
+    VAR init <- ItemT();
+    init:headers <- {'Sys/Service.h'};
+    init:libraries <- {'Sys/Service.rlib'};
+    init:generate_c <- [
+		"INITIAL() {",
+		'\tSys$Service$t *Service = Sys$Service$new("gtk");',
+		"\tif (Service) {",
+		"\t\tgtk_init(0, 0);",
+		"\t\tSys$Service$start(Service, Std$Object$Nil);",
+		"\t};",
+		"};"
+    ];
+	init:generate_rdef <- [
+		'require("Gtk/Gdk/Init");'
+	];
+    init:generate_h <- [];
+    init:generate_rlib <- [];
+    type:items:put(init);
+    RET type;
+);
+
+DEF GdkEventNew(namespace, name, cname) (
+    VAR type <- Struct.New(namespace, name, "GdkEvent");
+    type:items:put(Common.FieldNew("name", "cname", "type", type));
+    type:items:put(Common.FieldNew("Any", "any", "GdkEventAny", type));
+    type:items:put(Common.FieldNew("Expose", "expose", "GdkEventExpose", type));
+    type:items:put(Common.FieldNew("NoExpose", "no_expose", "GdkEventNoExpose", type));
+    type:items:put(Common.FieldNew("Visibility", "visibility", "GdkEventVisibility", type));
+    type:items:put(Common.FieldNew("Motion", "motion", "GdkEventMotion", type));
+    type:items:put(Common.FieldNew("Button", "button", "GdkEventButton", type));
+    type:items:put(Common.FieldNew("Scroll", "scroll", "GdkEventScroll", type));
+    type:items:put(Common.FieldNew("Key", "key", "GdkEventKey", type));
+    type:items:put(Common.FieldNew("Crossing", "crossing", "GdkEventCrossing", type));
+    type:items:put(Common.FieldNew("Focus", "focus_change", "GdkEventFocusChange", type));
+    type:items:put(Common.FieldNew("Configure", "configure", "GdkEventConfigure", type));
+    type:items:put(Common.FieldNew("Property", "property", "GdkEventProperty", type));
+    type:items:put(Common.FieldNew("Selection", "selection", "GdkEventSelection", type));
+    type:items:put(Common.FieldNew("OwnerChange", "owner_change", "GdkEventOwnerChange", type));
+    type:items:put(Common.FieldNew("Proximity", "proximity", "GdkEventProximity", type));
+    type:items:put(Common.FieldNew("Client", "client", "GdkEventClient", type));
+    type:items:put(Common.FieldNew("DND", "dnd", "GdkEventDND", type));
+    type:items:put(Common.FieldNew("WindowState", "window_state", "GdkEventWindowState", type));
+    type:items:put(Common.FieldNew("Setting", "setting", "GdkEventSetting", type));
+    type:items:put(Common.FieldNew("GrabBroken", "grab_broken", "GdkEventGrabBroken", type));
+    type:items:put(Common.FieldNew("Type", "type", "GdkEventType", type));
+    RET type;
+);
+
+DEF GMenuTreeItemNew(namespace, name, cname) (
+    VAR type <- Opaque.New(namespace, name, cname);
+    type:headers:insert('Gtk/Gnome/GMenuTreeEntry.h');
+    type:headers:insert('Gtk/Gnome/GMenuTreeDirectory.h');
+    type:headers:insert('Gtk/Gnome/GMenuTreeAlias.h');
+    type:libraries:insert('Gtk/Gnome/GMenuTreeEntry.rlib');
+    type:libraries:insert('Gtk/Gnome/GMenuTreeDirectory.rlib');
+    type:libraries:insert('Gtk/Gnome/GMenuTreeAlias.rlib');
+    TO :c_to_riva(=type, in, out, tmp) [
+	'Gtk$Gnome$GMenuTreeItem$t *{tmp}_value = new(Gtk$Gnome$GMenuTreeItem$t);',
+	'switch (gmenu_tree_item_get_type({in})) \{',
+	'case GMENU_TREE_ITEM_ENTRY:',
+	'\t{tmp}_value->Type = Gtk$Gnome$GMenuTreeEntry$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'case GMENU_TREE_ITEM_DIRECTORY:',
+	'\t{tmp}_value->Type = Gtk$Gnome$GMenuTreeDirectory$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'case GMENU_TREE_ITEM_ALIAS:',
+	'\t{tmp}_value->Type = Gtk$Gnome$GMenuTreeAlias$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'default:',
+	'\t{tmp}_value->Type = Gtk$Gnome$GMenuTreeItem$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'};',
+	'{out} = {tmp}_value;'
+    ];
+    RET type;
+);
+
+DEF VteIsSelectedFuncNew(namespace, name, cname) (
+	VAR type <- Callback.New(namespace, name, cname);
+	TO :generate_h(=type) [
+		"typedef gboolean (*VteIsSelectedFunc)(VteTerminal *, glong, glong, gpointer);",
+		"",
+		"typedef struct {",
+		"\tStd$Function_ct _Base;",
+		'\t{type:ctype} _function',
+		'} Gtk${type:namespace}${type:name}$t;',
+		"",
+	    'extern Std$Type$t Gtk${type:namespace}${type:name}$T[];',
+	    '',
+	    'RIVA_CFUN({type:ctype}, new, int);',
+	    'RIVA_CFUN(void, invoke, void);'
+	];
+	RET type;
+);
+
+DEF ClutterInitNew(namespace, name, cname) (
+    VAR type <- Class.New(namespace, name, cname);
+    VAR init <- ItemT();
+    init:headers <- {};
+    init:libraries <- {};
+    init:generate_c <- [
+		"INITIAL() {",
+		"\tclutter_init(0, 0);",
+		"};"
+    ];
+	init:generate_rdef <- [
+		'require("Gtk/GObject/Init");'
+	];
+    init:generate_h <- [];
+    init:generate_rlib <- [];
+    type:items:put(init);
+    RET type;
+);
+
+DEF GdomeDOMStringNew(namespace, name, cname) (
+	VAR type <- Struct.New(namespace, name, cname);
+	type:rtype <- "Std$String$T";
+	TO :riva_to_c(=type, in, out, tmp) [
+		'{out} = {in} == Std$String$Nil ? 0 : gdome_str_mkref(Std$String$flatten({in}));'
+	];
+	TO :c_to_riva(=type, in, out, tmp) [
+		'{out} = Std$String$new({in}->str);'
+	];
+	TO :c_precall(=type, argindex, paramindex) [
+		'{type:ctype} param{paramindex} = Args[{argindex}].Val == Std$String$Nil ? 0 : gdome_str_mkref(Std$String$flatten(Args[{argindex}].Val));'
+	];
+	TO :c_postcall(=type, argindex, paramindex) [
+		'if (param{paramindex}) gdome_str_unref(param{paramindex});'
+	];
+	RET type;
+);
+
+DEF xmlNodeNew(namespace, name, cname) (
+	VAR type <- Struct.New(namespace, name, cname);
+	type:headers:insert('Gtk/Xml/Element.h');
+	type:headers:insert('Gtk/Xml/Attr.h');
+	type:headers:insert('Gtk/Xml/Doc.h');
+	type:libraries:insert('Gtk/Xml/Element.rlib');
+	type:libraries:insert('Gtk/Xml/Attr.rlib');
+	type:libraries:insert('Gtk/Xml/Doc.rlib');
+	TO :c_to_riva(=type, in, out, tmp) [
+	'Gtk$Xml$Node$t *{tmp}_value = new(Gtk$Xml$Node$t);',
+	'if ({in} == 0) \{',
+	'\t{tmp}_value->Type = Gtk$Xml$Node$T;',
+	'} else switch ({in}->type) \{',
+	'case XML_ELEMENT_NODE:',
+	'\t{tmp}_value->Type = Gtk$Xml$Element$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'case XML_ATTRIBUTE_NODE:',
+	'\t{tmp}_value->Type = Gtk$Xml$Attr$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'case XML_DOCUMENT_NODE:',
+	'\t{tmp}_value->Type = Gtk$Xml$Doc$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'default:',
+	'\t{tmp}_value->Type = Gtk$Xml$Node$T;',
+	'\t{tmp}_value->Value = {in};',
+	'\tbreak;',
+	'};',
+	'{out} = {tmp}_value;'
+    ];
+    RET type;
+);
+
+END Special.

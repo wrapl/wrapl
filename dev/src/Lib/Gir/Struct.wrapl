@@ -1,0 +1,187 @@
+MOD Struct;
+
+IMP .Type, .Common, .API;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries,
+    parent, interfaces
+>;
+
+DEF S! <- <[Type.T]
+    namespace, name,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gir${namespace}${name}$T';
+    type:headers <- {'Gir/{namespace}/{name}.h', 'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib', 'Gir/{namespace}/{name}.rlib'};
+    type:parent <- parent;
+    type:interfaces <- [];
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    type:items:put(Common.InitializerNew("_Alloc", type));
+
+    VAR struct <- S();
+    struct:namespace <- namespace;
+    struct:name <- name;
+    struct:cname <- cname;
+    struct:ctype <- cname;
+    struct:rtype <- 'Gir${namespace}${name}$T';
+    struct:headers <- {'Gir/{namespace}/{name}.h'};
+    struct:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('!{namespace}.{name}', struct);
+
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gir${type:namespace}${type:name}$t *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) [
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {in};',
+    '{out} = {tmp}_value;'
+];
+
+-=
+TO :c_to_riva(type@T, in, out, tmp) [
+    '{type:ctype} {tmp}_ptr = Riva$Memory$alloc(sizeof({type:cname}));',
+    '{tmp}_ptr[0] = {in}[0];',
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {tmp}_ptr;',
+    '{out} = {tmp}_value;'
+];
+=-
+
+TO :parents(type@T) (
+	DEF fakeparents <- {NIL};
+	VAR parent <- type:parent;
+	VAR interface;
+	REP (UNTIL fakeparents[parent];
+		parent <- Type.Lookup(parent);
+		SUSP parent;
+		EVERY interface <- parent:interfaces:values DO (
+			interface IN type:interfaces // type:interfaces:put(interface);
+		);
+		parent <- parent:parent;
+	);
+	FAIL;
+);
+
+TO :base_headers(type@T) (
+    VAR h <- type:headers:copy;
+    EVERY h:insert(type:parents:headers:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):headers:keys);
+    RET h;
+);
+
+TO :base_libraries(type@T) (
+    VAR h <- type:libraries:copy;
+    EVERY h:insert(type:parents:libraries:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):libraries:keys);
+    RET h;
+);
+
+TO :generate_c(type@T) (
+    VAR r <- [""];
+    VAR line <- "TYPE(T";
+    EVERY line <- line + ', {type:parents:rtype}';
+    EVERY line <- line + ', {Type.Lookup(type:interfaces:values):rtype}';
+    r:put(line + ");");
+    r:put('//  <external path="{API.GetType(type:cname)}"/>');
+    r:put("");
+    r:put('GLOBAL(T, Gir${type:namespace}${type:name}$t, Nil)[] = \{\{T, 0}};');
+    WITH item <- type:items:values \ (?$ == Common.FunctionT & $:name = "GetType" & $:type = "GType" & $:params:length = 0) DO (
+		r:push("#include <Util/TypedFunction.h>", "#include <Gir/GObject/Value.h>");
+		r:put("",
+			'TYPED_INSTANCE(void, Gir$GObject$Value$to_value, T, Gir${type:namespace}${type:name}$t const *Source, GValue *Dest) \{',
+			'\tg_value_init(Dest, {item:cname}());',
+			'\tg_value_set_boxed(Dest, Source->Value);',
+			"}"
+		);
+	);
+	r:put("");
+	r:put('METHOD("=", TYP, T, TYP, T) \{');
+	r:put('\tGir${type:namespace}${type:name}$t *A = (Gir${type:namespace}${type:name}$t *)Args[0].Val;');
+	r:put('\tGir${type:namespace}${type:name}$t *B = (Gir${type:namespace}${type:name}$t *)Args[1].Val;');
+	r:put('\tif (A->Value == B->Value) \{');
+	r:put('\t\tResult->Arg = Args[1];');
+	r:put('\t\treturn SUCCESS;');
+	r:put('\t} else \{');
+	r:put('\t\treturn FAILURE;');
+	r:put('\t};');
+	r:put('};');
+	r:put('');
+	r:put('METHOD("~=", TYP, T, TYP, T) \{');
+	r:put('\tGir${type:namespace}${type:name}$t *A = (Gir${type:namespace}${type:name}$t *)Args[0].Val;');
+	r:put('\tGir${type:namespace}${type:name}$t *B = (Gir${type:namespace}${type:name}$t *)Args[1].Val;');
+	r:put('\tif (A->Value != B->Value) \{');
+	r:put('\t\tResult->Arg = Args[1];');
+	r:put('\t\treturn SUCCESS;');
+	r:put('\t} else \{');
+	r:put('\t\treturn FAILURE;');
+	r:put('\t};');
+	r:put('};');
+	RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gir${type:namespace}${type:name}$t \{',
+    '\tStd$Type$t *Type;',
+    '\t{type:ctype} Value;',
+    '} Gir${type:namespace}${type:name}$t;',
+    '',
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+	'library(\"Gir/GObject/Value.rlib\")',
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :riva_to_c(type@S, in, out, tmp) ['{out} = ((Gir${type:namespace}${type:name}$t *){in})->Value[0];'];
+TO :c_to_riva(type@S, in, out, tmp) [
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = new({type:ctype});',
+    '{tmp}_value->Value[0] = {in};',
+    '{out} = {tmp}_value;'
+];
+
+TO :c_precall(type@S, argindex, paramindex)
+    ['{type:ctype} param{paramindex} = \{0,};'] + type:riva_to_c('Args[{argindex}].Val', 'param{paramindex}[0]', 'precall{paramindex}');
+
+-=
+TO :c_to_riva(type@S, in, out, tmp) [
+    '{type:ctype} *{tmp}_ptr = Riva$Memory$alloc(sizeof({type:cname}));',
+    '{tmp}_ptr[0] = {in};',
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {tmp}_ptr;',
+    '{out} = {tmp}_value;'
+];
+=-
+
+END Struct.

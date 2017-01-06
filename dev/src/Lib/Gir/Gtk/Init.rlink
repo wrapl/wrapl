@@ -1,0 +1,2 @@
+include("Sys/Service.rlib")
+require("Gir/Gdk/Init")

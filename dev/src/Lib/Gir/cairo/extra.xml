@@ -1,0 +1,820 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <alias name="cairo_bool_t" cname="cairo_bool_t" type="int"/>
+  <alias name="cairo_context_t" cname="cairo_context_t" type="cairo.Cairo"/>
+  <struct cname="cairo_t" opaque="true">
+    <method name="Create" cname="cairo_create" shared="true">
+      <return-type type="cairo_t"/>
+      <parameters>
+        <parameter name="target" type="cairo_surface_t"/>
+      </parameters>
+    </method>
+    <method name="Destroy" cname="cairo_destroy">
+      <return-type type="void"/>
+    </method>
+    <method name="Save" cname="cairo_save">
+      <return-type type="void"/>
+    </method>
+    <method name="Restore" cname="cairo_restore">
+      <return-type type="void"/>
+    </method>
+    <method name="SetOperator" cname="cairo_set_operator">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="op" type="cairo_operator_t"/>
+      </parameters>
+    </method>
+    <method name="SetSource" cname="cairo_set_source">
+      <return-type type="void"/>
+      <parameters><parameter name="source" type="cairo_pattern_t"/>"</parameters>
+    </method>
+    <method name="SetSourceRgb" cname="cairo_set_source_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetSourceRgba" cname="cairo_set_source_rgba">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetSourceSurface" cname="cairo_set_source_surface">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t"/>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetTolerance" cname="cairo_set_tolerance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="tolerance" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetAntialias" cname="cairo_set_antialias">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="antialias" type="cairo_antialias_t"/>
+      </parameters>
+    </method>
+    <method name="SetFillRule" cname="cairo_set_fill_rule">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="fill_rule" type="cairo_fill_rule_t"/>
+      </parameters>
+    </method>
+    <method name="SetLineWidth" cname="cairo_set_line_width">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="width" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetLineCap" cname="cairo_set_line_cap">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="line_cap" type="cairo_line_cap_t"/>
+      </parameters>
+    </method>
+    <method name="SetLineJoin" cname="cairo_set_line_join">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="line_join" type="cairo_line_join_t"/>
+      </parameters>
+    </method>
+    <method name="SetDash" cname="cairo_set_dash">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dashes" type="array-double"/>
+        <parameter name="num_dashes" type="int"/>
+        <parameter name="offset" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetMiterLimit" cname="cairo_set_miter_limit">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="limit" type="double"/>
+      </parameters>
+    </method>
+    <method name="Translate" cname="cairo_translate">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="tx" type="double"/>
+        <parameter name="ty" type="double"/>
+      </parameters>
+    </method>
+    <method name="Scale" cname="cairo_scale">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="sx" type="double"/>
+        <parameter name="sy" type="double"/>
+      </parameters>
+    </method>
+    <method name="Rotate" cname="cairo_rotate">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="angle" type="double"/>
+      </parameters>
+    </method>
+    <method name="Transform" cname="cairo_transform">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="const-cairo_matrix_t"/>
+      </parameters>
+    </method>
+    <method name="SetMatrix" cname="cairo_set_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="const-cairo_matrix_t"/>
+      </parameters>
+    </method>
+    <method name="IdentityMatrix" cname="cairo_identity_matrix">
+      <return-type type="void"/>
+    </method>
+    <method name="UserToDevice" cname="cairo_user_to_device">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="inout-double"/>
+        <parameter name="y" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="UserToDeviceDistance" cname="cairo_user_to_device_distance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dx" type="inout-double"/>
+        <parameter name="dy" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="DeviceToUser" cname="cairo_device_to_user">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="inout-double"/>
+        <parameter name="y" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="DeviceToUserDistance" cname="cairo_device_to_user_distance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dx" type="inout-double"/>
+        <parameter name="dy" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="NewPath" cname="cairo_new_path">
+      <return-type type="void"/>
+    </method>
+    <method name="MoveTo" cname="cairo_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="NewSubPath" cname="cairo_new_sub_path">
+      <return-type type="void"/>
+    </method>
+    <method name="LineTo" cname="cairo_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="CurveTo" cname="cairo_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="Arc" cname="cairo_arc">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xc" type="double"/>
+        <parameter name="yc" type="double"/>
+        <parameter name="radius" type="double"/>
+        <parameter name="angle1" type="double"/>
+        <parameter name="angle2" type="double"/>
+      </parameters>
+    </method>
+    <method name="ArcNegative" cname="cairo_arc_negative">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xc" type="double"/>
+        <parameter name="yc" type="double"/>
+        <parameter name="radius" type="double"/>
+        <parameter name="angle1" type="double"/>
+        <parameter name="angle2" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelMoveTo" cname="cairo_rel_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelLineTo" cname="cairo_rel_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelCurveTo" cname="cairo_rel_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="Rectangle" cname="cairo_rectangle">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+        <parameter name="width" type="double"/>
+        <parameter name="height" type="double"/>
+      </parameters>
+    </method>
+    <method name="ClosePath" cname="cairo_close_path">
+      <return-type type="void"/>
+    </method>
+    <method name="Paint" cname="cairo_paint">
+      <return-type type="void"/>
+    </method>
+    <method name="PaintWithAlpha" cname="cairo_paint_with_alpha">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="Mask" cname="cairo_mask">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="pattern" type="cairo_pattern_t"/>
+      </parameters>
+    </method>
+    <method name="MaskSurface" cname="cairo_mask_surface">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t"/>
+        <parameter name="surface_x" type="double"/>
+        <parameter name="surface_y" type="double"/>
+      </parameters>
+    </method>
+    <method name="Stroke" cname="cairo_stroke">
+      <return-type type="void"/>
+    </method>
+    <method name="StrokePreserve" cname="cairo_stroke_preserve">
+      <return-type type="void"/>
+    </method>
+    <method name="Fill" cname="cairo_fill">
+      <return-type type="void"/>
+    </method>
+    <method name="FillPreserve" cname="cairo_fill_preserve">
+      <return-type type="void"/>
+    </method>
+    <method name="CopyPage" cname="cairo_copy_page">
+      <return-type type="void"/>
+    </method>
+    <method name="ShowPage" cname="cairo_show_page">
+      <return-type type="void"/>
+    </method>
+    <method name="InStroke" cname="cairo_in_stroke">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="InFill" cname="cairo_in_stroke">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="StrokeExtents" cname="cairo_stroke_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="FillExtents" cname="cairo_fill_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="ResetClip" cname="cairo_reset_clip">
+      <return-type type="void"/>
+    </method>
+    <method name="Clip" cname="cairo_clip">
+      <return-type type="void"/>
+    </method>
+    <method name="ClipExtents" cname="cairo_clip_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="CopyClipRectangleList" cname="cairo_copy_clip_rectangle_list">
+      <return-type type="cairo_rectangle_list_t"/>
+    </method>
+    <method name="SelectFontFace" cname="cairo_select_font_face">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="family" type="const-char*"/>
+        <parameter name="slant" type="cairo_font_slant_t"/>
+        <parameter name="weight" type="cairo_font_weight_t"/>
+      </parameters>
+    </method>
+    <method name="SetFontSize" cname="cairo_set_font_size">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="size" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetFontMatrix" cname="cairo_set_font_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t"/>
+      </parameters>
+    </method>
+    <method name="GetFontMatrix" cname="cairo_get_font_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t"/>
+      </parameters>
+    </method>
+    <method name="SetFontOptions" cname="cairo_set_font_options">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="options" type="cairo_font_options_t"/>
+      </parameters>
+    </method>
+    <method name="GetFontOptions" cname="cairo_get_font_options">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="options" type="cairo_font_options_t"/>
+      </parameters>
+    </method>
+    <method name="SetFontFace" cname="cairo_set_font_face">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="font_face" type="cairo_font_face_t"/>
+      </parameters>
+    </method>
+    <method name="GetFontFace" cname="cairo_get_font_face">
+      <return-type type="cairo_font_face_t"/>
+    </method>
+    <method name="SetScaledFont" cname="cairo_set_scaled_font">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="font_face" type="cairo_scaled_font_t"/>
+      </parameters>
+    </method>
+    <method name="GetScaledFont" cname="cairo_get_scaled_font">
+      <return-type type="cairo_scaled_font_t"/>
+    </method>
+    <method name="ShowText" cname="cairo_show_text">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="ShowGlyphs" cname="cairo_show_glyphs">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t"/>
+        <parameter name="num_glyphs" type="int"/>
+      </parameters>
+    </method>
+    <method name="TextPath" cname="cairo_text_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="GlyphPath" cname="cairo_glyph_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t"/>
+        <parameter name="num_glyphs" type="int"/>
+      </parameters>
+    </method>
+    <method name="TextExtents" cname="cairo_text_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+        <parameter name="extents" type="cairo_text_extents_t"/>
+      </parameters>
+    </method>
+    <method name="GlyphExtents" cname="cairo_glyph_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t"/>
+        <parameter name="num_glyphs" type="int"/>
+        <parameter name="extents" type="cairo_text_extents_t"/>
+      </parameters>
+    </method>
+    <method name="FontExtents" cname="cairo_font_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="extents" type="cairo_font_extents_t"/>
+      </parameters>
+    </method>
+    <method name="GetOperator" cname="cairo_get_operator">
+      <return-type type="cairo_operator_t"/>
+    </method>
+    <method name="GetSource" cname="cairo_get_source">
+      <return-type type="cairo_pattern_t"/>
+    </method>
+    <method name="GetTolerance" cname="cairo_get_tolerance">
+      <return-type type="double"/>
+    </method>
+    <method name="GetAntialias" cname="cairo_get_antialias">
+      <return-type type="cairo_antialias_t"/>
+    </method>
+    <method name="GetCurrentPoint" cname="cairo_get_current_point">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="out-double"/>
+        <parameter name="y" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="GetFillRule" cname="cairo_get_fill_rule">
+      <return-type type="cairo_fill_rule_t"/>
+    </method>
+    <method name="GetLineWidth" cname="cairo_get_line_width">
+      <return-type type="double"/>
+    </method>
+    <method name="GetLineCap" cname="cairo_get_line_cap">
+      <return-type type="cairo_line_cap_t"/>
+    </method>
+    <method name="GetMiterLimit" cname="cairo_get_miter_limit">
+      <return-type type="double"/>
+    </method>
+    <method name="GetLineJoin" cname="cairo_get_line_join">
+      <return-type type="cairo_line_join_t"/>
+    </method>
+    <method name="GetDashCount" cname="cairo_get_dash_count">
+      <return-type type="int"/>
+    </method>
+    <method name="GetDash" cname="cairo_get_dash">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dashes" type="out-zarray-double"/>
+        <parameter name="offset" type="out-zarray-double"/>
+      </parameters>
+    </method>
+    <method name="GetMatrix" cname="cairo_get_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t"/>
+      </parameters>
+    </method>
+    <method name="GetTarget" cname="cairo_get_target">
+      <return-type type="cairo_surface_t"/>
+    </method>
+    <method name="GetGroupTarget" cname="cairo_get_group_target">
+      <return-type type="cairo_surface_t"/>
+    </method>
+    <method name="CopyPath" cname="cairo_copy_path">
+      <return-type type="cairo_path_t"/>
+    </method>
+    <method name="CopyPathFlat" cname="cairo_copy_path_flat">
+      <return-type type="cairo_path_t"/>
+    </method>
+    <method name="AppendPath" cname="cairo_append_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="path" type="cairo_path_t"/>
+      </parameters>
+    </method>
+    <method name="Status" cname="cairo_status">
+      <return-type type="cairo_status_t"/>
+    </method>
+  </struct>
+  <struct cname="cairo_rectangle_list_t">
+    <method name="Destroy" cname="cairo_rectangle_list_destroy">
+      <return-type type="void"/>
+    </method>
+  </struct>
+  <struct cname="cairo_font_options_t" opaque="true">
+    <method name="Create" cname="cairo_font_options_create" shared="true">
+      <return-type type="cairo_font_options_t"/>
+    </method>
+    <method name="Copy" cname="cairo_font_options_copy">
+      <return-type type="cairo_font_options_t"/>
+    </method>
+    <method name="Destroy" cname="cairo_font_options_destroy">
+      <return-type type="void"/>
+    </method>
+    <method name="Status" cname="cairo_font_options_status">
+      <return-type type="cairo_status_t"/>
+    </method>
+    <method name="Merge" cname="cairo_font_options_merge">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="other" type="cairo_font_options_t"/>
+      </parameters>
+    </method>
+    <method name="Equal" cname="cairo_font_options_equal">
+      <return-type type="cairo_bool_t"/>
+      <parameters>
+        <parameter name="other" type="cairo_font_options_t"/>
+      </parameters>
+    </method>
+    <method name="Hash" cname="cairo_font_options_hash">
+      <return-type type="unsigned long"/>
+    </method>
+    <method name="SetAntialias" cname="cairo_font_options_set_antialias">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="antialias" type="cairo_antialias_t"/>
+      </parameters>
+    </method>
+    <method name="GetAntialias" cname="cairo_font_options_get_antialias">
+      <return-type type="cairo_antialias_t"/>
+    </method>
+    <method name="SetSubpixelOrder" cname="cairo_font_options_set_subpixel_order">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="subpixel_order" type="cairo_subpixel_order_t"/>
+      </parameters>
+    </method>
+    <method name="GetSubpixelOrder" cname="cairo_font_options_get_subpixel_order">
+      <return-type type="cairo_subpixel_order_t"/>
+    </method>
+    <method name="SetHintStyle" cname="cairo_font_options_set_hint_style">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="hint_style" type="cairo_hint_style_t"/>
+      </parameters>
+    </method>
+    <method name="GetHintStyle" cname="cairo_font_options_get_hint_style">
+      <return-type type="cairo_hint_style_t"/>
+    </method>
+    <method name="SetHintMetrics" cname="cairo_font_options_set_hint_metrics">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="hint_metrics" type="cairo_hint_metrics_t"/>
+      </parameters>
+    </method>
+    <method name="GetHintMetrics" cname="cairo_font_options_get_hint_metrics">
+      <return-type type="cairo_hint_metrics_t"/>
+    </method>
+  </struct>
+  <struct cname="cairo_surface_t" opaque="true">
+    <method name="ImageSurfaceCreate" cname="cairo_image_surface_create" shared="true">
+      <return-type type="cairo_surface_t"/>
+      <parameters>
+        <parameter name="format" type="cairo_format_t"/>
+        <parameter name="width" type="int"/>
+        <parameter name="height" type="int"/>
+      </parameters>
+    </method>
+    <method name="ImageSurfaceCreateForData" cname="cairo_image_surface_create_for_data" shared="true">
+      <return-type type="cairo_surface_t"/>
+      <parameters>
+        <parameter name="data" type="gpointer"/>
+        <parameter name="format" type="cairo_format_t"/>
+        <parameter name="width" type="int"/>
+        <parameter name="height" type="int"/>
+        <parameter name="stride" type="int"/>
+      </parameters>
+    </method>
+    <method name="ImageSurfaceCreateFromPng" cname="cairo_image_surface_create_from_png" shared="true">
+      <return-type type="cairo_surface_t"/>
+      <parameters>
+        <parameter name="filename" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="WriteToPng" cname="cairo_surface_write_to_png">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="filename" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="GetWidth" cname="cairo_image_surface_get_width">
+      <return-type type="int"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="GetHeight" cname="cairo_image_surface_get_height">
+      <return-type type="int"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="GetData" cname="cairo_image_surface_get_data">
+      <return-type type="void*"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="Reference" cname="cairo_surface_reference">
+      <return-type type="void"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="Destroy" cname="cairo_surface_destroy">
+      <return-type type="void"/>
+      <parameters>
+      </parameters>
+    </method>
+  </struct>
+  <struct cname="cairo_pattern_t" opaque="true">
+    <method name="CreateRgb" cname="cairo_pattern_create_rgb" shared="true">
+      <return-type type="cairo_pattern_t"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateRgba" cname="cairo_pattern_create_rgba" shared="true">
+      <return-type type="cairo_pattern_t"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateForSurface" cname="cairo_pattern_create_for_surface" shared="true">
+      <return-type type="cairo_pattern_t"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t"/>
+      </parameters>
+    </method>
+    <method name="CreateLinear" cname="cairo_pattern_create_linear" shared="true">
+      <return-type type="cairo_pattern_t"/>
+      <parameters>
+        <parameter name="x0" type="double"/>
+        <parameter name="y0" type="double"/>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateRadial" cname="cairo_pattern_create_radial" shared="true">
+      <return-type type="cairo_pattern_t"/>
+      <parameters>
+        <parameter name="cx0" type="double"/>
+        <parameter name="cy0" type="double"/>
+        <parameter name="radius0" type="double"/>
+        <parameter name="cx1" type="double"/>
+        <parameter name="cy1" type="double"/>
+        <parameter name="radius1" type="double"/>
+      </parameters>
+    </method>
+    <method name="GetType" cname="cairo_pattern_get_type">
+      <return-type type="cairo_pattern_type_t"/>
+    </method>
+    <method name="AddColorStopRgb" cname="cairo_pattern_add_color_stop_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="offset" type="double"/>
+        <parameter name="r" type="double"/>
+        <parameter name="g" type="double"/>
+        <parameter name="b" type="double"/>
+      </parameters>
+    </method>
+    <method name="AddColorStopRgba" cname="cairo_pattern_add_color_stop_rgba">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="offset" type="double"/>
+        <parameter name="r" type="double"/>
+        <parameter name="g" type="double"/>
+        <parameter name="b" type="double"/>
+        <parameter name="a" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateMesh" cname="cairo_pattern_create_mesh" shared="true">
+      <return-type type="cairo_pattern_t"/>
+    </method>
+    <method name="MeshBeginPatch" cname="cairo_mesh_pattern_begin_patch">
+      <return-type type="void"/>
+    </method>
+    <method name="MeshEndPatch" cname="cairo_mesh_pattern_end_patch">
+      <return-type type="void"/>
+    </method>
+    <method name="MeshCurveTo" cname="cairo_mesh_pattern_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshLineTo" cname="cairo_mesh_pattern_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshMoveTo" cname="cairo_mesh_pattern_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetControlPoint" cname="cairo_mesh_pattern_set_control_point">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetCornerColorRgb" cname="cairo_mesh_pattern_set_corner_color_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetCornerColorRgba" cname="cairo_mesh_pattern_set_corner_color_rgba">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+  </struct>
+  <struct cname="cairo_matrix_t">
+    <method name="Init" cname="cairo_matrix_init">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xx" type="double"/>
+        <parameter name="yx" type="double"/>
+        <parameter name="xy" type="double"/>
+        <parameter name="yy" type="double"/>
+        <parameter name="x0" type="double"/>
+        <parameter name="y0" type="double"/>
+      </parameters>
+    </method>
+  </struct>
+  <struct cname="cairo_font_face_t" opaque="true"></struct>
+  <struct cname="cairo_scaled_font_t" opaque="true"></struct>
+  <struct cname="cairo_glyph_t"></struct>
+  <struct cname="cairo_text_extents_t"></struct>
+  <struct cname="cairo_font_extents_t"></struct>
+  <struct cname="cairo_path_t"></struct>
+  <struct cname="cairo_region_t" opaque="true"></struct>
+  <struct cname="cairo_text_cluster_t"></struct>
+  <enum cname="cairo_status_t" type="enum"></enum>
+  <enum cname="cairo_antialias_t" type="enum"></enum>
+  <enum cname="cairo_fill_rule_t" type="enum"></enum>
+  <enum cname="cairo_line_cap_t" type="enum"></enum>
+  <enum cname="cairo_line_join_t" type="enum"></enum>
+  <enum cname="cairo_operator_t" type="enum"></enum>
+  <enum cname="cairo_format_t" type="enum">
+    <member cname="CAIRO_FORMAT_ARGB32" name="Argb32"/>
+    <member cname="CAIRO_FORMAT_RGB24" name="Rgb24"/>
+    <member cname="CAIRO_FORMAT_A8" name="A8"/>
+    <member cname="CAIRO_FORMAT_A1" name="A1"/>
+    <member cname="CAIRO_FORMAT_RGB16_565" name="Rgb16_565"/>
+  </enum>
+  <enum cname="cairo_pattern_type_t" type="enum"></enum>
+  <enum cname="cairo_font_type_t" type="enum"></enum>
+  <enum cname="cairo_font_slant_t" type="enum"></enum>
+  <enum cname="cairo_font_weight_t" type="enum"></enum>
+  <enum cname="cairo_hint_style_t" type="enum"></enum>
+  <enum cname="cairo_hint_metrics_t" type="enum"></enum>
+  <enum cname="cairo_subpixel_order_t" type="enum"></enum>
+  <enum cname="cairo_region_overlap_t" type="enum"></enum>
+</metadata>

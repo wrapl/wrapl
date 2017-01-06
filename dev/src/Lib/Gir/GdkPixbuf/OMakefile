@@ -1,0 +1,6 @@
+CFLAGS += $(shell pkg-config --cflags gdk-pixbuf-2.0) -include gdk-pixbuf/gdk-pixbuf.h -include gdk-pixbuf/gdk-pixdata.h
+LDFLAGS += $(shell pkg-config --libs-only-l gdk-pixbuf-2.0)
+
+if $(file-exists $(GIR_AUTOGEN))
+	foreach(FILE, $(rootname $(basename $(glob *.c))))
+		RivaModule(Gir/GdkPixbuf/$(FILE), $(FILE))

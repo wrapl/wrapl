@@ -1,0 +1,135 @@
+local lfs = require "lfs"
+
+RLINK = DEV_BIN/"rlink"
+
+CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
+ASFLAGS = {"-DCMOVSUPPORT", "-Ov", "-w-all", "-DLINUX", "-felf"}
+GOFLAGS = {}
+LDFLAGS = {}
+
+function c_includes(Source)
+	local Files = {}
+	local Lines = shell{"gcc", CFLAGS, "-I", Source:dir(), "-M", "-MG", Source}
+	local Start, I = Lines:find(": ")
+	local File = ""
+	while I <= #Lines do
+		local Char = Lines:sub(I, I)
+		if Char <= ' ' then
+			if File ~= "" then
+				--print(File)
+				table.insert(Files, file(File))
+				File = ""
+			end
+		elseif Char == '\\' then
+			I = I + 1
+			Char = Lines:sub(I, I)
+			if Char == ' ' then
+				File = File .. ' '
+			end
+		else
+			File = File .. Char
+		end
+		I = I + 1
+	end
+	return Files
+end
+
+function c_compile(Object)
+	local Source = Object % "c"
+	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
+end
+
+function asm_includes(Source)
+	local Files = {}
+	local Lines = shell{"nasm", ASFLAGS, "-I", Source:dir(), "-M", Source}
+	local Start, I = Lines:find(": ")
+	local File = ""
+	while I <= #Lines do
+		local Char = Lines:sub(I, I)
+		if Char <= ' ' then
+			if File ~= "" then
+				--print(File)
+				table.insert(Files, file(File))
+				File = ""
+			end
+		elseif Char == '\\' then
+			I = I + 1
+			Char = Lines:sub(I, I)
+			if Char == ' ' then
+				File = File .. ' '
+			end
+		else
+			File = File .. Char
+		end
+		I = I + 1
+	end
+	return Files
+end
+
+function asm_compile(Object)
+	local Source = Object % "asm"
+	execute{"nasm", ASFLAGS, "-o", Object, "-I", Source:dir(), Source}
+end
+
+function as_includes(Source)
+	local Files = {}
+	local Lines = shell{"gcc", CFLAGS, "-I", Source:dir(), "-M", Source}
+	local Start, I = Lines:find(": ")
+	local File = ""
+	while I <= #Lines do
+		local Char = Lines:sub(I, I)
+		if Char <= ' ' then
+			if File ~= "" then
+				--print(File)
+				table.insert(Files, file(File))
+				File = ""
+			end
+		elseif Char == '\\' then
+			I = I + 1
+			Char = Lines:sub(I, I)
+			if Char == ' ' then
+				File = File .. ' '
+			end
+		else
+			File = File .. Char
+		end
+		I = I + 1
+	end
+	return Files
+end
+
+function as_compile(Object)
+	local Source = Object % "S"
+	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
+end
+
+function go_includes(Source)
+	return {}
+end
+
+function go_compile(Object)
+	local Source = Object % "go"
+	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
+end
+
+function c_program(Executable, Objects, Libraries)
+	for I, Object in ipairs(Objects) do
+		local SourceC = Object % "c"
+		local SourceAsm = Object % "asm"
+		if lfs.attributes(tostring(SourceC)) then
+			local ScanC = SourceC:scan("INCLUDES", c_includes)
+			Object{SourceC, ScanC}:build(c_compile)
+		elseif lfs.attributes(tostring(SourceAsm)) then
+			local ScanAsm = SourceAsm:scan("INCLUDES", asm_includes)
+			Object{SourceAsm, ScanAsm}:build(asm_compile)
+		end
+	end
+	Executable{Objects, Libraries}:build(function(Executable)
+		execute{"gcc", "-o", Executable, Objects, Libraries, LDFLAGS}
+	end)
+	DEFAULT{Executable}
+end
+
+subdir("Rlink")
+subdir("Riva")
+subdir("Lib")

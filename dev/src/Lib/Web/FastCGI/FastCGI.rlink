@@ -1,0 +1,12 @@
+export("RequestT")
+export("StreamT")
+export("SocketNew")
+export("RequestNew")
+
+module("Riva/Memory")
+import("_alloc", "malloc")
+import("_realloc", "realloc")
+import("_free", "free")
+import("_calloc", "calloc")
+import("_strdup", "strdup")
+import("_strdup", "__strdup")

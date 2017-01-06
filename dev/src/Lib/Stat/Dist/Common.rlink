@@ -1,0 +1,13 @@
+include("Stat/Dist.rlink")
+include("Math/Random.rlink")
+include("libstdc++.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")

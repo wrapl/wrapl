@@ -1,0 +1,268 @@
+MOD Interface;
+
+IMP .Type, .Common, .API;
+IMP Std.String;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    parent, interfaces,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:parent <- parent;
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gir${namespace}${name}$T';
+    type:headers <- {'Gir/{namespace}/{name}.h', 'Gir/GObject/Object.h', 'Gir/GObject/Interface.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib', 'Gir/GObject/Object.rlib', 'Gir/GObject/Interface.rlink'};
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gir$GObject$Object$t *){in})->Handle;'];
+TO :c_to_riva(type@T, in, out, tmp) ['{out} = Gir$GObject$Object$to_riva({in});'];
+
+TO :base_headers(type@T) type:headers;
+TO :base_libraries(type@T) type:libraries;
+
+DEF GetTypeName(name) (
+	name <- name:map(["URI", "DBus"], ["Uri", "Dbus"]);
+	VAR s <- "", i <- 1, j;
+	EVERY j <- 1 SKIP name:any(String.Upper) | 0 DO (
+		s <- '{s}{name[i, j]:lower}_';
+		i <- j;
+	);
+	RET s + "get_type()";
+);
+
+DEF GenerateVirtualMethod(method, r) (
+	Type.Lookup(method:params[1]:type) == method:object => (
+		--Out:write('method: {method:type} {method:name}()\n');
+		VAR rettype <- Type.Lookup(method:type);
+		VAR params <- method:params;
+		VAR i, n <- params:size;
+		VAR types <- ALL 1 SKIP Type.Lookup(params:values:type);
+		VAR line;
+		--types:push(method:object);
+		r:put("", 'SYMBOL(${method:name}, "{method:name}");', "");
+		line <- 'static {rettype:ctype} riva_{method:cname}(Gir$GObject$Interface$t * arg0';
+		EVERY i <- 1:to(n - 1) DO line <- line + ', {types[i]:ctype} arg{i}';
+		line <- line + ") {";
+		r:put(line);
+		r:put('\tprintf("Calling interface method {method:name}\\n");');
+		r:put('\tStd$Function_argument Params[{n}];');
+		argindex <- 1; paramindex <- 1;
+		r:put("\tParams[0].Val = arg0->Extra;");
+		r:put("\tParams[0].Ref = 0;");
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:riva_precall(argindex, paramindex):values);
+			argindex <- argindex + type:riva_argcount;
+			paramindex <- paramindex + 1;
+		);
+		r:put('\tStd$Function_result Result;');
+		r:put('\tStd$Function$invoke(${method:name}, {n}, &Result, Params);');
+		
+		argindex <- 1; paramindex <- 1;
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:riva_postcall(argindex, paramindex):values);
+			argindex <- argindex + type:riva_argcount;
+			paramindex <- paramindex + 1;
+		);
+		rettype:ctype ~= "void" => (
+			r:put('\t{rettype:ctype} result;');
+			EVERY r:put("\t" + rettype:riva_return:values);
+			r:put("\treturn result;");
+		);
+		r:put("};", "");
+		
+		line <- 'METHOD(\"{method:name}\", TYP, ParentT';
+		--Out:writes(method:cname, "\n");
+		EVERY line <- line + ', {types:values:signature}';
+		line <- line + ") {";
+		r:put(line);
+		r:put('\tprintf("Calling default implementation {method:name}\\n");');
+		r:put("//@self");
+		EVERY r:put('//@{params:values:name}');
+		VAR rettype <- Type.Lookup(method:type);
+		r:put('//:{rettype:rtype}');
+
+		r:put('//  <external path="{API.GetFunc(method:cname)}"/>');
+		r:put('\t{method:object:cname} * param0 = Gir$GObject$Interface$implementation(Args[0].Val);');
+		VAR argindex <- 1, paramindex <- 1, type;
+		EVERY type <- types:values DO (
+			--Out:write('param: {type:cname}\n');
+			--r:put('//type = {type:desc}');
+			EVERY r:put("\t" + type:c_precall(argindex, paramindex):values);
+			argindex <- argindex + type:c_argcount;
+			paramindex <- paramindex + 1;
+		);
+		line <- '\tif (Parent->{method:cname}) ';
+		r:put('\t{"void" ~= rettype:ctype} result;');
+		line <- '\tif (Parent->{method:cname}) ';
+		"void" ~= rettype:ctype => line <- line + ' result = ';
+		line <- line + 'Parent->{method:cname}(param0';
+		EVERY line <- line + ', param{1:to(n - 1)}';
+		line <- line + ");";
+		r:put(line);
+		argindex <- 1;
+		paramindex <- 1;
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:c_postcall(argindex, paramindex):values);
+			argindex <- argindex + type:c_argcount;
+			paramindex <- paramindex + 1;
+		);
+		"void" ~= rettype:ctype => EVERY r:put("\t" + rettype:c_return:values);
+		r:put("\treturn SUCCESS;");
+		r:put("};");
+	) // (
+		--Out:write('method: {method:type} {method:name}()\n');
+		VAR rettype <- Type.Lookup(method:type);
+		VAR params <- method:params;
+		VAR i, n <- params:size;
+		VAR types <- ALL Type.Lookup(params:values:type);
+		VAR line;
+		--types:push(method:object);
+		r:put("", 'SYMBOL(${method:name}, "{method:name}");', "");
+		types:length > 0 => (
+			line <- 'static {rettype:ctype} riva_{method:cname}({types[1]:ctype} arg0';
+			EVERY i <- 2:to(n) DO line <- line + ', {types[i]:ctype} arg{i - 1}';
+			line <- line + ") {";
+		) // (
+			line <- 'static {rettype:ctype} riva_{method:cname}() \{';
+		);
+		r:put(line);
+		r:put('\tprintf("Calling interface method {method:name}\\n");');
+		r:put('\tStd$Function_argument Params[{n + 1}];');
+		argindex <- 1; paramindex <- 1;
+		r:put("\tGir$GObject$Interface$t Temp[1] = {{ParentT, 0}};");
+		r:put("\tParams[0].Val = Temp;");
+		r:put("\tParams[0].Ref = 0;");
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:riva_precall(argindex, paramindex):values);
+			argindex <- argindex + type:riva_argcount;
+			paramindex <- paramindex + 1;
+		);
+		r:put('\tStd$Function_result Result;');
+		r:put('\tStd$Function$invoke(${method:name}, {n + 1}, &Result, Params);');
+		
+		argindex <- 1; paramindex <- 1;
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:riva_postcall(argindex, paramindex):values);
+			argindex <- argindex + type:riva_argcount;
+			paramindex <- paramindex + 1;
+		);
+		rettype:ctype ~= "void" => (
+			r:put('\t{rettype:ctype} result;');
+			EVERY r:put("\t" + rettype:riva_return:values);
+			r:put("\treturn result;");
+		);
+		r:put("};", "");
+		
+		line <- 'METHOD(\"{method:name}\", TYP, ParentT';
+		--Out:writes(method:cname, "\n");
+		EVERY line <- line + ', {types:values:signature}';
+		line <- line + ") {";
+		r:put(line);
+		r:put('\tprintf("Calling default implementation {method:name}\\n");');
+		r:put("//@self");
+		EVERY r:put('//@{params:values:name}');
+		VAR rettype <- Type.Lookup(method:type);
+		r:put('//:{rettype:rtype}');
+
+		r:put('//  <external path="{API.GetFunc(method:cname)}"/>');
+		VAR argindex <- 1, paramindex <- 1, type;
+		EVERY type <- 1 SKIP types:values DO (
+			--Out:write('param: {type:cname}\n');
+			--r:put('//type = {type:desc}');
+			EVERY r:put("\t" + type:c_precall(argindex, paramindex):values);
+			argindex <- argindex + type:c_argcount;
+			paramindex <- paramindex + 1;
+		);
+		r:put('\t{"void" ~= rettype:ctype} result;');
+		line <- '\tif (Parent->{method:cname}) ';
+		"void" ~= rettype:ctype => line <- line + ' result = ';
+		n > 0 => (
+			line <- line + 'Parent->{method:cname}(param1';
+			EVERY line <- line + ', param{2:to(n)}';
+			line <- line + ");";
+		) // (
+			line <- line + 'Parent->{method:cname}();';
+		);
+		r:put(line);
+		argindex <- 1;
+		paramindex <- 1;
+		EVERY type <- types:values DO (
+			EVERY r:put("\t" + type:c_postcall(argindex, paramindex):values);
+			argindex <- argindex + type:c_argcount;
+			paramindex <- paramindex + 1;
+		);
+		"void" ~= rettype:ctype => EVERY r:put("\t" + rettype:c_return:values);
+		r:put("\treturn SUCCESS;");
+		r:put("};");
+	);
+);
+
+TO :generate_c(type@T) (
+	VAR r <- ["#include <stdio.h>", ""];
+	r:put("TYPE(T);");
+	r:put('//  <external path="{API.GetType(type:cname)}"/>');
+	r:put("");
+	r:put("TYPE(ParentT);");
+	r:put("");
+	r:put("GLOBAL(T, Gir$GObject$Object$t, Nil)[] = {{T, 0}};");
+	r:put("");
+	r:put('static {type:cname}Iface Parent[1];');
+	r:put("");
+	EVERY GenerateVirtualMethod(type:items:values \ $ IN Common.VirtualMethodT, r);
+	r:put("");
+	r:put('static void riva_interface_init({type:cname}Iface *Iface, gpointer Data) \{');
+	r:put('\tprintf("Initializing interface {type:cname}\\n");');
+	r:put("\t*Parent = *Iface;");
+	VAR method; EVERY method <- type:items:values \ $ IN Common.VirtualMethodT DO (
+		r:put('\tIface->{method:cname} = riva_{method:cname};');
+	);
+	r:put("};");
+	r:put("");
+	r:put("CONSTANT(InterfaceInfo, Std$Object$T) {");
+	r:put("\tGir$GObject$Interface_infot *Info = new(Gir$GObject$Interface_infot);");
+	r:put("\tInfo->Riva = T;");
+	r:put('\tInfo->Type = {GetTypeName(type:cname)};');
+	r:put("\tInfo->Info.interface_init = (GInterfaceInitFunc)riva_interface_init;");
+	r:put("\treturn (Std$Object$t *)Info;");
+	r:put("};");
+	r:put("");
+	RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gir${type:namespace}${type:name}$t \{',
+    '\tStd$Type$t *Type;',
+    '\tGObject *Handle;',
+    '} Gir${type:namespace}${type:name}$t;',
+    '',
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+    "export(\"T\")",
+    "export(\"Nil\")",
+	"export(\"ParentT\")",
+	"export(\"InterfaceInfo\")"
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")'
+];
+
+END Interface.

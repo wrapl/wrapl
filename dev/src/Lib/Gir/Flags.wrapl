@@ -1,0 +1,41 @@
+MOD Flags;
+
+IMP .Type;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:items <- [];
+    type:headers <- {'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    RET type;
+);
+
+TO :rtype(type@T) "Std$Integer$SmallT";
+TO :ctype(type@T) "int";
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Std$Integer_smallt *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) ['{out} = Std$Integer$new_small({in});'];
+
+TO :generate_c(type@T) ['#include <Std/Integer.h>'];
+
+TO :generate_member(type@T, name, value)
+'#ifdef DOCUMENTING
+GLOBAL(Std$Integer$SmallT, Std$Integer_smallt, {name});
+#else
+Std$Integer_smallt __${name}[] = \{\{Std$Integer$SmallT, {value}}};
+#endif';
+
+END Flags.

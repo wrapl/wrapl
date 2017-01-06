@@ -1,0 +1,7 @@
+CFLAGS += $(shell pkg-config --cflags goocanvas-2.0) -include goocanvas.h -include goocanvasutils.h
+LDFLAGS += $(shell pkg-config --libs-only-l goocanvas-2.0)
+
+if $(file-exists $(GIR_AUTOGEN))
+	foreach(FILE, $(rootname $(basename $(glob *.c))))
+		RivaModule(Gir/GooCanvas/$(FILE), $(FILE))
+

@@ -1,0 +1,11 @@
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("Default")
+export("_uniform01")

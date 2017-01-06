@@ -1,0 +1,129 @@
+MOD Opaque;
+
+IMP .Type, .Common, .API;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF S! <- <[Type.T]
+    namespace, name,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gir${namespace}${name}$T';
+    type:headers <- {'Gir/{namespace}/{name}.h', 'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib', 'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('{namespace}.{name}', type);
+
+    VAR struct <- S();
+    struct:namespace <- namespace;
+    struct:name <- name;
+    struct:cname <- cname;
+    struct:ctype <- cname;
+    struct:rtype <- 'Gir${namespace}${name}$T';
+    struct:headers <- {'Gir/{namespace}/{name}.h'};
+    struct:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('!{namespace}.{name}', struct);
+
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gir${type:namespace}${type:name}$t *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) [
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {in};',
+    '{out} = {tmp}_value;'
+];
+
+TO :base_headers(type@T) type:headers;
+TO :base_libraries(type@T) type:libraries;
+
+TO :generate_c(type@T) (
+    VAR r <- ["",
+    "TYPE(T);",
+    '//  <external path="{API.GetType(type:cname)}"/>' | "",
+    "",
+    'GLOBAL(T, Gir${type:namespace}${type:name}$t, Nil)[] = \{\{T, 0}};'];
+    WITH item <- type:items:values \ (?$ == Common.FunctionT & $:name = "GetType" & $:type = "GType" & $:params:length = 0) DO (
+		r:push("#include <Util/TypedFunction.h>", "#include <Gir/GObject/Value.h>");
+		r:put("",
+			'TYPED_INSTANCE(void, Gir$GObject$Value$to_value, T, Gir${type:namespace}${type:name}$t const *Source, GValue *Dest) \{',
+			'\tg_value_init(Dest, {item:cname}());',
+			'\tg_value_set_boxed(Dest, Source->Value);',
+			"}"
+		);
+	);
+	r:put("",
+	'METHOD("=", TYP, T, TYP, T) \{',
+	'\tGir${type:namespace}${type:name}$t *A = (Gir${type:namespace}${type:name}$t *)Args[0].Val;',
+	'\tGir${type:namespace}${type:name}$t *B = (Gir${type:namespace}${type:name}$t *)Args[1].Val;',
+	'\tif (A->Value == B->Value) \{',
+	'\t\tResult->Arg = Args[1];',
+	'\t\treturn SUCCESS;',
+	'\t} else \{',
+	'\t\treturn FAILURE;',
+	'\t}',
+	'};',
+	'',
+	'METHOD("~=", TYP, T, TYP, T) \{',
+	'\tGir${type:namespace}${type:name}$t *A = (Gir${type:namespace}${type:name}$t *)Args[0].Val;',
+	'\tGir${type:namespace}${type:name}$t *B = (Gir${type:namespace}${type:name}$t *)Args[1].Val;',
+	'\tif (A->Value != B->Value) \{',
+	'\t\tResult->Arg = Args[1];',
+	'\t\treturn SUCCESS;',
+	'\t} else \{',
+	'\t\treturn FAILURE;',
+	'\t};',
+	'};');
+	RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gir${type:namespace}${type:name}$t \{',
+    '\tStd$Type$t *Type;',
+    '\t{type:ctype} Value;',
+    '} Gir${type:namespace}${type:name}$t;',
+    '',
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+	'library(\"Gir/GObject/Value.rlib\")',
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :riva_to_c(type@S, in, out, tmp) ['{out} = ((Gir${type:namespace}${type:name}$t *){in})->Value[0];'];
+TO :c_to_riva(type@S, in, out, tmp) [
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = &{in};',
+    '{out} = {tmp}_value;'
+];
+
+--New("GObject", "Value", "GValue", NIL);
+
+END Opaque.

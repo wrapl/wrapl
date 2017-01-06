@@ -1,0 +1,20 @@
+include("IO/Stream.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+
+if WINDOWS then
+	module("Riva/Memory")
+	import("_alloc", "_malloc")
+	import("_realloc", "_realloc")
+	import("_free", "_free")
+	import("_calloc", "_calloc")
+	import("_strdup", "_strdup")	
+end

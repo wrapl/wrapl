@@ -1,0 +1,42 @@
+if $(defined SOAP)
+	mkdir(-p Soap)
+	.SUBDIRS: Soap
+
+CFLAGS += -std=gnu99 -s
+LDFLAGS += Std.rlib Agg.rlib Riva.rlib
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p FastCGI)
+	.SUBDIRS: FastCGI
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p Nxweb)
+	.SUBDIRS: Nxweb
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p Strophe)
+	.SUBDIRS: Strophe
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p CivetWeb)
+	.SUBDIRS: CivetWeb
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p WebSocket)
+	.SUBDIRS: WebSocket
+
+#if $(equal $(OSTYPE), Unix)
+#	mkdir(-p ZeroMQ)
+#	.SUBDIRS: ZeroMQ
+
+if $(equal $(OSTYPE), Unix)
+	mkdir(-p Nanomsg)
+	.SUBDIRS: Nanomsg
+
+RivaModule(Web/Url, Url)
+
+CFLAGS += $(shell pkg-config --cflags libcurl)
+LDFLAGS += Sys/Module.rlib
+RivaModule(Web/Curl, Curl)
+RivaModule(Web/Smtp, Smtp)
+

@@ -1,0 +1,27 @@
+TECLA_SRC = $(SRC_DIR)Lib/Util/Tecla/
+TECLA_OBJ = $(OBJ_DIR)Lib/Util/Tecla/
+
+libtecla.a:
+	if $(not $(file-exists $(TECLA_SRC)libtecla/CHANGES))
+		cd($(TECLA_SRC), $(system wget -nv http://www.astro.caltech.edu/~mcs/tecla/libtecla-1.6.1.tar.gz))
+		cd($(TECLA_SRC), $(system tar xzPf libtecla-1.6.1.tar.gz))
+		cd($(TECLA_SRC), $(system rm libtecla-1.6.1.tar.gz))
+		cd($(TECLA_SRC)libtecla, $(system sed -e s/-fpic//g configure > configure.new))
+		cd($(TECLA_SRC)libtecla, $(system mv configure.new configure))
+		cd($(TECLA_SRC)libtecla, $(system chmod +x configure))
+	mkdir(-p $(TECLA_OBJ)libtecla)
+	#if $(file-exists $(TECLA_OBJ)libtecla/Makefile)
+	#	cd($(TECLA_OBJ)libtecla, $(system make distclean))
+	cd($(TECLA_OBJ)libtecla, $(system sh $(TECLA_SRC)libtecla/configure --disable-shared --enable-static --prefix=$(absname $(TECLA_OBJ)) --libdir=$(absname $(TECLA_OBJ)) CFLAGS="$(CFLAGS) -O2" --without-man-pages))
+	cd($(TECLA_OBJ)libtecla, $(system make clean))
+	cd($(TECLA_OBJ)libtecla, $(system make TARGET_LIBS="static"))
+	cd($(TECLA_OBJ)libtecla, $(system make install))
+
+INCLUDES += $(TECLA_OBJ)include
+LDFLAGS += Riva/Memory.rlib
+
+Tecla.o: libtecla.a
+
+$(OUT_LIB)Util/Tecla.riva: libtecla.a
+
+RivaModule(Util/Tecla, Tecla)

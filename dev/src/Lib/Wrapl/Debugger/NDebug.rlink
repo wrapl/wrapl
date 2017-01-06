@@ -1,0 +1,27 @@
+include("Wrapl/Loader.rlib")
+include("Agg/Table.rlib")
+include("Agg/List.rlib")
+include("Agg/StringTable.rlib")
+include("libpthread.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("Init")
+export("SelectThread")
+export("ResumeThread")
+export("StepInThread")
+export("StepOverThread")
+export("PauseThread")
+export("UpStack")
+export("DownStack")
+export("FindLocal")
+export("ListThreads")
+export("ListModules")
+export("SetBreakpoint")
+export("ClearBreakpoint")
+export("ModuleSource")

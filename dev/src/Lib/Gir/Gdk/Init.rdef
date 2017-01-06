@@ -1,0 +1,3 @@
+library("Sys/Service.rlib")
+require("Gir/Glib/Init");
+require("Gir/GObject/Init");

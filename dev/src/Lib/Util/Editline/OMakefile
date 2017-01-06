@@ -1,0 +1,25 @@
+EDITLINE_SRC = $(SRC_DIR)Lib/Util/Editline/
+EDITLINE_OBJ = $(OBJ_DIR)Lib/Util/Editline/
+
+libedit.a:
+	if $(not $(file-exists $(EDITLINE_SRC)libedit/CHANGES))
+		mkdir(-p $(EDITLINE_SRC)libedit)
+		cd($(EDITLINE_SRC)libedit, $(system wget --user-agent="Firefox/3.6.12" -nv http://www.thrysoee.dk/editline/libedit-20121213-3.0.tar.gz -O- | tar xvzP --strip-components=1))
+	mkdir(-p $(EDITLINE_OBJ)libedit)
+	#if $(file-exists $(EDITLINE_OBJ)libedit/Makefile)
+	#	cd($(EDITLINE_OBJ)libedit, $(system make distclean))
+	cd($(EDITLINE_OBJ)libedit, $(system sh $(EDITLINE_SRC)libedit/configure --disable-shared --enable-static --prefix=$(absname $(EDITLINE_OBJ)) --libdir=$(absname $(EDITLINE_OBJ)) CFLAGS="$(CFLAGS) -O2" --without-man-pages))
+	cd($(EDITLINE_OBJ)libedit, $(system make clean))
+	cd($(EDITLINE_OBJ)libedit, $(system make TARGET_LIBS="static"))
+	cd($(EDITLINE_OBJ)libedit, $(system make install))
+
+#--enable-widec
+
+INCLUDES += $(EDITLINE_OBJ)include
+LDFLAGS += Riva/Memory.rlib
+
+Editline.o: libedit.a
+
+$(OUT_LIB)Util/Editline.riva: libedit.a
+
+RivaModule(Util/Editline, Editline)

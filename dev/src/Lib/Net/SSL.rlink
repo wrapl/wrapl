@@ -1,0 +1,11 @@
+include("Std.rlib")
+include("Riva/Memory.rlib")
+include("libssl.so")
+
+export("ContextNew")
+
+submodule("Method")
+subexport("Method", "MethodSSLv23", "SSLv23")
+
+submodule("Context")
+subexport("Context", "ContextNew", "New")

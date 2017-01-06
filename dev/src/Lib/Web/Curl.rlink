@@ -1,0 +1,28 @@
+--include("Curl.rlib")
+include("IO/Stream.rlib")
+include("Sys/Time.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("Option")
+export("Info")
+export("New")
+export("MultiNew")
+export("Escape")
+export("Dup")
+export("Close")
+export("Get")
+export("Reset")
+export("Set")
+export("Perform")
+
+submodule("UseSsl")
+subexport("UseSsl", "UseSslNone", "None")
+subexport("UseSsl", "UseSslTry", "Try")
+subexport("UseSsl", "UseSslControl", "Control")
+subexport("UseSsl", "UseSslAll", "All")

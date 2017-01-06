@@ -1,0 +1,160 @@
+MOD Pattern;
+
+IMP Std.String;
+IMP Std.Integer USE SmallT;
+IMP Std.Address;
+IMP Agg.Table;
+
+DEF T! <[]>;
+TO :match(t@T, subject) (
+	VAR from ← 1;
+	VAR env ← {};
+	EVERY SUSP t:_match(subject, from, env);
+);
+TO :"+"(a@T, b@T) SeqT([a, b]);
+TO :"/"(a@T, b@T) AltT([a, b]);
+
+DEF SetValueT! <[T] pattern, name>;
+DEF SetValue!(pattern, name) SetT(pattern, name);
+TO :_match(t@SetValueT, subject, from+@SmallT, env@Table.T) (
+	VAR name ← t:name, val;
+	EVERY val ← t:pattern(env):_match(subject, from, env) DO (
+		env:insert(name, val);
+		SUSP val;
+	);
+);
+
+DEF MatchT! <[T] value>;
+DEF Match!(value) MatchT(value);
+
+DEF MatchEnvT! <[MatchT]>;
+TO :value(t@MatchEnvT, env@Table.T) env[t:value];
+DEF MatchEnv!(value) MatchEnvT(value);
+
+TO :_match(t@MatchT, subject, from+@SmallT, env@Table.T) (
+	VAR value ← t:value(env);
+	VAR old ← from;
+	SUSP subject:"[]="(.from, from ← $ + value:length, value);
+	from ← old;
+	FAIL;
+);
+
+DEF AnyT! <[T] count>;
+DEF Any!(count) AnyT((NIL ≢ count) | 1);
+
+DEF AnyEnvT! <[AnyT]>;
+TO :count(t@AnyEnvT, env@Table.T) env[t:count];
+DEF AnyEnv!(count) AnyEnvT(count);
+
+TO :_match(t@AnyT, subject, from+@SmallT, env@Table.T) (
+	VAR old ← from;
+	SUSP subject[.from, from ← $ + t:count(env)];
+	from ← old;
+	FAIL;
+);
+
+DEF AssignT! <[T] address, pattern>;
+DEF Assign!(var+, pattern) AssignT(Address.FromRef(var), pattern);
+TO :_match(t@AssignT, subject, from+@SmallT, env@Table.T) (
+	VAR var IS Address.ToRef(t:address);
+	VAR old ← var;
+	EVERY SUSP var ← t:pattern(env):_match(subject, from, env);
+	var ← old;
+	FAIL;
+);
+
+DEF DoT! <[T] function, pattern>;
+DEF Do!(function, pattern) DoT(function, pattern);
+TO :_match(t@DoT, subject, from+@SmallT, env@Table.T) (
+	VAR var IS Address.ToRef(t:address);
+	VAR old ← var, val;
+	EVERY SUSP t:function(t:pattern(env):_match(subject, from, env));
+	var ← old;
+	FAIL;
+);
+
+DEF AtT! <[T] position>;
+DEF At!(position) AtT(position);
+
+TO :_match(t@AtT, subject, from+@SmallT, env@Table.T) (
+	VAR position ← t:position(env);
+	position ⩽ 0 ⇒ position ← $ + subject:length + 1;
+	RET from = position ⇒ :new(?subject);
+);
+
+DEF SeqT! <[T] patterns>;
+DEF Seq!(patterns) SeqT(patterns);
+TO :_match(t@SeqT, subject, from+@SmallT, env@Table.T) (
+	VAR patterns ← t:patterns;
+	VAR n ← patterns:length;
+	n = 1 ⇒ RET EVERY SUSP patterns[1]:_match(subject, from, env);
+	VAR j ← 1;
+	VAR iters ← [];
+	VAR iter ← DO patterns[1]:_match(subject, from, env);
+	REP (
+		j = n ⇒ (
+			REP WHILE SUSP ^iter;
+			j ← $ - 1;
+			iter ← iters:pull;
+		) ↷ (
+			(WITH val ← ^iter DO (
+				j ← $ + 1;
+				iters:put(iter);
+				iter ← DO val + patterns[j]:_match(subject, from, env); 
+			)) ↷ (
+				j ← $ - 1;
+				(iter ← iters:pull) ↷ FAIL;
+			);
+		);
+	);
+);
+TO :"+"(a@SeqT, b@T) (a:patterns:put(b); a);
+TO :"+"(a@T, b@SeqT) (b:patterns:push(b); b);
+
+DEF AltT! <[T] patterns>;
+DEF Alt!(patterns) AltT(patterns);
+TO :_match(t@AltT, subject, from+@SmallT, env@Table.T) EVERY SUSP t:patterns:values:_match(subject, from, env);
+TO :"/"(a@AltT, b@T) (a:patterns:put(b); a);
+TO :"/"(a@T, b@AltT) (b:patterns:push(b); b);
+
+DEF RepT! <[T] pattern>;
+DEF Rep!(pattern) RepT(pattern);
+TO :_match(t@RepT, subject, from+@SmallT, env@Table.T) (
+	SUSP :new(?subject);
+	VAR pattern ← t:pattern(env), iters ← [], vals ← [];
+	VAR iter ← DO pattern:_match(subject, from, env);
+	REP (
+		(WITH val ← ^iter DO (
+			vals:put(val);
+			iters:put(iter);
+			iter ← DO val + pattern:_match(subject, from, env); 
+		)) ↷ (
+			SUSP vals:pull;
+			(iter ← iters:pull) ↷ FAIL;
+		);
+	);
+);
+
+DEF BoundT! <[T] pattern, min, max>;
+DEF Bound!(pattern, min, max) BoundT(pattern, min, max);
+TO :_match(t@BoundT, subject, from+@SmallT, env@Table.T) (
+	VAR pattern ← t:pattern(env), iters ← [], vals ← [];
+	VAR min ← t:min(env) - 1, max ← t:max(env) - 1;
+	VAR iter ← DO pattern:_match(subject, from, env);
+	REP (
+		(WITH val ← ^iter DO (
+			vals:length < max ⇒ (
+				vals:put(val);
+				iters:put(iter);
+				iter ← DO val + pattern:_match(subject, from, env);
+			) ↷ (
+				SUSP val;
+			); 
+		)) ↷ (
+			SUSP vals:pull \ vals:length ⩾ min;
+			(iter ← iters:pull) ↷ FAIL;
+		);
+	);
+);
+
+END Pattern.

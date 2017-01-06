@@ -1,0 +1,212 @@
+MOD Main;
+
+IMP IO.Terminal USE Out;
+
+IMP Sys.Program USE Args;
+IMP Sys.FileSys;
+IMP IO.File;
+IMP Xml.Parser;
+
+IMP .Type, .API, .Log;
+
+IMP .Common USE Targets;
+IMP .Special, .Object, .Opaque, .Struct, .Class, .Interface, .Enum, .Flags, .Callback, .Alias, .Response;
+
+DEF ObjDir <- "../../../obj/Lib/Gir";
+DEF IncDir <- "../../../inc/gcc/Gir";
+DEF LibDir <- "../../../lib/Gir";
+
+DEF EnvT <- <[] namespace, object, function>;
+DEF Handle <- :?;
+
+TO Handle(env, =:api, attrs) ();
+
+TO Handle(env, =:namespace, attrs) (
+    DEF CheckDir(dir) FileSys.Exists(dir) // FileSys.MakeDir(dir, 511);
+    env:namespace <- attrs["name"];
+    CheckDir('{ObjDir}/{env:namespace}');
+    CheckDir('{IncDir}/{env:namespace}');
+    CheckDir('{LibDir}/{env:namespace}');
+);
+
+TO Handle(env, =:object, attrs) (
+    env:object <- (Special.New | Object.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"], attrs["parent"] | "GObject");
+    Common.Targets:put(env:object);
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}/T');
+);
+
+TO Handle(env, =:struct, attrs) (
+    attrs["opaque"] = "true" => (
+		env:object <- (Special.New | Opaque.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+    ) // (
+		env:object <- (Special.New | Struct.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"], attrs["parent"] | NIL);
+    );
+    Common.Targets:put(env:object);
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}/T');
+);
+
+TO Handle(env, =:class, attrs) (
+    env:object <- (Special.New | Class.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+    Common.Targets:put(env:object);
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}/T');
+);
+
+TO Handle(env, =:interface, attrs) (
+    env:object <- (Special.New | Interface.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+    Common.Targets:put(env:object);
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}/T');
+);
+
+TO Handle(env, =:enum, attrs) (
+	WHEN attrs["type"] IS "enum" DO (
+		env:object <- (Special.New | Enum.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+	) IS "response" DO  (
+		env:object <- (Special.New | Response.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+	) IS "flags" DO (
+		env:object <- (Special.New | Flags.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+    );
+    Common.Targets:put(env:object);
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}/T');
+);
+
+TO Handle(env, =:callback, attrs) (
+	attrs["name"] => (
+		env:function <- (Special.New | Callback.New)(env:namespace, attrs["name"], attrs["cname"], attrs["gname"]);
+		Common.Targets:put(env:function);
+		API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{attrs.name}');
+	) // (
+		VAR callback <- Common.CallbackNew("", attrs["cname"], env:object);
+		env:object:items:put(callback);
+		env:function <- callback;
+		API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{env:object:name}/{attrs.cname}');
+	);
+);
+
+TO Handle(env, =:alias, attrs) (
+    Alias.New(env:namespace, attrs["name"], attrs["cname"], attrs["type"]);
+);
+
+TO Handle(env, =:implements, attrs) (
+    env:object:interfaces:put(attrs["interface"]);
+);
+
+TO Handle(env, =:member, attrs) (
+    env:object:items:put(Common.MemberNew(attrs["name"], attrs["cname"], env:object));
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{env:object:name}/{attrs.name}');
+);
+
+TO Handle(env, =:virtual_method, attrs) (
+    VAR function <- Common.VirtualMethodNew(attrs["name"], attrs["cname"], env:object);
+    env:object:items:put(function);
+    env:function <- function;
+    API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{env:object:name}/{attrs.name}');
+);
+
+TO Handle(env, =:method, attrs) (
+	VAR function;
+	attrs["shared"] => (
+		attrs["callback"] => (
+			function <- Callback.InstanceNew(attrs["name"], attrs["cname"], attrs["callback"]);
+		) // (
+			function <- Common.FunctionNew(attrs["name"], attrs["cname"]);
+		);
+	) // (
+		function <- Common.MethodNew(attrs["name"], attrs["cname"], env:object);
+	);
+	env:object:items:put(function);
+	env:function <- function;
+	API.AddIdent(attrs.cname, 'Gir/{env:namespace}/{env:object:name}/{attrs.name}');
+);
+
+TO Handle(env, =:"return-type", attrs) (
+    env:function:type <- attrs["type"];
+);
+
+TO Handle(env, =:parameters, attrs) ();
+
+TO Handle(env, =:parameter, attrs) (
+	attrs["ellipsis"] = "true" => (
+		attrs["term"] => (
+			env:function:params:put(Common.ParamNew("...", "varargs-" + attrs["term"]));
+		) // attrs["sized"] => (
+			env:function:params:put(Common.ParamNew("...", "varargs"));
+		) // (
+			env:function:params:put(Common.ParamNew("...", "ellipsis"));
+		);
+	) // attrs["array"] => (
+		env:function:params:put(Common.ParamNew(attrs["name"] | "arg", 'array-{attrs["type"]}'));
+	) // (
+		env:function:params:put(Common.ParamNew(attrs["name"] | "arg", attrs["type"]));
+	);
+);
+
+TO Handle(env, =:field, attrs) (
+	attrs.name = "GSEAL" => RET;
+	attrs.name = "_VTE_SEAL" => RET;
+	attrs.access = "private" => RET;
+    attrs["array_len"] => (
+		env:object:items:put(Common.ArrayFieldNew(attrs["name"], attrs["cname"], attrs["type"], attrs["array_len"], env:object));
+    ) // (
+		env:object:items:put(Common.FieldNew(attrs["name"], attrs["cname"], attrs["type"], env:object));
+    );
+);
+
+TO Handle(env, =:constructor, attrs) (
+    VAR function <- Common.ConstructorNew("", attrs["cname"], env:object, attrs["rname"] | NIL);
+    env:object:items:put(function);
+    env:function <- function;
+);
+
+TO Handle(env, =:initializer, attrs) (
+    VAR function <- Common.InitializerNew(attrs["name"], env:object);
+    env:object:items:put(function);
+    env:function <- function;
+);
+
+TO Handle(env, =:"static-string", attrs) ();
+
+VAR source <- File.Open("api.xml", File.Flag.Read + File.Flag.Text);
+VAR parser <- Parser.New();
+parser:userdata <- EnvT();
+parser:onstartelement <- <env, name, attrs> (
+    Handle(env, name, attrs);
+    RECV msg DO (
+		Out:writes('Error: {name}:{attrs}\n\t{msg}\n');
+    );
+);
+
+Out:write("Reading api file...");
+REP WHILE parser:parse(source:read(1024));
+parser:finish;
+Out:write("done.\n");
+
+Out:write("Generating files...");
+VAR mapfile <- File.Open("Types.map", File.Flag.Write + File.Flag.Text);
+mapfile:write("GdkGCX11 = Gir/Gdk/GC\n");
+mapfile:write("GdkDisplayX11 = Gir/Gdk/Display\n");
+mapfile:write("GdkScreenX11 = Gir/Gdk/Screen\n");
+mapfile:write("GLocalFile = Gir/Gio/File\n");
+mapfile:write("GDummyFile = Gir/Gio/File\n");
+mapfile:write("GDaemonFile = Gir/Gio/File\n");
+mapfile:write("GParam = Gir/GObject/GParamSpec\n");
+mapfile:write("MurrineStyle = Gir/Gtk/Style\n");
+VAR type;
+EVERY type <- Common.Targets:values DO (
+	Out:write('Generating files for {type:cname}.\n');
+    type:generate(ObjDir, IncDir, LibDir);
+    mapfile:writes(type:gname, " = Gir/", type:namespace, "/", type:name, "\n");
+);
+mapfile:close;
+Out:write("done.\n");
+
+Log.Log:close;
+Log.List:close;
+
+VAR idfile ← File.Open("/tmp/identifiers.txt", File.Flag.Write + File.Flag.Text);
+VAR idkey, idvalue;
+EVERY API.identifiers:loop(idkey, idvalue) DO idfile:writes(idkey, " → ", idvalue, "\n");
+idfile:close;
+
+Program.Exit();
+
+END Main.

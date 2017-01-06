@@ -1,0 +1,21 @@
+include("/usr/lib/libcgraph.so")
+include("/usr/lib/libgvc.so")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("GraphT")
+export("NodeT")
+export("EdgeT")
+export("New")
+
+submodule("Graph")
+subexport("Graph", "GraphDefault", "Default")
+subexport("Graph", "GraphStrict", "Strict")
+subexport("Graph", "GraphDirected", "Directed")
+subexport("Graph", "GraphDirectedStrict", "DirectedStrict")
+

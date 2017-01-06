@@ -1,0 +1,8 @@
+MOD Log;
+
+IMP IO.File;
+
+DEF Log! <- File.Open("Autogen.log", File.Flag.Write + File.Flag.Text);
+DEF List! <- File.Open("FileList", File.Flag.Write + File.Flag.Text);
+
+END Log.

@@ -1,0 +1,13 @@
+require("Math/Methods")
+
+library("Wrapl/Runtime.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")

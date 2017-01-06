@@ -1,0 +1,670 @@
+MOD Main;
+
+IMP IO.Terminal USE Out, Err;
+IMP Std, Sys, IO, Xml;
+
+VAR api <- Xml.New(:api);
+VAR namespace, prefix, main, values;
+
+VAR gir, gir_list <- IO.File.Open(Sys.Program.Args[1], IO.File.Flag.Read + IO.File.Flag.Text);
+
+VAR gir_file;
+EVERY gir_file <- Sys.FileSys.ListDir("/usr/lib/girepository-1.0") DO gir_file[1] ~= "." => (
+	gir_file = "Gtk-2.0.typelib" => STEP;
+	gir_file = "Vte-0.0.typelib" => STEP;
+	--gir_file = "cairo-1.0.typelib" => STEP;
+	WHILE gir <- IO.Process.Open("g-ir-generate", '/usr/lib/girepository-1.0/{gir_file}');
+	VAR gir_xml <- Xml.Load(gir, Xml.NoText);
+	gir:wait;
+	gir:close;
+	Out:write('\nFile: {gir_file}\n');
+	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
+);
+gir_list:close;
+
+-- Additional fixups go here
+
+DEF Opaque {
+	"GObject" IS [
+		"ParamSpecPool"
+	],
+	"GLib" IS [
+		"SequenceIter",
+		"MarkupParseContext",
+		"AsyncQueue",
+		"Hmac",
+		"MappedFile",
+		"MatchInfo",
+		"TimeZone",
+		"Timer",
+		"Regex",
+		"Sequence",
+		"MainLoop",
+		"VariantType",
+		"MainContext",
+		"Variant",
+		"Checksum",
+		"HashTable",
+		"OptionContext",
+		"BookmarkFile",
+		"Tree",
+		"Bytes",
+		"TestSuite",
+		"Rand",
+		"Dir",
+		"StringChunk",
+		"KeyFile",
+		"PatternSpec",
+		"OptionGroup",
+		"DateTime"
+	],
+	"Gio" IS [
+		"SrvTarget",
+		"Resource",
+		"IOSchedulerJob",
+		"IOExtensionPoint",
+		"SettingsSchema",
+		"SettingsSchemaKey",
+		"FileAttributeMatcher",
+		"IOModuleScope",
+		"UnixMountPoint",
+		"SettingsSchemaSource",
+		"IOExtension",
+		"Resource"
+	],
+	"Gdk" IS [
+		"FrameTimings"
+	],
+	"Pango" IS [
+		"LayoutIter",
+		"ScriptIter",
+		"AttrIterator",
+		"TabArray",
+		"Coverage",
+		"FontDescription",
+		"FontMetrics",
+		"AttrList",
+		"Language"
+	],
+	"Gtk" IS [
+		"Gradient",
+		"TreePath",
+		"TargetList",
+		"CssSection",
+		"WidgetPath",
+		"SelectionData",
+		"PaperSize",
+		"RecentInfo",
+		"SymbolicColor",
+		"IconSource",
+		"IconSet",
+		"TreeRowReference",
+		"TextAttributes"
+	],
+	"GConf" IS [
+		"ChangeSet"
+	],
+	"Atk" IS [
+		"Implementor",
+		"Range"
+	],
+	"GdkPixbuf" IS [
+		"PixbufFormat"
+	],
+	"GtkSource" IS [
+		"Encoding"
+	]
+};
+
+DEF ErrorCallback {
+	"GLib" IS [
+	],
+	"Gtk" IS [
+	]
+};
+
+DEF GValueReturn {
+	"Gtk" IS [
+		{"TreeModel" IS {"get_value" IS "value"}}
+	],
+	"GObject" IS [
+		{"Object" IS {"get_property" IS "value"}}
+	]
+};
+
+Out:write('Applying fixups\n');
+
+EVERY api[:namespace, {"name" IS Opaque:keys(values)}][:struct, {"name" IS values:values}]:attrs:insert("opaque", "true");
+EVERY api[:namespace, {"name" IS ErrorCallback:keys(values)}][:callback, {"name" IS values:values}][:parameters]:append(Xml.New(:parameter, {"type" IS "out-GLib.Error", "name" IS "error"}));
+
+--EVERY api[:namespace, {"name" IS GValueReturn:keys(values)}][:object, {"name" IS values:values:keys(values)}][:method, {"name" IS values:keys(values)}][:parameters][:parameter, {"name" IS values}].type <- 'return-GObject.Value';
+
+EVERY api[:namespace][:object][:field, {"name" IS "base"}]:detach;
+EVERY api[:namespace][:object][:field, {"name" IS "priv"}]:detach;
+EVERY api[:namespace][:object][:field, {"name" IS "parent"}]:detach;
+EVERY api[:namespace][:object][:field, {"name" IS "parent_instance"}]:detach;
+
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "Closure"}][:field, {"name" IS "notifiers"}].type <- '!{$}';
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "CClosure"}]:attrs:insert("parent", "GObject.Closure");
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "CClosure"}][:field, {"name" IS "closure"}]:detach;
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpec"}].cname <- 'GParamSpec';
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "Value"}]:detach;
+--api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "Value"}][:field, {"name" IS "data"}]:detach;
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "Parameter"}][:field, {"name" IS "value"}].type <- '!{$}';
+EVERY WITH tmp <- "Enum" | "Flags" DO (
+	api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS '{tmp}Class'}]:attrs:insert("parent", "GObject.TypeClass");
+	api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS '{tmp}Class'}][:field, {"name" IS "g_type_class"}]:detach;
+);
+--api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'TypeInstance'}][:field, {"name" IS "g_class"}].type <- '!{$}';
+EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'Value'}][:field]:detach;
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS '_Value__data__union'}]:detach;
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpecFlags"}][:field, {"name" IS "flags_class"}].type <- $:after('!');
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpecEnum"}][:field, {"name" IS "enum_class"}].type <- $:after('!');
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpecVariant"}][:field, {"name" IS "type"}].type <- $:after('!');
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpecVariant"}][:field, {"name" IS "default_value"}].type <- $:after('!');
+api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "SignalQuery"}][:field, {"name" IS "param_types"}].type <- 'array-GType*';
+EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'Closure'}][:field]:detach;
+EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'TypeInstance'}][:field]:detach;
+
+api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "OutputMessage"}][:field, {"name" IS "control_messages"}]:detach;
+api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "vectors"}]:detach;
+api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "control_messages"}]:detach;
+api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "StaticResource"}][:field, {"name" IS "resource"}].type <- $:after("!");
+api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "StaticResource"}][:field, {"name" IS "next"}].type <- $:after("!");
+
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Scanner"}][:field, {"name" IS "value"}].type <- '!{$}';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Scanner"}][:field, {"name" IS "next_value"}].type <- '!{$}';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Scanner"}][:field, {"name" IS "symbol_table"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field, {"name" IS "callback_funcs"}].type <- '!{$}';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field, {"name" IS "source_funcs"}].type <- '!{$}';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field, {"name" IS "context"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field, {"name" IS "prev"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field, {"name" IS "next"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "IOChannel"}][:field, {"name" IS "funcs"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "IOChannel"}][:field, {"name" IS "read_buf"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "IOChannel"}][:field, {"name" IS "encoded_read_buf"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "IOChannel"}][:field, {"name" IS "write_buf"}].type <- $:after("!");
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "TestLogBuffer"}][:field, {"name" IS "data"}].type <- $:after("!");
+
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntAdd"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntAnd"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntCompareAndExchange"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntDecAndTest"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntGet"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntInc"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntOr"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntSet"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicIntXor"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerAdd"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerAnd"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerCompareAndExchange"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerOr"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerSet"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "AtomicPointerXor"}][:parameters][:parameter, {"name" IS "atomic"}].type <- 'ref-{$}';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "OnceInitEnter"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
+api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name" IS "OnceInitLeave"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Once"}][:method, {"name" IS "InitEnter"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Once"}][:method, {"name" IS "InitLeave"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
+EVERY api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field]:detach;
+
+EVERY WITH tmp <- "Language" | "Int" | "Float" | "FontDesc" | "String"  | "Shape" | "Size" | "Color" DO (
+	api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS 'Attr{tmp}'}]:attrs:insert("parent", "Pango.Attribute");
+	api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS 'Attr{tmp}'}][:field, {"name" IS "attr"}]:detach;
+);
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrShape"}][:field, {"name" IS "ink_rect"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrShape"}][:field, {"name" IS "logical_rect"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrColor"}][:field, {"name" IS "color"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "Item"}][:field, {"name" IS "analysis"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "GlyphInfo"}][:field, {"name" IS "geometry"}].type <- '!{$}';	
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "GlyphInfo"}][:field, {"name" IS "attr"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:object, {"name" IS "Renderer"}][:field, {"name" IS "matrix"}].type <- $:after('!');
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrFontFeatures"}][:field, {"name" IS "attr"}].type <- '!{$}';
+api[:namespace, {"name" IS "Pango"}][:class, {"name" IS 'Main'}][:method, {"name" IS "Log2visGetEmbeddingLevels"}][:parameters][:parameter, {"name" IS "pbase_dir"}].type <- 'inout-{$}';
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "ScriptForLang"}]:detach;
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "GlyphString"}][:field, {"name" IS "glyphs"}]:detach;
+
+api[:namespace, {"name" IS "Gdk"}][:object, {"name" IS "Cursor"}][:method, {"name" IS "get_surface"}][:parameters][:parameter, {"name" IS "x_hot"}].type <- 'out-{$}';
+api[:namespace, {"name" IS "Gdk"}][:object, {"name" IS "Cursor"}][:method, {"name" IS "get_surface"}][:parameters][:parameter, {"name" IS "y_hot"}].type <- 'out-{$}';
+
+EVERY api[:namespace, {"name" IS "Gdk"}][:struct, {"name" IS "Event"}]:find(<node> node:tag == :field => node.type:begins("Gdk.Event")).type <- '!{$}';
+api[:namespace, {"name" IS "Gdk"}][:struct, {"name" IS "EventMotion"}][:field, {"name" IS "axes"}].type <- 'array-{$}';
+api[:namespace, {"name" IS "Gdk"}][:struct, {"name" IS "EventButton"}][:field, {"name" IS "axes"}].type <- 'array-{$}';
+api[:namespace, {"name" IS "Gdk"}][:struct, {"name" IS "EventTouch"}][:field, {"name" IS "axes"}].type <- 'array-{$}';
+api[:namespace, {"name" IS "Gdk"}][:struct, {"name" IS "EventExpose"}][:field, {"name" IS "area"}].type <- '!{$}';
+
+api[:namespace, {"name" IS "Gtk"}][:class, {"name" IS "Main"}][:method, {"name" IS "RcParsePriority"}][:parameters][:parameter, {"name" IS "priority"}].type <- 'out-{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "WidgetAuxInfo"}][:field, {"name" IS "margin"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "_RcProperty"}].name <- "RcProperty";
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "RcProperty"}].cname <- "GtkRcProperty";
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "RcProperty"}][:field, {"name" IS "value"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "SettingsValue"}][:field, {"name" IS "value"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "pg_bg_color"}]:detach;
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "pg_bg_rgba"}]:detach;
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "appearance"}]:detach;
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "AccelGroupEntry"}][:field, {"name" IS "key"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAppearance"}][:field, {"name" IS "bg_color"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAppearance"}][:field, {"name" IS "fg_color"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "TextAppearance"}][:field, {"name" IS "rgba"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name" IS "font_desc"}].type <- $:after('!');
+api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name" IS "private_font_desc"}].type <- $:after('!');
+api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "RcStyle"}][:field, {"name" IS "font_desc"}].type <- $:after('!');
+api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "BindingSignal"}][:field, {"name" IS "args"}]:detach;
+
+WITH node <- api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "TreeModel"}][:method, {"name" IS "get_value"}] DO (
+	--node.name <- "get";
+	node[:"return-type"].type <- 'param-2:GObject.Value';
+	node[:parameters][:parameter, {"name" IS "value"}].type <- 'return-GObject.Value';
+);
+
+EVERY api[:namespace, {"name" IS "Gtk"}][:object][:method][:parameters]:find(<node> node.type:begins("sized") => node.type:find("GObject.Value")).type <- $:map(["GObject.Value"], ["!GObject.Value"]);
+
+EVERY api[:namespace, {"name" IS "Vte"}][:object, {"name" IS "Terminal"}][:field]:detach;
+
+api[:namespace, {"name" IS "GConf"}][:object, {"name" IS "Client"}][:field, {"name" IS "dir_hash"}].type <- $:after('!');
+api[:namespace, {"name" IS "GConf"}][:object, {"name" IS "Client"}][:field, {"name" IS "cache_hash"}].type <- $:after('!');
+api[:namespace, {"name" IS "GConf"}][:object, {"name" IS "Client"}][:field, {"name" IS "cache_dirs"}].type <- $:after('!');
+api[:namespace, {"name" IS "GConf"}][:object, {"name" IS "Client"}][:field, {"name" IS "cache_recursive_dirs"}].type <- $:after('!');
+
+api[:namespace, {"name" IS "Atk"}][:struct, {"name" IS "PropertyValues"}][:field, {"name" IS "old_value"}].type <- '!{$}';
+api[:namespace, {"name" IS "Atk"}][:struct, {"name" IS "PropertyValues"}][:field, {"name" IS "new_value"}].type <- '!{$}';
+api[:namespace, {"name" IS "Atk"}][:struct, {"name" IS "TextRange"}][:field, {"name" IS "bounds"}].type <- '!{$}';
+api[:namespace, {"name" IS "Atk"}][:object, {"name" IS "Relation"}][:field, {"name" IS "target"}]:detach;
+api[:namespace, {"name" IS "Atk"}][:object, {"name" IS "RelationSet"}][:field, {"name" IS "relations"}]:detach;
+api[:namespace, {"name" IS "Atk"}][:object, {"name" IS "Registry"}][:field, {"name" IS "factory_type_registry"}]:detach;
+api[:namespace, {"name" IS "Atk"}][:object, {"name" IS "Registry"}][:field, {"name" IS "factory_singleton_cache"}]:detach;
+
+EVERY api[:namespace, {"name" IS "GdkPixbuf"}][].cname <- $:map(["GdkPixbuf"], ["Gdk"]);
+
+EVERY api[:namespace, {"name" IS "GooCanvas"}][].cname <- $:map(["GooCanvas"], ["Goo"]);
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasItemSimple"}][:field, {"name" IS "simple_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasEllipse"}][:field, {"name" IS "ellipse_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasGroupModel"}][:field, {"name" IS "children"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasStyleProperty"}][:field, {"name" IS "value"}].type <- '!{$}';
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasGrid"}][:field, {"name" IS "grid_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasImage"}][:field, {"name" IS "image_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasTable"}][:field, {"name" IS "table_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasRect"}][:field, {"name" IS "rect_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasText"}][:field, {"name" IS "text_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasPolyline"}][:field, {"name" IS "polyline_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasTableData"}][:field, {"name" IS "dimensions"}].type <- '!{$}';
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasTableDimension"}][:field, {"name" IS "spacings"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasLineDash"}][:field, {"name" IS "dashes"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasPath"}][:field, {"name" IS "path_data"}].type <- $:after('!');
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasGroup"}][:field, {"name" IS "items"}].type <- 'array-GooCanvasItem';
+api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "Canvas"}][:field, {"name" IS "model_to_item"}].type <- $:after('!');
+EVERY api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "Canvas"}][:method, {"name" IS "get_bounds"}][:parameters][:parameter].type <- 'out-{$}';
+EVERY api[:namespace, {"name" IS "GooCanvas"}][:object, {"name" IS "CanvasItemModel"}][:method, {"name" IS "get_simple_transform"}][:parameters][:parameter].type <- 'out-{$}';
+
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasPoints"}][:field, {"name" IS "coords"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:struct, {"name" IS "CanvasPolylineData"}][:field, {"name" IS "coords"}]:detach;
+
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoLineJoin"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoAntialias"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoOperator"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoHintMetrics"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoFillRule"}]:detach;
+api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoLineCap"}]:detach;
+
+EVERY api[:namespace, {"name" IS "cairo"}][:class, {"name" IS "Main"}][:method]:detach;
+
+
+VAR cairo <- api[:namespace, {"name" IS "cairo"}];
+--VAR cairo <- Xml.New(api, :namespace, {"name" IS "cairo"});
+EVERY WITH cname <- cairo[].cname DO (
+	VAR i <- 0, j, s <- ['cairo'];
+	EVERY j <- cname:any(Std.String.Upper) | 0 DO (
+		s:put(cname[i, j]:lower);
+		i <- j;
+	);
+	s:put('t');
+	cname <- s @ (Std.String.T, '_');
+);
+
+VAR cairo_api <- Xml.LoadFile(Main:path + "/cairo/extra.xml", Xml.NoText);
+EVERY WITH name <- cairo_api[][:method].name DO (
+	VAR i <- 0, j, s <- [];
+	EVERY j <- name:any(Std.String.Upper) | 0 DO (
+		s:put(name[i, j]:lower);
+		i <- j;
+	);
+	name <- s @ (Std.String.T, '_');
+);
+EVERY WITH node <- cairo_api[] DO (
+	VAR name <- ALL node.cname:split('_');
+	name:pop;
+	name:pull;
+	EVERY name:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
+	name <- (SUM name:values) | 'Cairo';
+	node:attrs:insert('name', name);
+	node:attrs:insert('gname', node.cname);
+);
+
+EVERY WITH node <- cairo_api[:struct][:method][:"return-type"] DO node.type:begins("cairo") => (
+	VAR type <- ALL node.type:split('_');
+	type:pop;
+	type:pull;
+	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
+	type <- (SUM type:values) | 'Cairo';
+	node.type <- 'cairo.{type}';
+);
+
+EVERY WITH node <- cairo_api[:struct][:method][:parameters][:parameter] DO node.type:begins("cairo") => (
+	VAR type <- ALL node.type:split('_');
+	type:pop;
+	type:pull;
+	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
+	type <- (SUM type:values) | 'Cairo';
+	node.type <- 'cairo.{type}';
+) // node.type:begins("const-cairo") => (
+	VAR type <- ALL node.type:split('_');
+	type:pop;
+	type:pull;
+	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
+	type <- (SUM type:values) | 'Cairo';
+	node.type <- 'const-cairo.{type}';
+);
+
+EVERY cairo:append(cairo_api[]);
+
+
+VAR out <- IO.File.Open(Sys.Program.Args[2], IO.File.Flag.Write + IO.File.Flag.Text) | Out;
+out:write(api);
+out:close;
+
+Sys.Program.Exit(0);
+
+DEF ProcessNamespace() (
+	DEF Processors {
+		:class IS ProcessClass,
+		:interface IS ProcessInterface,
+		:record IS ProcessRecord,
+		:union IS ProcessUnion,
+		:callback IS ProcessCallback,
+		:enumeration IS ProcessEnumeration,
+		:bitfield IS ProcessBitField,
+		:function IS <node> Xml.New(main, :method, {"name" IS CamelCaseName(node.name), "cname" IS node."c:identifier", "shared" IS "true"}, ProcessFunction(node)) & FAIL,
+		:constant IS <> FAIL
+	}:deffun(<tag> (
+		Err:write('Unknown node type {tag}\n');
+		<> FAIL;
+	));
+	Out:write('Processing namespace {namespace.name}\n');
+	prefix <- WHEN namespace.name
+		IS "GObject", "GLib", "Gio" DO "G"
+		IS "GdkX11" DO "Gdk"
+		DO namespace.name
+	;
+	VAR output <- Xml.New(:namespace, {"name" IS namespace.name});
+	main <- Xml.New(output, :class, {"name" IS 'Main', "cname" IS '{namespace.name}Main', "gname" IS '{namespace.name}Main'});
+	VAR node;
+	EVERY node <- namespace[] DO output:append(Processors[node:tag](node));
+	Out:write('done.\n');
+	RET output
+);
+
+DEF BaseTypes {
+	"none" IS "void",
+	"utf8" IS "char*",
+	"time_t" IS "time_t",
+	"int" IS "int",
+	"guint" IS "guint",
+	"gint" IS "gint",
+	"gushort" IS "gushort",
+	"gshort" IS "gshort",
+	"long" IS "long",
+	"gulong" IS "gulong",
+	"glong" IS "glong",
+	"guint8" IS "guint8",
+	"guint16" IS "guint16",
+	"guint32" IS "guint32",
+	"gint8" IS "gint8",
+	"gint16" IS "gint16",
+	"gint32" IS "gint32",
+	"gsize" IS "gsize",
+	"gssize" IS "gssize",
+	"size_t" IS "size_t",
+	"unsigned short" IS "unsigned short",
+	"unsigned int" IS "unsigned int",
+	"unsigned long" IS "unsigned long",
+	"dbus_uint32_t" IS "dbus_uint32_t",
+	"dbus_int32_t" IS "dbus_int32_t",
+	"guint64" IS "guint64",
+	"gint64" IS "gint64",
+	"goffset" IS "goffset",
+	"char*" IS "char*",
+	"unsigned char*" IS "unsigned char*",
+	"gchar*" IS "gchar*",
+	"guchar*" IS "guchar*",
+	"xmlChar*" IS "xmlChar*",
+	"gchar**" IS "gchar**",
+	"gdouble" IS "gdouble",
+	"double" IS "double",
+	"gfloat" IS "gfloat",
+	"float" IS "float",
+	"gboolean" IS "gboolean",
+	"any" IS "any",
+	"GType" IS "GType",
+	"gunichar" IS "guint32",
+	"filename" IS "const-char*"
+};
+
+DEF FixName(name) name:find(".") => name // (BaseTypes[name] | '{namespace.name}.{name}');
+DEF CamelCaseName(name) (SUM WITH s <- name:split("_") DO s[1]:map(Std.String.Lower, Std.String.Upper) + (s:length > 1 => s[2, 0] // "")) | name;
+
+DEF ProcessClass(class) (
+	Out:write('\tProcessing class {class.name}\n');
+	VAR output <- Xml.New(:object, {
+		"name" IS class.name,
+		"cname" IS '{prefix}{class.name}',
+		"gname" IS class."glib:type-name"
+	});
+	output:attrs:insert("parent", FixName(class.parent));
+	EVERY Xml.New(output, :implements, {"interface" IS FixName(class[:implements].name)});
+	VAR child;
+	EVERY child <- class[:field] DO (
+		VAR field <- Xml.New(output, :field, {"name" IS child.name, "cname" IS child.name, "type" IS ProcessType(child[])}) | STEP;
+		child.writable = "1" => (
+			field:attrs:insert("writeable", "true");
+		) // (
+			field.type <- '!{$}';
+		);
+	);
+	EVERY child <- class[:constructor] DO (
+		Xml.New(output, :constructor, {"cname" IS child."c:identifier"}, ProcessFunction(child)[2, 0]);
+	);
+	EVERY child <- class[:method] DO (
+		Xml.New(output, :method, {"name" IS child.name, "cname" IS child."c:identifier"}, ProcessFunction(child));
+	);
+	EVERY child <- class[:function] DO (
+		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
+	);
+	RET output;
+);
+
+DEF ProcessInterface(interface) (
+	Out:write('\tProcessing interface {interface.name}\n');
+	VAR output <- Xml.New(:object, {
+		"name" IS interface.name,
+		"cname" IS '{prefix}{interface.name}',
+		"gname" IS interface."glib:type-name"
+	});
+	EVERY Xml.New(output, :implements, {"interface" IS FixName(interface[:implements].name)});
+	VAR child;
+	EVERY child <- interface[:"virtual-method"] DO (
+		Xml.New(output, :"virtual-method", {"cname" IS child."c:identifier"}, ProcessFunction(child));
+	);
+	EVERY child <- interface[:method] DO (
+		Xml.New(output, :method, {"name" IS child.name, "cname" IS child."c:identifier"}, ProcessFunction(child));
+	);
+	EVERY child <- interface[:function] DO (
+		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
+	);
+	RET output;
+);
+
+DEF ProcessRecord(record) (
+	record."glib:is-gtype-struct" = "1" => FAIL;
+	record:content:length = 0 => FAIL;
+	Out:write('\tProcessing record {record.name}\n');
+	VAR output <- Xml.New(:struct, {
+		"name" IS record.name,
+		"cname" IS '{prefix}{record.name}',
+		"gname" IS record."glib:type-name" | '{prefix}{record.name}'
+	});
+	record.size = "0" => output:attrs:insert("opaque", "true");
+	VAR child;
+	EVERY child <- record[:field] DO (
+		VAR field <- Xml.New(output, :field, {"name" IS child.name, "cname" IS child.name, "type" IS ProcessType(child[])}) | STEP;
+		child.writable = "1" => (
+			field:attrs:insert("writeable", "true");
+		) // (
+			field.type <- '!{$}';
+		);
+	);
+	EVERY child <- record[:constructor] DO (
+		Xml.New(output, :constructor, {"cname" IS child."c:identifier"}, ProcessFunction(child)[2, 0]);
+	);
+	EVERY child <- record[:method] DO (
+		Xml.New(output, :method, {"name" IS child.name, "cname" IS child."c:identifier"}, ProcessFunction(child));
+	);
+	EVERY child <- record[:function] DO (
+		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
+	);
+	RET output;
+);
+
+DEF ProcessUnion(union) (
+	Out:write('\tProcessing union {union.name}\n');
+	VAR output <- Xml.New(:struct, {
+		"name" IS union.name,
+		"cname" IS '{prefix}{union.name}',
+		"gname" IS union."type-name" | '{prefix}{union.name}'
+	});
+	VAR child;
+	EVERY child <- union[:field] DO (
+		VAR field <- Xml.New(output, :field, {"name" IS child.name, "cname" IS child.name, "type" IS ProcessType(child[])}) | STEP;
+		child.writable = "1" => field:attrs:insert("writeable", "true");
+	);
+	EVERY child <- union[:constructor] DO (
+		Xml.New(output, :constructor, {"cname" IS child."c:identifier"}, ProcessFunction(child)[2, 0]);
+	);
+	EVERY child <- union[:method] DO (
+		Xml.New(output, :method, {"name" IS child.name, "cname" IS child."c:identifier"}, ProcessFunction(child));
+	);
+	RET output;
+);
+
+DEF ProcessCallback(callback) (
+	Out:write('\tProcessing callback {callback.name}\n');
+	RET Xml.New(:callback, {
+		"name" IS callback.name,
+		"cname" IS '{prefix}{callback.name}',
+		"gname" IS callback."glib:type-name" | '{prefix}{callback.name}'
+	}, ProcessFunction(callback));
+);
+
+DEF ProcessEnumeration(enumeration) (
+	Out:write('\tProcessing enumeration {enumeration.name}\n');
+	VAR output <- Xml.New(:enum, {
+		"type" IS "enum",
+		"name" IS enumeration.name,
+		"cname" IS '{prefix}{enumeration.name}',
+		"gname" IS enumeration."glib:type-name" | '{prefix}{enumeration.name}'
+	});
+	VAR child;
+	EVERY child <- enumeration[:member] DO (
+		VAR member <- Xml.New(output, :member, {"name" IS CamelCaseName(child.name), "value" IS child.value});
+		member:attrs:insert("cname", child:find(<node> node.name = "c:identifier").value);
+	);
+	RET output;
+);
+
+DEF ProcessBitField(bitfield) (
+	Out:write('\tProcessing bitfield {bitfield.name}\n');
+	VAR output <- Xml.New(:enum, {
+		"type" IS "flags",
+		"name" IS bitfield.name,
+		"cname" IS '{prefix}{bitfield.name}',
+		"gname" IS bitfield."glib:type-name" | '{prefix}{bitfield.name}'
+	});
+	VAR child;
+	EVERY child <- bitfield[:member] DO (
+		VAR member <- Xml.New(output, :member, {"name" IS CamelCaseName(child.name), "value" IS child.value});
+		member:attrs:insert("cname", child:find(<node> node.name = "c:identifier").value);
+	);
+	RET output;
+);
+
+DEF ProcessFunction(function) (
+	Out:write('\t\tProcessing function {function.name}\n');
+	VAR parameter <- {}, return, array, aux <- {};
+	return <- function[:"return-value"];
+	(array <- return[:array]) => (
+		array.length => aux:insert(array.length @ Std.Integer.T, 'out-size');
+	);
+	VAR return_type <- Xml.New(:"return-type", {"type" IS ProcessType(return[])});
+	return_type == NIL => (
+		Out:write("AAAARRRRGGGHHH!\n\n\n");
+		Out:write(function);
+		Sys.Program.Exit(1);
+	);
+	EVERY parameter <- function[:parameters][:parameter] DO (
+		(array <- parameter[:array]) => aux:insert(array.length @ Std.Integer.T, 'length-{array.length}');
+	);
+	VAR i <- 0;
+	VAR parameters <- Xml.New(:parameters);
+	EVERY parameter <- function[:parameters][:parameter] DO (
+		aux[i] => (
+			Xml.New(parameters, :parameter, {"type" IS aux[i], "name" IS parameter.name});
+		) // (array <- parameter[:array]) => (
+			array."zero-terminated" => (
+				Xml.New(parameters, :parameter, {"type" IS 'zarray-{ProcessType(array[])}', "name" IS parameter.name});
+			) // array.length => (
+				Xml.New(parameters, :parameter, {"type" IS 'sized-{array.length}-{ProcessType(array[])}', "name" IS parameter.name});
+			) // (
+				Xml.New(parameters, :parameter, {"type" IS 'array-{ProcessType(array[])}', "name" IS parameter.name});
+			);
+		) // parameter.direction = "out" => (
+			parameter."caller-allocates" = "1" => (
+				Xml.New(parameters, :parameter, {"type" IS 'out-!{ProcessType(parameter[])}', "name" IS parameter.name});
+			) // (
+				Xml.New(parameters, :parameter, {"type" IS 'out-{ProcessType(parameter[])}', "name" IS parameter.name});
+			);
+		) // parameter.direction = "inout" => (
+			Xml.New(parameters, :parameter, {"type" IS 'inout-{ProcessType(parameter[])}', "name" IS parameter.name});
+		) // (
+			Xml.New(parameters, :parameter, {"type" IS ProcessType(parameter[]), "name" IS parameter.name});
+		);
+		i <- i + 1;
+	);
+	function.throws = "1" => Xml.New(parameters, :parameter, {"type" IS "out-GLib.Error", "name" IS "error"});
+	RET [return_type, parameters];
+);
+
+DEF ProcessType(type) (
+	type:tag == :array => (
+		type.length => (
+			'sized-{type.length}-{ProcessType(type[])}';
+		) // type."zero-terminated" => (
+			'zarray-{ProcessType(type[])}';
+		) // type."fixed-size" => (
+			'fixed-{type."fixed-size"}-{FixName(type[:type].name)}';
+		) // type.name = "GLib.PtrArray" => (
+			'GPtrArray-{ProcessType(type[])}';
+		) // type.name = "GLib.ByteArray" => (
+			'GByteArray-{ProcessType(type[])}';
+		) // type.name = "GLib.Array" => (
+			'GArray-{ProcessType(type[])}';
+		) // (
+			'char*';
+		);
+	) // type.name = "GLib.SList" => (
+		'GSList-{ProcessType(type[])}';
+	) // type.name = "GLib.List" => (
+		'GList-{ProcessType(type[])}';
+	) // (
+		FixName(type.name);
+	);
+);
+
+END Main.

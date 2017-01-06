@@ -1,0 +1,18 @@
+include("libpthread.rlib")
+include("libdl.rlib")
+include("librt.so")
+include("IO/Stream.rlib")
+
+export("ConnectionT");
+
+export("Start")
+export("SetRequestHandler")
+export("GetRequestInfo")
+
+submodule("Opcode")
+subexport("Opcode", "OPCODE_CONTINUATION", "Continuation")
+subexport("Opcode", "OPCODE_BINARY", "Binary")
+subexport("Opcode", "OPCODE_TEXT", "Text")
+subexport("Opcode", "OPCODE_CONNECTION_CLOSE", "Close")
+subexport("Opcode", "OPCODE_PING", "Ping")
+subexport("Opcode", "OPCODE_PONG", "Pong")

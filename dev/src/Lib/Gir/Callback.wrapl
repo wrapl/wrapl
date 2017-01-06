@@ -1,0 +1,206 @@
+MOD Callback;
+
+IMP Sys.FileSys;
+IMP IO.File;
+IMP .Type, .Common;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    type, params,
+    items,
+    ctype,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:params <- [];
+    type:items <- [];
+    type:ctype <- cname;
+    type:headers <- {'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    RET type;
+);
+
+TO :rtype(type@T) "Std$Function$T";
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = Gir${type:namespace}${type:name}$new({in});'];
+
+TO :base_headers(type@T) (
+    VAR h <- type:headers:copy;
+    EVERY h:insert(Type.Lookup(type:params:values:type):headers:keys);
+    EVERY h:insert(Type.Lookup(type:type):headers:keys);
+    RET h;
+);
+
+TO :base_libraries(type@T) (
+    VAR h <- {};
+    EVERY h:insert(Type.Lookup(type:params:values:type):libraries:keys);
+    EVERY h:insert(Type.Lookup(type:type):libraries:keys);
+    RET h;
+);
+
+TO :generate_c(type@T) (
+	VAR r <- [
+		'',
+		"extern Std$Type$t T[];",
+		"static Std$Type$t *T_parents[] = {T, Std$Function$CT, Std$Function$T, 0};",
+		"Std$Type$t T[] = {{Std$Type$T, T_parents, Std$Function$invoke_c}};",
+		''
+	];
+	VAR line <- 'static {Type.Lookup(type:type):ctype} _invoke_thunk(Std$Object$t *Function, void *_';
+	VAR params <- type:params;
+	VAR n <- params:length;
+	VAR types <- ALL Type.Lookup(params:values:type);
+	VAR i;
+	EVERY i <- 1:to(n) DO line <- line + ', {types[i]:ctype} arg{i - 1}';
+	r:put(line + ") {");
+	r:put('\tStd$Function_argument Params[{SUM types:values:riva_argcount}];');
+	VAR r1 <- [];
+	VAR argindex <- 0, paramindex <- 0, paramtype;
+	EVERY paramtype <- types:values DO (
+		paramtype:rtype = "Agg$List$T" => (
+			EVERY r1:put("\t" + paramtype:riva_precall(argindex, paramindex):values);
+		) // (
+			EVERY r:put("\t" + paramtype:riva_precall(argindex, paramindex):values);
+		);
+		argindex <- argindex + 1;
+		paramindex <- paramindex + paramtype:riva_argcount;
+	);
+	EVERY r:put(r1:values);
+	r:put("\tStd$Function_result Result;");
+	r:put('\tStd$Function$invoke(Function, {SUM types:values:riva_argcount}, &Result, Params);');
+	argindex <- 0;
+	paramindex <- 0;
+	EVERY paramtype <- types:values DO (
+		EVERY r:put("\t" + paramtype:riva_postcall(argindex, paramindex):values);
+		argindex <- argindex + 1;
+		paramindex <- paramindex + paramtype:riva_argcount;
+	);
+	VAR rettype <- Type.Lookup(type:type);
+	rettype:ctype ~= "void" => (
+		r:put('\t{rettype:ctype} result;');
+		EVERY r:put("\t" + rettype:riva_return:values);
+		r:put("\treturn result;");
+	);
+	r:put(
+		"};",
+		"",
+		'{type:ctype} _new(Std$Object$t *Function) \{',
+		--'\tif (Function == Std$Function$Nil) return 0;',
+		'\tif (Function->Type == T) \{',
+		'\t\tGir${type:namespace}${type:name}$t *Callback = Function;',
+		'\t\treturn Callback->_function;',
+		'\t}',
+		'\tunsigned char *Thunk = Riva$Memory$alloc(20);',
+		"\tThunk[2] = 0xCC;",
+		"\tThunk[3] = 0x68;",
+		"\t*(Std$Object$t **)(Thunk + 4) = Function;",
+		"\tThunk[8] = 0xE8;",
+		"\t*(int*)(Thunk + 9) = ((unsigned char *)_invoke_thunk - Thunk) - 13;",
+		"\tThunk[13] = 0x83;",
+		"\tThunk[14] = 0xC4;",
+		"\tThunk[15] = 0x04;",
+		"\tThunk[16] = 0xC3;",
+		'\treturn ({type:ctype})(Thunk + 3);',
+		"};",
+		"",
+		'{rettype:ctype} _invoke(Gir${type:namespace}${type:name}$t *Callback, int Count, Std$Function_result *Result, Std$Function_argument *Args) \{'
+	);
+	argindex <- 0;
+	paramindex <- 0;
+	EVERY paramtype <-types:values DO (
+		--Out:write('param: {type:cname}\n');
+		EVERY r:put("\t" + paramtype:c_precall(argindex, paramindex):values);
+		argindex <- argindex + paramtype:c_argcount;
+		paramindex <- paramindex + 1;
+	);
+	line <- '\t{"void" ~= rettype:ctype} result = ' | "\t";
+	line <- line + 'Callback->_function(';
+	n > 0 => (
+		line <- line + "param0";
+		EVERY line <- line + ', param{1:to(n - 1)}';
+	);
+	line <- line + ");";
+	--Out:write('line = {line}\n');
+	r:put(line);
+	argindex <- 0;
+	paramindex <- 0;
+	EVERY paramtype <-types:values DO (
+		EVERY r:put("\t" + paramtype:c_postcall(argindex, paramindex):values);
+		argindex <- argindex + paramtype:c_argcount;
+		paramindex <- paramindex + 1;
+	);
+	"void" ~= rettype:ctype => EVERY r:put("\t" + rettype:c_return:values);
+	r:put(
+		"\treturn SUCCESS;",
+		"};",
+		"",
+		'Gir${type:namespace}${type:name}$t Nil[] = \{\{T, _invoke, 0}};'
+	);
+	RET r;
+);
+
+TO :generate_h(type@T) [
+	"typedef struct {",
+	"\tStd$Function_ct _Base;",
+	'\t{type:ctype} _function;',
+	'} Gir${type:namespace}${type:name}$t;',
+	"",
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];',
+    '',
+    'RIVA_CFUN({type:ctype}, new, int);',
+    'RIVA_CFUN(void, invoke, void);'
+];
+
+TO :generate_rdef(type@T) [
+    'export(\"T\")',
+    'export(\"_new\")',
+    'export(\"_invoke\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"_new\")',
+    'export(\"_invoke\")',
+    'export(\"Nil\")'
+];
+
+DEF InstanceT <- <[Common.FunctionT] callback>;
+
+DEF InstanceNew!(name, cname, callback) (
+	VAR instance <- InstanceT();
+	instance:name <- name;
+	instance:cname <- cname;
+	instance:callback <- callback;
+	instance:params <- [];
+	RET instance;
+);
+
+TO :generate_c(instance@InstanceT) (
+	VAR type <- Type.Lookup(instance:callback);
+	VAR prefix <- 'Gir${type:namespace}${type:name}';
+	RET [
+		'{prefix}$t {instance:name}[] = \{\{',
+		'\t\{{prefix}$T, {prefix}$invoke},',
+		'\t{instance:cname}',
+		'}};'
+	];
+);
+
+TO :generate_rdef(instance@InstanceT) [
+	'export(\"{instance:name}\")'
+];
+
+TO :headers(instance@InstanceT) Type.Lookup(instance:callback):headers;
+TO :libraries(instance@InstanceT) Type.Lookup(instance:callback):libraries;
+
+END Callback.

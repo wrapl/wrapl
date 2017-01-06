@@ -1,0 +1,27 @@
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+
+distribution = function(Name)
+	module("Stat", "Dist", Name)
+	export("Stat$Dist$" .. Name, Name)
+end
+
+distribution("Bernoulli")
+distribution("Binomial")
+distribution("ChiSquared")
+distribution("Exponential")
+distribution("Gamma")
+distribution("Hypergeometric")
+distribution("Lognormal")
+distribution("NegativeBinomial")
+distribution("Normal")
+distribution("Poisson")
+distribution("StudentT")
+distribution("Triangular")
+distribution("Uniform")

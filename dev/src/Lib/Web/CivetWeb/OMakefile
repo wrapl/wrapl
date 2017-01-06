@@ -1,0 +1,15 @@
+CIVETWEB_SRC = $(SRC_DIR)Lib/Web/CivetWeb/
+CIVETWEB_OBJ = $(OBJ_DIR)Lib/Web/CivetWeb/
+
+libcivetweb.a:
+	if $(not $(file-exists $(CIVETWEB_OBJ)civetweb/README.md))
+		system(git clone https://github.com/civetweb/civetweb.git)
+	cd($(CIVETWEB_OBJ)civetweb, $(system make WITH_WEBSOCKET=1 lib))
+	cp($(CIVETWEB_OBJ)civetweb/libcivetweb.a $(CIVETWEB_OBJ))
+
+INCLUDES += $(CIVETWEB_OBJ)/civetweb/include/
+
+CivetWeb.o: libcivetweb.a
+$(OUT_LIB)Web/CivetWeb.riva: libcivetweb.a
+
+RivaModule(Web/CivetWeb, CivetWeb)

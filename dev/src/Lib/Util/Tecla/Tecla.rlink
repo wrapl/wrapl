@@ -1,0 +1,13 @@
+include("libtecla.a")
+include("libtermcap.rlib")
+
+export("T")
+export("New")
+
+module("Riva/Memory")
+import("_alloc", "malloc")
+import("_realloc", "realloc")
+import("_free", "free")
+import("_calloc", "calloc")
+import("_strdup", "strdup")
+import("_strdup", "__strdup")

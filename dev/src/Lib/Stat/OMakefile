@@ -1,0 +1,10 @@
+BOOST_INC =
+
+LDFLAGS += Std.rlib Riva.rlib Gcc.rlink libpthread.rlib
+CXXFLAGS += -fpermissive -fno-exceptions -Wno-non-virtual-dtor
+INCLUDES += $(BOOST_INC)
+
+RivaModule(Stat/Dist, Dist)
+
+mkdir(-p Dist)
+.SUBDIRS: Dist

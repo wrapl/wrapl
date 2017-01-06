@@ -1,0 +1,39 @@
+DEBUGGER_SRC = $(SRC_DIR)Lib/Wrapl/Debugger/
+DEBUGGER_OBJ = $(OBJ_DIR)Lib/Wrapl/Debugger/
+
+LDFLAGS += Std.rlib Riva.rlib Util.rlib Sys$(DIRSEP)Module.rlib IO$(DIRSEP)Stream.rlib IO$(DIRSEP)File.rlib -L/usr/lib/ -L/lib/
+CFLAGS += -std=gnu99 -w
+
+CFLAGS += $(shell pkg-config --cflags gtk+-2.0) -include gtk/gtk.h -include gtk/gtkimmodule.h
+LDFLAGS += $(shell pkg-config --libs-only-l gtk+-2.0)
+
+CFLAGS += $(shell pkg-config --cflags gtksourceview-2.0) -include gtksourceview/gtksourceview.h
+LDFLAGS += $(shell pkg-config --libs-only-l gtksourceview-2.0)
+
+CFLAGS += $(shell pkg-config --cflags libglade-2.0) -include glade/glade.h -include glade/glade-parser.h -include glade/glade-build.h
+LDFLAGS += $(shell pkg-config --libs-only-l libglade-2.0)
+
+ASFLAGS += -I$(dirname $(file Debugger.glade))$(DIRSEP)
+
+Debugger2$(EXT_OBJ): Debugger.glade
+
+LocalCGeneratedFiles(Images.c)
+$(file Images.c): $(file Breakpoint.png) $(file NoBreakpoint.png)
+	gdk-pixbuf-csource --extern --raw --build-list BreakpointData $(file Breakpoint.png) NoBreakpointData $(file NoBreakpoint.png) > Images.c
+
+RivaModule(Wrapl/Debugger, Debugger Debugger2 Images)
+
+libnewt.a:
+	if $(not $(file-exists $(DEBUGGER_OBJ)newt/CHANGES))
+		mkdir(-p $(DEBUGGER_OBJ)newt)
+		cd($(DEBUGGER_OBJ)newt, $(system wget -nv https://fedorahosted.org/releases/n/e/newt/newt-0.52.18.tar.gz -O- | tar xvzP --strip-components=1))
+	cd($(DEBUGGER_OBJ)newt, $(system sh configure --prefix=$(absname $(DEBUGGER_OBJ)) --libdir=$(absname $(DEBUGGER_OBJ)) CFLAGS="$(CFLAGS) -O2"))
+	cd($(DEBUGGER_OBJ)newt, $(system make))
+	cd($(DEBUGGER_OBJ)newt, $(system make install))
+
+NDebug.o: libnewt.a
+
+$(OUT_LIB)Wrapl/NDebug.riva: libnewt.a
+
+WraplModule(Wrapl/WDebug, WDebug)
+RivaModule(Wrapl/NDebug, NDebug)

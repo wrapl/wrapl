@@ -1,0 +1,18 @@
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("_encode")
+export("_decode")
+export("Encode")
+export("Decode")

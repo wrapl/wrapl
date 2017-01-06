@@ -1,0 +1,56 @@
+DefineCommandVars()
+
+open build/Common
+open configure/Configure
+ASM_EXT = .asm
+open Gcc
+
+if $(defined EXPORT)
+	public.EXPORT_SUFFIX = -$(lowercase $(EXPORT))
+	export
+else
+	public.EXPORT_SUFFIX =
+	export
+
+if $(defined WEBEXPORT)
+	public.WEBEXPORT_SUFFIX = -sf
+	export
+else
+	public.WEBEXPORT_SUFFIX =
+	export
+
+public. =
+	SRC_DIR = $(dir src)$(DIRSEP)
+
+	OUT_BIN = $(dir ../bin)$(EXPORT_SUFFIX)$(DIRSEP)
+	OUT_LIB = $(dir ../lib)$(EXPORT_SUFFIX)$(DIRSEP)
+	OUT_DOC = $(dir doc)$(EXPORT_SUFFIX)$(DIRSEP)
+	OBJ_DIR = $(dir obj)$(EXPORT_SUFFIX)$(DIRSEP)
+
+	OUT_WEB = $(dir ../web)$(WEBEXPORT_SUFFIX)$(DIRSEP)
+	OUT_RST = $(dir ..)$(DIRSEP)doc$(DIRSEP)
+
+	DEV_BIN = $(dir bin)$(DIRSEP)
+	DEV_LIB = $(dir lib)$(DIRSEP)
+	DEV_INC = $(dir inc)$(DIRSEP)
+
+if $(defined PACKAGE)
+	public.INSTALL_BIN = $(PACKAGE)bin/
+	public.INSTALL_LIB = $(PACKAGE)lib/riva/
+	install:
+		mkdir(-p $(INSTALL_BIN))
+		mkdir(-p $(INSTALL_LIB))
+	export
+
+if $(not $(defined EXPORT))
+	mkdir(-p $(OUT_BIN))
+	mkdir(-p $(OUT_DOC))
+
+if $(defined Web)
+	mkdir(-p $(OUT_WEB))
+
+mkdir(-p $(OUT_LIB))
+mkdir(-p $(OBJ_DIR))
+
+
+.SUBDIRS: .

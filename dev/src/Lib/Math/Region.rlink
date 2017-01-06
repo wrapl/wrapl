@@ -1,0 +1,34 @@
+include("libstdc++.rlib")
+include("libgcc.rlib")
+include("Math/Vector.rlink")
+include("Agg/List.rlib")
+
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("ClipperT")
+export("ClipperNew");
+
+submodule("PolyType")
+subexport("PolyType", "PolyTypeT", "T")
+subexport("PolyType", "PolyTypeSubject", "Subject")
+subexport("PolyType", "PolyTypeClip", "Clip")
+
+submodule("PolyFillType")
+subexport("PolyFillType", "PolyFillTypeT", "T")
+subexport("PolyFillType", "PolyFillTypeEvenOdd", "EvenOdd")
+subexport("PolyFillType", "PolyFillTypeNonZero", "NonZero")
+
+submodule("ClipType")
+subexport("ClipType", "ClipTypeT", "T")
+subexport("ClipType", "ClipTypeIntersection", "Intersection")
+subexport("ClipType", "ClipTypeUnion", "Union")
+subexport("ClipType", "ClipTypeDifference", "Difference")
+subexport("ClipType", "ClipTypeXor", "Xor")

@@ -1,0 +1,9 @@
+CFLAGS += $(shell pkg-config --cflags gtksourceview-3.0) \
+	-include gtksourceview/gtksource.h \
+	-include gtksourceview/completion-providers/words/gtksourcecompletionwords.h 
+
+LDFLAGS += $(shell pkg-config --libs-only-l gtksourceview-3.0)
+
+if $(file-exists $(GIR_AUTOGEN))
+	foreach(FILE, $(rootname $(basename $(glob *.c))))
+		RivaModule(Gir/GtkSource/$(FILE), $(FILE))

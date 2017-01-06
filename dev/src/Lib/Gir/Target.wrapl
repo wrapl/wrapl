@@ -1,0 +1,31 @@
+MOD Target;
+
+IMP IO.Terminal USE Out;
+IMP IO.File;
+
+VAR mapfile <- File.Open("Types.map", File.Flag.Write + File.Flag.Text);
+mapfile:writes("GdkEvent = Gir/Gdk/Event\n");
+
+DEF T! <- <[]>;
+
+VAR queue <- [];
+
+TO :map(t@T) (
+	mapfile:writes(t:cname, " = Gir/", t:ns, "/", t:name, "\n");
+);
+
+TO :queue(t@T) queue:put(t);
+
+TO :process(t@T, srcdir, incdir, libdir) (
+	SEND "Unhandled target: " + t:name;
+);
+
+DEF Process!(srcdir, incdir, libdir) (
+	VAR target;
+	EVERY target <- queue:values DO (
+            --Out:writes(target:name, "\n");
+            target:process(srcdir, incdir, libdir);
+	);
+);
+
+END Target.

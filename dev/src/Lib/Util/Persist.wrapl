@@ -1,0 +1,110 @@
+MOD Persist;
+
+IMP Std, Sys, Riva.Symbol, IO.File;
+
+DEF Write! <- :?;
+
+DEF Read!(file) (
+	WHEN file:read(1) IS "i" DO (
+		VAR value <- 0 + 0;
+		file:read(Std.Address.FromVal(value) + 4, 4);
+		RET value;
+	) IS "r" DO (
+		VAR value <- 0.0 + 0.0;
+		file:read(Std.Address.FromVal(value) + 4, 8);
+		RET value;
+	) IS "s" DO (
+		VAR length <- 0 + 0;
+		file:read(Std.Address.FromVal(length) + 4, 4);
+		RET file:read(length);
+	) IS "l" DO (
+		VAR value <- [];
+		REP WHILE value:put(Read(file));
+		RET value;
+	) IS "t" DO (
+		VAR value <- {};
+		REP WHILE value:insert(Read(file), Read(file));
+		RET value;
+	) IS "n" DO (
+		RET NIL;
+	) IS "v" DO (
+		VAR length <- 0 + 0;
+		file:read(Std.Address.FromVal(length) + 4, 4);
+		VAR module <- Sys.Module.Load(NIL, file:read(length));
+		file:read(Std.Address.FromVal(length) + 4, 4);
+		RET module:import(file:read(length));
+	) IS ":" DO (
+		VAR length <- 0 + 0;
+		file:read(Std.Address.FromVal(length) + 4, 4);
+		RET Symbol:import(file:read(length));
+	) IS "." DO (
+		FAIL;
+	);
+);
+
+TO Write(file, value @ Std.Integer.SmallT) (
+	file:write("i");
+	file:write(Std.Address.FromVal(value) + 4, 4);
+);
+
+TO Write(file, value @ Std.String.T) (
+	file:write("s");
+	file:write(Std.Address.FromVal(value:length) + 4, 4);
+	file:write(value);
+);
+
+TO Write(file, value @ Std.List.T) (
+	file:write("l");
+	EVERY Write(file, value:values);
+	file:write(".");
+);
+
+TO Write(file, t @ Std.Table.T) (
+	file:write("t");
+	VAR key, value;
+	EVERY t:loop(key, value) DO (
+		Write(file, key);
+		Write(file, value);
+	);
+	file:write(".");
+);
+
+TO Write(file, value @ Std.Real.T) (
+	file:write("r");
+	file:write(Std.Address.FromVal(value:length) + 4, 8);
+);
+
+TO Write(file, value @ Std.Symbol.T) (
+	file:write(":");
+	value <- value @ Std.String.T;
+	file:write(Std.Address.FromVal(value:length) + 4, 4);
+	file:write(value);
+);
+
+TO Write(file, value = NIL) (
+	file:write("n");
+);
+
+TO Write(file, value) (
+	VAR desc <- Sys.Module.FromVal(value) | SEND "Unknown value";
+	file:write("v");
+	file:write(Std.Address.FromVal(desc[1]:length) + 4, 4);
+	file:write(desc[1]);
+	file:write(Std.Address.FromVal(desc[2]:length) + 4, 4);
+	file:write(desc[2]);
+);
+
+DEF Load!(filename) (
+	VAR file <- (File.Open(filename, File.READ); RECV msg DO FAIL);
+	VAR value <- Read(file);
+	file:close;
+	RET value;
+);
+
+DEF Store!(filename, value) (
+	VAR file <- File.Open(filename, File.WRITE);
+	Write(file, value);
+	file:close;
+);
+
+END Persist.

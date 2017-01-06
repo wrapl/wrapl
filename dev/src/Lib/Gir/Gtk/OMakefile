@@ -1,0 +1,8 @@
+CFLAGS += $(shell pkg-config --cflags gtk+-3.0) -include gtk/gtk.h -include gtk/gtkx.h -include gtk/gtkimmodule.h -include gtk/gtk-a11y.h #-DGtkEditableIface=GtkEditableClass
+LDFLAGS += $(shell pkg-config --libs-only-l gtk+-3.0)
+
+if $(file-exists $(GIR_AUTOGEN))
+	foreach(FILE, $(rootname $(basename $(glob *.c))))
+		RivaModule(Gir/Gtk/$(FILE), $(FILE))
+
+RivaModule(Gir/Gtk/Init, Init)

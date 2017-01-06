@@ -1,0 +1,74 @@
+if $(equal $(OSTYPE), Mingw)
+	CFLAGS += -Ddllimport= -fpack-struct=4
+	LDFLAGS += -DMINGW -L$(DEV_LIB) libc.rlink libm.rlib kernel32.rlib user32.rlib
+	export
+else
+	LDFLAGS += -L$(DEV_LIB) libc.rlink libm.rlib -L/usr/lib/i386-linux-gnu/ -L/usr/lib/
+	export
+
+RLINK = $(DEV_BIN)rlink$(EXE)
+WCOMP = $(DEV_BIN)wcomp
+GENDOC = $(DEV_BIN)gendoc
+RDOC = $(DEV_BIN)rdoc
+ASFLAGS += 
+ASINCLUDES += $(DEV_INC)nasm$(DIRSEP)
+INCLUDES += $(DEV_INC)gcc
+CFLAGS += -fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w
+CXXFLAGS += -fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w
+LDFLAGS += Gcc.rlink
+
+if $(defined EXPORT)
+	if $(equal $(EXPORT), MACOSX)
+		CFLAGS += -D__NO_CTYPE -D_FORTIFY_SOURCE=0 -DMACOSX
+		LDFLAGS += -mMACOSX
+		export
+	export
+
+if $(equal $(OSTYPE), Cygwin)
+	CFLAGS += -Ddllimport= -fpack-struct=4
+	LDFLAGS += kernel32.rlib user32.rlib
+	export
+
+INCLUDES += $(OBJ_DIR)Lib/Lib/include
+$(OBJ_DIR)Lib/Lib/include/gmp.h: $(OBJ_DIR)Lib/Lib/libgmp.a
+	mkdir(-p Lib)
+
+mkdir(-p Lib)
+.SUBDIRS: Lib
+
+BOOSTVER = 1.50.0
+_BOOSTVER = $(concat _, $(split ., $(BOOSTVER)))
+
+BOOST_DIR = $(dir $(OBJ_DIR)/Lib/Boost)
+BOOST_INC = $(dir $(BOOST_DIR)/include)
+BOOST_LIB = $(dir $(BOOST_DIR)/lib)
+mkdir(-p Boost)
+#.SUBDIRS: Boost
+
+mkdir(-p  Gmp Std Agg Sys IO Util Wrapl Math Stat Xml Alg Web DB FFI Net)
+.SUBDIRS: Gmp Std Agg Sys IO Util Wrapl Math Xml Alg Web DB Net #Stat #FFI
+mkdir(-p Yaml Csv Pdf Json Event AsmJit)
+.SUBDIRS: Yaml Csv Pdf Json #Event #AsmJit
+mkdir(-p Snd)
+# .SUBDIRS: Snd
+
+if $(defined GTK)
+	mkdir(-p Gtk)
+	.SUBDIRS: Gtk
+
+if $(defined GIR)
+	mkdir(-p Gir)
+	.SUBDIRS: Gir
+
+if $(defined NME)
+	mkdir(-p NME)
+	.SUBIRS: NME
+
+if $(defined IRRLICHT)
+	mkdir(-p Irrlicht)
+	.SUBDIRS: Irrlicht
+
+if $(defined QT)
+	mkdir(-p Qt)
+	.SUBDIRS: Qt
+

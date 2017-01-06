@@ -1,0 +1,64 @@
+.PHONY: LWC
+
+CFLAGS += -pipe -O3 -fomit-frame-pointer -D_GNU_SOURCE -fexpensive-optimizations
+#CFLAGS += -w -D_GNU_SOURCE
+
+if $(equal $(SYSNAME), Mingw)
+	HOST = --host=i586-mingw32msvc
+	export
+else
+	HOST = 
+	export
+
+if $(defined ARCH)
+	CFLAGS += -march=$(ARCH) -DCMOVSUPPORT
+	CXXFLAGS += -march=$(ARCH) -DCMOVSUPPORT
+	ASFLAGS += -DCMOVSUPPORT
+	export
+
+if $(equal $(AS), nasm)
+	ASFLAGS += -Ov -w-all
+	RDOCFLAGS += -anasm
+	export
+else
+	ASFLAGS += -O2 -w0
+	RDOCFLAGS += -ayasm
+	export																																																																																																										
+
+if $(equal $(SYSNAME), CYGWIN_NT-5.1)
+	CFLAGS += -DWINDOWS -DWIN32_THREADS -DCYGWIN
+	ASFLAGS += -DWINDOWS --prefix=_ -fwin32
+	LDFLAGS += -L/usr/local/lib
+	mkdir(-p Riva Rlink Lib)
+	.SUBDIRS: Riva Rlink Lib
+	export
+
+if $(equal $(SYSNAME), Mingw)
+	CFLAGS += -DWINDOWS -DMINGW
+	ASFLAGS += -DWINDOWS --prefix=_ -fwin32
+	LDFLAGS += -L/usr/local/lib
+	mkdir(-p Riva Rlink Lib)
+	.SUBDIRS: Riva Rlink Lib
+	export
+
+if $(equal $(SYSNAME), Linux)
+	CFLAGS += -DLINUX
+	ASFLAGS += -DLINUX -felf
+	if $(not $(defined EXPORT))
+		mkdir(-p Riva Rlink)
+		.SUBDIRS: Riva Rlink
+	mkdir(-p Lib)
+	.SUBDIRS: Lib
+	if $(defined PLUGIN)
+		mkdir(-p Plugin)
+		.SUBDIRS: Plugin
+	export
+
+if $(equal $(SYSNAME), Darwin)
+	CFLAGS += -DMACOSX
+	INCLUDES += /opt/local/include
+	LDFLAGS += -L/opt/local/lib
+	ASFLAGS += -DMACOSX --prefix=_ -fmacho
+	.SUBDIRS: Riva
+	export
+

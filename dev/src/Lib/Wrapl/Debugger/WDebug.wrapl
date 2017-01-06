@@ -1,0 +1,128 @@
+MOD Main;
+
+IMP Std.String;
+IMP Std.Symbol;
+IMP Std.Address;
+IMP Std.Integer;
+IMP IO.Terminal USE In, Out;
+IMP IO.Socket;
+IMP IO.Stream;
+IMP IO.File;
+IMP IO.Threaded;
+IMP Wrapl.Loader;
+IMP Sys.Module;
+IMP Sys.Program USE Args;
+IMP Sys.Config;
+IMP Sys.Log;
+IMP Sys.Thread;
+IMP Util.Editline;
+IMP Wrapl.NDebug;
+
+DEF _exit <- :?;
+DEF _help <- :?;
+
+DEF Eval(buffer) (
+	VAR session <- Loader.SessionNew(buffer);
+	Loader.SetMissingIDFunc(session, NDebug.FindLocal);
+	Out:writes("Interactive Wrapl Debugger [", Config.Get("version"), ":", Loader.Build, "]\n");
+	VAR result, details, exec <- Loader.ExecNew();
+	Program.OnInt(exec);
+	Loader.SessionVar(session, "_", result);
+	Loader.SessionDef(session, "image", Loader.Image);
+	REP (
+		exec:mark => (Out:write("Interrupted\n"); STEP;);
+		(result <- Loader.SessionEval(session)) => (
+			WHEN result IS _exit DO (
+				Program.Exit(0);
+			) IS _help DO (
+				Out:write("Commands: exit\n");
+			) DO (
+				Out:writes(Loader.Image(result), "\n");
+				RECV msg DO msg IN Symbol.NoMethodMessageT => (
+					Out:writes(result, "\n");
+					RECV msg DO msg IN Symbol.NoMethodMessageT => (
+						(details <- Module.FromVal(result)) => (
+							Out:writes(details[1], ".", details[2], "\n");
+						) // (details <- Module.FromVal(?result)) => (
+							Out:write('<{details[1]}.{details[2]}:{Address.FromVal(result)}>\n');
+						) // (
+							Out:write("<value>\n");
+						);
+					) // (
+						SEND msg;
+					);
+				);
+			);
+		) // (
+			Out:write("failure\n");
+		);
+		RECV msg DO msg IN Loader.ErrorMessageT => (
+			Out:writes("console", msg, "\n");
+		) // (
+			Out:write("Unhandled message: ");
+			Out:writes(msg, "\n");
+			RECV msg2 DO Out:write("<value>\n");
+		);
+	);
+);
+
+DEF Init() (
+	NDebug.Init();
+	VAR buffer <- Threaded.New();
+	Thread.New(Eval, buffer);
+	VAR editline <- Editline.New("debug");
+	editline:prompt(<> DEF '--> ');
+	VAR repeat <- "";
+	REP (
+		VAR command <- editline:read();
+		command = "\n" => command <- repeat;
+		repeat <- "\n";
+		command[1] = "\\" => (
+			WHEN command[2] IS "u" DO (
+				NDebug.UpStack();
+			) IS "d" DO (
+				NDebug.DownStack();
+			) IS "r" DO (
+				NDebug.ResumeThread();
+			) IS "s" DO (
+				repeat <- command;
+				NDebug.StepInThread();
+			) IS "n" DO (
+				repeat <- command;
+				NDebug.StepOverThread();
+			) IS "p" DO (
+				NDebug.PauseThread();
+			) IS "t" DO (
+				VAR i <- (1 SKIP command:split(" ")) @ Integer.T;
+				i == NIL => (
+					NDebug.ListThreads();
+				) // (
+					NDebug.SelectThread(i);
+				);
+			) IS "l" DO (
+				VAR i <- (1 SKIP command:split(" ")) @ Integer.T;
+				i == NIL => (
+					NDebug.ListModules();
+				) // (
+					VAR source <- NDebug.ModuleSource(i) | [];
+					EVERY i <- source:keys DO Out:writes('{i}':right(4, " "), " ", source[i]);
+				);
+			) IS "b" DO (
+				VAR i <- ALL (1 SKIP command:split(" ")) @ Integer.T;
+				NDebug.SetBreakpoint(i[1], i[2]);
+			) IS "c" DO (
+				VAR i <- ALL (1 SKIP command:split(" ")) @ Integer.T;
+				NDebug.ClearBreakpoint(i[1], i[2]);
+			) IS "q" DO (
+				Program.Exit(0);
+			);
+		) // (
+			buffer:write(command);
+		);
+		editline:continue(:false);
+	);
+);
+
+Thread.New(Init);
+
+END Main.

@@ -1,0 +1,81 @@
+MOD Enum;
+
+IMP .Type, .Common;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    ctype, rtype,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, gname) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:gname <- gname;
+    type:items <- [];
+    type:ctype <- cname;
+    type:rtype <- 'Gir${namespace}${name}$T';
+    type:headers <- {'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib'};
+    
+    Type.Define('{namespace}.{name}', type);
+    
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gir${type:namespace}${type:name}$t *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) [
+    'Gir${type:namespace}${type:name}$t *{tmp}_value = Riva$Memory$alloc(sizeof(Gir${type:namespace}${type:name}$t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {in};',
+    '{out} = {tmp}_value;'
+];
+
+TO :base_headers(type@T) type:headers;
+
+TO :generate_member(type@T, name, value)
+'#ifdef DOCUMENTING
+GLOBAL(T, Gir${type:namespace}${type:name}$t, {name});
+#else
+Gir${type:namespace}${type:name}$t __${name}[] = \{\{T, {value}}};
+#endif';
+
+TO :generate_c(type@T) (
+	VAR r <- [
+	    "",
+    	"TYPE(T, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);"
+	];
+	WITH item <- type:items:values \ (?$ == Common.FunctionT & $:name = "GetType" & $:type = "GType" & $:params:length = 0) DO (
+		r:push("#include <Util/TypedFunction.h>", "#include <Gir/GObject/Value.h>");
+		r:put("",
+			'TYPED_INSTANCE(void, Gir$GObject$Value$to_value, T, Gir${type:namespace}${type:name}$t const *Source, GValue *Dest) \{',
+			'\tg_value_init(Dest, {item:cname}());',
+			'\tg_value_set_enum(Dest, Source->Value);',
+			"}"
+		);
+	);
+	RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gir${type:namespace}${type:name}$t \{',
+    '\tStd$Type$t *Type;',
+    '\t{type:ctype} Value;',
+    '} Gir${type:namespace}${type:name}$t;',
+    '',
+    'extern Std$Type$t Gir${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+	'library(\"Gir/GObject/Value.rlib\")',
+    'export(\"T\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")'
+];
+
+END Enum.
