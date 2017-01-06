@@ -1,0 +1,22 @@
+ALG_SRC = $(SRC_DIR)Lib/Alg/
+ALG_OBJ = $(OBJ_DIR)Lib/Alg/
+
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Riva.rlib Util.rlib Util/TypedFunction.rlib Sys/Module.rlib
+
+RivaModule(Alg/Digest, Digest crypt_blowfish crypt_gensalt wrapper x86)
+RivaModule(Alg/Sign, Sign)
+
+libuuid.a:
+	if $(not $(file-exists $(ALG_SRC)yaml/README))
+		mkdir(-p $(ALG_SRC)yaml)
+		cd($(ALG_SRC)yaml, $(system wget -nv http://sourceforge.net/projects/libuuid/files/libuuid-1.0.3.tar.gz/download -O- | tar xvzP --strip-components=1))
+	mkdir(-p $(ALG_OBJ)yaml)
+	cd($(ALG_OBJ)yaml, $(system $(ALG_SRC)/yaml/configure $(HOST) --disable-shared --enable-static --without-pic --prefix=$(absname $(ALG_OBJ)) --libdir=$(absname $(ALG_OBJ)) ABI=32 CFLAGS="$(CFLAGS) -O2"))
+	cd($(ALG_OBJ)yaml, $(system make clean))
+	cd($(ALG_OBJ)yaml, $(system make))
+	cd($(ALG_OBJ)yaml, $(system make install))
+
+UUID.o: libuuid.a
+
+RivaModule(Alg/UUID, UUID)

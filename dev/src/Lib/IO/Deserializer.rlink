@@ -1,0 +1,32 @@
+include("Gmp.rlib")
+include("IO/Stream.rlib")
+include("Riva/System.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("deserializer_new", "new")
+export("New")
+export("Read")
+export("ReadSmall")
+export("ReadReal")
+export("ReadString")
+export("ReadList")
+export("ReadTable")
+export("ReadSymbol")
+export("ReadBig")
+
+submodule("Type")
+subexport("Type", "TypeNil", "Nil")
+subexport("Type", "TypeInteger", "Integer")
+subexport("Type", "TypeReal", "Real")
+subexport("Type", "TypeString", "String")
+subexport("Type", "TypeList", "List")
+subexport("Type", "TypeTable", "Table")
+subexport("Type", "TypeSymbol", "Symbol")
+subexport("Type", "TypeBigInteger", "BigInteger")

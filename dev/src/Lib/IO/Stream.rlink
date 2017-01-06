@@ -1,0 +1,90 @@
+include("libpthread.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("T")
+export("ReaderT")
+export("WriterT")
+export("SeekerT")
+export("TextReaderT")
+export("TextWriterT")
+export("MessageT")
+
+submodule("Message")
+subexport("Message", "MessageT", "Error")
+subexport("Message", "ConvertMessageT", "ConvertError")
+subexport("Message", "GenericMessageT", "GenericError")
+subexport("Message", "ReadMessageT", "ReadError")
+subexport("Message", "WriteMessageT", "WriteError")
+subexport("Message", "FlushMessageT", "FlushError")
+subexport("Message", "SeekMessageT", "SeekError")
+subexport("Message", "CloseMessageT", "CloseError")
+subexport("Message", "PollMessageT", "PollError")
+export("_message_new", "_Message$new")
+export("_message_new_format", "_Message$new_format")
+export("_message_from_errno", "_Message$from_errno")
+
+submodule("CloseMode")
+subexport("CloseMode", "CloseModeT", "T")
+subexport("CloseMode", "_CLOSE_READ", "Read")
+subexport("CloseMode", "_CLOSE_WRITE", "Write")
+subexport("CloseMode", "_CLOSE_BOTH", "Both")
+
+submodule("SeekMode")
+subexport("SeekMode", "SeekModeT", "T")
+subexport("SeekMode", "_SEEK_SET", "Set")
+subexport("SeekMode", "_SEEK_CUR", "Cur")
+subexport("SeekMode", "_SEEK_END", "End")
+
+export("ConvertMessageT")
+export("ConvertMessage")
+export("GenericMessageT")
+export("GenericMessage")
+export("ReadMessageT")
+export("ReadMessage")
+export("WriteMessageT")
+export("WriteMessage")
+export("FlushMessageT")
+export("FlushMessage")
+export("SeekMessageT")
+export("SeekMessage")
+export("CloseMessageT")
+export("CloseMessage")
+export("PollMessageT")
+export("PollMessage")
+export("SeekModeT")
+export("CloseModeT")
+export("_t_flush", "_flush")
+export("_t_close", "_close")
+export("_t_eoi", "_eoi")
+export("_t_read", "_read")
+export("_t_readx", "_readx")
+export("_t_readi", "_readi")
+export("_t_readc", "_readc")
+export("_t_readl", "_readl")
+export("_t_write", "_write")
+export("_t_writec", "_writec")
+export("_t_writes", "_writes")
+export("_t_writef", "_writef")
+export("_t_seek", "_seek")
+export("_t_tell", "_tell")
+export("_t_remaining", "_remaining")
+export("_alloc_buffer")
+export("_free_buffer")
+export("_free_buffers")
+
+if LINUX then
+	export("_cfile")
+end

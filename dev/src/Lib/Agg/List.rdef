@@ -1,0 +1,25 @@
+require("Agg/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("_new")
+export("_newv")
+export("_new0")
+export("Make")
+export("Collect")
+export("CollectN")
+export("_empty")
+export("_put")
+export("_push")
+export("_pop")
+export("_pull")
+export("_find_node")
+export("Apply")
+

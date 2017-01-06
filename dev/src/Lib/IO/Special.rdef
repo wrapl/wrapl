@@ -1,0 +1,15 @@
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+--export("Zero")
+--export("Null")
+export("Empty")
+export("Full")
+
+if LINUX then
+	export("Random")
+end

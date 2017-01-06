@@ -1,0 +1,27 @@
+require("Agg/Methods")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("NewIdentity")
+export("Make")
+export("Collect")
+export("_new")
+export("_insert")
+export("_delete")
+export("_index")
+export("_size")
+export("_generation")
+export("_foreach")
+export("_trav_new")
+export("_trav_first")
+export("_trav_next")
+export("_node_key")
+export("_node_value")
+export("_node_value_ref")

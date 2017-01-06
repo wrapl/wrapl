@@ -1,0 +1,9 @@
+library("libigraph.a")
+library("libstdc++.rlib")
+library("libpthread.rlib")
+library("Gcc.rlink")
+library("Agg/List.rlib")
+library("Agg/ObjectTable.rlib")
+
+export("New")
+export("DirectedNew")

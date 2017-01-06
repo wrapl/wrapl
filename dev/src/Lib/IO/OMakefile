@@ -1,0 +1,39 @@
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Riva.rlib Util.rlib Util/TypedFunction.rlib Sys/Module.rlib Agg.rlib
+
+ASFLAGS += -l Assembly.lst
+
+RivaModule(IO/Stream, Stream)
+
+LDFLAGS += IO$(DIRSEP)Stream.rlib
+
+if $(equal $(OSTYPE), Cygwin)
+	#RivaModule(IO/Windows, Windows)
+	#LDFLAGS += IO$(DIRSEP)Windows.rlib
+	RivaModule(IO/Posix, Posix)
+	LDFLAGS += IO$(DIRSEP)Posix.rlib
+	export
+
+if $(equal $(OSTYPE), Unix)
+	RivaModule(IO/Posix, Posix)
+	LDFLAGS += IO$(DIRSEP)Posix.rlib
+	export
+
+RivaModule(IO/File, File)
+RivaModule(IO/Terminal, Terminal)
+RivaModule(IO/Socket, Socket)
+RivaModule(IO/Process, Process)
+RivaModule(IO/Buffer, Buffer)
+RivaModule(IO/StringReader, StringReader)
+RivaModule(IO/Threaded, Threaded)
+#RivaModule(IO/Zlib, Zlib)
+RivaModule(IO/Encrypt, Encrypt)
+RivaModule(IO/Buffered, Buffered)
+RivaModule(IO/Special, Special)
+RivaModule(IO/Escaped, Escaped)
+RivaModule(IO/Decoder, Decoder)
+RivaModule(IO/Encoder, Encoder)
+RivaModule(IO/Poll, Poll)
+RivaModule(IO/Base64, Base64)
+RivaModule(IO/Deserializer, Deserializer)
+RivaModule(IO/Serializer, Serializer)

@@ -1,0 +1,32 @@
+include("IO/Socket.rlib")
+include("Sys/Signal.rlink")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("T")
+export("Open")
+export("Wait")
+export("Result")
+export("Signal")
+
+submodule("Message")
+subexport("Message", "ForkMessageT", "ForkError")
+subexport("Message", "PipeMessageT", "PipeError")
+subexport("Message", "WaitMessageT", "WaitError")
+
+if LINUX then
+	export("Message")
+end
+

@@ -1,0 +1,26 @@
+library("libpthread.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+end
+
+export("T")
+export("_posix_new", "_new")
+export("_posix_register_finalizer", "_register_finalizer")
+export("_posix_unregister_finalizer", "_unregister_finalizer")
+export("ReaderT")
+export("WriterT")
+export("SeekerT")
+export("TextReaderT")
+export("TextWriterT")
+--export("Flag")
+export("__POLLIN", "POLLIN")
+export("__POLLOUT", "POLLOUT")
+export("__POLLHUP", "POLLHUP")
+export("__POLLPRI", "POLLPRI")

@@ -1,0 +1,21 @@
+if WINDOWS then
+	_export = export
+	export = function(Internal, External)
+		if External == nil then
+			External = Internal
+		end
+		_export("_" .. Internal, External)
+	end
+end
+
+export("T")
+export("__file_open", "_open")
+export("Open")
+export("Temp")
+export("Pipe")
+export("Flag")
+export("Message")
+export("READ")
+export("WRITE")
+export("TEXT")
+export("APPEND")

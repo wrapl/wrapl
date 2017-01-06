@@ -1,0 +1,22 @@
+include("Gmp.rlib")
+include("IO/Stream.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("encoder_new", "_new")
+export("_write")
+export("New")
+export("Write")
+export("WriteSmall")
+export("WriteReal")
+export("WriteString")
+export("WriteList")
+export("WriteTable")
+export("WriteSymbol")
+export("WriteBig")

@@ -1,0 +1,45 @@
+include("Sys/Signal.rlink")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("T")
+export("New")
+export("EventT")
+export("EventNew")
+export("Add")
+export("Modify")
+export("Delete")
+export("Wait")
+export("PWait")
+export("_add")
+export("_mod")
+export("_del")
+
+submodule("Event")
+subexport("Event", "EventT", "T")
+subexport("Event", "EventNew", "New")
+if LINUX then
+	subexport("Event", "Event_EPOLLIN", "In")
+	subexport("Event", "Event_EPOLLOUT", "Out")
+	subexport("Event", "Event_EPOLLERR", "Err")
+	subexport("Event", "Event_EPOLLIN", "IN")
+	subexport("Event", "Event_EPOLLOUT", "OUT")
+	subexport("Event", "Event_EPOLLRDHUP", "RDHUP")
+	subexport("Event", "Event_EPOLLPRI", "PRI")
+	subexport("Event", "Event_EPOLLERR", "ERR")
+	subexport("Event", "Event_EPOLLHUP", "HUP")
+	subexport("Event", "Event_EPOLLET", "ET")
+	subexport("Event", "Event_EPOLLONESHOT", "ONESHOT")
+end

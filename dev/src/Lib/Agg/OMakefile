@@ -1,0 +1,44 @@
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Riva.rlib Agg.rlib
+if $(equal $(OSTYPE), Win32)
+	LDFLAGS += kernel32.rlib
+	export
+
+IGRAPH_SRC = $(SRC_DIR)Lib/Agg/
+IGRAPH_OBJ = $(OBJ_DIR)Lib/Agg/
+
+libigraph.a:
+	if $(not $(file-exists $(IGRAPH_SRC)igraph/ChangeLog))
+		cd($(IGRAPH_SRC), $(system wget -nv http://downloads.sourceforge.net/sourceforge/igraph/igraph-0.5.2.tar.gz -O- | tar xvzP))
+		cd($(IGRAPH_SRC), $(system mv igraph-0.5.2 igraph))
+	#if $(file-exists $(IGRAPH_OBJ)igraph/Makefile)
+	#	rm(-r $(IGRAPH_OBJ)igraph)
+	mkdir(-p $(IGRAPH_OBJ)igraph)
+	cd($(IGRAPH_OBJ)igraph, $(system $(IGRAPH_SRC)igraph/configure $(HOST) --disable-shared --enable-static --prefix=$(absname $(IGRAPH_OBJ)) --libdir=$(absname $(IGRAPH_OBJ)) CFLAGS="$(CFLAGS) -O2" CXXFLAGS="$(CXXFLAGS) -O2" --without-man-pages))
+	cd($(IGRAPH_OBJ)igraph, $(system make mostlyclean))
+	cd($(IGRAPH_OBJ)igraph, $(system make TARGET_LIBS="static"))
+	cd($(IGRAPH_OBJ)igraph, $(system make install))
+
+INCLUDES += $(IGRAPH_OBJ)include
+
+Graph.o: libigraph.a
+
+#RivaModule(Agg/Array, Array)
+RivaModule(Agg/List, List List2)
+RivaModule(Agg/Table, Table Table2)
+RivaModule(Agg/IntegerTable, IntegerTable)
+RivaModule(Agg/StringTable, StringTable)
+RivaModule(Agg/TypeTable, TypeTable)
+RivaModule(Agg/ObjectTable, ObjectTable)
+RivaModule(Agg/Methods, Methods)
+
+RivaModule(Agg/Grid, Grid)
+if $(equal $(SYSNAME), Linux)
+	RivaModule(Agg/Graph, Graph ../dso_handle)
+
+LDFLAGS += libpthread.rlib
+ASFLAGS += -I$(dirname $(file List2.asm))$(DIRSEP)
+INCLUDES += $(dirname $(file List.c))
+
+RivaModule(Agg/ThrList, ThrList)
+RivaModule(Agg/ThrTable, ThrTable ThrTable2)

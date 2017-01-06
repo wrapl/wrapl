@@ -1,0 +1,35 @@
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("T")
+export("New")
+export("Message")
+export("Flag")
+
+submodule("Flag")
+if LINUX then
+	subexport("Flag", "FlagStream", "Stream")
+	subexport("Flag", "FlagDgram", "Dgram")
+	subexport("Flag", "FlagRaw", "Raw")
+	subexport("Flag", "FlagInet", "Inet")
+	subexport("Flag", "FlagLocal", "Local")
+end
+
+submodule("Option")
+subexport("Option", "OptionT", "T")
+if LINUX then
+	subexport("Option", "OptionNoDelay", "NoDelay")
+	subexport("Option", "OptionOOBInline", "OOBInline")
+	subexport("Option", "OptionReuseAddr", "ReuseAddr")
+end

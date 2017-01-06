@@ -1,0 +1,9 @@
+include("libuuid.a", true)
+include("IO/Stream.rlib")
+
+export("T")
+export("New")
+export("Hash")
+export("Compare")
+export("Encode")
+export("Decode")
