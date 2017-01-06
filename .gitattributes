@@ -1,1 +1,4 @@
 _build_ linguist-language=Lua
+*.rdef linguist-language=Lua
+*.rlink linguist-language=Lua
+*.rlib linguist-language=Lua
