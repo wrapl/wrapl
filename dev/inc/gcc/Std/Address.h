@@ -2,6 +2,7 @@
 #define STD_ADDRESS_H
 
 #include <Std/Object.h>
+#include <stdint.h>
 
 #define RIVA_MODULE Std$Address
 #include <Riva-Header.h>
@@ -13,7 +14,7 @@ RIVA_STRUCT(t) {
 
 RIVA_STRUCT(constt) {
 	const Std$Type_t *Type;
-	const char *Value;
+	const uint8_t *Value;
 };
 
 RIVA_TYPE(T);

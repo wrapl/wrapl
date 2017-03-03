@@ -4,7 +4,7 @@
 #include <Agg/StringTable.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>	
-#include "civetweb.h"
+#include <civetweb.h>
 #include <ctype.h>
 
 typedef struct context_t {
@@ -93,13 +93,13 @@ static void riva_upload(struct mg_connection *Connection, const char *FileName) 
 	};
 };
 
-GLOBAL_FUNCTION(Start, 1) {
+GLOBAL_FUNCTION(New, 1) {
 	CHECK_ARG_TYPE(0, Agg$Table$T);
 	context_t *Context = new(context_t);
 	Context->Type = T;
 	Context->Upload = Std$Object$Nil;
 	struct mg_callbacks Callbacks = {0,};
-	Callbacks.upload = riva_upload;
+	//Callbacks.upload = riva_upload;
 	Std$Object$t *OptionsTable = Args[0].Val;
 	const char **Options = (const char **)Riva$Memory$alloc((2 * Agg$Table$size(OptionsTable) + 1) * sizeof(const char *));
 	const char **Option = Options;
@@ -142,6 +142,14 @@ GLOBAL_METHOD(SetRequestHandler, 3, "set_request_handler", TYP, T, TYP, Std$Stri
 	context_t *Context = (context_t *)Args[0].Val;
 	const char *Uri = Std$String$flatten(Args[1].Val);
 	mg_set_request_handler(Context->Handle, Uri, (void *)riva_request_handler, Args[2].Val);
+	Result->Arg = Args[0];
+	return SUCCESS;
+};
+
+GLOBAL_METHOD(SetAuthHandler, 3, "set_auth_handler", TYP, T, TYP, Std$String$T, ANY) {
+	context_t *Context = (context_t *)Args[0].Val;
+	const char *Uri = Std$String$flatten(Args[1].Val);
+	mg_set_auth_handler(Context->Handle, Uri, (void *)riva_request_handler, Args[2].Val);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };
@@ -240,11 +248,33 @@ METHOD("send_file", TYP, ConnectionT, TYP, Std$String$T) {
 	return SUCCESS;
 };
 
-METHOD("upload", TYP, ConnectionT, TYP, Std$String$T) {
+METHOD("send_file", TYP, ConnectionT, TYP, Std$String$T, TYP, Std$String$T) {
+	connection_t *Connection = (connection_t *)Args[0].Val;
+	mg_send_mime_file(Connection->Handle, Std$String$flatten(Args[1].Val), Std$String$flatten(Args[2].Val));
+	Result->Arg = Args[0];
+	return SUCCESS;
+};
+
+/*METHOD("upload", TYP, ConnectionT, TYP, Std$String$T) {
 	connection_t *Connection = (connection_t *)Args[0].Val;
 	Result->Val = Std$Integer$new_small(mg_upload(Connection->Handle, Std$String$flatten(Args[1].Val)));
 	return SUCCESS;
+};*/
+
+static int riva_field_found(const char *Key, const char *FileName, char *Path, size_t PathLen, void *UserData) {
+	
 };
+
+static int riva_field_get(const char *Key, const char *Value, size_t *ValueLen, void *UserData) {
+	
+};
+
+METHOD("handle_form_request", TYP, ConnectionT) {
+	connection_t *Connection = (connection_t *)Args[0].Val;
+	struct mg_form_data_handler FormDataHandler = {riva_field_found, riva_field_get, 0};
+	Result->Val = Std$Integer$new_small(mg_handle_form_request(Connection, &FormDataHandler));
+	return SUCCESS;
+}
 
 TYPE(OpcodeT, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);
 
@@ -394,3 +424,7 @@ METHOD("headers", TYP, RequestInfoT) {
 	Result->Val = Headers;
 	return SUCCESS;
 };
+
+INITIAL() {
+	mg_init_library(0);
+}

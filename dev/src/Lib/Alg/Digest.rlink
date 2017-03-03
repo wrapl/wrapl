@@ -1,4 +1,4 @@
-library("libnettle.rlib")
+include("libnettle.rlib")
 
 if WINDOWS then
 	_export = export
@@ -11,3 +11,7 @@ export("Md5T")
 export("Md5New")
 export("GenSalt")
 export("Crypt")
+
+submodule("Md5")
+subexport("Md5", "Md5T", "T")
+subexport("Md5", "Md5New", "New")

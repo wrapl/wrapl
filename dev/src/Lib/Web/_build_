@@ -12,3 +12,4 @@ riva_module("Web/Smtp", {file("Smtp.o")})
 
 subdir("FastCGI")
 subdir("CivetWeb")
+--subdir("WebSocket")

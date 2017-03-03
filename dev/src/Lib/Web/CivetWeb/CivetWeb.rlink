@@ -5,7 +5,7 @@ include("IO/Stream.rlib")
 
 export("ConnectionT");
 
-export("Start")
+export("New")
 export("SetRequestHandler")
 export("GetRequestInfo")
 

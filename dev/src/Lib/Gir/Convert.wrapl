@@ -113,6 +113,9 @@ DEF Opaque {
 	],
 	"GtkSource" IS [
 		"Encoding"
+	],
+	"Gda" IS [
+		"QuarkList"
 	]
 };
 
@@ -249,6 +252,14 @@ api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name"
 api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name" IS "private_font_desc"}].type <- $:after('!');
 api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "RcStyle"}][:field, {"name" IS "font_desc"}].type <- $:after('!');
 api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "BindingSignal"}][:field, {"name" IS "args"}]:detach;
+
+api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "Blob"}][:field, {"name" IS "data"}].type <- '!{$}';
+api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "MetaView"}][:field, {"name" IS "table"}].type <- '!{$}';
+EVERY api[:namespace, {"name" IS "Gda"}][:object, {"name" IS "BlobOp"}][:field]:detach;
+EVERY api[:namespace, {"name" IS "Gda"}][:object, {"name" IS "SqlParser"}][:field]:detach;
+api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "MetaContext"}][:field, {"name" IS "column_names"}].type <- 'sizedfield-size-char*';
+api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "MetaContext"}][:field, {"name" IS "column_values"}].type <- 'sizedfield-size-GObject.Value';
+api[:namespace, {"name" IS "Gda"}][:object, {"name" IS "ServerOperation"}][:method, {"name" IS "get_node_type"}][:parameters][:parameter, {"name" IS "status"}].type <- '{$}*';
 
 WITH node <- api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "TreeModel"}][:method, {"name" IS "get_value"}] DO (
 	--node.name <- "get";

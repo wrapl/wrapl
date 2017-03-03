@@ -1,6 +1,7 @@
 #include <Std.h>
+#include <Riva/Memory.h>
 #include <Agg.h>
-#include <libwebsockets.h>
+#include <lib/libwebsockets.h>
 
 typedef struct context_t {
 	const Std$Type$t *Type;
@@ -46,6 +47,14 @@ static int parse_info(Std$Object$t *Key, Std$Object$t *Value, struct lws_context
 		Info->protocols = Protocols;
 		return 0;
 	};
+	if (!strcmp(KeyString, "ssl_cert_filepath")) {
+		Info->ssl_cert_filepath = Std$String$flatten(Value);
+		return 0;
+	}
+	if (!strcmp(KeyString, "ssl_private_key_filepath")) {
+		Info->ssl_private_key_filepath = Std$String$flatten(Value);
+		return 0;
+	}
 	return 1;
 };
 

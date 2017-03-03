@@ -1,8 +1,9 @@
 CIVETWEB_URL = "https://github.com/civetweb/civetweb/archive/master.zip"
 local CIVETWEB_ARCHIVE = file("master.zip")
 local CIVETWEB_DIR = file("civetweb-master")
+local CIVETWEB_LIB = CIVETWEB_DIR/"libcivetweb.a"
 
-file("libcivetweb.a"){CIVETWEB_DIR}:build(function()
+CIVETWEB_LIB{CIVETWEB_DIR}:build(function()
 	execute{"cd", CIVETWEB_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		"--prefix=" .. file(""),
@@ -10,12 +11,8 @@ file("libcivetweb.a"){CIVETWEB_DIR}:build(function()
 		"CFLAGS=\"" .. stringify(CFLAGS) .. " -O2\"",
 		"--without-man-pages"
 	}
-	execute{"cd", CIVETWEB_DIR, "&&",
-		"make clean"
-	}
-	execute{"cd", CIVETWEB_DIR, "&&",
-		"make WITH_WEBSOCKET=1 lib"
-	}
+	execute{"cd", CIVETWEB_DIR, "&&", "make clean"}
+	execute{"cd", CIVETWEB_DIR, "&&", "make WITH_WEBSOCKET=1 lib"}
 	execute{"cp", CIVETWEB_DIR/"libcivetweb.a", "."}
 end)
 
@@ -28,8 +25,8 @@ CIVETWEB_DIR{CIVETWEB_ARCHIVE}:build(function()
 end)
 
 scope("civetweb", function()
-	CFLAGS = extend(CFLAGS, "-I", file("civetweb/include"))
+	CFLAGS = extend(CFLAGS, "-I", CIVETWEB_DIR/"include")
 	LDFLAGS = extend(LDFLAGS, "Riva/Memory.rlib", "IO/Stream.rlib", "Util/TypedFunction.rlib")
-	file("CivetWeb.o"){file("libcivetweb.a")}
-	riva_module("Web/CivetWeb", {file("CivetWeb.o")}, {file("libcivetweb.a")})
+	file("CivetWeb.o"){CIVETWEB_LIB}
+	riva_module("Web/CivetWeb", {file("CivetWeb.o")}, {CIVETWEB_LIB})
 end)

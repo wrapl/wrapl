@@ -61,6 +61,7 @@ DEF ModifierTable <- {
     "GPtrArray" IS Array.GPtrNew,
     "length" IS List.LengthNew,
     "sized" IS Array.SizedNew,
+    "sizedfield" IS Array.SizedFieldNew,
     "fixed" IS Array.FixedNew,
     "varargs" IS Varargs.New,
     "count" IS Varargs.CountNew,

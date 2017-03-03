@@ -33,7 +33,7 @@ AUTOGEN{API_XML}:build(function()
 end)
 
 function detect_modules(Path)
-	local Modules = meta("Modules"){file(""):dir():dir()/"Autogen.log", RLINK}
+	local Modules = meta("Modules"){AUTOGEN, RLINK}
 
 	DEFAULT{Modules:scan("Modules", function()
 		stringify{LDFLAGS, CFLAGS}
@@ -66,6 +66,7 @@ subdir("Gtk")
 subdir("GtkSource")
 subdir("Pango")
 subdir("cairo")
+subdir("Gda")
 
 --[[mkdir(-p docs)
 

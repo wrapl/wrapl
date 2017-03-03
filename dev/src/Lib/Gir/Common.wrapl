@@ -3,6 +3,7 @@ MOD Common;
 IMP Sys.Module, Sys.Program;
 IMP IO.Terminal USE Out;
 IMP IO.File;
+IMP Std.Integer;
 IMP Std.String;
 IMP .Type, .Docs, .API;
 IMP .Log USE Log, List;
@@ -151,8 +152,8 @@ DEF FieldNew!(name, cname, type, object) (
     );
     field:name <- name;
     field:cname <- cname;
-    field:type <- type;
     field:object <- object;
+	field:type <- type;
     RET field;
 );
 

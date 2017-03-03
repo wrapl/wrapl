@@ -1008,11 +1008,27 @@ start:
 		expr_t *Symbol = new const_expr_t(Scanner->Token.LineNo, Scanner->Token.Const);
 		if (Scanner->parse(tkLPAREN)) {
 			Expr->Next = accept_arguments(Scanner);
-			Scanner->accept(tkRPAREN);
+			if (Scanner->parse(tkSEMICOLON)) {
+				func_expr_t::parameter_t *Parameters = accept_parameters(Scanner);
+				Scanner->accept(tkRPAREN);
+				expr_t **Slot = &Expr;
+				while (*Slot) Slot = &Slot[0]->Next;
+				*Slot = new func_expr_t(Scanner->Token.LineNo, Parameters, accept_expr(Scanner));
+			} else {
+				Scanner->accept(tkRPAREN);
+			};
 		} else if (Scanner->parse(tkLBRACE)) {
 			Expr = new infinite_expr_t(Scanner->Token.LineNo, Expr);
 			Expr->Next = accept_expr_list(Scanner);
-			Scanner->accept(tkRBRACE);
+			if (Scanner->parse(tkSEMICOLON)) {
+				func_expr_t::parameter_t *Parameters = accept_parameters(Scanner);
+				Scanner->accept(tkRBRACE);
+				expr_t **Slot = &Expr;
+				while (*Slot) Slot = &Slot[0]->Next;
+				*Slot = new func_expr_t(Scanner->Token.LineNo, Parameters, accept_expr(Scanner));
+			} else {
+				Scanner->accept(tkRBRACE);
+			};
 			Expr = new parallel_invoke_expr_t(Scanner->Token.LineNo, Symbol, Expr);
 			goto start;
 		};
@@ -1020,19 +1036,45 @@ start:
 		goto start;
 	};
 	if (Scanner->parse(tkLPAREN)) {
-		Expr = new invoke_expr_t(Scanner->Token.LineNo, Expr, accept_arguments(Scanner));
-		Scanner->accept(tkRPAREN);
+		expr_t *Args = accept_arguments(Scanner);
+		if (Scanner->parse(tkSEMICOLON)) {
+			func_expr_t::parameter_t *Parameters = accept_parameters(Scanner);
+			Scanner->accept(tkRPAREN);
+			expr_t **Slot = &Args;
+			while (*Slot) Slot = &Slot[0]->Next;
+			*Slot = new func_expr_t(Scanner->Token.LineNo, Parameters, accept_expr(Scanner));
+		} else {
+			Scanner->accept(tkRPAREN);
+		};
+		Expr = new invoke_expr_t(Scanner->Token.LineNo, Expr, Args);
 		goto start;
 	};
 	if (Scanner->parse(tkLBRACE)) {
-		Expr = new parallel_invoke_expr_t(Scanner->Token.LineNo, Expr, accept_expr_list(Scanner));
-		Scanner->accept(tkRBRACE);
+		expr_t *Args = accept_expr_list(Scanner);
+		if (Scanner->parse(tkSEMICOLON)) {
+			func_expr_t::parameter_t *Parameters = accept_parameters(Scanner);
+			Scanner->accept(tkRBRACE);
+			expr_t **Slot = &Args;
+			while (*Slot) Slot = &Slot[0]->Next;
+			*Slot = new func_expr_t(Scanner->Token.LineNo, Parameters, accept_expr(Scanner));
+		} else {
+			Scanner->accept(tkRBRACE);
+		};
+		Expr = new parallel_invoke_expr_t(Scanner->Token.LineNo, Expr, Args);
 		goto start;
 	};
 	if (Scanner->parse(tkLBRACKET)) {
 		Expr->Next = accept_arguments(Scanner);
+		if (Scanner->parse(tkSEMICOLON)) {
+			func_expr_t::parameter_t *Parameters = accept_parameters(Scanner);
+			Scanner->accept(tkRBRACKET);
+			expr_t **Slot = &Expr;
+			while (*Slot) Slot = &Slot[0]->Next;
+			*Slot = new func_expr_t(Scanner->Token.LineNo, Parameters, accept_expr(Scanner));
+		} else {
+			Scanner->accept(tkRBRACKET);
+		};
 		Expr = new invoke_expr_t(Scanner->Token.LineNo, new const_expr_t(Scanner->Token.LineNo, $INDEX), Expr);
-		Scanner->accept(tkRBRACKET);
 		goto start;
 	};
 	if (Scanner->parse(tkDOT)) {

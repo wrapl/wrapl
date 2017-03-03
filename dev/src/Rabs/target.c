@@ -298,7 +298,7 @@ static int target_file_hash(target_file_t *Target, uint8_t Digest[SHA256_DIGEST_
 	struct stat Stat[1];
 	if (stat(FileName, Stat)) {
 		printf("\e[31mError: rule failed to build: %s\e[0m\n", FileName);
-		exit(1);
+		//exit(1);
 	}
 	if (!S_ISREG(Stat->st_mode)) {
 		memset(Digest, -1, SHA256_DIGEST_SIZE);
