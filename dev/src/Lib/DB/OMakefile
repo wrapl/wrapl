@@ -1,0 +1,46 @@
+DB_SRC = $(SRC_DIR)Lib/DB/
+DB_OBJ = $(OBJ_DIR)Lib/DB/
+
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Agg.rlib Riva.rlib 
+
+if $(equal $(OSTYPE), Unix)
+	CFLAGS += -I/usr/include/postgresql/9.3/server/ -I/usr/include/postgresql/
+	LDFLAGS += -L/usr/lib/
+	export
+	RivaModule(DB/Mysql, Mysql)
+	#RivaModule(DB/MemCached, MemCached)
+	#RivaModule(DB/Postgres, Postgres)
+	#RivaModule(DB/Redis, Redis)
+	#RivaModule(DB/Orient, Orient)
+
+#CFLAGS += -DSQLITE_ENABLE_REDEF_IO
+
+if $(equal $(OSTYPE), Unix)
+	RivaModule(DB/Sqlite, Sqlite3 SqliteRiva)
+
+if $(equal $(OSTYPE), Cygwin)
+	LDFLAGS += $(file Sqlite3.rlib)
+	RivaModule(DB/Sqlite, SqliteRiva)
+
+mkdir(-p Mongo)
+.SUBDIRS: #Mongo
+
+#LDFLAGS += $(file Sqlite3.rlib)
+#RivaModule(DB/Sqlite, SqliteRiva)
+
+RivaModule(DB/Couchbase, Couchbase)
+
+liblmdb.a:
+	if $(not $(file-exists $(DB_OBJ)lmdb/libraries/liblmdb/LICENSE))
+		system(git clone https://github.com/LMDB/lmdb.git)
+	cd($(DB_OBJ)lmdb/libraries/liblmdb, $(system make))
+	cp($(DB_OBJ)lmdb/libraries/liblmdb/liblmdb.a $(DB_OBJ))
+
+INCLUDES += $(DB_OBJ)lmdb/libraries/liblmdb/
+
+LMDB.o: liblmdb.a
+$(OUT_LIB)DB/LMDB.riva: liblmdb.a
+
+RivaModule(DB/LMDB, LMDB)
+

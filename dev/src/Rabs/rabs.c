@@ -43,6 +43,8 @@ int mkpath(char *Path, mode_t Mode) {
 		if (R == -1 && errno != EEXIST) return -1;
 		*P = '/';
 	}
+	int R = mkdir(Path, Mode);
+	if (R == -1 && errno != EEXIST) return -1;
 	return 0;
 }
 

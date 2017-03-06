@@ -1,0 +1,19 @@
+--include("Gmp.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+
+module("Riva/Memory")
+import("_alloc", "malloc")
+import("_realloc", "realloc")
+import("_free", "free")
+import("_calloc", "calloc")
+import("_strdup", "strdup")
+import("_strdup", "__strdup")

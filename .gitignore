@@ -7,6 +7,9 @@ web-sf/*
 lib/*
 doc/*
 bin/*
-dev/bin/*
-dev/doc/*
+dev/doc
 dev/rst/*
+/.project
+/.anjuta/*
+**/*.bz2
+**/*.o

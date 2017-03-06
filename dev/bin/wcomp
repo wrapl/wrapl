@@ -1,0 +1,25 @@
+#!/usr/bin/riva
+MOD Main;
+
+IMP .Compiler, Sys.Program, IO.File, IO.Process, Sys.FileSys;
+IMP IO.Terminal USE Out;
+
+VAR source <- Program.Args[1];
+VAR temp <- FileSys.TempFile();
+VAR output <- Program.Args[2];
+VAR args <- Program.Args[3, 0] | [];
+
+(
+    VAR sourcefile <- File.Open(source, File.Flag.Read + File.Flag.Text);
+    VAR tempfile <- File.Open(temp, File.Flag.Write + File.Flag.Text);
+    Compiler.Compile(sourcefile, tempfile);
+    sourcefile:close;
+    tempfile:close;
+    VAR nasm <- Process.Open("nasm", ["nasm", "-felf"] + args + ["-o" + output, temp]);
+    REP WHILE Out:writes(nasm:read, "\n");
+    nasm:wait;
+    FileSys.Remove(temp);
+    RECV msg DO Out:write('Error: {msg}\n');
+);
+
+END Main.

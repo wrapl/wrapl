@@ -1,0 +1,20 @@
+CSV_SRC = $(SRC_DIR)Lib/Csv/
+CSV_OBJ = $(OBJ_DIR)Lib/Csv/
+
+CFLAGS += -std=gnu99
+LDFLAGS += Std.rlib Agg.rlib Riva.rlib
+INCLUDES += $(CSV_SRC)
+
+LIBCSV_VERSION = 3.0.3
+
+if $(not $(defined PACKAGE))
+	LocalCGeneratedFiles($(CSV_SRC)csv.h)
+	$(CSV_SRC)libcsv.c $(CSV_SRC)csv.h:
+		wget -nv "http://downloads.sourceforge.net/project/libcsv/libcsv/libcsv-$(LIBCSV_VERSION)/libcsv-$(LIBCSV_VERSION).tar.gz" -O- | tar xzP
+		rename(libcsv-$(LIBCSV_VERSION)/csv.h, $(CSV_SRC)csv.h)
+		rename(libcsv-$(LIBCSV_VERSION)/libcsv.c, $(CSV_SRC)libcsv.c)
+		rm(-r libcsv-$(LIBCSV_VERSION))
+	export
+
+
+RivaModule(Csv/Parser, Parser libcsv)

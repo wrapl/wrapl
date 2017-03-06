@@ -1,0 +1,13 @@
+#!/bin/sh
+max=0
+
+for file in $@; do
+	ver=`svn info $file 2>&1 | grep "Last Changed Rev: " | cut -d " " -f 4`
+	if [ $ver ]; then
+		if [ $max -le $ver ]; then
+			max=$ver
+		fi
+	fi
+done
+
+echo $max

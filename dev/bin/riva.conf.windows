@@ -1,0 +1,12 @@
+library = {
+	"C:\\Windows\\System32\\",
+	"C:\\Windows\\",
+	"C:\\Work\\Wrapl\\lib\\",
+	"."
+}
+
+parseargs = true
+
+modules = {
+	"Wrapl"
+}
