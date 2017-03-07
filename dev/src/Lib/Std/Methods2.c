@@ -152,7 +152,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
 		const Std$String_block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
@@ -233,7 +233,7 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 		SL = S1->Length.Value;
 	};
 	SL -= Skip;
-	const unsigned char *SC = S1->Chars.Value + Skip;
+	const unsigned char *SC = (unsigned char *)S1->Chars.Value + Skip;
 	const Std$String_block *P1 = Pattern->Blocks;
 	unsigned long PL = P1->Length.Value;
 	const unsigned char *PC = P1->Chars.Value;
@@ -477,7 +477,7 @@ static long resume_find_string_string(find_resume_data * restrict Data) {
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
 		const Std$String_block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
@@ -524,12 +524,12 @@ static long resume_find_char_string(find_char_resume_data * restrict Data) {
 	const Std$String_block *Subject = Generator->Subject;
 	unsigned char Char = Generator->Char;
 	unsigned long Index = Generator->Index;
-	const unsigned char *SC = Subject->Chars.Value + Generator->Start;
+	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
 	while (SC) {
 		const unsigned char *Position = memchr(SC, Char, SL);
 		if (Position) {
-			unsigned int Last = Position - Subject->Chars.Value + 1;
+			unsigned int Last = Position - (unsigned char *)Subject->Chars.Value + 1;
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
@@ -562,7 +562,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 			const unsigned char *Position = memchr(Subject->Chars.Value, Char, Subject->Length.Value);
 			if (Position) {
 				find_char_generator *Generator = new(find_char_generator);
-				unsigned int Last = Position - Subject->Chars.Value + 1;
+				unsigned int Last = Position - (unsigned char *)Subject->Chars.Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				Generator->Char = Char;
@@ -590,7 +590,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 				if (SL == 0) return FAILURE;
 				Start = 0;
 			};
-			const unsigned char *SC = S1->Chars.Value + Start;
+			const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 			++Start;
 			const Std$String_block *P1 = Pattern;
 			const unsigned char *PC = P1->Chars.Value;
@@ -656,7 +656,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
 		const Std$String_block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
@@ -724,7 +724,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
 		const Std$String_block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
@@ -1129,7 +1129,7 @@ static long resume_any_char_string(any_char_resume_data * restrict Data) {
 	any_char_generator *Generator = Data->Generator;
 	const Std$String_block *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
-	const unsigned char *SC = Subject->Chars.Value + Generator->Start;
+	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
 	while (SC) {
 		const unsigned char *Position = findcset(SC, Generator->Mask, SL);
@@ -1597,7 +1597,7 @@ STRING_METHOD("before", TYP, Std$String$T, TYP, Std$String$T) {
 	if (Arg1->Length.Value == 0) return FAILURE;
 	if (Arg0->Length.Value == 0) {
 		if (Arg1->Length.Value == 0) return FAILURE;
-		Result->Val = Std$String$new_char(Arg1->Blocks->Chars.Value[1]);
+		Result->Val = Std$String$new_char(((unsigned char *)Arg1->Blocks->Chars.Value)[1]);
 		return SUCCESS;
 	} else {
 	    uint8_t Mask[32];

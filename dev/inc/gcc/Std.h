@@ -2,6 +2,7 @@
 #define STD_H
 
 #include <Std/Address.h>
+#include <Std/Buffer.h>
 #include <Std/Function.h>
 #include <Std/Number.h>
 #include <Std/Integer.h>

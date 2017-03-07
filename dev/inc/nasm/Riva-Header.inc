@@ -42,11 +42,13 @@ section .text
 
 %macro struct 1.nolist
 	%define %1(X) X + %1
+	%define %1(X, N) X + N * %1 %+ .__size__ + %1
 	struc %1
 %endmacro
 
 %macro struct 2.nolist
 	%define %1(X) X + %1
+	%define %1(X, N) X + N * %1 %+ .__size__ + %1
 	struc %1
 		resb sizeof(%2)
 %endmacro

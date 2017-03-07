@@ -1,6 +1,7 @@
 module("Std")
 include("Std/Address.rlib")
 include("Std/Array.rlib")
+include("Std/Buffer.rlib")
 include("Std/Function.rlib")
 include("Std/Integer.rlib")
 include("Std/Methods.rlib")

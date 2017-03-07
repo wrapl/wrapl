@@ -2,6 +2,7 @@
 %include "Riva/Memory.inc"
 
 %define ADDRESS TYP, Std$Address$T
+%define BUFFER TYP, Std$Buffer$T
 %define SMALLINT TYP, Std$Integer$SmallT
 %define BIGINT TYP, Std$Integer$BigT
 %define REAL TYP, Std$Real$T
@@ -906,6 +907,13 @@ datasect
 .format:
 	db "%x", 0, 0
 
+
+buffer_method "length", BUFFER
+	mov eax, [Std$Function_argument(edi).Val]
+	lea ecx, [Std$Buffer_t(eax).Length]
+	xor edx, edx
+	xor eax, eax
+	ret
 
 extern Riva$Debug$_stack_trace
 
