@@ -1,3 +1,7 @@
+include("Std.rlib")
+include("Riva.rlib")
+include("Agg/Table.rlib")
+include("libexpat.so")
 include("IO/Stream.rlib")
 
 if WINDOWS then
@@ -16,5 +20,5 @@ if WINDOWS then
 	import("_realloc", "_realloc")
 	import("_free", "_free")
 	import("_calloc", "_calloc")
-	import("_strdup", "_strdup")	
+	import("_strdup", "_strdup")
 end

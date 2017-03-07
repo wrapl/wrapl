@@ -4,6 +4,7 @@ RDOCFLAGS = extend(RDOCFLAGS, "-I", file(""))
 
 riva_module("Std/Address", {file("Address.o")})
 riva_module("Std/Array", {file("Array.o")})
+riva_module("Std/Buffer", {file("Buffer.o"), file("Buffer2.o")})
 riva_module("Std/Function", {file("Function.o")})
 riva_module("Std/Number", {file("Number.o"), file("Number2.o")})
 riva_module("Std/Integer", {file("Integer.o"), file("Integer2.o")})

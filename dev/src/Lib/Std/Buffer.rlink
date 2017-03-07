@@ -1,0 +1,8 @@
+export("T")
+export("Compare")
+export("Hash")
+export("Nil")
+export("New")
+export("NewAtomic")
+export("_alloc")
+export("_new")

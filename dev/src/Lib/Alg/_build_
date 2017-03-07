@@ -18,15 +18,9 @@ file("libuuid.a"){UUID_DIR}:build(function()
 		"CXXFLAGS=\"" .. stringify(CXXFLAGS) .. " -O2\"",
 		"--without-man-pages"
 	}
-	execute{"cd", UUID_DIR, "&&",
-		"make mostlyclean"
-	}
-	execute{"cd", UUID_DIR, "&&",
-		"make TARGET_LIBS=\"static\""
-	}
-	execute{"cd", UUID_DIR, "&&",
-		"make install"
-	}
+	execute{"cd", UUID_DIR, "&&", "make mostlyclean"}
+	execute{"cd", UUID_DIR, "&&", "make TARGET_LIBS=\"static\""}
+	execute{"cd", UUID_DIR, "&&", "make install"}
 end)
 
 file("UUID.o"){file("libuuid.a")}

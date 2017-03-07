@@ -14,6 +14,7 @@
 
 %define address_method method
 %define array_method method
+%define buffer_method method
 %define function_method method
 %define integer_method method
 %define number_method method
@@ -116,8 +117,8 @@ object_method "min", ANY, ANY
 	ret
 
 object_method "<", ANY, ANY
-	push dword [Std$Function_argument(edi + 8).Val]
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?COMP
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -137,8 +138,8 @@ object_method "<", ANY, ANY
 	ret
 
 object_method ">", ANY, ANY
-	push dword [Std$Function_argument(edi + 8).Val]
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?COMP
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -158,8 +159,8 @@ object_method ">", ANY, ANY
 	ret
 
 object_method "<=", ANY, ANY
-	push dword [Std$Function_argument(edi + 8).Val]
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?COMP
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -179,8 +180,8 @@ object_method "<=", ANY, ANY
 	ret
 
 object_method ">=", ANY, ANY
-	push dword [Std$Function_argument(edi + 8).Val]
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?COMP
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -202,11 +203,11 @@ object_method ">=", ANY, ANY
 extern Agg$ObjectTable$T
 
 object_method "=", ANY, ANY, TYP, Agg$ObjectTable$T
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	cmp ecx, [Std$Function_argument(edi).Val]
 	je .equal
 	push ecx
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?COMP
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -219,7 +220,7 @@ object_method "=", ANY, ANY, TYP, Agg$ObjectTable$T
 	pop ecx
 	ret
 .equal:
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .failure:
@@ -230,10 +231,10 @@ object_method "=", ANY, ANY, TYP, Agg$ObjectTable$T
 	ret
 
 object_method "=", ANY, ANY
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	cmp ecx, [Std$Function_argument(edi).Val]
 	jne .notidentical
-	mov edx, [Std$Function_argument(edi + 8).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
 	xor eax, eax
 	ret
 .notidentical:
@@ -244,8 +245,8 @@ object_method "=", ANY, ANY
 	mov eax, esp
 	push byte 0
 	push dword eax
-	push dword [Std$Function_argument(edi + 8).Ref]
-	push dword [Std$Function_argument(edi + 8).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Function_argument(edi).Ref]
 	push dword [Std$Function_argument(edi).Val]
 	mov edi, esp
@@ -256,11 +257,11 @@ object_method "=", ANY, ANY
 	ret
 
 object_method "~=", ANY, ANY
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	cmp ecx, [Std$Function_argument(edi).Val]
 	je .equal
 	push ecx
-	push dword [Std$Function_argument(edi + 8).Ref]
+	push dword [Std$Function_argument(edi, 1).Ref]
 	mov ecx, ?EQUAL
 	call Std$Symbol$T.invoke
 	cmp eax, byte 1
@@ -286,8 +287,8 @@ address_method "fill8", ADDRESS, SMALLINT, SMALLINT
 ;@count
 ; Write <var>count</var> copies of <var>value</var> to <var>dst</var>.
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	mov edi, [Std$Address_t(eax).Value]
 	mov eax, [Std$Integer_smallt(ebx).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
@@ -303,8 +304,8 @@ address_method "fill32", ADDRESS, SMALLINT, SMALLINT
 ;@count
 ; Write <var>count</var> copies of <var>value</var> to <var>dst</var>.
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	mov edi, [Std$Address_t(eax).Value]
 	mov eax, [Std$Integer_smallt(ebx).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
@@ -320,8 +321,8 @@ address_method "put", ADDRESS, ADDRESS, SMALLINT
 ;@length
 ; Copies <var>length</var> bytes from <var>src</var> to <var>dst</var>.
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	mov edi, [Std$Address_t(eax).Value]
 	mov esi, [Std$Address_t(ebx).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
@@ -338,9 +339,9 @@ address_method "put", ADDRESS, ADDRESS, SMALLINT, SMALLINT
 ;@offset
 ; Copies <var>length</var> bytes from <var>src</var> to <code>dst + offset</code>.
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
-	mov edx, [Std$Function_argument(edi + 24).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
+	mov edx, [Std$Function_argument(edi, 3).Val]
 	mov edi, [Std$Address_t(eax).Value]
 	add edi, [Std$Integer_smallt(edx).Value]
 	mov esi, [Std$Address_t(ebx).Value]
@@ -356,7 +357,7 @@ address_method "put8", ADDRESS, SMALLINT
 ;@int
 ; Writes the byte <var>int</var> at <var>dst</var>.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	mov al, [Std$Integer_smallt(eax).Value]
 	mov [esi], al
@@ -370,7 +371,7 @@ address_method "put", ADDRESS, OBJECT
 ;@object
 ; Writes the address of <var>object</var> at <var>dst</var>.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	mov [esi], eax
 	mov ecx, Std$Object$Nil
@@ -380,8 +381,8 @@ address_method "put", ADDRESS, OBJECT
 
 address_method "put", ADDRESS, OBJECT, SMALLINT
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	mov [esi], eax
@@ -395,7 +396,7 @@ address_method "put32", ADDRESS, SMALLINT
 ;@int
 ; Writes the int <var>int</var> at <var>dst</var>.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov [esi], eax
@@ -406,7 +407,7 @@ address_method "put32", ADDRESS, SMALLINT
 
 address_method "puta", ADDRESS, ADDRESS
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	mov eax, [Std$Address_t(eax).Value]
 	mov [esi], eax
@@ -417,8 +418,8 @@ address_method "puta", ADDRESS, ADDRESS
 
 address_method "put8", ADDRESS, SMALLINT, SMALLINT
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	mov al, [Std$Integer_smallt(eax).Value]
@@ -430,8 +431,8 @@ address_method "put8", ADDRESS, SMALLINT, SMALLINT
 
 address_method "put32", ADDRESS, SMALLINT, SMALLINT
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	mov eax, [Std$Integer_smallt(eax).Value]
@@ -443,8 +444,8 @@ address_method "put32", ADDRESS, SMALLINT, SMALLINT
 
 address_method "puta", ADDRESS, SMALLINT, SMALLINT
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	mov eax, [Std$Address_t(eax).Value]
@@ -459,7 +460,7 @@ address_method "putf32", ADDRESS, REAL
 ;@real
 ; Writes the real <var>real</var> at <var>dst</var> as a 32 bit float.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	fld qword [Std$Real_t(eax).Value]
 	fstp dword [esi]
@@ -473,7 +474,7 @@ address_method "putf64", ADDRESS, REAL
 ;@real
 ; Writes the real <var>real</var> at <var>dst</var> as a 64 bit float.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	fld qword [Std$Real_t(eax).Value]
@@ -489,8 +490,8 @@ address_method "putf32", ADDRESS, REAL, SMALLINT
 ;@offset
 ; Writes the real <var>real</var> at <var>dst</var> as a 32 bit float.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	fld qword [Std$Real_t(eax).Value]
@@ -506,8 +507,8 @@ address_method "putf64", ADDRESS, REAL, SMALLINT
 ;@offset
 ; Writes the real <var>real</var> at <var>dst</var> as a 64 bit float.
 	mov esi, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	fld qword [Std$Real_t(eax).Value]
@@ -521,7 +522,7 @@ address_method "put", ADDRESS, STRING
 ;@dst
 ;@string
 ; Writes the bytes in <var>string</var> at <var>dst</var>.
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$String_t(eax).Blocks]
 	mov edi, [Std$Function_argument(edi).Val]
 	mov edi, [Std$Address_t(edi).Value]
@@ -543,8 +544,8 @@ address_method "put", ADDRESS, STRING, SMALLINT
 ;@string
 ;@offset
 ; Writes the bytes in <var>string</var> at <var>dst</var>.
-	mov eax, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	lea eax, [Std$String_t(eax).Blocks]
 	mov edi, [Std$Function_argument(edi).Val]
 	mov edi, [Std$Address_t(edi).Value]
@@ -574,7 +575,7 @@ address_method "get", ADDRESS
 
 address_method "get", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov edx, [Std$Address_t(eax).Value]
 	add edx, [Std$Integer_smallt(ebx).Value]
 	mov ecx, [edx]
@@ -686,7 +687,7 @@ address_method "getf64", ADDRESS
 
 address_method "get8", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	movzx eax, byte [eax]
@@ -700,7 +701,7 @@ address_method "get8", ADDRESS, SMALLINT
 
 address_method "get16", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	mov eax, [eax]
@@ -715,7 +716,7 @@ address_method "get16", ADDRESS, SMALLINT
 
 address_method "get24", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	mov eax, [eax]
@@ -730,7 +731,7 @@ address_method "get24", ADDRESS, SMALLINT
 
 address_method "get32", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	push dword [eax]
@@ -743,7 +744,7 @@ address_method "get32", ADDRESS, SMALLINT
 
 address_method "geta", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	push dword [eax]
@@ -760,7 +761,7 @@ address_method "gets", ADDRESS, SMALLINT
 ;@src
 ;@length
 ; Returns a string composed of the <var>length</var> bytes at <var>src</var>.
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
 	push eax
@@ -796,14 +797,14 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 ;@length
 ;@offset
 ; Returns a string composed of the <var>length</var> bytes at <var>src</var>.
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
 	push eax
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
 	mov esi, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov esi, [Std$Address_t(esi).Value]
 	add esi, [Std$Integer_smallt(ebx).Value]
 	mov edi, eax
@@ -831,7 +832,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 
 address_method "+", SMALLINT, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [eax + 4]
 	add eax, [ebx + 4]
 	push eax
@@ -844,7 +845,7 @@ address_method "+", SMALLINT, ADDRESS
 
 address_method "+", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [eax + 4]
 	add eax, [ebx + 4]
 	push eax
@@ -857,7 +858,7 @@ address_method "+", ADDRESS, SMALLINT
 
 address_method "-", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [eax + 4]
 	sub eax, [ebx + 4]
 	push eax
@@ -870,7 +871,7 @@ address_method "-", ADDRESS, SMALLINT
 
 address_method "-", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [eax + 4]
 	sub eax, [ebx + 4]
 	push eax
@@ -910,7 +911,7 @@ extern Riva$Debug$_stack_trace
 
 type_method "@", ANY, TYP, Std$Type$T
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi + 8).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Object_t(ecx).Type]
 	mov eax, [Std$Type_t(eax).Types]
 .loop:
@@ -952,7 +953,7 @@ set_method "#", Std$Object$Hash, ANY
 
 %if 0
 object_method "?", ANY, ANY
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	cmp ecx, [Std$Function_argument(edi).Val]
 	jne .notidentical
 	mov ecx, EQUAL
@@ -967,8 +968,8 @@ object_method "?", ANY, ANY
 	mov eax, esp
 	push byte 0
 	push dword eax
-	push dword [Std$Function_argument(edi + 8).Ref]
-	push dword [Std$Function_argument(edi + 8).Val]
+	push dword [Std$Function_argument(edi, 1).Ref]
+	push dword [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Function_argument(edi).Ref]
 	push dword [Std$Function_argument(edi).Val]
 	mov edi, esp
@@ -1275,7 +1276,7 @@ cstrend
 ;cstrend
 
 integer_method "@", SMALLINT, VAL, Std$String$T, SMALLINT
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	mov esi, [Std$Integer_smallt(eax).Value]
@@ -1347,7 +1348,7 @@ integer_method "repr", SMALLINT, SMALLINT
 	xor eax, eax
 	ret
 .nonzero:
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	push byte 40
 	call Riva$Memory$_alloc_atomic
@@ -1440,7 +1441,7 @@ integer_method "@", BIGINT, VAL, Std$String$T
 
 integer_method "@", BIGINT, VAL, Std$String$T, SMALLINT
 	mov ebx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 16).Val]
+	mov eax, [Std$Function_argument(edi, 2).Val]
 	lea ebx, [Std$Integer_bigt(ebx).Value]
 	push ebx
 	push dword [Std$Integer_bigt(eax).Value]
@@ -1492,7 +1493,7 @@ integer_method "base", STRING, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi + 8).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
 	push byte 0
 	mov edx, [Std$Integer_smallt(edx).Value]
 	sub esp, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
@@ -1526,7 +1527,7 @@ integer_method "@", STRING, VAL, Std$Integer$T, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi + 16).Val]
+	mov edx, [Std$Function_argument(edi, 2).Val]
 	push byte 0
 	mov edx, [Std$Integer_smallt(edx).Value]
 	sub esp, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
@@ -1687,7 +1688,7 @@ array_method "[]", TYP, Std$Array$T, SMALLINT
 ;@index
 ;:ANY
 ; Returns the <var>index</var><sup>th</sup> element of <var>array</var>. Indexing begins at <code>1</code>.
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	dec eax
 	mov ecx, [Std$Function_argument(edi).Val]
@@ -1699,7 +1700,7 @@ array_method "[]", TYP, Std$Array$T, SMALLINT
 
 array_method "apply", TYP, Std$Array$T, TYP, Std$Function$T
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov esi, [Std$Integer_smallt(Std$Array_t(eax).Length).Value]
 	shr esi, 1
 	mov edi, [Std$Array_t(eax).Values]
@@ -1707,7 +1708,7 @@ array_method "apply", TYP, Std$Array$T, TYP, Std$Function$T
 	jmp [Std$Type_t(eax).Invoke]
 
 array_method "apply", TYP, Std$Function$T, TYP, Std$Array$T
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov esi, [Std$Integer_smallt(Std$Array_t(eax).Length).Value]
 	mov edi, [Std$Array_t(eax).Values]
@@ -1780,7 +1781,7 @@ integer_method "abs", SMALLINT
 
 integer_method "+", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	jo .overflow
@@ -1800,7 +1801,7 @@ integer_method "+", SMALLINT, SMALLINT
 	call __gmpz_init_set_si
 	sub esp, byte 12
 	mov esi, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push esi
 	call __gmpz_init_set_si
@@ -1813,7 +1814,7 @@ integer_method "+", SMALLINT, SMALLINT
 
 integer_method "-", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	sub eax, [Std$Integer_smallt(ebx).Value]
 	jo .overflow
@@ -1833,7 +1834,7 @@ integer_method "-", SMALLINT, SMALLINT
 	call __gmpz_init_set_si
 	sub esp, byte 12
 	mov esi, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push esi
 	call __gmpz_init_set_si
@@ -1846,7 +1847,7 @@ integer_method "-", SMALLINT, SMALLINT
 
 integer_method "*", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	imul eax, [Std$Integer_smallt(ebx).Value]
 	jo .overflow
@@ -1865,7 +1866,7 @@ integer_method "*", SMALLINT, SMALLINT
 	push dword [Std$Integer_smallt(eax).Value]
 	push esi
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
 	push esi
@@ -1881,7 +1882,7 @@ integer_method "div", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cdq
 	idiv dword [Std$Integer_smallt(ebx).Value]
@@ -1897,7 +1898,7 @@ extern __gmpq_set_si
 extern __gmpq_canonicalize
 integer_method "/", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cdq
 	idiv dword [Std$Integer_smallt(ebx).Value]
@@ -1911,7 +1912,7 @@ integer_method "/", SMALLINT, SMALLINT
 	xor eax, eax
 	ret
 .rational:
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov edx, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(ebx).Value]
 	push dword [Std$Integer_smallt(edx).Value]
@@ -1926,7 +1927,7 @@ integer_method "%", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cdq
 	idiv dword [Std$Integer_smallt(ebx).Value]
@@ -1950,7 +1951,7 @@ integer_method "and", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	and eax, [Std$Integer_smallt(ebx).Value]
 	mov [Std$Integer_smallt(ecx).Value], eax
@@ -1960,7 +1961,7 @@ integer_method "and", SMALLINT, SMALLINT
 
 integer_method "covers", SMALLINT, SMALLINT
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ebx, [Std$Integer_smallt(ecx).Value]
 	and ebx, [Std$Integer_smallt(eax).Value]
 	cmp ebx, [Std$Integer_smallt(eax).Value]
@@ -1977,7 +1978,7 @@ integer_method "or", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	or eax, [Std$Integer_smallt(ebx).Value]
 	mov [Std$Integer_smallt(ecx).Value], eax
@@ -1989,7 +1990,7 @@ integer_method "xor", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	xor eax, [Std$Integer_smallt(ebx).Value]
 	mov [Std$Integer_smallt(ecx).Value], eax
@@ -2000,7 +2001,7 @@ integer_method "xor", SMALLINT, SMALLINT
 integer_method "sar", SMALLINT, SMALLINT
 sar_small_small:
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ebx).Value]
 	neg ecx
@@ -2032,7 +2033,7 @@ extern __gmpz_mul_2exp
 integer_method "sal", SMALLINT, SMALLINT
 sal_small_small:
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	test eax, eax
 	jz .zero
@@ -2074,7 +2075,7 @@ sal_small_small:
 	push dword [Std$Integer_smallt(eax).Value]
 	push esi
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
 	push esi
@@ -2090,7 +2091,7 @@ integer_method "shl", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ebx).Value]
 	shl eax, cl
@@ -2104,7 +2105,7 @@ integer_method "shr", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ebx).Value]
 	shr eax, cl
@@ -2118,7 +2119,7 @@ integer_method "rol", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ebx).Value]
 	rol eax, cl
@@ -2132,7 +2133,7 @@ integer_method "ror", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ebx).Value]
 	ror eax, cl
@@ -2146,7 +2147,7 @@ integer_method "gcd", SMALLINT, SMALLINT
 	call Std$Integer$_alloc_small
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	
@@ -2195,11 +2196,11 @@ done:
 
 address_method "<", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jge .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2209,11 +2210,11 @@ address_method "<", ADDRESS, ADDRESS
 
 integer_method "<", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jge .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2223,11 +2224,11 @@ integer_method "<", SMALLINT, SMALLINT
 
 address_method ">", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jle .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2237,11 +2238,11 @@ address_method ">", ADDRESS, ADDRESS
 
 integer_method ">", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jle .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2272,11 +2273,11 @@ integer_method "is0", BIGINT
 
 address_method "=", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jne .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2286,11 +2287,11 @@ address_method "=", ADDRESS, ADDRESS
 
 integer_method "=", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jne .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2300,11 +2301,11 @@ integer_method "=", SMALLINT, SMALLINT
 
 address_method "~=", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	je .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2314,11 +2315,11 @@ address_method "~=", ADDRESS, ADDRESS
 
 integer_method "~=", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	je .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2328,11 +2329,11 @@ integer_method "~=", SMALLINT, SMALLINT
 
 address_method "<=", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jg .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2342,11 +2343,11 @@ address_method "<=", ADDRESS, ADDRESS
 
 integer_method "<=", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jg .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2356,11 +2357,11 @@ integer_method "<=", SMALLINT, SMALLINT
 
 address_method ">=", ADDRESS, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jl .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2370,11 +2371,11 @@ address_method ">=", ADDRESS, ADDRESS
 
 integer_method ">=", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
 	jl .fail
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2390,7 +2391,7 @@ extern __gmpz_cmp_si
 
 integer_method "in", SMALLINT, SMALLINT
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp ecx, byte 32
@@ -2516,7 +2517,7 @@ integer_method "+", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2534,7 +2535,7 @@ integer_method "-", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2552,7 +2553,7 @@ integer_method "*", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2570,7 +2571,7 @@ integer_method "div", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2588,7 +2589,7 @@ integer_method "%", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2606,7 +2607,7 @@ integer_method "gcd", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2619,7 +2620,7 @@ integer_method "gcd", BIGINT, BIGINT
 
 extern __gmpz_cmp
 integer_method "<", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2629,8 +2630,8 @@ integer_method "<", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jge .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2639,7 +2640,7 @@ integer_method "<", BIGINT, BIGINT
 	ret
 
 integer_method ">", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2649,8 +2650,8 @@ integer_method ">", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jle .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2659,7 +2660,7 @@ integer_method ">", BIGINT, BIGINT
 	ret
 
 integer_method ">=", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2669,8 +2670,8 @@ integer_method ">=", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jl .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2679,7 +2680,7 @@ integer_method ">=", BIGINT, BIGINT
 	ret
 
 integer_method "<=", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2689,8 +2690,8 @@ integer_method "<=", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jg .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2699,7 +2700,7 @@ integer_method "<=", BIGINT, BIGINT
 	ret
 
 integer_method "=", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2709,8 +2710,8 @@ integer_method "=", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jne .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2719,7 +2720,7 @@ integer_method "=", BIGINT, BIGINT
 	ret
 
 integer_method "~=", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2729,8 +2730,8 @@ integer_method "~=", BIGINT, BIGINT
 	add esp, byte 8
 	cmp eax, byte 0
 	je .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -2739,7 +2740,7 @@ integer_method "~=", BIGINT, BIGINT
 	ret
 
 integer_method "?", BIGINT, BIGINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2774,7 +2775,7 @@ integer_method "and", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2792,7 +2793,7 @@ integer_method "or", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2810,7 +2811,7 @@ integer_method "xor", BIGINT, BIGINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -2825,7 +2826,7 @@ extern __gmpz_add_ui
 integer_method "+", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2842,7 +2843,7 @@ extern __gmpz_sub_ui
 integer_method "-", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2862,7 +2863,7 @@ integer_method "*", BIGINT, SMALLINT
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -2877,7 +2878,7 @@ extern __gmpz_neg
 integer_method "div", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2892,7 +2893,7 @@ integer_method "div", BIGINT, SMALLINT
 
 extern __gmpz_fdiv_ui
 integer_method "%", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -2910,7 +2911,7 @@ integer_method "%", BIGINT, SMALLINT
 integer_method "and", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2926,7 +2927,7 @@ integer_method "and", BIGINT, SMALLINT
 integer_method "or", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2942,7 +2943,7 @@ integer_method "or", BIGINT, SMALLINT
 integer_method "xor", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
@@ -2963,7 +2964,7 @@ sal_big_small:
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
 	jns near sar_big_small.finish
@@ -2986,7 +2987,7 @@ sar_big_small:
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
 	jns near sal_big_small.finish
@@ -3009,7 +3010,7 @@ shl_big_small:
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
 	js near shr_big_small.finish
@@ -3032,7 +3033,7 @@ shr_big_small:
 	call __gmpz_init
 	add esp, byte 4
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
 	js near shl_big_small.finish
@@ -3063,7 +3064,7 @@ extern __gmpz_bin_uiui
 integer_method "bin", SMALLINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
@@ -3077,7 +3078,7 @@ extern __gmpz_bin_ui
 integer_method "bin", BIGINT, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3090,7 +3091,7 @@ integer_method "bin", BIGINT, SMALLINT
 
 extern __gmpz_gcd_ui
 integer_method "gcd", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	test eax, eax
 	jz .return_big
@@ -3120,7 +3121,7 @@ integer_method "gcd", SMALLINT, BIGINT
 	test eax, eax
 	jz .return_big
 	push eax
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push byte 0
@@ -3134,14 +3135,14 @@ integer_method "gcd", SMALLINT, BIGINT
 	xor eax, eax
 	ret
 .return_big:
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	xor edx, edx
 	xor eax, eax
 	ret
 
 extern __gmpz_cmp_si
 integer_method "<", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3150,8 +3151,8 @@ integer_method "<", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jge .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3160,7 +3161,7 @@ integer_method "<", BIGINT, SMALLINT
 	ret
 
 integer_method ">", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3169,8 +3170,8 @@ integer_method ">", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jle .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3179,7 +3180,7 @@ integer_method ">", BIGINT, SMALLINT
 	ret
 
 integer_method ">=", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3188,8 +3189,8 @@ integer_method ">=", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jl .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3198,7 +3199,7 @@ integer_method ">=", BIGINT, SMALLINT
 	ret
 
 integer_method "<=", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3207,8 +3208,8 @@ integer_method "<=", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jg .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3217,7 +3218,7 @@ integer_method "<=", BIGINT, SMALLINT
 	ret
 
 integer_method "=", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3226,8 +3227,8 @@ integer_method "=", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	jne .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3236,7 +3237,7 @@ integer_method "=", BIGINT, SMALLINT
 	ret
 
 integer_method "~=", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3245,8 +3246,8 @@ integer_method "~=", BIGINT, SMALLINT
 	add esp, byte 8
 	cmp eax, byte 0
 	je .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3255,7 +3256,7 @@ integer_method "~=", BIGINT, SMALLINT
 	ret
 
 integer_method "?", BIGINT, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
@@ -3290,7 +3291,7 @@ add_small_big:
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3306,7 +3307,7 @@ integer_method "-", SMALLINT, BIGINT
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3324,7 +3325,7 @@ integer_method "*", SMALLINT, BIGINT
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3358,7 +3359,7 @@ integer_method "and", SMALLINT, BIGINT
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3374,7 +3375,7 @@ integer_method "or", SMALLINT, BIGINT
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3390,7 +3391,7 @@ integer_method "xor", SMALLINT, BIGINT
 	push dword [Std$Integer_smallt(eax).Value]
 	push ebx
 	call __gmpz_init_set_si
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push ebx
@@ -3402,15 +3403,15 @@ integer_method "xor", SMALLINT, BIGINT
 integer_method "<", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	jl .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3421,15 +3422,15 @@ integer_method "<", SMALLINT, BIGINT
 integer_method ">", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	jg .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3440,15 +3441,15 @@ integer_method ">", SMALLINT, BIGINT
 integer_method ">=", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	jge .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3459,15 +3460,15 @@ integer_method ">=", SMALLINT, BIGINT
 integer_method "<=", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	jle .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3478,15 +3479,15 @@ integer_method "<=", SMALLINT, BIGINT
 integer_method "=", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	jne .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3497,15 +3498,15 @@ integer_method "=", SMALLINT, BIGINT
 integer_method "~=", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
 	add esp, byte 8
 	cmp eax, byte 0
 	je .fail
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 .fail:
@@ -3516,7 +3517,7 @@ integer_method "~=", SMALLINT, BIGINT
 integer_method "?", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_cmp_si
@@ -3545,7 +3546,7 @@ extern __gmpz_tstbit
 integer_method "in", SMALLINT, BIGINT
 	mov eax, [Std$Function_argument(edi).Val]
 	push dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	call __gmpz_tstbit
@@ -3609,12 +3610,12 @@ struct to_small_small_small_state, Std$Function_state
 endstruct
 
 integer_method "to", SMALLINT, SMALLINT, SMALLINT
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	test ebx, ebx
 	js near downto_small_small_small
 	jz near repeat_small
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
@@ -3670,7 +3671,7 @@ integer_method "to", SMALLINT, SMALLINT, SMALLINT
 	xor eax, eax
 	ret
 downto_small_small_small:
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	cmp eax, [Std$Integer_smallt(ecx).Value]
@@ -3881,7 +3882,7 @@ real_method "@", BIGINT, VAL, Std$Real$T
 real_method "+", REAL, REAL
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fadd qword [Std$Real_t(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -3893,7 +3894,7 @@ real_method "+", REAL, REAL
 real_method "-", REAL, REAL
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fsub qword [Std$Real_t(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -3905,7 +3906,7 @@ real_method "-", REAL, REAL
 real_method "*", REAL, REAL
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fmul qword [Std$Real_t(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -3917,7 +3918,7 @@ real_method "*", REAL, REAL
 real_method "/", REAL, REAL
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fdiv qword [Std$Real_t(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -3927,7 +3928,7 @@ real_method "/", REAL, REAL
 	ret
 
 real_method "%", REAL, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
@@ -3945,7 +3946,7 @@ real_method "%", REAL, REAL
 	ret
 
 real_method "reduce", REAL, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
@@ -4106,7 +4107,7 @@ real_method "atan", REAL, REAL
 ;@y
 ;:Std$Real$T
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(ebx).Value]
 	fld qword [Std$Real_t(eax).Value]
 	fpatan
@@ -4226,7 +4227,7 @@ real_method "^", REAL, REAL
 	sub esp, byte 16
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	fstp qword [esp + 8]
 	fstp qword [esp]
@@ -4244,7 +4245,7 @@ real_method "^", REAL, SMALLINT
 	sub esp, byte 16
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fild dword [Std$Integer_smallt(eax).Value]
 	fstp qword [esp + 8]
 	fstp qword [esp]
@@ -4289,8 +4290,8 @@ real_method "degrees", REAL
 
 %macro real_compare_finish 1
 %ifidn %1, S
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 %elifidn %1, F
@@ -4304,7 +4305,7 @@ real_method "degrees", REAL
 %macro real_compare 3
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fcomp qword [Std$Real_t(eax).Value]
 	xor eax, eax
 	fnstsw ax
@@ -4344,7 +4345,7 @@ set_method "#", Std$Real$Hash, REAL
 real_method "?", REAL, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	ficomp dword [Std$Integer_smallt(eax).Value]
 	xor eax, eax
 	fnstsw ax
@@ -4371,7 +4372,7 @@ real_method "?", REAL, SMALLINT
 %macro real_small_compare 3
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	ficomp dword [Std$Integer_smallt(eax).Value]
 	xor eax, eax
 	fnstsw ax
@@ -4408,7 +4409,7 @@ real_method "~=", REAL, SMALLINT
 real_method "+", REAL, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fiadd dword [Std$Integer_smallt(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -4420,7 +4421,7 @@ real_method "+", REAL, SMALLINT
 real_method "-", REAL, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fisub dword [Std$Integer_smallt(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -4432,7 +4433,7 @@ real_method "-", REAL, SMALLINT
 real_method "*", REAL, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fimul dword [Std$Integer_smallt(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -4444,7 +4445,7 @@ real_method "*", REAL, SMALLINT
 real_method "/", REAL, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
 	fld qword [Std$Real_t(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fidiv dword [Std$Integer_smallt(eax).Value]
 	call Std$Real$_alloc
 	fstp qword [Std$Real_t(eax).Value]
@@ -4456,7 +4457,7 @@ real_method "/", REAL, SMALLINT
 real_method "?", SMALLINT, REAL
 	mov eax, [Std$Function_argument(edi).Val]
 	fild dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fcomp qword [Std$Real_t(eax).Value]
 	xor eax, eax
 	fnstsw ax
@@ -4483,7 +4484,7 @@ real_method "?", SMALLINT, REAL
 %macro small_real_compare 3
 	mov eax, [Std$Function_argument(edi).Val]
 	fild dword [Std$Integer_smallt(eax).Value]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fcomp qword [Std$Real_t(eax).Value]
 	xor eax, eax
 	fnstsw ax
@@ -4518,7 +4519,7 @@ real_method "~=", SMALLINT, REAL
 	small_real_compare S, F, S
 
 real_method "+", SMALLINT, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fiadd dword [Std$Integer_smallt(eax).Value]
@@ -4530,7 +4531,7 @@ real_method "+", SMALLINT, REAL
 	ret
 
 real_method "-", SMALLINT, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fisubr dword [Std$Integer_smallt(eax).Value]
@@ -4542,7 +4543,7 @@ real_method "-", SMALLINT, REAL
 	ret
 
 real_method "*", SMALLINT, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fimul dword [Std$Integer_smallt(eax).Value]
@@ -4554,7 +4555,7 @@ real_method "*", SMALLINT, REAL
 	ret
 
 real_method "/", SMALLINT, REAL
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	fld qword [Std$Real_t(eax).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	fidivr dword [Std$Integer_smallt(eax).Value]
@@ -4627,7 +4628,7 @@ string_method "_count", STRING
 
 string_method "*", STRING, SMALLINT
 	mov ebx, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
 	mul ecx
@@ -4673,7 +4674,7 @@ string_method "*", STRING, SMALLINT
 	ret
 
 string_method "*", SMALLINT, STRING
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
@@ -4720,7 +4721,7 @@ string_method "*", SMALLINT, STRING
 	ret
 
 string_method "left", STRING, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ebx, [Std$Function_argument(edi).Val]
 	cmp eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
@@ -4767,7 +4768,7 @@ string_method "left", STRING, SMALLINT
 	ret
 
 string_method "right", STRING, SMALLINT
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ebx, [Std$Function_argument(edi).Val]
 	cmp eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
@@ -4814,13 +4815,13 @@ string_method "right", STRING, SMALLINT
 	ret
 
 string_method "left", STRING, SMALLINT, STRING
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ebx, [Std$Function_argument(edi).Val]
 	cmp eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
 	jbe .nopad
 	push byte ' '
-	mov edx, [Std$Function_argument(edi + 16).Val]
+	mov edx, [Std$Function_argument(edi, 2).Val]
 	cmp [Std$Integer_smallt(Std$String_t(edx).Length).Value], dword 0
 	je .default
 	mov edx, [Std$Address_t(Std$String_block(Std$String_t(edx).Blocks).Chars).Value]
@@ -4869,13 +4870,13 @@ string_method "left", STRING, SMALLINT, STRING
 	ret
 
 string_method "right", STRING, SMALLINT, STRING
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ebx, [Std$Function_argument(edi).Val]
 	cmp eax, [Std$Integer_smallt(Std$String_t(ebx).Length).Value]
 	jbe .nopad
 	push byte ' '
-	mov edx, [Std$Function_argument(edi + 16).Val]
+	mov edx, [Std$Function_argument(edi, 2).Val]
 	cmp [Std$Integer_smallt(Std$String_t(edx).Length).Value], dword 0
 	je .default
 	mov edx, [Std$Address_t(Std$String_block(Std$String_t(edx).Blocks).Chars).Value]
@@ -4974,7 +4975,7 @@ set_method "+", Std$Function_checkedasmt(Std$String$Add).Unchecked, STRING, STRI
 
 string_method "[]", STRING, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	mov edx, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	dec ebx
@@ -5024,8 +5025,8 @@ string_method "[]", STRING, SMALLINT
 
 string_method "[]", STRING, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov edx, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
@@ -5260,8 +5261,8 @@ object_method "init", ANY
 
 %macro string_compare_finish 1
 %ifidn %1, S
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov edx, [Std$Function_argument(edi + 8).Ref]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov edx, [Std$Function_argument(edi, 1).Ref]
 	xor eax, eax
 	ret
 %elifidn %1, F
@@ -5274,7 +5275,7 @@ object_method "init", ANY
 
 %macro string_compare 3
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$String_t(eax).Blocks]
 	lea ebx, [Std$String_t(ebx).Blocks]
 	push edi
@@ -5521,7 +5522,7 @@ ones_small:
 integer_method "ones", SMALLINT, SMALLINT
 ones_small_small:
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 .run:
@@ -5561,8 +5562,8 @@ ones_small_small:
 integer_method "ones", SMALLINT, SMALLINT, SMALLINT
 ones_small_small_small:
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
@@ -5610,7 +5611,7 @@ integer_method "zeros", SMALLINT
 
 integer_method "zeros", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	not eax
@@ -5618,8 +5619,8 @@ integer_method "zeros", SMALLINT, SMALLINT
 
 integer_method "zeros", SMALLINT, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
-	mov ebx, [Std$Function_argument(edi + 16).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Function_argument(edi, 2).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
@@ -5628,7 +5629,7 @@ integer_method "zeros", SMALLINT, SMALLINT, SMALLINT
 
 integer_method "[]", SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	mov ecx, [Std$Integer_smallt(ecx).Value]
 	cmp ecx, 31
@@ -5794,7 +5795,7 @@ integer_method "ones", BIGINT
 
 integer_method "ones", BIGINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push dword [Std$Integer_smallt(ebx).Value]
@@ -5828,8 +5829,8 @@ integer_method "ones", BIGINT, SMALLINT
 
 integer_method "ones", BIGINT, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push dword [Std$Integer_smallt(ecx).Value]
 	push eax
@@ -5921,7 +5922,7 @@ integer_method "zeros", BIGINT
 
 integer_method "zeros", BIGINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax
 	push dword [Std$Integer_smallt(ebx).Value]
@@ -5955,8 +5956,8 @@ integer_method "zeros", BIGINT, SMALLINT
 
 integer_method "zeros", BIGINT, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ebx, [Std$Function_argument(edi + 8).Val]
-	mov ecx, [Std$Function_argument(edi + 16).Val]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ecx, [Std$Function_argument(edi, 2).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push dword [Std$Integer_smallt(ecx).Value]
 	push eax
@@ -5991,7 +5992,7 @@ integer_method "zeros", BIGINT, SMALLINT, SMALLINT
 
 integer_method "[]", BIGINT, SMALLINT
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea ecx, [Std$Integer_bigt(ecx).Value]
 	push dword [Std$Integer_smallt(eax).Value]
 	push ecx
@@ -6009,7 +6010,7 @@ set_method "#", Std$String$Hash, STRING
 
 type_method "in", ANY, TYP, Std$Type$T
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov edx, [Std$Object_t(ecx).Type]
 	mov edx, [Std$Type_t(edx).Types]
 	sub edx, byte 4
@@ -6030,7 +6031,7 @@ type_method "in", ANY, TYP, Std$Type$T
 
 type_method "<", TYP, Std$Type$T, TYP, Std$Type$T
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Type_t(eax).Types]
 .loop:
 	add eax, byte 4
@@ -6048,7 +6049,7 @@ type_method "<", TYP, Std$Type$T, TYP, Std$Type$T
 	ret
 
 type_method ">", TYP, Std$Type$T, TYP, Std$Type$T
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov edx, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Type_t(ecx).Types]
 .loop:
@@ -6068,7 +6069,7 @@ type_method ">", TYP, Std$Type$T, TYP, Std$Type$T
 
 type_method "<=", TYP, Std$Type$T, TYP, Std$Type$T
 	mov eax, [Std$Function_argument(edi).Val]
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Type_t(eax).Types]
 	sub eax, byte 4
 .loop:
@@ -6087,7 +6088,7 @@ type_method "<=", TYP, Std$Type$T, TYP, Std$Type$T
 	ret
 
 type_method ">=", TYP, Std$Type$T, TYP, Std$Type$T
-	mov ecx, [Std$Function_argument(edi + 8).Val]
+	mov ecx, [Std$Function_argument(edi, 1).Val]
 	mov edx, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Type_t(ecx).Types]
 	sub eax, byte 4

@@ -1,0 +1,2 @@
+riva_module("Xml/Parser", {file("Parser.o")})
+wrapl_module("Xml")

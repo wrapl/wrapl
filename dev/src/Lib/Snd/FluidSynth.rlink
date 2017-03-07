@@ -1,0 +1,36 @@
+include("Sys/Module.rlib")
+include("libfluidsynth.so")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+submodule("Snd$FluidSynth$Settings", "Settings")
+subexport("Snd$FluidSynth$Settings", "SettingsNew", "New")
+subexport("Snd$FluidSynth$Settings", "SettingsT", "T")
+
+submodule("Snd$FluidSynth$Synth", "Synth")
+subexport("Snd$FluidSynth$Synth", "SynthNew", "New")
+subexport("Snd$FluidSynth$Synth", "SynthT", "T")
+
+submodule("Snd$FluidSynth$FloatBlock", "FloatBlock")
+subexport("Snd$FluidSynth$FloatBlock", "FloatBlockNew", "New")
+
+submodule("Snd$FluidSynth$Sequencer", "Sequencer")
+subexport("Snd$FluidSynth$Sequencer", "SequencerNew", "New")
+
+submodule("Snd$FluidSynth$Event", "Event")
+subexport("Snd$FluidSynth$Event", "EventNew", "New")
+
+submodule("Snd$FluidSynth$AudioDriver", "AudioDriver")
+subexport("Snd$FluidSynth$AudioDriver", "AudioDriverNew", "New")
+
+submodule("Preset")
+subexport("Preset", "PresetT", "T")

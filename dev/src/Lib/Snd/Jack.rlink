@@ -1,0 +1,18 @@
+include("Sys/Module.rlib")
+include("libjack.so")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+	_subexport = subexport
+	subexport = function(Module, Internal, External)
+		_subexport(Module, "_" .. Internal, External)
+	end
+end
+
+export("ClientT")
+export("Option")
+export("Status")
+export("Open")

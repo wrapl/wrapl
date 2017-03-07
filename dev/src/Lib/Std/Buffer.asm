@@ -1,12 +1,11 @@
 %include "Std.inc"
 %include "Riva/Memory.inc"
 
-ctype T
-; An address in memory.
+ctype T, Std$Address$T
 .invoke: equ 0
 
 cglobal Nil, T
-	dd T, 0
+	dd T, 0, 0
 
 cfunction _alloc
 	push byte sizeof(Std$Address_t)
@@ -60,73 +59,6 @@ function NewAtomic, 1
 	xor edx, edx
 	ret
 
-_function _FromVal
-;@value
-;:T
-; Returns the address of the data of <var>value</var>.
-	push byte sizeof(Std$Address_t)
-	call Riva$Memory$_alloc
-	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
-	mov ecx, eax
-	mov eax, [Std$Function_argument(edi).Val]
-	add eax, byte 4
-	mov [Std$Address_t(ecx).Value], eax
-	xor edx, edx
-	xor eax, eax
-	ret
-
-
-function FromVal, 1
-;@value
-;:T
-; Returns the address of the object <var>value</var>.
-	push byte sizeof(Std$Address_t)
-	call Riva$Memory$_alloc
-	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
-	mov ecx, eax
-	mov eax, [Std$Function_argument(edi).Val]
-	mov [Std$Address_t(ecx).Value], eax
-	xor edx, edx
-	xor eax, eax
-	ret
-
-function FromRef, 1
-;@variable+
-;:T
-; Returns the address where <var>variable</var> is stored.
-	push byte sizeof(Std$Address_t)
-	call Riva$Memory$_alloc
-	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
-	mov ecx, eax
-	mov eax, [Std$Function_argument(edi).Ref]
-	mov [Std$Address_t(ecx).Value], eax
-	xor edx, edx
-	xor eax, eax
-	ret
-
-function ToVal, 1
-;@address:T
-;:ANY
-; Returns the object at <var>address</var>
-    mov eax, [Std$Function_argument(edi).Val]
-    mov ecx, [Std$Address_t(eax).Value]
-    xor edx, edx
-    xor eax, eax
-    ret
-
-function ToRef, 1
-;@address:T
-;:ANY
-; Returns an assignable reference to the memory at <var>address</var>
-    mov eax, [Std$Function_argument(edi).Val]
-    mov edx, [Std$Address_t(eax).Value]
-    mov ecx, [edx]
-    xor eax, eax
-    ret
-
 _function Compare
 ;@a:T
 ;@b:T
@@ -169,7 +101,7 @@ _function Hash
 
 %define Std$Address$T T
 
-%define address_method method
+%define buffer_method method
 pushfile "Methods.asm"
 %include "Methods.asm"
 popfile

@@ -126,8 +126,11 @@ static int riva_request_handler(struct mg_connection *Connection, Std$Object$t *
 		ConnectionObject->Data = Std$Object$Nil;
 		mg_set_user_connection_data(Connection, ConnectionObject);
 	};
+	request_info_t *RequestInfo = new(request_info_t);
+	RequestInfo->Type = RequestInfoT;
+	RequestInfo->Handle = mg_get_request_info(Connection);
 	Std$Function$result Result;
-	switch (Std$Function$call(Callback, 1, &Result, ConnectionObject, 0)) {
+	switch (Std$Function$call(Callback, 2, &Result, ConnectionObject, 0, RequestInfo, 0)) {
 	case SUSPEND:
 	case SUCCESS:
 		return Std$Integer$get_small(Result.Val);
@@ -157,7 +160,8 @@ GLOBAL_METHOD(SetAuthHandler, 3, "set_auth_handler", TYP, T, TYP, Std$String$T, 
 typedef struct websocket_callbacks_t {
 	Std$Object$t *ConnectHandler;
 	Std$Object$t *ReadyHandler;
-	Std$Object$t *DataHandler;
+	Std$Object$t *TextHandler;
+	Std$Object$t *BinaryHandler;
 	Std$Object$t *CloseHandler;
 } websocket_callbacks_t;
 
@@ -170,8 +174,11 @@ static int riva_websocket_connect_handler(struct mg_connection *Connection, webs
 		ConnectionObject->Data = Std$Object$Nil;
 		mg_set_user_connection_data(Connection, ConnectionObject);
 	};
+	request_info_t *RequestInfo = new(request_info_t);
+	RequestInfo->Type = RequestInfoT;
+	RequestInfo->Handle = mg_get_request_info(Connection);
 	Std$Function$result Result;
-	switch (Std$Function$call(Callbacks->ConnectHandler, 1, &Result, ConnectionObject, 0)) {
+	switch (Std$Function$call(Callbacks->ConnectHandler, 2, &Result, ConnectionObject, 0, RequestInfo, 0)) {
 	case SUSPEND:
 	case SUCCESS:
 		return 0;
@@ -191,7 +198,8 @@ static int riva_websocket_data_handler(struct mg_connection *Connection, int Typ
 	if (Type & WEBSOCKET_OPCODE_CONNECTION_CLOSE) return 0;
 	connection_t *ConnectionObject = (connection_t *)mg_get_user_connection_data(Connection);
 	Std$Function$result Result;
-	switch (Std$Function$call(Callbacks->DataHandler, 2, &Result, ConnectionObject, 0, Std$String$new_length(Data, Size))) {
+	Std$Object$t *Callback = Type & WEBSOCKET_OPCODE_BINARY ? Callbacks->BinaryHandler : Callbacks->TextHandler;
+	switch (Std$Function$call(Callback, 2, &Result, ConnectionObject, 0, Std$String$new_length(Data, Size))) {
 	case SUSPEND:
 	case SUCCESS:
 		return 1;
@@ -213,8 +221,9 @@ GLOBAL_METHOD(SetWebSocketHandler, 3, "set_websocket_handler", TYP, T, TYP, Std$
 	websocket_callbacks_t *Callbacks = new(websocket_callbacks_t);
 	Callbacks->ConnectHandler = Args[2].Val;
 	Callbacks->ReadyHandler = Args[3].Val;
-	Callbacks->DataHandler = Args[4].Val;
-	Callbacks->CloseHandler = Args[5].Val;
+	Callbacks->TextHandler = Args[4].Val;
+	Callbacks->BinaryHandler = Args[5].Val;
+	Callbacks->CloseHandler = Args[6].Val;
 	mg_set_websocket_handler(Context->Handle, Uri,
 		(void *)riva_websocket_connect_handler,
 		(void *)riva_websocket_ready_handler,

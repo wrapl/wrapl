@@ -3,8 +3,11 @@ CFLAGS = extend(CFLAGS, "-I", DEV_INC/"gcc/", "-fdata-sections", "-ffunction-sec
 CXXFLAGS = extend(CXXFLAGS, "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w")
 LDFLAGS = extend(LDFLAGS, "-DLINUX", "-L", DEV_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/i386-linux-gnu/", "-L/usr/lib/")
 
+--CFLAGS = extend(CFLAGS, "-std=gnu99")
+
 function riva_module(Name, Objects, Libraries)
 	local Module = OUT_LIB/Name % "riva"
+	execute{"mkdir", "-p", Module:dir()}
 	for I, Object in ipairs(Objects) do
 		local SourceC = Object % "c"
 		local SourceAsm = Object % "asm"
@@ -36,6 +39,7 @@ end
 
 function wrapl_module(Name)
 	local Module = OUT_LIB/Name % "wrapl"
+	execute{"mkdir", "-p", Module:dir()}
 	local Source = file(Module:basename())
 	Module{Source}:build(function(Module)
 		execute{"cp", Source, Module}
@@ -86,4 +90,7 @@ subdir("Alg")
 subdir("Wrapl")
 subdir("Web")
 subdir("Gir")
+subdir("Snd")
+subdir("Json")
+subdir("Xml")
 --subdir("Tst")

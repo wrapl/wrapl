@@ -1,0 +1,71 @@
+SND_SRC = $(SRC_DIR)Lib/Snd/
+SND_OBJ = $(OBJ_DIR)Lib/Snd/
+
+CFLAGS += -std=gnu99 -s -I$(SND_OBJ)include/lilv-0
+LDFLAGS += -L/usr/lib/ Std.rlib Agg.rlib Riva.rlib
+PKG_CONFIG_PATH = $(getenv PKG_CONFIG_PATH, /tmp):$(absname $(SND_OBJ)pkgconfig/)
+setenv(PKG_CONFIG_PATH, $(PKG_CONFIG_PATH))
+
+LILV_CFLAGS = -fdata-sections -ffunction-sections
+
+libslv2-0.a:
+	if $(not $(file-exists $(SND_SRC)lilv/README))
+		mkdir(-p $(SND_SRC)slv2)
+		cd($(SND_SRC)slv2, $(system wget -nv http://download.drobilla.net/slv2-0.6.6.tar.bz2 -O- | tar xvjP --strip-components=1))
+		#cd($(SND_SRC)slv2, $(system patch -p0 < ../slv2.diff))
+	mkdir(-p $(SND_OBJ)slv2)
+	cd($(SND_SRC)slv2, $(system CFLAGS="$(LILV_CFLAGS)" $(SND_SRC)/slv2/waf configure --static --prefix=$(absname $(SND_OBJ)) --libdir=$(absname $(SND_OBJ))))
+	cd($(SND_SRC)slv2, $(system ./waf clean))
+	cd($(SND_SRC)slv2, $(system ./waf build))
+	cd($(SND_SRC)slv2, $(system ./waf install))
+
+libserd-0.a:
+	if $(not $(file-exists $(SND_SRC)serd/README))
+		mkdir(-p $(SND_SRC)serd)
+		cd($(SND_SRC)serd, $(system wget -nv http://download.drobilla.net/serd-0.18.0.tar.bz2 -O- | tar xvjP --strip-components=1))
+		#cd($(SND_SRC)serd, $(system patch -p0 < ../serd.diff))
+	mkdir(-p $(SND_OBJ)serd)
+	cd($(SND_SRC)serd, $(system CFLAGS="$(LILV_CFLAGS)" $(SND_SRC)/serd/waf configure --static --prefix=$(absname $(SND_OBJ)) --libdir=$(absname $(SND_OBJ))))
+	cd($(SND_SRC)serd, $(system ./waf clean))
+	cd($(SND_SRC)serd, $(system ./waf build))
+	cd($(SND_SRC)serd, $(system ./waf install))
+
+libsord-0.a: libserd-0.a
+	if $(not $(file-exists $(SND_SRC)sord/README))
+		mkdir(-p $(SND_SRC)sord)
+		cd($(SND_SRC)sord, $(system wget -nv http://download.drobilla.net/sord-0.10.4.tar.bz2 -O- | tar xvjP --strip-components=1))
+		#cd($(SND_SRC)sord, $(system patch -p0 < ../sord.diff))
+	mkdir(-p $(SND_OBJ)sord)
+	cd($(SND_SRC)sord, $(system CFLAGS="$(LILV_CFLAGS)" $(SND_SRC)/sord/waf configure --static --prefix=$(absname $(SND_OBJ)) --libdir=$(absname $(SND_OBJ))))
+	cd($(SND_SRC)sord, $(system ./waf clean))
+	cd($(SND_SRC)sord, $(system ./waf build))
+	cd($(SND_SRC)sord, $(system ./waf install))
+
+libsratom-0.a: libserd-0.a
+	if $(not $(file-exists $(SND_SRC)sratom/README))
+		mkdir(-p $(SND_SRC)sratom)
+		cd($(SND_SRC)sratom, $(system wget -nv http://download.drobilla.net/sratom-0.4.0.tar.bz2 -O- | tar xvjP --strip-components=1))
+		#cd($(SND_SRC)sratom, $(system patch -p0 < ../sratom.diff))
+	mkdir(-p $(SND_OBJ)sratom)
+	cd($(SND_SRC)sratom, $(system CFLAGS="$(LILV_CFLAGS)" $(SND_SRC)/sratom/waf configure --static --prefix=$(absname $(SND_OBJ)) --libdir=$(absname $(SND_OBJ))))
+	cd($(SND_SRC)sratom, $(system ./waf clean))
+	cd($(SND_SRC)sratom, $(system ./waf build))
+	cd($(SND_SRC)sratom, $(system ./waf install))
+
+liblilv-0.a: libserd-0.a libsord-0.a libsratom-0.a #libslv2.a
+	if $(not $(file-exists $(SND_SRC)lilv/README))
+		mkdir(-p $(SND_SRC)lilv)
+		cd($(SND_SRC)lilv, $(system wget -nv http://download.drobilla.net/lilv-0.14.4.tar.bz2 -O- | tar xvjP --strip-components=1))
+		#cd($(SND_SRC)lilv, $(system patch -p0 < ../lilv.diff))
+	mkdir(-p $(SND_OBJ)lilv)
+	cd($(SND_SRC)lilv, $(system CFLAGS="$(LILV_CFLAGS)" $(SND_SRC)/lilv/waf configure --static --prefix=$(absname $(SND_OBJ)) --libdir=$(absname $(SND_OBJ))))
+	cd($(SND_SRC)lilv, $(system ./waf clean))
+	cd($(SND_SRC)lilv, $(system ./waf build))
+	cd($(SND_SRC)lilv, $(system ./waf install))
+
+Lilv.o: liblilv-0.a
+
+RivaModule(Snd/Jack, Jack)
+RivaModule(Snd/FluidSynth, FluidSynth)
+RivaModule(Snd/SndFile, SndFile)
+RivaModule(Snd/Lilv, Lilv)
