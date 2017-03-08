@@ -223,10 +223,13 @@ TYPED_INSTANCE(void, IO$Stream$flush, WriterT, IO$Posix_t *Stream) {
 	fsync(Stream->Handle);
 };
 
-TYPED_INSTANCE(void, IO$Stream$close, T, IO$Posix_t *Stream, int Mode) {
+TYPED_INSTANCE(int, IO$Stream$close, T, IO$Posix_t *Stream, int Mode) {
 	if (close(Stream->Handle) == 0) {
 		Riva$Memory$register_finalizer((void *)Stream, 0, 0, 0, 0);
-	};
+		return 0;
+	} else {
+		return 1;
+	}
 };
 
 TYPED_INSTANCE(int, IO$Stream$eoi, ReaderT, IO$Posix_t *Stream) {
@@ -986,4 +989,41 @@ METHOD("set_blocking", TYP, T, VAL, $false) {
 	int Flags = fcntl(Stream->Handle, F_GETFL, 0);
 	fcntl(Stream->Handle, F_SETFL, Flags | O_NONBLOCK);
 	return SUCCESS;
+};
+
+static ssize_t cfile_read(void *Stream, char *Buffer, size_t Size) {
+	printf("cfile_read(0x%x, 0x%x, %d)\n", Stream, Buffer, Size);
+	return _t_read(Stream, Buffer, Size, 1);
+};
+
+static ssize_t cfile_write(void *Stream, const char *Buffer, size_t Size) {
+	printf("cfile_write(0x%x, 0x%x, %d)\n", Stream, Buffer, Size);
+	return _t_write(Stream, Buffer, Size, 1);
+};
+
+static int cfile_seek(void *Stream, off64_t *Position, int Whence) {
+	printf("cfile_seek(0x%x, 0x%x, %d)\n", Stream, Position, Whence);
+	static IO$Stream_seekmode Modes[] = {
+		[SEEK_SET] = IO$Stream$SEEK_SET,
+		[SEEK_CUR] = IO$Stream$SEEK_CUR,
+		[SEEK_END] = IO$Stream$SEEK_END
+	};
+	return _t_seek(Stream, *(int *)Position, Modes[Whence]);
+};
+
+static int cfile_close(void *Stream) {
+	printf("cfile_close(0x%x)\n", Stream);
+	_t_close(Stream, IO$Stream$CLOSE_BOTH);
+	return 0;
+};
+
+FILE *_cfile(stream_t *Stream) {
+	static cookie_io_functions_t Functions = {
+		.read = cfile_read,
+		.write = cfile_write,
+		.seek = cfile_seek,
+		.close = cfile_close
+	};
+	printf("_cfile(0x%x)\n", Stream);
+	return fopencookie(Stream, "rw", Functions);
 };

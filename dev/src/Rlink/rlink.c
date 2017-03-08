@@ -118,13 +118,15 @@ static section_t *MethodsSection = 0;
 static section_t *TypedFnSection = 0;
 static section_t *GlobalOffsetTable = 0;
 
-static struct HXMap *LibraryTable;
-static struct HXMap *GlobalTable;
-static struct HXMap *WeakTable;
-static struct HXMap *SymbolTable;
-static struct HXMap *ExportTable;
+static struct HXmap *LibraryTable;
+static struct HXmap *GlobalTable;
+static struct HXmap *WeakTable;
+static struct HXmap *SymbolTable;
+static struct HXmap *ExportTable;
+static struct HXmap *Dependencies;
 
 static define_t *Defines = 0;
+static int DependencyMode = 0;
 
 static uint32_t NoOfSections = 0, NoOfExports = 0, NoOfRequires = 0;
 
@@ -1403,12 +1405,20 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 };
 
 static void add_object_file(const char *FileName, int AutoExport) {
+	if (DependencyMode) {
+		HXmap_add(Dependencies, FileName, 0);
+		return;
+	};
 	bfd *Bfd = bfd_openr(FileName, 0);
 	if (Bfd == 0) {
 		printf("%s: error reading file.\n", FileName);
 		return;
 	};
 	add_bfd(Bfd, AutoExport);
+};
+
+static void add_dependency_file(const char *FileName, int AutoExport) {
+	HXmap_add(Dependencies, FileName, 0);
 };
 
 typedef struct module_section_t {
@@ -1707,6 +1717,7 @@ static int script_file_subexport(lua_State *State) {
 };
 
 static void add_script_file(const char *FileName, int AutoExport) {
+	if (DependencyMode) HXmap_add(Dependencies, FileName, 0);
     lua_State *State = luaL_newstate();
     lua_register(State, "module", script_file_module);
     lua_register(State, "prefix", script_file_prefix);
@@ -1742,6 +1753,7 @@ static void add_script_file(const char *FileName, int AutoExport) {
 };
 
 static void add_library_file(const char *FileName, int AutoExport) {
+	if (DependencyMode) HXmap_add(Dependencies, FileName, 0);
     lua_State *State = luaL_newstate();
     lua_register(State, "module", script_file_module);
     lua_register(State, "prefix", script_file_prefix);
@@ -1784,6 +1796,7 @@ static int definition_file_symbol(lua_State *State) {
 };
 
 static void add_definition_file(const char *FileName, int AutoExport) {
+	if (DependencyMode) HXmap_add(Dependencies, FileName, 0);
     lua_State *State = luaL_newstate();
     lua_register(State, "export", script_file_export);
 	lua_register(State, "symbol", definition_file_symbol);
@@ -1855,6 +1868,10 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 };
 
 static void add_shared_lib(const char *FileName, int AutoExport) {
+	if (DependencyMode) {
+		HXmap_add(Dependencies, FileName, 0);
+		return;
+	};
 	char *Module = strdup(basename(FileName));
 #ifdef LINUX
 	Module[strlen(Module) - 3] = 0;
@@ -1973,6 +1990,11 @@ found:
 	add_shared_lib(strdup(FullFileName), 1);
 };
 
+static bool print_dependency(const struct HXmap_node *Node, void *Arg) {
+	printf("\t%s\n", Node->skey);
+	return true;
+};
+
 int main(int Argc, char **Argv) {
 	HX_init();
 	LibraryTable = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
@@ -1981,6 +2003,7 @@ int main(int Argc, char **Argv) {
 	SymbolTable = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
 	ExportTable = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
 	SupportedFiles = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
+	Dependencies = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY | HXMAP_SINGULAR);
 	int Version = 0;
 	if (Argc < 2) {
 		puts("Usage: rlink [-o output] [-l listing] [-L directory] inputs ... ");
@@ -2058,10 +2081,19 @@ int main(int Argc, char **Argv) {
 					};
 					break;
 				};
+				case 'M': {
+					DependencyMode = 1;
+					break;
+				};
 				};
 			} else {
 				add_file(Argv[I], 0);
 			};
+		};
+		if (DependencyMode) {
+			printf("Printing dependencies [%d]...\n", Dependencies->items);
+			HXmap_qfe(Dependencies, print_dependency, 0);
+			return 0;
 		};
 		for (export_t *Export = Exports.Head; Export; Export = Export->Next) {
 			if (Export->Section == 0) {

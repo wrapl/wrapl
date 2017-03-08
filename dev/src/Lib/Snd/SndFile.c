@@ -17,7 +17,7 @@ typedef struct sndfile_t {
 	int (*seek)(IO$Stream_t *, int, int);
 } sndfile_t;
 
-TYPE(T);
+TYPE(T, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$T);
 
 CONSTANT(Mode, Sys$Module$T) {
 	Sys$Module_t *Module = Sys$Module$new("Mode");
@@ -196,23 +196,6 @@ METHOD("strerror", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("close", TYP, T) {
-	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
-	return sf_close(SndFile->Handle) ? FAILURE : SUCCESS;
-};
-
-METHOD("sync", TYP, T) {
-	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
-	sf_write_sync(SndFile->Handle);
-	return SUCCESS;
-};
-
-METHOD("sync", TYP, T) {
-	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
-	sf_write_sync(SndFile->Handle);
-	return SUCCESS;
-};
-
 METHOD("read_short", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
 	void *Ptr = Std$Address$get_value(Args[1].Val);
@@ -341,7 +324,7 @@ METHOD("writef_double", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("read_raw", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
 	void *Ptr = Std$Address$get_value(Args[1].Val);
 	sf_count_t Bytes = Std$Integer$get_small(Args[2].Val);
@@ -349,12 +332,39 @@ METHOD("read_raw", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("write_raw", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
 	void *Ptr = Std$Address$get_value(Args[1].Val);
 	sf_count_t Bytes = Std$Integer$get_small(Args[2].Val);
 	Result->Val = Std$Integer$new_small(sf_write_raw(SndFile->Handle, Ptr, Bytes));
 	return SUCCESS;
+};
+
+METHOD("flush", TYP, T) {
+	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
+	sf_write_sync(SndFile->Handle);
+	return SUCCESS;
+};
+
+METHOD("close", TYP, T) {
+	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
+	return sf_close(SndFile->Handle) ? FAILURE : SUCCESS;
+};
+
+TYPED_INSTANCE(int, IO$Stream$read, T, sndfile_t *Stream, char *Buffer, int Count, int Block) {
+	return sf_read_raw(Stream->Handle, Buffer, Count);
+};
+
+TYPED_INSTANCE(int, IO$Stream$write, T, sndfile_t *Stream, char *Buffer, int Count, int Block) {
+	return sf_write_raw(Stream->Handle, Buffer, Count);
+};
+
+TYPED_INSTANCE(void, IO$Stream$flush, T, sndfile_t *Stream) {
+	sf_write_sync(Stream->Handle);
+};
+
+TYPED_INSTANCE(void, IO$Stream$close, T, sndfile_t *Stream, int Mode) {
+	sf_close(Stream->Handle);
 };
 
 CONSTANT(String, Sys$Module$T) {

@@ -25,7 +25,7 @@ UDIS_DIR:build(function()
 	execute("wget -nv http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-"  .. UDIS_VERSION .. ".tar.gz -O- | tar xvzP")
 end)
 
-LDFLAGS = extend(LDFLAGS, "-L.", "-lz", "-llua5.1", "-lbfd", "-lHX", "-ldl", "-liberty", "-g")
+LDFLAGS = extend(LDFLAGS, "-L.", "-lz", "-llua5.1", "-lbfd", "-lHX", "-ldl", "-g")
 CFLAGS = extend(CFLAGS, "-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION")
 
 c_program(RLINK, {file("rlink.o")}, {file("libudis86.a")})

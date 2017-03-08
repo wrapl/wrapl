@@ -84,7 +84,3 @@ export("_t_remaining", "_remaining")
 export("_alloc_buffer")
 export("_free_buffer")
 export("_free_buffers")
-
-if LINUX then
-	export("_cfile")
-end

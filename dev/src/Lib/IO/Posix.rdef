@@ -24,3 +24,5 @@ export("__POLLIN", "POLLIN")
 export("__POLLOUT", "POLLOUT")
 export("__POLLHUP", "POLLHUP")
 export("__POLLPRI", "POLLPRI")
+export("_cfile")
+
