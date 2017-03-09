@@ -32,7 +32,7 @@ GLOBAL_FUNCTION(MapNew, 0) {
 				Result->Val = Std$String$new("Can only map to strings");
 				return MESSAGE;
 			};
-			char Char = ((Std$String$t *)Key)->Blocks[0].Chars.Value[0];
+			char Char = ((char *)((Std$String$t *)Key)->Blocks[0].Chars.Value)[0];
 			Map->Lengths[Char] = Std$String$get_length(Value);
 			Map->Chars[Char] = Std$String$flatten(Value);
 		};
@@ -49,7 +49,7 @@ METHOD("add", TYP, MapT, TYP, Std$String$T, TYP, Std$String$T) {
 		Result->Val = Std$String$new("Can only map single characters");
 		return MESSAGE;
 	};
-	char Char = ((Std$String$t *)Key)->Blocks[0].Chars.Value[0];
+	char Char = ((char *)((Std$String$t *)Key)->Blocks[0].Chars.Value)[0];
 	Map->Lengths[Char] = Std$String$get_length(Value);
 	Map->Chars[Char] = Std$String$flatten(Value);
 	Result->Arg = Args[0];
