@@ -15,7 +15,6 @@
 
 %define address_method method
 %define array_method method
-%define buffer_method method
 %define function_method method
 %define integer_method method
 %define number_method method
@@ -906,14 +905,6 @@ address_method "@", ADDRESS, VAL, Std$String$T
 datasect
 .format:
 	db "%x", 0, 0
-
-
-buffer_method "length", BUFFER
-	mov eax, [Std$Function_argument(edi).Val]
-	lea ecx, [Std$Buffer_t(eax).Length]
-	xor edx, edx
-	xor eax, eax
-	ret
 
 extern Riva$Debug$_stack_trace
 

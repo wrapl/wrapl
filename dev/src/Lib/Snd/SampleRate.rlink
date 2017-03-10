@@ -1,2 +1,12 @@
 include("Std.rlib")
 include("Riva/Memory.rlib")
+include("Agg/Buffer.rlib")
+
+include("libsamplerate.a")
+
+submodule("Converter")
+subexport("Converter", "ConverterSincBestQuality", "SincBestQuality")
+subexport("Converter", "ConverterSincMediumQuality", "SincMediumQuality")
+subexport("Converter", "ConverterSincFastest", "SincFastest")
+subexport("Converter", "ConverterZeroOrderHold", "ZeroOrderHold")
+subexport("Converter", "ConverterLinear", "Linear")

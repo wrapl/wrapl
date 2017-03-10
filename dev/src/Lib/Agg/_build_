@@ -38,6 +38,7 @@ riva_module("Agg/IntegerTable", {file("IntegerTable.o")})
 riva_module("Agg/StringTable", {file("StringTable.o")})
 riva_module("Agg/TypeTable", {file("TypeTable.o")})
 riva_module("Agg/ObjectTable", {file("ObjectTable.o")})
+riva_module("Agg/Buffer", {file("Buffer.o"), file("Buffer2.o")})
 riva_module("Agg/Methods", {file("Methods.o")})
 
 riva_module("Agg/Grid", {file("Grid.o")})

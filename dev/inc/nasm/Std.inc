@@ -3,7 +3,6 @@
 
 %include "Std/Address.inc"
 %include "Std/Array.inc"
-%include "Std/Buffer.inc"
 %include "Std/Boolean.inc"
 %include "Std/Function.inc"
 %include "Std/Integer.inc"
