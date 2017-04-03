@@ -1,0 +1,89 @@
+MOD Type;
+
+IMP IO.Terminal USE Out;
+IMP Sys.Module;
+
+IMP .Log USE Log;
+IMP .List, .Reference, .Array, .Alias, .Varargs;
+
+DEF T! <- <[] cname, desc>;
+TO :headers(type@T) {};
+TO :libraries(type@T) {};
+
+TO :base_headers(type@T) {};
+TO :base_libraries(type@T) {};
+
+TO :rtype(type@T) "Std$Object$T";
+TO :ctype(type@T) type:desc:map("-", " ");
+
+TO :signature(type@T) "TYP, " + type:rtype;
+
+TO :riva_to_c(type@T, in, out, tmp) (
+    Log:write('Warning: calling :riva_to_c with unknown type {type:desc}\n');
+    [];
+);
+
+TO :c_to_riva(type@T, in, out, tmp) (
+    Log:write('Warning: calling :c_to_riva with unknown type {type:desc}\n');
+    ['{out} = Std$Object$Nil;'];
+);
+
+TO :c_argcount(type@T) 1;
+TO :c_precall(type@T, argindex, paramindex)
+    ['{type:ctype} param{paramindex} = 0;'] + type:riva_to_c('Args[{argindex}].Val', 'param{paramindex}', 'precall{paramindex}');
+TO :c_postcall(type@T, argindex, paramindex) [];
+TO :c_return(type@T) type:c_to_riva("result", "Result->Val", "result");
+
+TO :riva_argcount(type@T) 1;
+TO :riva_precall(type@T, argindex, paramindex)
+    type:c_to_riva('arg{argindex}', 'Params[{paramindex}].Val', 'precall{paramindex}') + ['Params[{paramindex}].Ref = 0;'];
+TO :riva_postcall(type@T, argindex, paramindex) [];
+TO :riva_return(type@T) type:riva_to_c("Result.Val", "result", "result");
+
+TO :generate_c(type@T) [];
+TO :generate_rdef(type@T) [];
+TO :generate_h(type@T) [];
+TO :generate_rlib(type@T) [];
+
+DEF ModifierTable <- {
+    "out" IS Reference.OutNew,
+    "inout" IS Reference.InOutNew,
+    "const" IS Lookup,
+    "gconst" IS Lookup,
+    "unsigned" IS Lookup,
+    "GSList" IS List.SingleNew,
+    "GList" IS List.DoubleNew,
+    "array" IS Array.New,
+    "zarray" IS Array.NullTerminatedNew,
+    "length" IS List.LengthNew,
+    "sized" IS Array.SizedNew,
+    "varargs" IS Varargs.New,
+    "count" IS Varargs.CountNew,
+    "struct" IS <x> Lookup(x:after("_"))
+};
+
+TO :parent(type@T) NIL;
+TO :interfaces(type@T) {};
+
+DEF TypeTable <- {};
+DEF Define!(desc, type) (
+    type:desc <- desc;
+    TypeTable:insert(desc, type);
+);
+DEF Lookup!(desc) (
+	VAR type <- TypeTable[desc];
+	type == NIL => (
+		(WITH n <- desc:find("-") DO (
+			VAR modifier <- desc[1, n];
+			VAR base <- desc[n + 1, 0];
+			type <- ModifierTable[modifier](base) | T(desc);
+		)) // (
+			type <- T(desc);
+		);
+		Define(desc, type);
+	);
+	type IN Alias.T => RET Lookup(type:alias);	
+	RET type;
+);
+
+END Type.

@@ -1,0 +1,97 @@
+MOD List;
+
+IMP Std.Integer;
+
+IMP .Type;
+
+DEF T <- <[Type.T]
+    base,
+    headers, libraries
+>;
+
+TO :rtype(type@T) "Agg$List$T";
+
+DEF SingleT! <- <[T]>;
+
+DEF SingleNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- SingleT();
+    type:base <- base;
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :ctype(type@SingleT) "GSList *";
+
+TO :riva_to_c(type@SingleT, in, out, tmp) [
+    'GSList *{tmp}_list = 0;',
+    'for (Agg$List_node *{tmp}_node = ((Agg$List_t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
+    '\t{type:base:ctype} {tmp}_value;'
+] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_value', '{tmp}_base'):values) + [
+    '\t{tmp}_list = g_slist_prepend({tmp}_list, {tmp}_value);',
+    "};",
+    '{out} = {tmp}_list;'
+];
+
+TO :c_to_riva(type@SingleT, in, out, tmp) [
+    'Agg$List_t *{tmp}_list = Agg$List$new0();',
+    'for (GSList *{tmp}_node = {in}; {tmp}_node; {tmp}_node = {tmp}_node->next) \{',
+    '\tStd$Object_t *{tmp}_value;'
+] + (ALL "\t" + type:base:c_to_riva('{tmp}_node->data', '{tmp}_value', '{tmp}_base'):values) + [
+    '\tAgg$List$put({tmp}_list, {tmp}_value);',
+    "};",
+    '{out} = (Std$Object_t *){tmp}_list;'
+];
+
+DEF DoubleT! <- <[T]>;
+
+DEF DoubleNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- DoubleT();
+    type:base <- base;
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :ctype(type@DoubleT) "GList *";
+
+TO :riva_to_c(type@DoubleT, in, out, tmp) [
+    'GList *{tmp}_list = 0;',
+    'for (Agg$List_node *{tmp}_node = ((Agg$List_t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
+    '\t{type:base:ctype} {tmp}_value;'
+] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_value', '{tmp}_base'):values) + [
+    '\t{tmp}_list = g_slist_prepend({tmp}_list, {tmp}_value);',
+    "};",
+    '{out} = {tmp}_list;'
+];
+
+TO :c_to_riva(type@DoubleT, in, out, tmp) [
+    'Agg$List_t *{tmp}_list = Agg$List$new0();',
+    'for (GList *{tmp}_node = {in}; {tmp}_node; {tmp}_node = {tmp}_node->next) \{',
+    '\tStd$Object_t *{tmp}_value;'
+] + (ALL "\t" + type:base:c_to_riva('{tmp}_node->data', '{tmp}_value', '{tmp}_base'):values) + [
+    '\tAgg$List$put({tmp}_list, {tmp}_value);',
+    "};",
+    '{out} = (Std$Object_t *){tmp}_list;'
+];
+
+DEF LengthT! <- <[Type.T] index>;
+
+DEF LengthNew!(base) (
+    VAR index <- base @ Integer.T;
+    VAR type <- LengthT();
+    type:index <- index;
+    RET type;
+);
+
+TO :ctype(type@LengthT) "int";
+TO :rtype(type@LengthT) FAIL;
+
+TO :c_argcount(type@LengthT) 0;
+TO :c_precall(type@LengthT, argindex, paramindex) [
+    'int param{paramindex} = ((Agg$List_t *)Args[{type:index}].Val)->Length;'
+];
+
+END List.

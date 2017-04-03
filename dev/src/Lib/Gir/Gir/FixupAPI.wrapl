@@ -1,0 +1,19 @@
+MOD FixupAPI;
+
+IMP Sys.Program, Xml.Loader, IO.File;
+
+VAR api_file <- Program.Args[1];
+VAR api <- Loader.Load(api_file);
+
+VAR gtk_plot <- api[:namespace] \ $.name = "Extra";
+VAR gtk_plot_classes <- ALL gtk_plot:find(<node> node:tag == :struct & node.cname[-5, 0] = "Class");
+EVERY WITH node <- gtk_plot:find(<node> node:tag == :struct & gtk_plot_classes:values.cname = node.cname + "Class") DO (
+	node:attrs:insert('parent', node[:field].type);
+	node:tag <- :object;
+);
+EVERY gtk_plot_classes:values \ $:parent:content:remove($);
+
+File.Open(api_file, File.Flag.Write):write('<?xml version="1.0" encoding="UTF-8"?>\n'):write(api):close;
+Program.Exit(0);
+
+END FixupAPI.

@@ -1,0 +1,14 @@
+library("Gtk/Glib/GSource.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name, Name2)
+		if Name2 == nil then
+			Name2 = Name
+		end
+		_export("_" .. Name, Name2)
+	end
+end
+
+export("T")
+export("New")

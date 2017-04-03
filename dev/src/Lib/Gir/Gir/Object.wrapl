@@ -1,0 +1,97 @@
+MOD Object;
+
+IMP .Type, .API;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    parent, interfaces,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:parent <- parent;
+    type:interfaces <- [];
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gtk${namespace}${name}$T';
+    type:headers <- {'Gtk/{namespace}/{name}.h', 'Gtk/GObject/Object.h'};
+    type:libraries <- {'Gtk/{namespace}/{name}.rlib', 'Gtk/GObject/Object.rlib'};
+    
+    Type.Define('{cname}*', type);
+
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gtk$GObject$Object_t *){in})->Handle;'];
+TO :c_to_riva(type@T, in, out, tmp) ['{out} = Gtk$GObject$Object$to_riva({in});'];
+
+VAR gobject <- New("GObject", "Object", "GObject", NIL);
+
+TO :parents(type@T) (
+	DEF fakeparents <- {NIL, "GInitiallyUnowned", "GObject"};
+	VAR parent <- type:parent;
+	VAR interface;
+	REP (UNTIL fakeparents[parent];
+		parent <- Type.Lookup(parent + "*");
+		SUSP parent;
+		EVERY interface <- parent:interfaces:values DO (
+			interface IN type:interfaces // type:interfaces:put(interface);
+		);
+		parent <- parent:parent;
+	);
+	RET gobject;
+);
+
+TO :base_headers(type@T) (
+    VAR h <- {};
+    EVERY h:insert(type:parents:headers:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):headers:keys);
+    RET h;
+);
+
+TO :base_libraries(type@T) (
+    VAR h <- {};
+    EVERY h:insert(type:parents:libraries:keys);
+    EVERY h:insert(Type.Lookup(type:interfaces:values):libraries:keys);
+    RET h;
+);
+
+TO :generate_c(type@T) (
+    VAR r <- [""];
+    VAR line <- "TYPE(T";
+    EVERY line <- line + ', {type:parents:rtype}';
+    EVERY line <- line + ', {Type.Lookup(type:interfaces:values):rtype}';
+    r:put(line + ");");
+    r:put('//  <external path="{API.GetType(type:cname)}"/>');
+    r:put("");
+    r:put("GLOBAL(T, Gtk$GObject$Object_t, Nil)[] = {{T, 0}};");
+    RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gtk${type:namespace}${type:name}_t \{',
+    '\tStd$Type_t *Type;',
+    '\tGObject *Handle;',
+    '} Gtk${type:namespace}${type:name}_t;',
+    '',
+    'extern Std$Type_t Gtk${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+END Object.

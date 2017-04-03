@@ -1,0 +1,24 @@
+MOD Value;
+
+IMP Std.Integer;
+
+IMP .Type;
+
+DEF T! <- <[Type.T] ctype, value>;
+
+DEF New!(value) (
+	VAR type <- T();
+	type:ctype <- value:before("=");
+	type:value <- value:after("=");
+	RET type;
+);
+
+TO :rtype(type@T) FAIL;
+
+TO :c_argcount(type@T) 0;
+TO :c_precall(type@T, argindex, paramindex) [
+    '{type:ctype} param{paramindex} = {type:value};'
+];
+TO :riva_argcount(type@T) 0;
+
+END Value.

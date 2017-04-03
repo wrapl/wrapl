@@ -1,0 +1,3 @@
+library("Sys/Service.rlib")
+require("Gtk/Glib/Init");
+require("Gtk/GObject/Init");

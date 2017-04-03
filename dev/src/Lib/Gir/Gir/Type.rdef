@@ -1,0 +1,37 @@
+require("Gtk/GObject/Init")
+library("Gtk/GObject/Object.rlib")
+library("Gtk/TypeMap.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("_to_riva")
+export("_register_type")
+export("Fundamental")
+export("INVALID")
+export("NONE")
+export("INTERFACE")
+export("CHAR")
+export("UCHAR")
+export("BOOLEAN")
+export("INT")
+export("UINT")
+export("LONG")
+export("ULONG")
+export("INT64")
+export("UINT64")
+export("ENUM")
+export("FLAGS")
+export("FLOAT")
+export("DOUBLE")
+export("STRING")
+export("POINTER")
+export("BOXED")
+export("PARAM")
+export("OBJECT")
+export("RIVA")

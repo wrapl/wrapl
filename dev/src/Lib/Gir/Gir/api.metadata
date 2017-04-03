@@ -1,0 +1,2393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <remove-node path="/api/namespace/struct[@name='GSourcePrivate']"/>
+  <remove-node path="/api/namespace/struct[@name='GMarkupParseContext']"/>
+  <remove-node path="/api/namespace/struct[@name='GMainLoop']"/>
+  <remove-node path="/api/namespace/struct[@name='GMainContext']"/>
+  
+  <remove-node path="/api/namespace/alias[@name=&quot;Gboolean&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gchar&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gdouble&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gfloat&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gint&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Glong&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gshort&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Guchar&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Guint&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gulong&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gunichar&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gunichar2&quot;]"/>
+  <remove-node path="/api/namespace/alias[@name=&quot;Gushort&quot;]"/>
+  <remove-node path="/api/namespace/struct[@name='GDate']/method[@name='ToStructTm']"/>
+  <remove-node path="/api/namespace/struct[@name='GOnce']"/>
+  <attr path="/api/namespace/enum[@name='s']/member[@name='GetMask']" name="value">1 &lt;&lt; 5- 1</attr>
+  <attr path="/api/namespace/object[@name='Widget']/method[@name='InputShapeCombineMask']/parameters/parameter[@name='shape_mask']" name="type">GdkPixmap*</attr>
+  <attr path="/api/namespace/object[@name='Widget']/method[@name='ShapeCombineMask']/parameters/parameter[@name='shape_mask']" name="type">GdkPixmap*</attr>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32GetFd']"/>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32MakePollfd']"/>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32NewFd']"/>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32NewMessages']"/>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32NewSocket']"/>
+  <remove-node path="/api/namespace/struct[@name='GIOChannel']/method[@name='Win32Poll']"/>
+  <remove-node path="/api/namespace/enum[@name='GTraverseFlags']/member[@name='Leafs']"/>
+  <remove-node path="/api/namespace/enum[@name='GTraverseFlags']/member[@name='NonLeafs']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_config_set_set_handler']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_config_set_sync_handler']"/>
+  <remove-node path="/api/namespace/struct[@cname='GtkCell']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkCListCompareFunc']"/>
+  <remove-node path="/api/namespace/enum[@name='FileInfoType']"/>
+  <remove-node path="/api/namespace/enum[@name='FileSystemError']"/>
+  <remove-node path="/api/namespace/interface[@name='FileSystem']"/>
+  <remove-node path="/api/namespace/interface[@name='FileFolder']"/>
+  <remove-node path="/api/namespace/struct[@name='FileSystemHandleClass']"/>
+  <remove-node path="/api/namespace/object[@name='FileSystemHandle']"/>
+  <remove-node path="/api/namespace/struct[@cname='GtkFileInfo']"/>
+  <remove-node path="/api/namespace/enum[@name='ArgFlags']"/>
+  <remove-node path="/api/namespace/callback[@name='FileSystemGetInfoCallback']"/>
+  <remove-node path="/api/namespace/callback[@name='FileSystemCreateFolderCallback']"/>
+  <remove-node path="/api/namespace/callback[@name='FileSystemGetFolderCallback']"/>
+  <remove-node path="/api/namespace/callback[@name='FileSystemVolumeMountCallback']"/>
+  <remove-node path="/api/namespace/struct[@name='FileSystemVolume']"/>
+  <remove-node path="/api/namespace/struct[@name='FilePath']"/>
+  <remove-node path="/api/namespace/object[@cname='GdkWindow']/method[@name='InvalidateMaybeRecurse']"/>
+  <remove-node path="/api/namespace/callback[@name='InvalidateMaybeRecurseChildFunc']"/>
+  <remove-node path="/api/namespace/callback[@name='XftSubstituteFunc']"/>
+  <remove-node path="/api/namespace/object[@name='XftFont']"/>
+  <remove-node path="/api/namespace/object[@name='XftFontMap']"/>
+  <remove-node path="/api/namespace/object[@name='XftRenderer']"/>
+  <remove-node path="/api/namespace/class[@name='Xft']"/>
+  <remove-node path="/api/namespace/class[@cname='GdkXid_']"/>
+  <remove-node path="/api/namespace/class[@cname='PangoX_']"/>
+  <remove-node path="/api/namespace/struct[@name='XFontCache']"/>
+  <remove-node path="/api/namespace/callback[@cname='PangoFreeGCFunc']"/>
+  <remove-node path="/api/namespace/callback[@cname='PangoGetGCFunc']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gtk_text_layout_draw']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gtk_init_abi_check']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gtk_init_check_abi_check']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkItemFactoryCallback']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkItemFactoryCallback1']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkItemFactoryCallback2']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkItemFactory']"/>
+  <remove-node path="/api/namespace/struct[@cname='GtkItemFactoryEntry']"/>
+  <remove-node path="/api/namespace/struct[@cname='GtkItemFactoryItem']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkFileSystemModelGetValue']"/>
+  <add-node path="/api/namespace/class[@cname='GtkMain_']">
+    <method name="Run" cname="gtk_main" shared="true">
+      <return-type type="void"/>
+    </method>
+    <method name="InitAdd" cname="gtk_init_add" shared="true">
+      <parameters>
+        <parameter type="GtkFunction" name="function"/>
+        <parameter type="gpointer" name="data"/>
+      </parameters>
+      <return-type type="void"/>
+    </method>
+  </add-node>
+  
+  <attr path="/api/namespace/struct[@cname='GdkEventAny']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventExpose']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventNoExpose']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventVisibility']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventMotion']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventButton']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventScroll']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventKey']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventCrossing']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventFocusChange']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventConfigure']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventProperty']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventSelection']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventOwnerChange']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventProximity']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventClient']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventDND']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventWindowState']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventSetting']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventGrabBroken']" name="parent">GdkEvent</attr>
+  <attr path="/api/namespace/struct[@cname='GdkEventType']" name="parent">GdkEvent</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_widget_get_pointer']/parameters/parameter[@name='x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_widget_get_pointer']/parameters/parameter[@name='y']" name="type">out-gint</attr>
+  <add-node path="/api/namespace/object[@cname='GtkListStore']">
+    <implements interface="GtkTreeModel"/>
+    <implements interface="GtkTreeSortable"/>
+  </add-node>
+   <add-node path="/api/namespace/object[@cname='GtkTreeModelSort']">
+    <implements interface="GtkTreeModel"/>
+    <implements interface="GtkTreeSortable"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkTreeStore']">
+    <implements interface="GtkTreeModel"/>
+    <implements interface="GtkTreeSortable"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkFileChooserButton']">
+    <implements interface="GtkFileChooser"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkFileChooserDialog']">
+    <implements interface="GtkFileChooser"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkFileChooserWidget']">
+    <implements interface="GtkFileChooser"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkComboBox']">
+    <implements interface="GtkCellLayout"/>
+    <implements interface="GtkCellEditable"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkComboEntry']">
+    <implements interface="GtkCellLayout"/>
+    <implements interface="GtkCellEditable"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkEntry']">
+    <implements interface="GtkEditable"/>
+    <implements interface="GtkCellEditable"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkSpinButton']">
+    <implements interface="GtkEditable"/>
+    <implements interface="GtkCellEditable"/>
+  </add-node>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_builder_connect_signals_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkBuilderConnectFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <add-node path="/api/namespace/object[@cname='GooCanvasItemSimple']">
+    <implements interface="GooCanvasItem"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GooCanvasItemModelSimple']">
+    <implements interface="GooCanvasItemModel"/>
+  </add-node>
+<!--
+  <attr path="/api/namespace/object/method[@cname='gtk_container_get_children']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_list_actions']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_cell_view_get_cell_renderers']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_child_anchor_get_widgets']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_get_columns']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_column_get_cell_renderers']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_window_get_default_icon_list']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_window_get_icon_list']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_window_list_toplevels']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_screen_get_toplevel_windows']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_screen_get_window_stack']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_screen_list_visuals']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_children']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_toplevels']/return-type" name="type">reusable-GList[GObject]*</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_list_visuals']/return-type" name="type">reusable-GList[GObject]*</attr>
+-->
+  <remove-node path="/api/namespace/object[@cname='GtkImage']/field[@name='Data']"/>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Pixmap']" name="type">GtkImagePixmapData</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Pixmap']" name="cname">data.pixmap</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Image']" name="cname">data.image</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Pixbuf']" name="cname">data.pixbuf</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Stock']" name="cname">data.stock</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='IconSet']" name="cname">data.icon_set</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Anim']" name="cname">data.anim</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Name']" name="cname">data.name</attr>
+  <attr path="/api/namespace/object[@cname='GtkImage']/field[@name='Gicon']" name="cname">data.gicon</attr>
+  <remove-node path="/api/namespace/object[@cname='GtkCurve']/field[@name='Ctlpoint']"/>
+  <attr path="/api/namespace/struct[@cname='GtkBindingArg']/field[@name='LongData']" name="cname">d.long_data</attr>
+  <add-node path="/api/namespace/struct[@cname='GtkBindingArg']">
+    <field name="DoubleData" cname="d.double_data" type="gdouble"/>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GtkBindingArg']">
+    <field name="StringData" cname="d.string_data" type="gchar*"/>
+  </add-node>
+  <remove-node path="/api/namespace/struct[@cname='GtkArg']"/>
+  <remove-node path="/api/namespace/struct[@cname='GdkEventClient']/field[@name='B']"/>
+  <add-node path="/api/namespace/struct[@cname='GdkRectangle']">
+    <initializer name="NewSet">
+      <parameters>
+        <parameter type="gint" name="x"/>
+        <parameter type="gint" name="y"/>
+        <parameter type="gint" name="width"/>
+        <parameter type="gint" name="height"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GdkPoint']">
+    <initializer name="NewSet">
+      <parameters>
+        <parameter type="gint" name="x"/>
+        <parameter type="gint" name="y"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GtkBorder']">
+    <initializer name="NewSet">
+      <parameters>
+        <parameter type="gint" name="left"/>
+        <parameter type="gint" name="right"/>
+        <parameter type="gint" name="top"/>
+        <parameter type="gint" name="bottom"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GtkRequisition']">
+    <initializer name="NewSize">
+      <parameters>
+        <parameter type="gint" name="width"/>
+        <parameter type="gint" name="height"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GdkColor']">
+    <initializer name="NewRgb">
+      <parameters>
+        <parameter type="guint16" name="red"/>
+        <parameter type="guint16" name="green"/>
+        <parameter type="guint16" name="blue"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='GdkSegment']">
+    <initializer name="NewSet">
+      <parameters>
+        <parameter type="gint" name="x1"/>
+        <parameter type="gint" name="y1"/>
+        <parameter type="gint" name="x2"/>
+        <parameter type="gint" name="y2"/>
+      </parameters>
+    </initializer>
+  </add-node>
+  <attr path="/api/namespace/struct[@cname='GnomeTrigger']/field[@cname='function']" name="cname">u.function</attr>
+  <remove-node path="/api/namespace/struct[@cname='GnomeModuleInfo']/field[@cname='_options']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkFileSystemModelPathFunc']"/>
+  <remove-node path="/api/namespace/callback[@cname='GtkFileSystemModelFilter']"/>
+  <remove-node path="/api/namespace/enum[@cname='GtkFileChooserProp']"/>
+  <remove-node path="/api/namespace/enum[@cname='GtkFileSystemModelColumns']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkSearchEngine']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkQuery']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkToolbar']/field[@name='GtkTooltips']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkToolbar']/field[@name='Gpointer']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkObject']/method[@cname='gtk_object_get_data']"/>
+  <remove-node path="/api/namespace/object[@cname='GtkObject']/method[@cname='gtk_object_set_data']"/>
+  <remove-node path="/api/namespace/class[@cname='GnomeScore_']/method[@cname='gnome_score_log']"/>
+  <remove-node path="/api/namespace/struct[@cname='ArtSVP']/method[@cname='art_svp_render_aa']"/>
+  <remove-node path="/api/namespace/callback[@cname='RenderAaCallback']"/>
+  <attr path="/api/namespace/object[@cname='GdkPixmap']" name="parent">GdkDrawable</attr>
+  <attr path="/api/namespace/object[@cname='GdkWindow']" name="parent">GdkDrawable</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_add_alpha']/parameters/parameter[@name='r']" name="type">int</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_add_alpha']/parameters/parameter[@name='g']" name="type">int</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_add_alpha']/parameters/parameter[@name='b']" name="type">int</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_get_pixels']/return-type" name="type">gpointer</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_savev']/parameters/parameter[@name='option_keys']" name="type">zarray-char*</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_savev']/parameters/parameter[@name='option_values']" name="type">zarray-char*</attr>
+  <add-node path="/api/namespace/struct[@cname='cairo_t']">
+    <method name="Create" cname="cairo_create" shared="true">
+      <return-type type="cairo_t*"/>
+      <parameters>
+        <parameter name="target" type="cairo_surface_t*"/>
+      </parameters>
+    </method>
+    <method name="Destroy" cname="cairo_destroy">
+      <return-type type="void"/>
+    </method>
+    <method name="Save" cname="cairo_save">
+      <return-type type="void"/>
+    </method>
+    <method name="Restore" cname="cairo_restore">
+      <return-type type="void"/>
+    </method>
+    <method name="SetOperator" cname="cairo_set_operator">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="op" type="cairo_operator_t"/>
+      </parameters>
+    </method>
+    <method name="SetSource" cname="cairo_set_source">
+      <return-type type="void"/>
+      <parameters><parameter name="source" type="cairo_pattern_t*"/>"</parameters>
+    </method>
+    <method name="SetSourceRgb" cname="cairo_set_source_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetSourceRgba" cname="cairo_set_source_rgba">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetSourceSurface" cname="cairo_set_source_surface">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t*"/>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetTolerance" cname="cairo_set_tolerance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="tolerance" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetAntialias" cname="cairo_set_antialias">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="antialias" type="cairo_antialias_t"/>
+      </parameters>
+    </method>
+    <method name="SetFillRule" cname="cairo_set_fill_rule">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="fill_rule" type="cairo_fill_rule_t"/>
+      </parameters>
+    </method>
+    <method name="SetLineWidth" cname="cairo_set_line_width">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="width" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetLineCap" cname="cairo_set_line_cap">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="line_cap" type="cairo_line_cap_t"/>
+      </parameters>
+    </method>
+    <method name="SetLineJoin" cname="cairo_set_line_join">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="line_join" type="cairo_line_join_t"/>
+      </parameters>
+    </method>
+    <method name="SetDash" cname="cairo_set_dash">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dashes" type="const double*"/>
+        <parameter name="num_dashes" type="int"/>
+        <parameter name="offset" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetMiterLimit" cname="cairo_set_miter_limit">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="limit" type="double"/>
+      </parameters>
+    </method>
+    <method name="Translate" cname="cairo_translate">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="tx" type="double"/>
+        <parameter name="ty" type="double"/>
+      </parameters>
+    </method>
+    <method name="Scale" cname="cairo_scale">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="sx" type="double"/>
+        <parameter name="sy" type="double"/>
+      </parameters>
+    </method>
+    <method name="Rotate" cname="cairo_rotate">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="angle" type="double"/>
+      </parameters>
+    </method>
+    <method name="Transform" cname="cairo_transform">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="const-cairo_matrix_t*"/>
+      </parameters>
+    </method>
+    <method name="SetMatrix" cname="cairo_set_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="const-cairo_matrix_t*"/>
+      </parameters>
+    </method>
+    <method name="IdentityMatrix" cname="cairo_identity_matrix">
+      <return-type type="void"/>
+    </method>
+    <method name="UserToDevice" cname="cairo_user_to_device">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="inout-double"/>
+        <parameter name="y" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="UserToDeviceDistance" cname="cairo_user_to_device_distance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dx" type="inout-double"/>
+        <parameter name="dy" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="DeviceToUser" cname="cairo_device_to_user">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="inout-double"/>
+        <parameter name="y" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="DeviceToUserDistance" cname="cairo_device_to_user_distance">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dx" type="inout-double"/>
+        <parameter name="dy" type="inout-double"/>
+      </parameters>
+    </method>
+    <method name="NewPath" cname="cairo_new_path">
+      <return-type type="void"/>
+    </method>
+    <method name="MoveTo" cname="cairo_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="NewSubPath" cname="cairo_new_sub_path">
+      <return-type type="void"/>
+    </method>
+    <method name="LineTo" cname="cairo_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="CurveTo" cname="cairo_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="Arc" cname="cairo_arc">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xc" type="double"/>
+        <parameter name="yc" type="double"/>
+        <parameter name="radius" type="double"/>
+        <parameter name="angle1" type="double"/>
+        <parameter name="angle2" type="double"/>
+      </parameters>
+    </method>
+    <method name="ArcNegative" cname="cairo_arc_negative">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xc" type="double"/>
+        <parameter name="yc" type="double"/>
+        <parameter name="radius" type="double"/>
+        <parameter name="angle1" type="double"/>
+        <parameter name="angle2" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelMoveTo" cname="cairo_rel_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelLineTo" cname="cairo_rel_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="RelCurveTo" cname="cairo_rel_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="Rectangle" cname="cairo_rectangle">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+        <parameter name="width" type="double"/>
+        <parameter name="height" type="double"/>
+      </parameters>
+    </method>
+    <method name="ClosePath" cname="cairo_close_path">
+      <return-type type="void"/>
+    </method>
+    <method name="Paint" cname="cairo_paint">
+      <return-type type="void"/>
+    </method>
+    <method name="PaintWithAlpha" cname="cairo_paint_with_alpha">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="Mask" cname="cairo_mask">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="pattern" type="cairo_pattern_t*"/>
+      </parameters>
+    </method>
+    <method name="MaskSurface" cname="cairo_mask_surface">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t*"/>
+        <parameter name="surface_x" type="double"/>
+        <parameter name="surface_y" type="double"/>
+      </parameters>
+    </method>
+    <method name="Stroke" cname="cairo_stroke">
+      <return-type type="void"/>
+    </method>
+    <method name="StrokePreserve" cname="cairo_stroke_preserve">
+      <return-type type="void"/>
+    </method>
+    <method name="Fill" cname="cairo_fill">
+      <return-type type="void"/>
+    </method>
+    <method name="FillPreserve" cname="cairo_fill_preserve">
+      <return-type type="void"/>
+    </method>
+    <method name="CopyPage" cname="cairo_copy_page">
+      <return-type type="void"/>
+    </method>
+    <method name="ShowPage" cname="cairo_show_page">
+      <return-type type="void"/>
+    </method>
+    <method name="InStroke" cname="cairo_in_stroke">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="InFill" cname="cairo_in_stroke">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="StrokeExtents" cname="cairo_stroke_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="FillExtents" cname="cairo_fill_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="ResetClip" cname="cairo_reset_clip">
+      <return-type type="void"/>
+    </method>
+    <method name="Clip" cname="cairo_clip">
+      <return-type type="void"/>
+    </method>
+    <method name="ClipExtents" cname="cairo_clip_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="out-double"/>
+        <parameter name="y1" type="out-double"/>
+        <parameter name="x2" type="out-double"/>
+        <parameter name="y2" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="CopyClipRectangleList" cname="cairo_copy_clip_rectangle_list">
+      <return-type type="cairo_rectangle_list_t*"/>
+    </method>
+    <method name="SelectFontFace" cname="cairo_select_font_face">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="family" type="const-char*"/>
+        <parameter name="slant" type="cairo_font_slant_t"/>
+        <parameter name="weight" type="cairo_font_weight_t"/>
+      </parameters>
+    </method>
+    <method name="SetFontSize" cname="cairo_set_font_size">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="size" type="double"/>
+      </parameters>
+    </method>
+    <method name="SetFontMatrix" cname="cairo_set_font_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t*"/>
+      </parameters>
+    </method>
+    <method name="GetFontMatrix" cname="cairo_get_font_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t*"/>
+      </parameters>
+    </method>
+    <method name="SetFontOptions" cname="cairo_set_font_options">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="options" type="cairo_font_options_t*"/>
+      </parameters>
+    </method>
+    <method name="GetFontOptions" cname="cairo_get_font_options">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="options" type="cairo_font_options_t*"/>
+      </parameters>
+    </method>
+    <method name="SetFontFace" cname="cairo_set_font_face">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="font_face" type="cairo_font_face_t*"/>
+      </parameters>
+    </method>
+    <method name="GetFontFace" cname="cairo_get_font_face">
+      <return-type type="cairo_font_face_t*"/>
+    </method>
+    <method name="SetScaledFont" cname="cairo_set_scaled_font">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="font_face" type="cairo_scaled_font_t*"/>
+      </parameters>
+    </method>
+    <method name="GetScaledFont" cname="cairo_get_scaled_font">
+      <return-type type="cairo_scaled_font_t*"/>
+    </method>
+    <method name="ShowText" cname="cairo_show_text">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="ShowGlyphs" cname="cairo_show_glyphs">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t*"/>
+        <parameter name="num_glyphs" type="int"/>
+      </parameters>
+    </method>
+    <method name="TextPath" cname="cairo_text_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="GlyphPath" cname="cairo_glyph_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t*"/>
+        <parameter name="num_glyphs" type="int"/>
+      </parameters>
+    </method>
+    <method name="TextExtents" cname="cairo_text_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="utf8" type="const-char*"/>
+        <parameter name="extents" type="cairo_text_extents_t*"/>
+      </parameters>
+    </method>
+    <method name="GlyphExtents" cname="cairo_glyph_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="glyphs" type="cairo_glyph_t*"/>
+        <parameter name="num_glyphs" type="int"/>
+        <parameter name="extents" type="cairo_text_extents_t*"/>
+      </parameters>
+    </method>
+    <method name="FontExtents" cname="cairo_font_extents">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="extents" type="cairo_font_extents_t*"/>
+      </parameters>
+    </method>
+    <method name="GetOperator" cname="cairo_get_operator">
+      <return-type type="cairo_operator_t"/>
+    </method>
+    <method name="GetSource" cname="cairo_get_source">
+      <return-type type="cairo_pattern_t*"/>
+    </method>
+    <method name="GetTolerance" cname="cairo_get_tolerance">
+      <return-type type="double"/>
+    </method>
+    <method name="GetAntialias" cname="cairo_get_antialias">
+      <return-type type="cairo_antialias_t"/>
+    </method>
+    <method name="GetCurrentPoint" cname="cairo_get_current_point">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="out-double"/>
+        <parameter name="y" type="out-double"/>
+      </parameters>
+    </method>
+    <method name="GetFillRule" cname="cairo_get_fill_rule">
+      <return-type type="cairo_fill_rule_t"/>
+    </method>
+    <method name="GetLineWidth" cname="cairo_get_line_width">
+      <return-type type="double"/>
+    </method>
+    <method name="GetLineCap" cname="cairo_get_line_cap">
+      <return-type type="cairo_line_cap_t"/>
+    </method>
+    <method name="GetMiterLimit" cname="cairo_get_miter_limit">
+      <return-type type="double"/>
+    </method>
+    <method name="GetLineJoin" cname="cairo_get_line_join">
+      <return-type type="cairo_line_join_t"/>
+    </method>
+    <method name="GetDashCount" cname="cairo_get_dash_count">
+      <return-type type="int"/>
+    </method>
+    <method name="GetDash" cname="cairo_get_dash">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="dashes" type="double*"/>
+        <parameter name="offset" type="double*"/>
+      </parameters>
+    </method>
+    <method name="GetMatrix" cname="cairo_get_matrix">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="matrix" type="cairo_matrix_t*"/>
+      </parameters>
+    </method>
+    <method name="GetTarget" cname="cairo_get_target">
+      <return-type type="cairo_surface_t*"/>
+    </method>
+    <method name="GetGroupTarget" cname="cairo_get_group_target">
+      <return-type type="cairo_surface_t*"/>
+    </method>
+    <method name="CopyPath" cname="cairo_copy_path">
+      <return-type type="cairo_path_t*"/>
+    </method>
+    <method name="CopyPathFlat" cname="cairo_copy_path_flat">
+      <return-type type="cairo_path_t*"/>
+    </method>
+    <method name="AppendPath" cname="cairo_append_path">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="path" type="cairo_path_t*"/>
+      </parameters>
+    </method>
+    <method name="Status" cname="cairo_status">
+      <return-type type="cairo_status_t"/>
+    </method>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='cairo_rectangle_list_t']">
+    <method name="Destroy" cname="cairo_rectangle_list_destroy">
+      <return-type type="void"/>
+    </method>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='cairo_font_options_t']">
+    <method name="Create" cname="cairo_font_options_create" shared="true">
+      <return-type type="cairo_font_options_t*"/>
+    </method>
+    <method name="Copy" cname="cairo_font_options_copy">
+      <return-type type="cairo_font_options_t*"/>
+    </method>
+    <method name="Destroy" cname="cairo_font_options_destroy">
+      <return-type type="void"/>
+    </method>
+    <method name="Status" cname="cairo_font_options_status">
+      <return-type type="cairo_status_t"/>
+    </method>
+    <method name="Merge" cname="cairo_font_options_merge">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="other" type="cairo_font_options_t*"/>
+      </parameters>
+    </method>
+    <method name="Equal" cname="cairo_font_options_equal">
+      <return-type type="cairo_bool_t"/>
+      <parameters>
+        <parameter name="other" type="cairo_font_options_t*"/>
+      </parameters>
+    </method>
+    <method name="Hash" cname="cairo_font_options_hash">
+      <return-type type="unsigned long"/>
+    </method>
+    <method name="SetAntialias" cname="cairo_font_options_set_antialias">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="antialias" type="cairo_antialias_t"/>
+      </parameters>
+    </method>
+    <method name="GetAntialias" cname="cairo_font_options_get_antialias">
+      <return-type type="cairo_antialias_t"/>
+    </method>
+    <method name="SetSubpixelOrder" cname="cairo_font_options_set_subpixel_order">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="subpixel_order" type="cairo_subpixel_order_t"/>
+      </parameters>
+    </method>
+    <method name="GetSubpixelOrder" cname="cairo_font_options_get_subpixel_order">
+      <return-type type="cairo_subpixel_order_t"/>
+    </method>
+    <method name="SetHintStyle" cname="cairo_font_options_set_hint_style">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="hint_style" type="cairo_hint_style_t"/>
+      </parameters>
+    </method>
+    <method name="GetHintStyle" cname="cairo_font_options_get_hint_style">
+      <return-type type="cairo_hint_style_t"/>
+    </method>
+    <method name="SetHintMetrics" cname="cairo_font_options_set_hint_metrics">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="hint_metrics" type="cairo_hint_metrics_t"/>
+      </parameters>
+    </method>
+    <method name="GetHintMetrics" cname="cairo_font_options_get_hint_metrics">
+      <return-type type="cairo_hint_metrics_t"/>
+    </method>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='cairo_surface_t']">
+    <method name="ImageSurfaceCreate" cname="cairo_image_surface_create" shared="true">
+      <return-type type="cairo_surface_t*"/>
+      <parameters>
+        <parameter name="format" type="cairo_format_t"/>
+        <parameter name="width" type="int"/>
+        <parameter name="height" type="int"/>
+      </parameters>
+    </method>
+    <method name="ImageSurfaceCreateForData" cname="cairo_image_surface_create_for_data" shared="true">
+      <return-type type="cairo_surface_t*"/>
+      <parameters>
+        <parameter name="data" type="gpointer"/>
+        <parameter name="format" type="cairo_format_t"/>
+        <parameter name="width" type="int"/>
+        <parameter name="height" type="int"/>
+        <parameter name="stride" type="int"/>
+      </parameters>
+    </method>
+    <method name="ImageSurfaceCreateFromPng" cname="cairo_image_surface_create_from_png" shared="true">
+      <return-type type="cairo_surface_t*"/>
+      <parameters>
+        <parameter name="filename" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="WriteToPng" cname="cairo_surface_write_to_png">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="filename" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="GetWidth" cname="cairo_image_surface_get_width">
+      <return-type type="int"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="GetHeight" cname="cairo_image_surface_get_height">
+      <return-type type="int"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="GetData" cname="cairo_image_surface_get_data">
+      <return-type type="void*"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="Reference" cname="cairo_surface_reference">
+      <return-type type="void"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="Destroy" cname="cairo_surface_destroy">
+      <return-type type="void"/>
+      <parameters>
+      </parameters>
+    </method>
+  </add-node>
+  <add-node path="/api/namespace[@name='Cairo']">
+    <enum name="CairoFormatT" cname="cairo_format_t" type="enum">
+      <member cname="CAIRO_FORMAT_ARGB32" name="Argb32"/>
+      <member cname="CAIRO_FORMAT_RGB24" name="Rgb24"/>
+      <member cname="CAIRO_FORMAT_A8" name="A8"/>
+      <member cname="CAIRO_FORMAT_A1" name="A1"/>
+      <member cname="CAIRO_FORMAT_RGB16_565" name="Rgb16_565"/>
+    </enum>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='CcViewWidget']">
+    <implements interface="CcView"/>
+    <implements interface="CcItemView"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='CcBrushColor']">
+    <implements interface="CcBrush"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='CcColor']">
+    <implements interface="CcBrush"/>
+  </add-node>
+  <attr path="/api/namespace/object[@cname='CcPixbuf']" name="parent">CcItem</attr>
+  <add-node path="/api/namespace/object[@cname='CcPixbuf']">
+    <implements interface="CcItemView"/>
+  </add-node>
+  <attr path="/api/namespace/enum[@name='PointerEvents']/member[@name='Fill']" name="value">GOO_CANVAS_EVENTS_FILL_MASK</attr>
+  <attr path="/api/namespace/enum[@name='PointerEvents']/member[@name='Stroke']" name="value">GOO_CANVAS_EVENTS_STROKE_MASK</attr>
+  <add-node path="/api/namespace/struct[@cname='cairo_pattern_t']">
+    <method name="CreateRgb" cname="cairo_pattern_create_rgb" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateRgba" cname="cairo_pattern_create_rgba" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+      <parameters>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateForSurface" cname="cairo_pattern_create_for_surface" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+      <parameters>
+        <parameter name="surface" type="cairo_surface_t*"/>
+      </parameters>
+    </method>
+    <method name="CreateLinear" cname="cairo_pattern_create_linear" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+      <parameters>
+        <parameter name="x0" type="double"/>
+        <parameter name="y0" type="double"/>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateRadial" cname="cairo_pattern_create_radial" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+      <parameters>
+        <parameter name="cx0" type="double"/>
+        <parameter name="cy0" type="double"/>
+        <parameter name="radius0" type="double"/>
+        <parameter name="cx1" type="double"/>
+        <parameter name="cy1" type="double"/>
+        <parameter name="radius1" type="double"/>
+      </parameters>
+    </method>
+    <method name="GetType" cname="cairo_pattern_get_type">
+      <return-type type="cairo_pattern_type_t"/>
+    </method>
+    <method name="AddColorStopRgb" cname="cairo_pattern_add_color_stop_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="offset" type="double"/>
+        <parameter name="r" type="double"/>
+        <parameter name="g" type="double"/>
+        <parameter name="b" type="double"/>
+      </parameters>
+    </method>
+    <method name="AddColorStopRgba" cname="cairo_pattern_add_color_stop_rgba">
+	  <return-type type="void"/>
+      <parameters>
+        <parameter name="offset" type="double"/>
+        <parameter name="r" type="double"/>
+        <parameter name="g" type="double"/>
+        <parameter name="b" type="double"/>
+        <parameter name="a" type="double"/>
+      </parameters>
+    </method>
+    <method name="CreateMesh" cname="cairo_pattern_create_mesh" shared="true">
+      <return-type type="cairo_pattern_t*"/>
+    </method>
+    <method name="MeshBeginPatch" cname="cairo_mesh_pattern_begin_patch">
+      <return-type type="void"/>
+    </method>
+    <method name="MeshEndPatch" cname="cairo_mesh_pattern_end_patch">
+      <return-type type="void"/>
+    </method>
+    <method name="MeshCurveTo" cname="cairo_mesh_pattern_curve_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x1" type="double"/>
+        <parameter name="y1" type="double"/>
+        <parameter name="x2" type="double"/>
+        <parameter name="y2" type="double"/>
+        <parameter name="x3" type="double"/>
+        <parameter name="y3" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshLineTo" cname="cairo_mesh_pattern_line_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshMoveTo" cname="cairo_mesh_pattern_move_to">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetControlPoint" cname="cairo_mesh_pattern_set_control_point">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="x" type="double"/>
+        <parameter name="y" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetCornerColorRgb" cname="cairo_mesh_pattern_set_corner_color_rgb">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+      </parameters>
+    </method>
+    <method name="MeshSetCornerColorRgba" cname="cairo_mesh_pattern_set_corner_color_rgba">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="point_num" type="unsigned int"/>
+        <parameter name="red" type="double"/>
+        <parameter name="green" type="double"/>
+        <parameter name="blue" type="double"/>
+        <parameter name="alpha" type="double"/>
+      </parameters>
+    </method>
+  </add-node>
+  <attr path="/api/namespace/struct[@cname='cairo_matrix_t']" name="opaque">false</attr>
+  <add-node path="/api/namespace/struct[@cname='cairo_matrix_t']">
+    <method name="Init" cname="cairo_matrix_init">
+      <return-type type="void"/>
+      <parameters>
+        <parameter name="xx" type="double"/>
+        <parameter name="yx" type="double"/>
+        <parameter name="xy" type="double"/>
+        <parameter name="yy" type="double"/>
+        <parameter name="x0" type="double"/>
+        <parameter name="y0" type="double"/>
+      </parameters>
+    </method>
+  </add-node>
+  <attr path="/api/namespace/object[@cname='GConfClient']/method[@name='CommitChangeSet']/parameters/parameter[@name='remove']" name="type">gboolean</attr>
+  <attr path="/api/namespace/struct[@cname='GConfEngine']/method[@name='CommitChangeSet']/parameters/parameter[@name='remove']" name="type">gboolean</attr>
+  <attr path="/api/namespace/callback[@name='ListActivatableNamesReply']/parameters/parameter[@name='*']" name="type">char**</attr>
+  <attr path="/api/namespace/callback[@name='ListNamesReply']/parameters/parameter[@name='*']" name="type">char**</attr>
+  <attr path="/api/namespace/callback[@name='ListQueuedOwnersReply']/parameters/parameter[@name='*']" name="type">char**</attr>
+  <attr path="/api/namespace/callback[@name='ListActivatableNamesReply']/parameters/parameter[@name='*']" name="name">names</attr>
+  <attr path="/api/namespace/callback[@name='ListNamesReply']/parameters/parameter[@name='*']" name="name">names</attr>
+  <attr path="/api/namespace/callback[@name='ListQueuedOwnersReply']/parameters/parameter[@name='*']" name="name">names</attr>
+  <attr path="/api/namespace/class[@cname='GnomeIcon_']/method[@name='LookupSync']/parameters/parameter[@name='result']" name="name">retval</attr>
+  <attr path="/api/namespace/class[@cname='GnomeIcon_']/method[@name='Lookup']/parameters/parameter[@name='result']" name="name">retval</attr>
+  <attr path="/api/namespace/object[@cname='GnomeMDI']/field[@name='Title']" name="cname">title</attr>
+  <remove-node path="/api/namespace/object[@cname='GnomeScores']"/>
+  <add-node path="/api/namespace[@name='Gnome']">
+    <class name="Modules" cname="GnomeModules">
+      <method name="ClientInfo" cname="gnome_client_module_info_get" shared="true">
+        <return-type type="GnomeModuleInfo*"/>
+      </method>
+      <method name="UIInfo" cname="libgnomeui_module_info_get" shared="true">
+        <return-type type="GnomeModuleInfo*"/>
+      </method>
+      <method name="Info" cname="libgnome_module_info_get" shared="true">
+        <return-type type="GnomeModuleInfo*"/>
+      </method>
+      <method name="GtkInfo" cname="gnome_gtk_module_info_get" shared="true">
+        <return-type type="GnomeModuleInfo*"/>
+      </method>
+    </class>
+  </add-node>
+  <attr path="/api/namespace/enum[@name='WatchFlags']/member[@name='Hangup']" name="value">1 &lt;&lt; 3</attr>
+  <add-node path="/api/namespace/class[@cname='BonoboMain_']">
+    <method name="Run" cname="bonobo_main" shared="true">
+      <return-type type="void"/>
+    </method>
+  </add-node>
+  <add-node path="api/namespace[@name='Panel']">
+    <alias name="Bonobo_Unknown" cname="Bonobo_Unknown" type="void*"/>
+  </add-node>
+  <remove-node path="/api/namespace/struct[@name='_Gdk_Event']"/>
+<!--  <remove-node path="/api/namespace/struct[@name='GMenuTreeDirectory']/method[@name='GetContents']"/> -->
+  <attr path="/api/namespace/struct[@name='GMenuTreeDirectory']/method[@name='GetContents']/return-type" name="type">GSList-GMenuTreeItem*</attr>
+  <remove-node path="/api/namespace/object[@cname='SoupAddress']/constructor[@cname='soup_address_new_from_sockaddr']"/>
+  <attr path="/api/namespace/struct[@name='MessageQueueIter']/field[@name='Next']" name="cname">next</attr>
+  <attr path="/api/namespace/struct[@name='MessageQueueIter']/field[@name='Next']" name="type">GList**</attr>
+  <remove-node path="/api/namespace/class/method[@cname='soup_mktime_utc']"/>
+  <remove-node path="/api/namespace/struct[@cname='SoupServerAuthContext']"/>
+  <!--add-node path="/api/namespace[@name='Soup']">
+    <struct name="ServerAuthContext" cname="SoupServerAuthContext">
+      <field name="Types" cname="types" type="guint"/>
+      <field name="Callback" cname="callback" type="SoupServerAuthCallbackFn"/>
+      <field name="UserData" cname="user_data" type="gpointer"/>
+      <field name="BasicInfoRealm" cname="basic_info.realm" type="const-gchar*"/>
+      <field name="DigestInfoRealm" cname="digest_info.realm" type="const-gchar*"/>
+      <field name="DigestInfoAllowAlgorithms" cname="digest_info.allow_algorithms" type="guint"/>
+      <field name="DigestInfoForceIntegrity" cname="digest_info.force_integrity" type="gboolean"/>
+      <method name="Challenge" cname="soup_server_auth_context_challenge">
+        <return-type type="void"/>
+        <parameters>
+          <parameter type="SoupMessage*" name="msg"/>
+          <parameter type="gchar*" name="header_name"/>
+        </parameters>
+      </method>
+    </struct>
+  </add-node-->
+  <attr path="/api/namespace/enum[@cname='SoupMessageFlags']/member[@cname='_SOUP_MESSAGE_OVERWRITE_CHUNKS']" name="cname">SOUP_MESSAGE_OVERWRITE_CHUNKS</attr>
+  <attr path="/api/namespace/enum[@cname='SoupMessageFlags']/member[@cname='_SOUP_MESSAGE_NO_REDIRECT']" name="cname">SOUP_MESSAGE_NO_REDIRECT</attr>
+  
+  <remove-node path="/api/namespace/struct/constructor[@cname='gnome_vfs_address_new_from_sockaddr']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_component_list_free']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_get_all_components']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_get_default_component']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_get_short_list_components']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_id_in_component_list']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_id_list_from_component_list']"/>
+  <remove-node path="/api/namespace/class/method[@cname='gnome_vfs_mime_remove_component_from_list']"/>
+  
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_get_file_mime_type']/parameters/parameter[@name='optional_stat_info']" name="type">gpointer</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_get_file_mime_type_fast']/parameters/parameter[@name='optional_stat_info']" name="type">gpointer</attr>
+  <remove-node path="/api/namespace/struct[@cname='GnomeVFSMimeApplication']/field[@cname='_command']"/>
+  <remove-node path="/api/namespace/struct[@cname='GnomeVFSMimeApplication']/field[@cname='_can_open_multiple_files']"/>
+  <remove-node path="/api/namespace/struct[@cname='GnomeVFSMimeApplication']/field[@cname='_expects_uris']"/>
+  <remove-node path="/api/namespace/struct[@cname='GnomeVFSMimeApplication']/field[@cname='_supported_uri_schemes']"/>
+  <remove-node path="/api/namespace/struct[@cname='GnomeVFSMimeAction']/field[@cname='component']"/>
+  <remove-node path="/api/namespace/enum[@cname='GnomeVFSModuleCallbackAuthenticationAuthType']"/>
+
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_open_fd']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_create_uri']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_open_uri']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_directory_open']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_directory_open_from_uri']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_directory_visit_files']/parameters/parameter[@name='file_list']" name="type">GList-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_directory_visit_files_at_uri']/parameters/parameter[@name='file_list']" name="type">GList-GnomeVFSHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_directory_list_load']/parameters/parameter[@name='list']" name="type">out-GList-GnomeVFSFileInfo*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_find_directory']/parameters/parameter[@name='result']" name="type">out-GnomeVFSURI*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_monitor_add']/parameters/parameter[@name='handle']" name="type">out-GnomeVFSURI*</attr>
+
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_uri']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_as_channel']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_uri_as_channel']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_uri']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_symbolic_link']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_as_channel']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_uri_as_channel']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_get_file_info']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_set_file_info']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_load_directory']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_load_directory_uri']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_xfer']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_find_directory']/parameters/parameter[@name='handle_return']" name="type">out-GnomeVFSAsyncHandle*</attr>
+
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_uri']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_as_channel']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_open_uri_as_channel']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_uri']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_symbolic_link']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_as_channel']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_create_uri_as_channel']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_get_file_info']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_set_file_info']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_load_directory']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_load_directory_uri']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_xfer']/parameters/parameter[@name='sync_callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_xfer']/parameters/parameter[@name='update_callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_find_directory']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  
+
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncCloseCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncCreateAsChannelCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncCreateCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncDirectoryLoadCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncFileControlCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncFindDirectoryCallback']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncGetFileInfoCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncModuleCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncOpenAsChannelCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncOpenCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncReadCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncSeekCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncSetFileInfoCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncWriteCallback']/parameters/parameter[@name='callback_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncXferProgressCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncDirectoryLoadCallback']/parameters/parameter[@name='list']" name="type">GList-GnomeVFSFileInfo*</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncFindDirectoryCallback']/parameters/parameter[@name='results']" name="type">GList-GnomeVFSFindDirectoryResult*</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncGetFileInfoCallback']/parameters/parameter[@name='results']" name="type">GList-GnomeVFSFileInfo*</attr>
+
+
+  <attr path="/api/namespace/class/method[@cname='gnome_icon_lookup']/parameters/parameter[@name='retval']" name="type">out-GnomeIconLookupResultFlags</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_icon_lookup_sync']/parameters/parameter[@name='retval']" name="type">out-GnomeIconLookupResultFlags</attr>
+
+  <attr path="/api/namespace/callback[@cname='GOptionArgFunc']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/callback[@cname='GOptionErrorFunc']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/callback[@cname='GOptionParseFunc']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_added']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_app_info']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_applications']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_description']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_groups']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_icon']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_is_private']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_mime_type']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_modified']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_title']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_get_visited']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_has_application']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_has_group']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_load_from_data']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_load_from_data_dirs']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_load_from_file']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_move_item']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_remove_application']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_remove_group']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_remove_item']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_set_app_info']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_to_data']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_bookmark_file_to_file']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_dir_open']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_flush']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/constructor[@cname='g_io_channel_new_file']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_read_chars']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_read_line']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_read_line_string']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_read_to_end']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_read_unichar']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_seek_position']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_set_encoding']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_set_flags']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_shutdown']/parameters/parameter[@name='err']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_write_chars']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_channel_write_unichar']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_boolean']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_boolean_list']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_boolean_list']/parameters/parameter[@name='length']" name="type">out-size</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_boolean_list']/return-type" name="type">sized-3-gboolean</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_double']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_double_list']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_double_list']/parameters/parameter[@name='length']" name="type">out-size</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_double_list']/return-type" name="type">sized-3-gdouble</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_integer']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_integer_list']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_integer_list']/parameters/parameter[@name='length']" name="type">out-size</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_integer_list']/return-type" name="type">sized-3-gint</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_keys']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_locale_string']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_locale_string_list']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_locale_string_list']/parameters/parameter[@name='length']" name="type">out-size</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_locale_string_list']/return-type" name="type">sized-4-gchar*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_string']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_string_list']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_string_list']/parameters/parameter[@name='length']" name="type">out-size</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_string_list']/return-type" name="type">sized-3-gchar*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_get_value']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_has_key']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_load_from_data']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_load_from_data_dirs']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_load_from_file']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_remove_comment']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_remove_group']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_remove_key']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_set_comment']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_key_file_to_data']/parameters/parameter[@name='error']" name="type">out-GError*</attr>
+
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_newv']/parameters/parameter[@name='n_columns']" name="type">length-0</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_newv']/parameters/parameter[@name='types']" name="type">array-GType</attr>
+
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_new']/parameters/parameter[@ellipsis='true']" name="sized">true</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_new']/parameters/parameter[@name='n_columns']" name="type">count-0</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_new']" name="rname">New</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_list_store_new']" name="cname">gtk_list_store_newv</attr>
+
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_new']/parameters/parameter[@ellipsis='true']" name="sized">true</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_new']/parameters/parameter[@name='n_columns']" name="type">count-0</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_new']" name="rname">New</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_new']" name="cname">gtk_tree_store_newv</attr>
+
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_newv']/parameters/parameter[@name='n_columns']" name="type">length-0</attr>
+  <attr path="/api/namespace/object/constructor[@cname='gtk_tree_store_newv']/parameters/parameter[@name='types']" name="type">array-GType</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_list_store_set']/parameters/parameter[@ellipsis='true']" name="term">-1</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_list_store_set']" name="cname">gtk_list_store_set_valist</attr>
+
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_store_set']/parameters/parameter[@ellipsis='true']" name="term">-1</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_store_set']" name="cname">gtk_tree_store_set_valist</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_set']/parameters/parameter[@ellipsis='true']" name="term">0</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_set']" name="cname">gnome_canvas_item_set_valist</attr>
+
+  <remove-node path="/api/namespace/enum[@name='XmlSchemaValidError']"/>
+  <remove-node path="/api/namespace/enum[@name='XmlCatalogPrefer']"/>
+  <remove-node path="/api/namespace/enum[@name='XmlPathError']"/>
+  <add-node path="/api/namespace[@name='Xml']">
+    <enum name="XmlXPathError" cname="xmlXPathError" type="enum">
+      <member cname="XPATH_EXPRESSION_OK" name="XpathExpressionOk" value="0_" />
+      <member cname="XPATH_NUMBER_ERROR" name="XpathNumberError" />
+      <member cname="XPATH_UNFINISHED_LITERAL_ERROR" name="XpathUnfinishedLiteralError" />
+      <member cname="XPATH_START_LITERAL_ERROR" name="XpathStartLiteralError" />
+      <member cname="XPATH_INVALID_PREDICATE_ERROR" name="XpathInvalidPredicateError" />
+      <member cname="XPATH_EXPR_ERROR" name="XpathExprError" />
+      <member cname="XPATH_UNCLOSED_ERROR" name="XpathUnclosedError" />
+      <member cname="XPATH_UNKNOWN_FUNC_ERROR" name="XpathUnknownFuncError" />
+      <member cname="XPATH_INVALID_OPERAND" name="XpathInvalidOperand" />
+      <member cname="XPATH_INVALID_TYPE" name="XpathInvalidType" />
+      <member cname="XPATH_INVALID_ARITY" name="XpathInvalidArity" />
+      <member cname="XPATH_INVALID_CTXT_SIZE" name="XpathInvalidCtxtSize" />
+      <member cname="XPATH_INVALID_CTXT_POSITION" name="XpathInvalidCtxtPosition" />
+      <member cname="XPATH_MEMORY_ERROR" name="XpathMemoryError" />
+      <member cname="XPTR_SYNTAX_ERROR" name="XptrSyntaxError" />
+      <member cname="XPTR_RESOURCE_ERROR" name="XptrResourceError" />
+      <member cname="XPTR_SUB_RESOURCE_ERROR" name="XptrSubResourceError" />
+      <member cname="XPATH_UNDEF_PREFIX_ERROR" name="XpathUndefPrefixError" />
+      <member cname="XPATH_ENCODING_ERROR" name="XpathEncodingError" />
+      <member cname="XPATH_INVALID_CHAR_ERROR" name="XpathInvalidCharError" />
+      <member cname="XPATH_INVALID_CTXT" name="XpathInvalidCtxt" />
+    </enum>
+  </add-node>
+  <remove-node path="/api/namespace/struct/method[@cname='dbus_pending_call_get_g_type']"/>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSDirectoryVisitFunc']/parameters/parameter[@name='recurse']" name="type">inout-gboolean</attr>
+
+  <attr path="/api/namespace/object/method[@cname='gnome_program_init']/parameters/parameter[@name='argc']" name="type">length-3</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_program_init']/parameters/parameter[@name='argv']" name="type">array-char*</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_program_initv']/parameters/parameter[@name='argc']" name="type">length-4</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_program_initv']/parameters/parameter[@name='argv']" name="type">array-char*</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_program_init_paramv']/parameters/parameter[@name='argc']" name="type">length-4</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_program_init_paramv']/parameters/parameter[@name='argv']" name="type">array-char*</attr>
+
+  <attr path="/api/namespace/struct[@cname='GnomeVFSFileInfo']" name="opaque">false</attr>
+
+  <attr path="/api/namespace/class/method[@cname='gdk_threads_add_idle']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_threads_add_idle_full']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_threads_add_timeout']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_threads_add_timeout_full']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GSourceFunc']/parameters/parameter[@name='data']" name="type">any</attr>
+
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_fork_command']/parameters/parameter[@name='argv']" name="type">zarray-char*</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_fork_command']/parameters/parameter[@name='envv']" name="type">zarray-char*</attr>
+
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_forkpty']/parameters/parameter[@name='envv']" name="type">zarray-char*</attr>
+
+  <add-node path="/api/namespace[@name='Vte']">
+    <callback name="IsSelectedFunc" cname="VteIsSelectedFunc">
+      <return-type type="gboolean" />
+      <parameters>
+        <parameter type="VteTerminal*" name="terminal" />
+        <parameter type="glong" name="column" />
+        <parameter type="glong" name="row" />
+        <parameter type="gpointer" name="data" />
+      </parameters>
+    </callback>
+  </add-node>
+
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text']/parameters/parameter[@name='terminal,']" name="type">VteIsSelectedFunc</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text_include_trailing_spaces']/parameters/parameter[@name='terminal,']" name="type">VteIsSelectedFunc</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text_range']/parameters/parameter[@name='terminal,']" name="type">VteIsSelectedFunc</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text']/parameters/parameter[@name='terminal,']" name="name">is_selected</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text_include_trailing_spaces']/parameters/parameter[@name='terminal,']" name="name">is_selected</attr>
+  <attr path="/api/namespace/object/method[@cname='vte_terminal_get_text_range']/parameters/parameter[@name='terminal,']" name="name">is_selected</attr>
+
+  <attr path="/api/namespace/class/method[@cname='clutter_ramp_dec_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_ramp_inc_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_ramp_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_sine_dec_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_sine_inc_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_sine_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_sine_half_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_square_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_smoothstep_dec_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_smoothstep_inc_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_exp_dec_func']" name="callback">ClutterAlphaFunc</attr>
+  <attr path="/api/namespace/class/method[@cname='clutter_exp_inc_func']" name="callback">ClutterAlphaFunc</attr>
+
+  <attr path="/api/namespace/callback[@cname='ClutterAlphaFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterBehaviourForeachFunc']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_behaviour_actors_foreach']/parameters/parameter[@name='data']" name="type">any</attr>
+  <add-node path="/api/namespace/class[@cname='ClutterMain_']">
+    <method name="Run" cname="clutter_main" shared="true">
+      <return-type type="void"/>
+    </method>
+  </add-node>
+  <add-node path="/api/namespace[@name='Clutter']">
+    <object name="StageGLX" cname="ClutterStageGLX" parent="ClutterStage">
+    </object>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='ClutterGroup']">
+    <implements interface="ClutterContainer"/>
+  </add-node>
+  <add-node path="/api/namespace[@name='GDome']">
+    <alias name="Exception" cname="GdomeException" type="guint"/>
+    <alias name="Exception*" cname="GdomeException*" type="out-guint"/>
+  </add-node>
+  <add-node path="/api/namespace[@name='MathView']">
+    <struct name="BoundingBox" cname="GtkMathViewBoundingBox">
+      <field name="Width" cname="width" type="gint"/>
+      <field name="Height" cname="height" type="gint"/>
+      <field name="Depth" cname="depth" type="gint"/>
+    </struct>
+<!--
+    <alias name="ModelId" cname="GtkMathViewModelId" type="GdomeElement*"/>
+    <alias name="ModelDocument" cname="GtkMathViewModelDocument" type="GdomeDocument*"/>
+    <alias name="ModelString" cname="GtkMathViewModelString" type="GdomeDOMString*"/>
+-->
+    <alias name="ModelId" cname="GtkMathViewModelId" type="xmlElement*"/>
+    <alias name="ModelDocument" cname="GtkMathViewModelDocument" type="xmlDoc*"/>
+    <alias name="ModelString" cname="GtkMathViewModelString" type="const-xmlChar*"/>
+  </add-node>
+  <add-node path="/api/namespace/object[@cname='GtkMathView']">
+    <method name="GetType" cname="gtk_math_view_get_type__libxml2" shared="true">
+      <return-type type="GtkType"/>
+    </method>
+    <method name="New" cname="gtk_math_view_new__libxml2" shared="true">
+<!--      <return-type type="GtkMathView_GMetaDOM*"/>-->
+      <return-type type="GtkMathView_libxml2*"/>
+      <parameters>
+        <parameter type="GtkAdjustment*" name="a"/>
+        <parameter type="GtkAdjustment*" name="b"/>
+      </parameters>
+    </method>
+    <method name="AddConfigurationPath" cname="gtk_math_view_add_configuration_path__libxml2" shared="true">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="const-gchar*" name="a"/>
+      </parameters>
+    </method>
+    <method name="Freeze" cname="gtk_math_view_freeze__libxml2">
+      <return-type type="gboolean"/>
+    </method>
+    <method name="Thaw" cname="gtk_math_view_thaw__libxml2">
+      <return-type type="gboolean"/>
+    </method>
+    <method name="Update" cname="gtk_math_view_update__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="GdkRectangle*" name="a"/>
+      </parameters>
+    </method>
+    <method name="LoadUri" cname="gtk_math_view_load_uri__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="const-gchar*" name="a"/>
+      </parameters>
+    </method>
+    <method name="LoadBuffer" cname="gtk_math_view_load_buffer__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="const-gchar*" name="a"/>
+      </parameters>
+    </method>
+    <method name="LoadDocument" cname="gtk_math_view_load_document__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelDocument" name="a"/>
+      </parameters>
+    </method>
+    <method name="LoadRoot" cname="gtk_math_view_load_root__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetDocument" cname="gtk_math_view_get_document__libxml2">
+      <return-type type="GtkMathViewModelDocument"/>
+    </method>
+    <method name="Unload" cname="gtk_math_view_unload__libxml2">
+      <return-type type="void"/>
+    </method>
+    <method name="StructureChanged" cname="gtk_math_view_structure_changed__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+      </parameters>
+    </method>
+    <method name="AttributeChanged" cname="gtk_math_view_attribute_changed__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+        <parameter type="GtkMathViewModelString" name="b"/>
+      </parameters>
+    </method>
+    <method name="Select" cname="gtk_math_view_select__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+      </parameters>
+    </method>
+    <method name="Unselect" cname="gtk_math_view_unselect__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+      </parameters>
+    </method>
+    <method name="IsSelected" cname="gtk_math_view_is_selected__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetBoundingBox" cname="gtk_math_view_get_bounding_box__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewBoundingBox*" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetElementAt" cname="gtk_math_view_get_element_at__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="gint" name="a"/>
+        <parameter type="gint" name="b"/>
+        <parameter type="GtkMathViewModelId*" name="c"/>
+        <parameter type="GtkMathViewPoint*" name="d"/>
+        <parameter type="GtkMathViewBoundingBox*" name="e"/>
+      </parameters>
+    </method>
+    <method name="GetElementExtents" cname="gtk_math_view_get_element_extents__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+        <parameter type="GtkMathViewPoint*" name="b"/>
+        <parameter type="GtkMathViewBoundingBox*" name="c"/>
+      </parameters>
+    </method>
+    <method name="GetElementExtentsRef" cname="gtk_math_view_get_element_extents_ref__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+        <parameter type="GtkMathViewModelId" name="b"/>
+        <parameter type="GtkMathViewPoint*" name="c"/>
+        <parameter type="GtkMathViewBoundingBox*" name="d"/>
+      </parameters>
+    </method>
+    <method name="GetCharAt" cname="gtk_math_view_get_char_at__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="gint" name="a"/>
+        <parameter type="gint" name="b"/>
+        <parameter type="GtkMathViewModelId*" name="c"/>
+        <parameter type="gint*" name="d"/>
+        <parameter type="GtkMathViewPoint*" name="e"/>
+        <parameter type="GtkMathViewBoundingBox*" name="f"/>
+      </parameters>
+    </method>
+    <method name="GetCharExtents" cname="gtk_math_view_get_char_extents__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+        <parameter type="gint" name="b"/>
+        <parameter type="GtkMathViewPoint*" name="c"/>
+        <parameter type="GtkMathViewBoundingBox*" name="d"/>
+      </parameters>
+    </method>
+    <method name="GetCharExtentsRef" cname="gtk_math_view_get_char_extents_ref__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+        <parameter type="GtkMathViewModelId" name="a"/>
+        <parameter type="GtkMathViewModelId" name="b"/>
+        <parameter type="gint" name="c"/>
+        <parameter type="GtkMathViewPoint*" name="d"/>
+        <parameter type="GtkMathViewBoundingBox*" name="e"/>
+      </parameters>
+    </method>
+    <method name="GetSize" cname="gtk_math_view_get_size__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="out-gint" name="a"/>
+        <parameter type="out-gint" name="b"/>
+      </parameters>
+    </method>
+    <method name="GetTop" cname="gtk_math_view_get_top__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="out-gint" name="a"/>
+        <parameter type="out-gint" name="b"/>
+      </parameters>
+    </method>
+    <method name="SetTop" cname="gtk_math_view_set_top__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="gint" name="a"/>
+        <parameter type="gint" name="b"/>
+      </parameters>
+    </method>
+    <method name="SetAdjustments" cname="gtk_math_view_set_adjustments__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="GtkAdjustment*" name="a"/>
+        <parameter type="GtkAdjustment*" name="b"/>
+      </parameters>
+    </method>
+    <method name="GetAdjustments" cname="gtk_math_view_get_adjustments__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="out-GtkAdjustment*" name="a"/>
+        <parameter type="out-GtkAdjustment*" name="b"/>
+      </parameters>
+    </method>
+    <method name="GetBuffer" cname="gtk_math_view_get_buffer__libxml2">
+      <return-type type="GdkPixmap*"/>
+    </method>
+    <method name="SetFontSize" cname="gtk_math_view_set_font_size__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="guint" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetFontSize" cname="gtk_math_view_get_font_size__libxml2">
+      <return-type type="guint"/>
+    </method>
+    <method name="SetLogVerbosity" cname="gtk_math_view_set_log_verbosity__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="gint" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetLogVerbosity" cname="gtk_math_view_get_log_verbosity__libxml2">
+      <return-type type="gint"/>
+    </method>
+    <method name="GetT1OpaqueMode" cname="gtk_math_view_get_t1_opaque_mode__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="SetT1OpaqueMode" cname="gtk_math_view_set_t1_opaque_mode__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="gboolean" name="a"/>
+      </parameters>
+    </method>
+    <method name="GetT1AntiAliasedMode" cname="gtk_math_view_get_t1_anti_aliased_mode__libxml2">
+      <return-type type="gboolean"/>
+      <parameters>
+      </parameters>
+    </method>
+    <method name="SetT1AntiAliasedMode" cname="gtk_math_view_set_t1_anti_aliased_mode__libxml2">
+      <return-type type="void"/>
+      <parameters>
+        <parameter type="gboolean" name="a"/>
+      </parameters>
+    </method>
+  </add-node>
+  <attr path="/api/namespace/object[@cname='GtkMathView']" name="parent">GtkWidget</attr>
+  <attr path="/api/namespace/object[@cname='GtkMathView']" name="cname">GtkMathView_libxml2</attr>
+  
+  <attr path="/api/namespace/*[@cname='cairo_antialias_t']" name="name">Antialias</attr>
+  <attr path="/api/namespace/*[@cname='cairo_content_t']" name="name">Content</attr>
+  <attr path="/api/namespace/*[@cname='cairo_fill_rule_t']" name="name">FillRule</attr>
+  <attr path="/api/namespace/*[@cname='cairo_filter_t']" name="name">Filter</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_slant_t']" name="name">FontSlant</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_type_t']" name="name">FontType</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_weight_t']" name="name">FontWeight</attr>
+  <attr path="/api/namespace/*[@cname='cairo_hint_metrics_t']" name="name">HintMetrics</attr>
+  <attr path="/api/namespace/*[@cname='cairo_hint_style_t']" name="name">HintStyle</attr>
+  <attr path="/api/namespace/*[@cname='cairo_line_cap_t']" name="name">LineCap</attr>
+  <attr path="/api/namespace/*[@cname='cairo_line_join_t']" name="name">LineJoin</attr>
+  <attr path="/api/namespace/*[@cname='cairo_operator_t']" name="name">Operator</attr>
+  <attr path="/api/namespace/*[@cname='cairo_pattern_type_t']" name="name">PatternType</attr>
+  <attr path="/api/namespace/*[@cname='cairo_ps_level_t']" name="name">PsLevel</attr>
+  <attr path="/api/namespace/*[@cname='cairo_status_t']" name="name">Status</attr>
+  <attr path="/api/namespace/*[@cname='cairo_subpixel_order_t']" name="name">SubpixelOrder</attr>
+  <attr path="/api/namespace/*[@cname='cairo_surface_type_t']" name="name">SurfaceType</attr>
+  <attr path="/api/namespace/*[@cname='cairo_svg_version_t']" name="name">SvgVersion</attr>
+  <attr path="/api/namespace/*[@cname='cairo_destroy_func_t']" name="name">DestroyFunc</attr>
+  <attr path="/api/namespace/*[@cname='cairo_read_func_t']" name="name">ReadFunc</attr>
+  <attr path="/api/namespace/*[@cname='cairo_write_func_t']" name="name">WriteFunc</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_extents_t']" name="name">FontExtents</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_face_t']" name="name">FontFace</attr>
+  <attr path="/api/namespace/*[@cname='cairo_font_options_t']" name="name">FontOptions</attr>
+  <attr path="/api/namespace/*[@cname='cairo_glyph_t']" name="name">Glyph</attr>
+  <attr path="/api/namespace/*[@cname='cairo_matrix_t']" name="name">Matrix</attr>
+  <attr path="/api/namespace/*[@cname='cairo_path_t']" name="name">Path</attr>
+  <attr path="/api/namespace/*[@cname='cairo_pattern_t']" name="name">Pattern</attr>
+  <attr path="/api/namespace/*[@cname='cairo_rectangle_list_t']" name="name">RectangleList</attr>
+  <attr path="/api/namespace/*[@cname='cairo_rectangle_t']" name="name">Rectangle</attr>
+  <attr path="/api/namespace/*[@cname='cairo_scaled_font_t']" name="name">ScaledFont</attr>
+  <attr path="/api/namespace/*[@cname='cairo_surface_t']" name="name">Surface</attr>
+  <attr path="/api/namespace/*[@cname='cairo_t']" name="name">Cairo</attr>
+  <attr path="/api/namespace/*[@cname='cairo_text_extents_t']" name="name">TextExtents</attr>
+  <attr path="/api/namespace/*[@cname='cairo_user_data_key_t']" name="name">UserDataKey</attr>
+  <attr path="/api/namespace/*[@cname='cairo_format_t']" name="name">Format</attr>
+  
+  <add-node path="/api/namespace[@name='Glib']">
+    <class name="GQuark" cname="GQuark_">
+      <method name="TryString" cname="g_quark_try_string" shared="1">
+        <return-type type="GQuark"/>
+        <parameters>
+          <parameter name="string" type="const-gchar*"/>
+        </parameters>
+      </method>
+      <method name="FromStaticString" cname="g_quark_from_static_string" shared="1">
+        <return-type type="GQuark"/>
+        <parameters>
+          <parameter name="string" type="const-gchar*"/>
+        </parameters>
+      </method>
+      <method name="FromString" cname="g_quark_from_string" shared="1">
+        <return-type type="GQuark"/>
+        <parameters>
+          <parameter name="string" type="const-gchar*"/>
+        </parameters>
+      </method>
+      <method name="ToString" cname="g_quark_to_string" shared="1">
+        <return-type type="const-gchar*"/>
+        <parameters>
+          <parameter name="quark" type="GQuark"/>
+        </parameters>
+      </method>
+    </class>
+  </add-node>
+  
+  <attr path="/api/namespace/struct[@cname='InternetAddress']/field[@name='Addr']" name="cname">value.addr</attr>
+  <add-node path="/api/namespace/struct[@cname='InternetAddress']">
+  	<field name="Members" cname="value.members" type="InternetAddressList*" access="public" writeable="true" />
+  </add-node>
+  
+  <add-node path="/api/namespace/struct[@cname='xmlElement']">
+    <implements interface="xmlNode"/>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='xmlDoc']">
+    <implements interface="xmlNode"/>
+  </add-node>
+  <add-node path="/api/namespace/struct[@cname='xmlAttr']">
+    <implements interface="xmlNode"/>
+  </add-node>
+
+  <add-node path="/api/namespace/struct[@cname='GIOChannel']">
+    <method name="AddWatchFull" cname="g_io_add_watch_full">
+      <return-type type="guint"/>
+      <parameters>
+        <parameter name="priority" type="gint"/>
+        <parameter name="condition" type="GIOCondition"/>
+        <parameter name="func" type="GIOFunc"/>
+        <parameter name="user_data" type="any"/>
+        <parameter name="notify" type="GDestroyNotify"/>
+      </parameters>
+    </method>
+    <method name="AddWatch" cname="g_io_add_watch">
+      <return-type type="guint"/>
+      <parameters>
+        <parameter name="condition" type="GIOCondition"/>
+        <parameter name="func" type="GIOFunc"/>
+        <parameter name="user_data" type="any"/>
+      </parameters>
+    </method>
+    <method name="CreateWatch" cname="g_io_create_watch">
+      <return-type type="guint"/>
+      <parameters>
+        <parameter name="condition" type="GIOCondition"/>
+      </parameters>
+    </method>
+  </add-node>
+  
+  <remove-node path="/api/namespace/object/method[@cname='g_io_module_unload']"/>
+  <remove-node path="/api/namespace/object/method[@cname='g_io_module_load']"/>
+
+  <remove-node path="/api/namespace/object[@cname='GstTask']/field[@name='Thread']"/>
+  <remove-node path="/api/namespace/enum[@cname='GstEventType']"/>
+  
+  <attr path="/api/namespace/object[@cname='WebKitWebView']" name="parent">GtkWidget</attr>
+
+  <remove-node path="/api/namespace/object/constructor[@cname='gnome_canvas_item_new']/parameters/parameter[@name='first_arg_name']"/>
+  
+  <remove-node path="/api/namespace/class/method[@cname='_g_getenv_nomalloc']"/>
+  <remove-node path="/api/namespace/class/method[@cname='_g_utf8_make_valid']"/>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_view_buffer_to_window_coords']/parameters/parameter[@name='window_x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_view_buffer_to_window_coords']/parameters/parameter[@name='window_y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_view_window_to_buffer_coords']/parameters/parameter[@name='buffer_x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_view_window_to_buffer_coords']/parameters/parameter[@name='buffer_y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_icon_view_convert_widget_to_bin_window_coords']/parameters/parameter[@name='bx']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_icon_view_convert_widget_to_bin_window_coords']/parameters/parameter[@name='by']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_widget_translate_coordinates']/parameters/parameter[@name='dest_x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_widget_translate_coordinates']/parameters/parameter[@name='dest_y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_root_origin']/parameters/parameter[@name='x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_root_origin']/parameters/parameter[@name='y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_origin']/parameters/parameter[@name='x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_origin']/parameters/parameter[@name='y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_position']/parameters/parameter[@name='x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_get_position']/parameters/parameter[@name='y']" name="type">out-gint</attr>
+
+  <attr path="/api/namespace/class/method[@cname='g_timeout_add']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_timeout_add_full']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_timeout_add_seconds']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_timeout_add_seconds_full']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_idle_add']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_idle_add_full']/parameters/parameter[@name='data']" name="type">any</attr>
+  
+  <attr path="/api/namespace/callback[@cname='GSourceFunc']/parameters/parameter[@name='data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_source_language_manager_get_language_ids']/return-type" name="type">zarray-char*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_source_style_scheme_manager_get_scheme_ids']/return-type" name="type">zarray-char*</attr>
+
+  <attr path="/api/namespace/class/method[@cname='gtk_drag_dest_set']/parameters/parameter[@name='targets']" name="type">array-GtkTargetEntry</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_drag_dest_set']/parameters/parameter[@name='n_targets']" name="type">length-2</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_drag_source_set']/parameters/parameter[@name='targets']" name="type">array-GtkTargetEntry</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_drag_source_set']/parameters/parameter[@name='n_targets']" name="type">length-2</attr>
+  <attr path="/api/namespace/struct/method[@cname='gtk_selection_data_get_uris']/return-type" name="type">zarray-char*</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_register_object_path']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusObjectPathMessageFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusObjectPathUnregisterFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  
+  <attr path="/api/namespace/enum[@cname='UniqueCommand']" name="type">response</attr>
+  <attr path="/api/namespace/enum[@cname='UniqueResponse']" name="type">response</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_get_path_at_pos']/parameters/parameter[@name='path']" name="type">out-GtkTreePath*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_get_path_at_pos']/parameters/parameter[@name='column']" name="type">out-GtkTreeViewColumn*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_get_cursor']/parameters/parameter[@name='path']" name="type">out-GtkTreePath*</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_get_cursor']/parameters/parameter[@name='focus_column']" name="type">out-GtkTreeViewColumn*</attr>
+
+  <remove-node path="/api/namespace/interface[@cname='GAsyncInitable']"/>
+
+  <remove-node path="/api/namespace/callback[@cname='SoupPasswordManagerCallback']"/>
+  <remove-node path="/api/namespace/interface[@cname='SoupPasswordManager']"/>
+  
+  <remove-node path="/api/namespace/class/method[@cname='gdome_xpnsresolv_mkref']"/>
+  <remove-node path="/api/namespace/class/method[@cname='clutter_value_get_units']"/>
+  
+    <attr path="/api/namespace/callback[@cname='GCompareDataFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GDataForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GHFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GHRFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GLogFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GRegexEvalCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_array_sort_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_async_queue_push_sorted']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_async_queue_push_sorted_unlocked']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_async_queue_sort']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_async_queue_sort_unlocked']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_byte_array_sort_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_cache_key_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_cache_value_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_hash_table_find']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_hash_table_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_hash_table_foreach_remove']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_hash_table_foreach_steal']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_add_watch_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_add_watch']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_main_context_find_source_by_funcs_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_main_context_find_source_by_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_markup_parse_context_push']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_ptr_array_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_ptr_array_sort_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_queue_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_queue_insert_sorted']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_queue_sort']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_regex_replace_eval']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_sequence_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_sequence_foreach_range']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_source_remove_by_funcs_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_source_remove_by_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_thread_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_thread_pool_set_sort_function']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_tree_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_tree_search']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_tree_traverse']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GAsyncReadyCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GFileProgressCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GIOSchedulerJobFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GSocketSourceFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_drive_eject']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_drive_eject_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_drive_poll_for_media']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_drive_start']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_drive_stop']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_append_to_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_copy_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_create_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_create_readwrite_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_eject_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_eject_mountable_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_enumerate_children_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_find_enclosing_mount_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_load_contents_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_load_partial_contents_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_mount_enclosing_volume']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_mount_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_open_readwrite_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_poll_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_query_filesystem_info_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_query_info_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_read_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_replace_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_replace_contents_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_replace_readwrite_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_set_attributes_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_set_display_name_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_start_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_stop_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_unmount_mountable']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_file_unmount_mountable_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_loadable_icon_load_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_eject']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_eject_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_guess_content_type']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_remount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_unmount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_mount_unmount_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_volume_eject']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_volume_eject_with_operation']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='g_volume_mount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_buffered_input_stream_fill_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_data_input_stream_read_line_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_data_input_stream_read_until_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_file_enumerator_close_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_file_enumerator_next_files_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_file_input_stream_query_info_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_file_io_stream_query_info_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_file_output_stream_query_info_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_input_stream_close_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_input_stream_read_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_input_stream_skip_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_io_stream_close_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_output_stream_close_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_output_stream_flush_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_output_stream_splice_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_output_stream_write_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_resolver_lookup_by_address_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_resolver_lookup_by_name_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_resolver_lookup_service_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_address_enumerator_next_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_client_connect_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_client_connect_to_host_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_client_connect_to_service_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_listener_accept_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_socket_listener_accept_socket_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_scheduler_job_send_to_mainloop']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_io_scheduler_job_send_to_mainloop_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='g_io_scheduler_push_job']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkBuilderConnectFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkCalendarDetailFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkEntryCompletionMatchFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkFileSystemModelGetValue']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkLinkButtonUriFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkMenuCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkMenuPositionFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkPrintSettingsFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkRecentFilterFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkRecentSortFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTextBufferDeserializeFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTextBufferSerializeFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTextCharPredicate']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTreeDestroyCountFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTreeIterCompareFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTreeViewMappingFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkTreeViewSearchPositionFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='gtk_tree_model_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='gtk_tree_sortable_set_default_sort_func']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='gtk_tree_sortable_set_sort_func']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_actions']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_actions_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_radio_actions']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_radio_actions_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_toggle_actions']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_action_group_add_toggle_actions_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_builder_connect_signals']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_builder_connect_signals_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_contents']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_image']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_rich_text']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_targets']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_text']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_request_uris']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_clipboard_set_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_print_settings_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_status_icon_position_menu']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_buffer_register_deserialize_format']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_text_buffer_register_serialize_format']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_append_element']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_append_item']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_insert_element']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_insert_item']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_insert_stock']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_prepend_element']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_toolbar_prepend_item']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_tree_view_set_column_drag_function']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gtk_text_iter_backward_find_char']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gtk_text_iter_forward_find_char']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_save_to_callback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_pixbuf_save_to_callbackv']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gdk_window_set_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_spawn_on_screen']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gdk_spawn_on_screen_with_pipes']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='PangoFcDecoderFindFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='pango_fc_font_map_add_decoder_find_func']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusGProxyCallNotify']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusGTypeSpecializedCollectionIterator']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusGTypeSpecializedCollectionIteratorFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusGTypeSpecializedMapIterator']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusGTypeSpecializedMapIteratorFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusHandleMessageFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusObjectPathMessageFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusObjectPathUnregisterFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='DBusPendingCallNotifyFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_Introspectable_introspect_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_add_match_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_get_connection_se_linux_security_context_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_get_connection_unix_process_id_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_get_connection_unix_user_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_get_name_owner_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_hello_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_list_activatable_names_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_list_names_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_list_queued_owners_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_name_has_owner_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_release_name_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_reload_config_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_remove_match_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_request_name_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='org_freedesktop_DBus_start_service_by_name_reply']/parameters/parameter[@name='userdata']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='dbus_g_proxy_begin_call_with_timeout']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_add_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_register_fallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_register_object_path']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_remove_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_try_register_fallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_connection_try_register_object_path']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='dbus_pending_call_set_notify']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='dbus_g_type_collection_value_iterate']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='dbus_g_type_map_value_iterate']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GladeXMLConnectFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GladeXMLCustomWidgetHandler']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='glade_xml_signal_autoconnect_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='glade_xml_signal_connect_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='glade_xml_signal_connect_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='glade_set_custom_handler']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GMenuTreeChangedFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomePasswordDialogQualityFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_app_create_menus_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_app_create_toolbar_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_app_fill_menu_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_app_fill_toolbar_with_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gmenu_tree_add_monitor']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gmenu_tree_remove_monitor']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gmenu_tree_set_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gmenu_tree_item_set_user_data']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gnome_theme_file_foreach_key']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gnome_theme_file_foreach_section']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_gtk_widget_add_popup_items']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_popup_menu_attach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_popup_menu_do_popup']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_popup_menu_do_popup_modal']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='PanelAppletFactoryCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='panel_applet_setup_menu']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='panel_applet_setup_menu_from_file']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='panel_applet_shlib_factory']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfChangeSetForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfClientNotifyFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfListenersCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfListenersForeach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfListenersPredicate']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConfNotifyFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gconf_client_notify_add']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gconf_change_set_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gconf_engine_notify_add']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gconf_listeners_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gconf_listeners_notify']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gconf_listeners_remove_if']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GtkSourceViewMarkTooltipFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_source_view_set_mark_category_tooltip_func']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_source_view_set_mark_category_tooltip_markup_func']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='BonoboExceptionFn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='BonoboListenerCallbackFn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='BonoboMonikerAsyncFn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='BonoboPropertyGetFn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='BonoboPropertySetFn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_event_source_client_add_listener']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_generic_factory_main']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_generic_factory_main_timeout']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/constructor/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_moniker_client_new_from_name_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_moniker_resolve_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='bonobo_moniker_resolve_async_default']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='bonobo_get_object_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='bonobo_exception_add_handler_fn']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='bonobo_shlib_factory_new']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='bonobo_shlib_factory_std']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConnFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GConnHttpFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GServerFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_http_run']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_http_run_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_new']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_new_inetaddr']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_new_socket']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_conn_set_callback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnet_server_new']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupAuthDomainBasicAuthCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupAuthDomainDigestAuthCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupAuthDomainFilter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupAuthDomainGenericAuthCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupChunkAllocator']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupLoggerFilter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupLoggerPrinter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupMessageHeadersForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupProxyURIResolverCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupServerCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupSessionCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='SoupSocketCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='soup_proxy_resolver_get_proxy_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='soup_proxy_uri_resolver_get_proxy_uri_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_address_resolve_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_auth_domain_basic_set_auth_callback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_auth_domain_digest_set_auth_callback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_message_add_header_handler']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_message_add_status_code_handler']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_message_set_chunk_allocator']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_server_add_handler']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_session_queue_message']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='soup_socket_connect_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='soup_message_headers_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSAsyncXferProgressCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSDirectoryVisitFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSMonitorCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSVolumeOpCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GnomeVFSXferProgressCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_vfs_drive_eject']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_vfs_drive_mount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_vfs_drive_unmount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_vfs_volume_eject']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_vfs_volume_unmount']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_async_find_directory']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/class/method[@cname='gnome_vfs_monitor_add']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterAlphaFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterModelFilterFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterModelForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterModelSortFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='ClutterScriptConnectFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='clutter_container_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/interface/method[@cname='clutter_container_foreach_with_internals']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_model_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_model_set_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_model_set_sort']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_path_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_script_connect_signals']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='clutter_script_connect_signals_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GMimeHeaderForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GMimeObjectForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GMimeParserHeaderRegexFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_mime_message_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_mime_multipart_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='g_mime_parser_set_header_regex']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='g_mime_header_list_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstBufferListDoFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstBufferListFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstClockCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstFilterFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstIndexFilter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstIndexResolver']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstIteratorFoldFunction']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstPadBlockCallback']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstPluginFeatureFilter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstPluginFilter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstPluginInitFullFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstStructureForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstStructureMapFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/callback[@cname='GstTagForeachFunc']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_buffer_list_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_bus_add_watch']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_bus_add_watch_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_clock_id_wait_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_index_get_assoc_entry_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_index_set_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_index_set_filter_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_index_set_resolver']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_index_set_resolver_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_pad_set_blocked_async']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_pad_set_blocked_async_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_plugin_register_static_full']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_registry_feature_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_registry_plugin_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_task_set_thread_callbacks']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/object/method[@cname='gst_task_pool_push']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_buffer_list_iterator_do']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_iterator_filter']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_iterator_find_custom']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_iterator_fold']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_iterator_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_structure_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_structure_map_in_place']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct/method[@cname='gst_tag_list_foreach']/parameters/parameter[@name='user_data']" name="type">any</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_source_completion_context_add_proposals']/parameters/parameter[@name='provider']" name="type">GtkSourceCompletionProvider</attr>
+  
+  <attr path="/api/namespace/struct[@cname='GtkTreeIter']/field[@cname='user_data']" name="type">any</attr>
+  <attr path="/api/namespace/struct[@cname='GtkTreeIter']/field[@cname='user_data2']" name="type">any</attr>
+  <attr path="/api/namespace/struct[@cname='GtkTreeIter']/field[@cname='user_data3']" name="type">any</attr>
+  
+  <attr path="/api/namespace/object/method[@cname='gtk_source_completion_context_add_proposals']/parameters/parameter[@name='provider']" name="type">GtkSourceCompletionProvider*</attr>
+  
+  <remove-node path="/api/namespace/object[@cname='GIOModule']"/>
+  <remove-node path="/api/namespace/interface[@cname='GIcon']/virtual_method[@cname='to_tokens']"/>
+  <remove-node path="/api/namespace/interface[@cname='GIcon']/virtual_method[@cname='from_tokens']"/>
+  
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_w2i']/parameters/parameter[@name='x']" name="type">inout-double</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_w2i']/parameters/parameter[@name='y']" name="type">inout-double</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_i2w']/parameters/parameter[@name='x']" name="type">inout-double</attr>
+  <attr path="/api/namespace/object/method[@cname='gnome_canvas_item_i2w']/parameters/parameter[@name='y']" name="type">inout-double</attr>
+
+  <attr path="/api/namespace/callback[@cname='GtkMenuPositionFunc']/parameters/parameter[@name='x']" name="type">out-gint</attr>
+  <attr path="/api/namespace/callback[@cname='GtkMenuPositionFunc']/parameters/parameter[@name='y']" name="type">out-gint</attr>
+  <attr path="/api/namespace/callback[@cname='GtkMenuPositionFunc']/parameters/parameter[@name='push_in']" name="type">out-gboolean</attr>
+
+  <attr path="/api/namespace/object/method[@cname='gtk_menu_popup']/parameters/parameter[@name='data']" name="type">any</attr>
+  
+  <remove-node path="/api/namespace/struct/method[@cname='gtk_plot_data_dimension_set_scale']"/>
+  <remove-node path="/api/namespace/struct/method[@cname='gtk_plot_data_dimension_get_scale']"/>
+  <attr path="/api/namespace/callback[@cname='GtkPlotFunc']/parameters/parameter[@name='error']" name="type">out-gboolean</attr>
+  <attr path="/api/namespace/callback[@cname='GtkPlotFunc3D']/parameters/parameter[@name='error']" name="type">out-gboolean</attr>
+  <add-node path="/api/namespace/struct[@cname='GtkPlotCanvasPlot']">
+    <constructor cname="gtk_plot_canvas_plot_new">
+	  <parameters>
+	    <parameter name='plot' type='GtkPlot*'/>
+	  </parameters>
+	</constructor>
+  </add-node>
+  
+  <remove-node path="/api/namespace/struct/method[@cname='gmenu_tree_set_desktop_session_name']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_proxy_new']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_proxy_new_for_bus']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_connection_new_for_address']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_connection_new']"/>
+  <remove-node path="/api/namespace/class/method[@cname='g_io_error_from_win32_error']"/>
+  <remove-node path="/api/namespace/interface[@cname='GActionGroupGActionGroup']"/>
+  
+  <attr path="/api/namespace/object/method[@cname='pango_layout_get_pixel_size']/parameters/parameter[@name='width']" name="type">out-int</attr>
+  <attr path="/api/namespace/object/method[@cname='pango_layout_get_pixel_size']/parameters/parameter[@name='height']" name="type">out-int</attr>
+  <attr path="/api/namespace/object/method[@cname='pango_layout_get_size']/parameters/parameter[@name='width']" name="type">out-int</attr>
+  <attr path="/api/namespace/object/method[@cname='pango_layout_get_size']/parameters/parameter[@name='height']" name="type">out-int</attr>
+  
+  <attr path="/api/namespace/struct[@cname='PangoAttrFontDesc']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrLanguage']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrShape']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrSize']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrString']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrColor']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrInt']" name="parent">PangoAttribute</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrFloat']" name="parent">PangoAttribute</attr>
+  
+  <attr path="/api/namespace/struct[@cname='PangoAttrFontDesc']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrLanguage']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrShape']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrSize']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrString']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrColor']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrInt']" name="opaque">false</attr>
+  <attr path="/api/namespace/struct[@cname='PangoAttrFloat']" name="opaque">false</attr>
+  
+  <remove-node path="/api/namespace/struct/method[@cname='gtk_tree_path_get_indices']"/>
+  <attr path="/api/namespace/struct/method[@cname='gtk_tree_path_get_indices_with_depth']" name="name">GetIndices</attr>
+  <attr path="/api/namespace/struct/method[@cname='gtk_tree_path_get_indices_with_depth']/return-type" name="type">sized-1-gint</attr>
+  <attr path="/api/namespace/struct/method[@cname='gtk_tree_path_get_indices_with_depth']/parameters/parameter[@name='depth']" name="type">out-size</attr>
+  
+  <add-node path="/api/namespace[@name='GooCanvas']">
+    <object name="CairoMatrix" cname="GooCairoMatrix">
+      <method name="GetType" cname="goo_cairo_matrix_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoPattern" cname="GooCairoPattern">
+      <method name="GetType" cname="goo_cairo_pattern_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoFillRule" cname="GooCairoFillRule">
+      <method name="GetType" cname="goo_cairo_fill_rule_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoOperator" cname="GooCairoOperator">
+      <method name="GetType" cname="goo_cairo_operator_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoAntialias" cname="GooCairoAntialias">
+      <method name="GetType" cname="goo_cairo_antialias_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoLineCap" cname="GooCairoLineCap">
+      <method name="GetType" cname="goo_cairo_line_cap_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoLineJoin" cname="GooCairoLineJoin">
+      <method name="GetType" cname="goo_cairo_line_join_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+    <object name="CairoHintMetrics" cname="GooCairoHintMetrics">
+      <method name="GetType" cname="goo_cairo_hint_metrics_get_type" shared="true">
+        <return-type type="GType"/>
+      </method>
+    </object>
+  </add-node>
+  <add-node path="/api/namespace/enum[@cname='PangoAlignment']">
+  	<method name="GetType" cname="pango_alignment_get_type" shared="true">
+      <return-type type="GType"/>
+    </method>
+  </add-node>
+  <attr path="/api/namespace/object/method[@cname='gtk_hsv_to_rgb']/parameters/parameter[@name='r']" name="type">out-double</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_hsv_to_rgb']/parameters/parameter[@name='g']" name="type">out-double</attr>
+  <attr path="/api/namespace/object/method[@cname='gtk_hsv_to_rgb']/parameters/parameter[@name='b']" name="type">out-double</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_rgb_to_hsv']/parameters/parameter[@name='h']" name="type">out-double</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_rgb_to_hsv']/parameters/parameter[@name='s']" name="type">out-double</attr>
+  <attr path="/api/namespace/class/method[@cname='gtk_rgb_to_hsv']/parameters/parameter[@name='v']" name="type">out-double</attr>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_at_scale_async']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_async']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_finish']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_animation_new_from_stream_async']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_colors_rgba']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_color_background_rgba']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_color_highlight_rgba']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_color_foreground_rgba']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_color_dim_rgba']"/>
+  <remove-node path="/api/namespace/object/method[@cname='vte_terminal_set_color_cursor_rgba']"/>
+
+  
+  <remove-node path="/api/namespace/object/method[@cname='gdl_dock_layout_get_ui']"/>
+  <remove-node path="/api/namespace/object/method[@cname='gdl_dock_layout_get_items_ui']"/>
+  <remove-node path="/api/namespace/object/method[@cname='gdl_dock_layout_get_layouts_ui']"/>
+  
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_async']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_at_scale_async']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_finish']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='gdk_pixbuf_new_from_stream_at_scale_finish']"/>
+  <remove-node path="/api/namespace/object/method[@cname='gdk_pixbuf_save_to_stream_async']"/>
+  <remove-node path="/api/namespace/object/method[@cname='gdk_pixbuf_save_to_stream_finish']"/>
+  
+  <attr path="/api/namespace/struct[@cname='GsfXMLInNode']/field[@cname='v_int']" name="cname">user_data.v_int</attr>
+  <add-node path="/api/namespace/struct[@cname='GsfXMLInNode']">
+    <field name="VBool" cname="user_data.v_bool" type="gboolean"/>
+    <field name="VBlob" cname="user_data.v_blob" type="gpointer"/>
+    <field name="VStr" cname="user_data.v_str" type="const-char*"/>
+  </add-node>
+  <attr path="/api/namespace/object[@cname='GsfInputGZip']" name="parent">GsfInput</attr>
+  <attr path="/api/namespace/object[@cname='GsfInputMemory']" name="parent">GsfInput</attr>
+  <attr path="/api/namespace/object[@cname='GsfInputProxy']" name="parent">GsfInput</attr>
+  <attr path="/api/namespace/object[@cname='GsfInputStdio']" name="parent">GsfInput</attr>
+  <attr path="/api/namespace/object[@cname='GsfInputTextline']" name="parent">GsfInput</attr>
+  
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_object_manager_client_new']"/>
+  <remove-node path="/api/namespace/object/constructor[@cname='g_dbus_object_manager_client_new_for_bus']"/>
+</metadata>

@@ -1,0 +1,20 @@
+MOD Class;
+
+IMP .Common, .Type;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items
+>;
+
+DEF New!(namespace, name, cname) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:items <- [];
+    
+    RET type;
+);
+
+END Class.

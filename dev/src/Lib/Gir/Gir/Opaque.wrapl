@@ -1,0 +1,128 @@
+MOD Opaque;
+
+IMP .Type, .Common, .API;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF S! <- <[Type.T]
+    namespace, name,
+    ctype, rtype,
+    ctor_prefix,
+    headers, libraries
+>;
+
+DEF New!(namespace, name, cname, parent) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:items <- [];
+    type:ctype <- cname + " *";
+    type:rtype <- 'Gtk${namespace}${name}$T';
+    type:headers <- {'Gtk/{namespace}/{name}.h', 'Gtk/{namespace}/{name}.h'};
+    type:libraries <- {'Gtk/{namespace}/{name}.rlib', 'Gtk/{namespace}/{name}.rlib'};
+    
+    Type.Define('{cname}*', type);
+
+    VAR struct <- S();
+    struct:namespace <- namespace;
+    struct:name <- name;
+    struct:cname <- cname;
+    struct:ctype <- cname;
+    struct:rtype <- 'Gtk${namespace}${name}$T';
+    struct:headers <- {'Gtk/{namespace}/{name}.h'};
+    struct:libraries <- {'Gtk/{namespace}/{name}.rlib'};
+    
+    Type.Define(cname, struct);
+
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gtk${type:namespace}${type:name}_t *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) [
+    'Gtk${type:namespace}${type:name}_t *{tmp}_value = Riva$Memory$alloc(sizeof(Gtk${type:namespace}${type:name}_t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {in};',
+    '{out} = {tmp}_value;'
+];
+
+TO :base_headers(type@T) type:headers;
+TO :base_libraries(type@T) type:libraries;
+
+TO :generate_c(type@T) (
+    VAR r <- ["",
+    "TYPE(T);",
+    '//  <external path="{API.GetType(type:cname)}"/>' | "",
+    "",
+    'GLOBAL(T, Gtk${type:namespace}${type:name}_t, Nil)[] = \{\{T, 0}};'];
+    WITH item <- type:items:values \ (?$ == Common.FunctionT & $:name = "GetType" & $:type = "GType" & $:params:length = 0) DO (
+		r:push("#include <Util/TypedFunction.h>", "#include <Gtk/GObject/Value.h>");
+		r:put("",
+			'TYPED_INSTANCE(void, Gtk$GObject$Value$to_value, T, Gtk${type:namespace}${type:name}_t const *Source, GValue *Dest) \{',
+			'\tg_value_init(Dest, {item:cname}());',
+			'\tg_value_set_boxed(Dest, Source->Value);',
+			"}"
+		);
+	);
+	r:put("",
+	'METHOD("=", TYP, T, TYP, T) \{',
+	'\tGtk${type:namespace}${type:name}_t *A = (Gtk${type:namespace}${type:name}_t *)Args[0].Val;',
+	'\tGtk${type:namespace}${type:name}_t *B = (Gtk${type:namespace}${type:name}_t *)Args[1].Val;',
+	'\tif (A->Value == B->Value) \{',
+	'\t\tResult->Arg = Args[1];',
+	'\t\treturn SUCCESS;',
+	'\t} else \{',
+	'\t\treturn FAILURE;',
+	'\t}',
+	'};',
+	'',
+	'METHOD("~=", TYP, T, TYP, T) \{',
+	'\tGtk${type:namespace}${type:name}_t *A = (Gtk${type:namespace}${type:name}_t *)Args[0].Val;',
+	'\tGtk${type:namespace}${type:name}_t *B = (Gtk${type:namespace}${type:name}_t *)Args[1].Val;',
+	'\tif (A->Value != B->Value) \{',
+	'\t\tResult->Arg = Args[1];',
+	'\t\treturn SUCCESS;',
+	'\t} else \{',
+	'\t\treturn FAILURE;',
+	'\t};',
+	'};');
+	RET r;
+);
+
+TO :generate_h(type@T) [
+    'typedef struct Gtk${type:namespace}${type:name}_t \{',
+    '\tStd$Type_t *Type;',
+    '\t{type:ctype} Value;',
+    '} Gtk${type:namespace}${type:name}_t;',
+    '',
+    'extern Std$Type_t Gtk${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+	'library(\"Gtk/GObject/Value.rlib\")',
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")',
+    'export(\"Nil\")'
+];
+
+TO :riva_to_c(type@S, in, out, tmp) ['{out} = ((Gtk${type:namespace}${type:name}_t *){in})->Value[0];'];
+TO :c_to_riva(type@S, in, out, tmp) [
+    'Gtk${type:namespace}${type:name}_t *{tmp}_value = Riva$Memory$alloc(sizeof(Gtk${type:namespace}${type:name}_t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = &{in};',
+    '{out} = {tmp}_value;'
+];
+
+New("GObject", "Value", "GValue", NIL);
+
+END Opaque.

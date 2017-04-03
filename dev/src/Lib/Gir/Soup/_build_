@@ -1,0 +1,12 @@
+CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags libsoup-2.4"),
+	"-DLIBSOUP_USE_UNSTABLE_REQUEST_API",
+	"-include libsoup/soup.h",
+	"-include libsoup/soup-requester.h",
+	"-include libsoup/soup-server.h",
+	"-include libsoup/soup-xmlrpc.h",
+	"-include libsoup/soup-message-headers.h",
+	"-include libsoup/soup-password-manager.h"
+)
+LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l libsoup-2.4"))
+
+detect_modules("Gir/Soup")

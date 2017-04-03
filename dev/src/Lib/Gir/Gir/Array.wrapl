@@ -1,0 +1,94 @@
+MOD Array;
+
+IMP .Type;
+
+IMP Std.Integer;
+
+DEF T <- <[Type.T]
+    base, ctype,
+    headers, libraries
+>;
+
+DEF New!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- T();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :rtype(type@T) "Agg$List$T";
+
+TO :riva_to_c(type@T, in, out, tmp) [
+    '{type:ctype} {tmp}_array = Riva$Memory$alloc(sizeof({type:base:ctype}) * ((Agg$List_t *){in})->Length);',
+    '{type:ctype} {tmp}_ptr = {tmp}_array;',
+    'for (Agg$List_node *{tmp}_node = ((Agg$List_t *){in})->Head; {tmp}_node; {tmp}_node = {tmp}_node->Next) \{'
+] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_ptr[0]', '{tmp}_base'):values) + [
+    '\t{tmp}_ptr++;',
+    '};',
+    '{out} = {tmp}_array;'
+];
+
+
+DEF NullTerminatedT! <- <[T]>;
+
+DEF NullTerminatedNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- NullTerminatedT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :riva_to_c(type@NullTerminatedT, in, out, tmp) [
+    '{type:ctype} {tmp}_array = Riva$Memory$alloc(sizeof({type:base:ctype}) * (((Agg$List_t *){in})->Length + 1));',
+    '{type:ctype} {tmp}_ptr = {tmp}_array;',
+    'for (Agg$List_node *{tmp}_node = ((Agg$List_t *){in})->Head; {tmp}_node; {tmp}_node = {tmp}_node->Next) \{'
+] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_ptr[0]', '{tmp}_base'):values) + [
+    '\t{tmp}_ptr++;',
+    '};',
+    '{tmp}_ptr[0] = 0;',
+    '{out} = {tmp}_array;'
+];
+
+TO :c_to_riva(type@NullTerminatedT, in, out, tmp) [
+    'Agg$List_t *{tmp}_list = Agg$List$new0();',
+    'for ({type:ctype} {tmp}_ptr = {in}; {tmp}_ptr[0]; ++{tmp}_ptr) \{',
+    '\tStd$Object_t *{tmp}_value;'
+] + (ALL "\t" + type:base:c_to_riva('{tmp}_ptr[0]', '{tmp}_value', '{tmp}_base'):values) + [
+    '\tAgg$List$put({tmp}_list, {tmp}_value);',
+    '};',
+    '{out} = {tmp}_list;'
+];
+
+DEF SizedT! <- <[T] length>;
+
+DEF SizedNew!(base) (
+    VAR length <- base:before("-") @ Integer.T;
+    base <- Type.Lookup(base:after("-"));
+    VAR type <- SizedT();
+    type:base <- base;
+    type:length <- length;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :c_to_riva(type@SizedT, in, out, tmp) [
+    'Agg$List_t *{tmp}_list = Agg$List$new0();',
+    '{type:ctype} {tmp}_ptr = {in};',
+    'for (int {tmp}_i = 0; {tmp}_i < param{type:length}_value; ++{tmp}_i) \{',
+    '\tStd$Object_t *{tmp}_value;'
+] + (ALL "\t" + type:base:c_to_riva('{tmp}_ptr[0]', '{tmp}_value', '{tmp}_base'):values) + [
+    '\tAgg$List$put({tmp}_list, {tmp}_value);',
+    '\t{tmp}_ptr++;',
+    '};',
+    '{out} = {tmp}_list;'
+];
+
+END Array.

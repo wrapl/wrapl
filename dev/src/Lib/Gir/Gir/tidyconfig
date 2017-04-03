@@ -1,0 +1,16 @@
+add-xml-decl: yes
+doctype: auto
+merge-divs: yes
+merge-spans: yes
+literal-attributes: yes
+output-xhtml: yes
+show-body-only: no
+quiet: yes
+clean: yes
+wrap: 0
+bare: yes
+show-warnings: no
+char-encoding: utf8
+new-inline-tags: gtkdoclink
+quote-nbsp: no
+

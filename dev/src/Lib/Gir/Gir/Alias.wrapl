@@ -1,0 +1,25 @@
+MOD Alias;
+
+IMP IO.Terminal USE Out;
+
+IMP .Type;
+IMP .Common USE Log;
+
+DEF T! <- <[Type.T] alias>;
+
+DEF New!(namespace, alias, base) (
+	VAR type <- T();
+	type:cname <- alias;
+	type:alias <- base;
+
+	Type.Define(type:cname, type);
+
+	VAR ptype <- T();
+	ptype:cname <- alias + "*";
+	ptype:alias <- base + "*";
+	Type.Define(ptype:cname, ptype);
+
+	RET type;
+);
+
+END Alias.

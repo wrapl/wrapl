@@ -1,0 +1,317 @@
+MOD Main;
+
+IMP Sys.Program, Sys.FileSys;
+IMP IO.File, IO.Process;
+IMP Xml.Parser;
+IMP IO.Terminal USE Out;
+
+DEF ItemT <- <[] id, name, file, line>;
+
+DEF Files <- {};
+DEF Items <- {};
+
+DEF Functions <- [];
+DEF Structs <- [];
+DEF Unions <- [];
+DEF Enums <- [];
+DEF Callbacks <- [];
+DEF Typedefs <- [];
+
+VAR current;
+
+DEF Handle <- :?;
+
+TO Handle(env, =:GCC_XML, attrs) (
+);
+
+TO Handle(env, =:Namespace, attrs) (
+);
+
+TO Handle(env, =:Variable, attrs) (
+);
+
+DEF FunctionT <- <[ItemT] type, params>;
+TO Handle(env, =:Function, attrs) (
+	VAR function <- FunctionT();
+	function:id <- attrs["id"];
+	function:name <- attrs["name"];
+	function:file <- attrs["file"];
+	function:line <- attrs["line"];
+	function:type <- attrs["returns"];
+	function:params <- [];
+	attrs["context"] = "_1" => Functions:put(function);
+	Items:insert(attrs["id"], function);
+	current <- function;
+);
+
+TO Handle(env, =:Constructor, attrs) (
+	current <- FunctionT();
+	current:params <- [];
+);
+
+TO Handle(env, =:Destructor, attrs) (
+	current <- FunctionT();
+	current:params <- [];
+);
+
+TO Handle(env, =:OperatorMethod, attrs) (
+	current <- FunctionT();
+	current:params <- [];
+);
+
+DEF ParamT <- <[] name, type>;
+TO Handle(env, =:Argument, attrs) (
+	VAR param <- ParamT();
+	param:name <- attrs["name"];
+	param:type <- attrs["type"];
+	current:params:put(param);
+);
+
+DEF Ellipsis <- ParamT("...");
+TO Handle(env, =:Ellipsis, attrs) (
+	current:params:put(Ellipsis);
+);
+
+DEF TypeT <- <[ItemT]>;
+TO :ctype(type@TypeT) type:name;
+
+DEF Ctype(id) Items[id]:ctype;
+
+DEF TypedefT <- <[TypeT] type>;
+TO Handle(env, =:Typedef, attrs) (
+	VAR typedef <- TypedefT();
+	typedef:id <- attrs["id"];
+	typedef:name <- attrs["name"];
+	typedef:file <- attrs["file"];
+	typedef:line <- attrs["line"];
+	typedef:type <- attrs["type"];
+	Typedefs:put(typedef);
+	Items:insert(attrs["id"], typedef);
+);
+TO :ctype(type@TypedefT) type:name; --Ctype(type:type);
+
+DEF StructT <- <[TypeT] members>;
+TO Handle(env, =:Struct, attrs) (
+	VAR struct <- StructT();
+	struct:id <- attrs["id"];
+	struct:name <- attrs["name"];
+	struct:file <- attrs["file"];
+	struct:line <- attrs["line"];
+	struct:members <- [];
+	attrs["context"] = "_1" => Structs:put(struct);
+	Items:insert(attrs["id"], struct);
+	current <- struct;
+);
+TO :ctype(type@StructT) type:name;
+
+DEF UnionT <- <[TypeT] members>;
+TO Handle(env, =:Union, attrs) (
+	VAR union <- UnionT();
+	union:id <- attrs["id"];
+	union:name <- attrs["name"];
+	union:file <- attrs["file"];
+	union:line <- attrs["line"];
+	union:members <- [];
+	attrs["context"] = "_1" => Unions:put(union);
+	Items:insert(attrs["id"], union);
+	current <- union;
+);
+TO :ctype(type@UnionT) type:name;
+
+DEF FieldT <- <[ItemT] type>;
+TO Handle(env, =:Field, attrs) (
+	VAR field <- FieldT();
+	field:id <- attrs["id"];
+	field:name <- attrs["name"];
+	field:file <- attrs["file"];
+	field:line <- attrs["line"];
+	field:type <- attrs["type"];
+	Items:insert(attrs["id"], field);
+	VAR type <- Items[attrs["context"]];
+	type:members:put(field);
+);
+
+DEF EnumT <- <[TypeT] members>;
+TO Handle(env, =:Enumeration, attrs) (
+	VAR enum <- EnumT();
+	enum:id <- attrs["id"];
+	enum:name <- attrs["name"];
+	enum:file <- attrs["file"];
+	enum:line <- attrs["line"];
+	enum:members <- [];
+	attrs["context"] = "_1" => Enums:put(enum);
+	Items:insert(attrs["id"], enum);
+	current <- enum;
+);
+TO :ctype(type@EnumT) type:name;
+
+DEF EnumValueT <- <[] name, init>;
+TO Handle(env, =:EnumValue, attrs) (
+	VAR value <- EnumValueT();
+	value:name <- attrs["name"];
+	value:init <- attrs["init"];
+	current:members:put(value);
+);
+
+DEF ArrayT <- <[TypeT] min, max, type>;
+TO Handle(env, =:ArrayType, attrs) (
+	VAR array <- ArrayT();
+	array:id <- attrs["id"];
+	array:min <- attrs["min"];
+	array:max <- attrs["max"];
+	array:type <- attrs["type"];
+	Items:insert(attrs["id"], array);
+);
+TO :ctype(type@ArrayT) '{Ctype(type:type)}[]';
+
+TO Handle(env, =:FundamentalType, attrs) (
+	DEF Types <- {
+	};
+--	Items:insert(attrs["id"], Types[attrs["name"]]);
+	VAR type <- TypeT();
+	type:name <- attrs["name"];
+	Items:insert(attrs["id"], type);
+);
+
+DEF ReferenceT <- <[TypeT] type>;
+TO Handle(env, =:ReferenceType, attrs) (
+	VAR reference <- ReferenceT();
+	reference:id <- attrs["id"];
+	reference:type <- attrs["type"];
+	Items:insert(attrs["id"], reference);
+);
+TO :ctype(type@ReferenceT) '{Ctype(type:type)}*';
+
+DEF PointerT <- <[TypeT] type>;
+TO Handle(env, =:PointerType, attrs) (
+	VAR pointer <- PointerT();
+	pointer:id <- attrs["id"];
+	pointer:type <- attrs["type"];
+	Items:insert(attrs["id"], pointer);
+);
+TO :ctype(type@PointerT) '{Ctype(type:type)}*';
+
+DEF CallbackT <- <[TypeT] type, params>;
+TO Handle(env, =:FunctionType, attrs) (
+	VAR functype <- CallbackT();
+	functype:id <- attrs["id"];
+	functype:name <- attrs["name"];
+	functype:type <- attrs["returns"];
+	functype:params <- [];
+	Callbacks:put(functype);
+	Items:insert(attrs["id"], functype);
+	current <- functype;
+);
+
+DEF QualifiedT <- <[TypeT] type, attrs>;
+TO Handle(env, =:CvQualifiedType, attrs) (
+	DEF Supported <- {"const"};
+	VAR qualified <- QualifiedT();
+	qualified:id <- attrs["id"];
+	qualified:type <- attrs["type"];
+	qualified:attrs <- ALL attrs:keys \ Supported[$];
+	Items:insert(attrs["id"], qualified);
+);
+TO :ctype(type@QualifiedT) (
+	VAR r <- Ctype(type:type);
+	EVERY r <- '{type:attrs:values}-{r}';
+	RET r;
+);
+
+TO Handle(env, =:File, attrs) (
+	Files:insert(attrs["id"], attrs["name"]);
+	attrs["name"] = Program.Args[1] => mainfileid <- attrs["id"];
+);
+
+VAR parser <- Parser.New();
+parser:onstartelement <- <env, name, attrs> (
+	Handle(env, name, attrs);
+	RECV msg DO Out:writes('Error: {name}:{attrs}\n  {msg}\n');
+);
+
+VAR temp <- FileSys.TempFile();
+VAR proc <- Process.Open("gccxml", ["gccxml", '-fxml={temp}', '--gccxml-compiler', 'gcc-4.9'] + Program.Args);
+proc:wait;
+proc:close;
+
+VAR source <- File.Open(temp, File.Flag.Read);
+--VAR source <- File.Open(Program.Args[2], File.Flag.Read);
+REP WHILE parser:parse(source:read(1024));
+source:close;
+FileSys.Remove(temp);
+
+VAR mainfileid;
+mainfileid == NIL => (
+	Out:write("Error: no matching File entry found.\n");
+	Program.Exit(1);
+);
+
+VAR item;
+
+EVERY item <- Typedefs:values DO (
+	VAR type <- Items[item:type];
+	type IN PointerT => (
+		VAR base <- Items[type:type];
+		base IN CallbackT => (
+			base:name <- item:name;
+			base:file <- item:file;
+			STEP;
+		);
+	);
+	type IN StructT => (
+		STEP;
+	);
+	--Out:write('typedef name={item:name} type={Ctype(item:type)}\n');
+	item:file = mainfileid => (
+		Out:write('<alias name="{item:name}" cname="{item:name}" type="{Ctype(item:type)}"/>\n');
+	);
+);
+
+EVERY item <- Callbacks:values \ $:file = mainfileid DO (
+	Out:write('<callback name="{item:name}" cname="{item:name}">\n');
+	Out:write('  <return-type type="{Ctype(item:type)}"/>\n');
+	Out:write('  <parameters>\n');
+	VAR n, param; EVERY (param <- item:params:values) ! (n <- 0:up) DO (
+		Out:write('    <parameter name="p{n}" type="{Ctype(param:type)}"/>\n');
+	);
+	Out:write("  </parameters>\n");
+	Out:write("</callback>\n");
+);
+
+EVERY item <- Structs:values \ $:file = mainfileid DO (
+	Out:write('<struct name="{item:name[5, 0]}" cname="{item:name:after("_")}">\n');
+	VAR member; EVERY member <- item:members:values DO (
+		Out:write('  <field name="{member:name}" cname="{member:name}" type="{Items[member:type]:ctype}"/>\n');
+	);
+	Out:write("</struct>\n");
+);
+
+EVERY item <- Enums:values \ $:file = mainfileid DO (
+	Out:write('<enum name="{item:name[4, 0]}" cname="{item:name}" type="flags">\n');
+	VAR member; EVERY member <- item:members:values DO (
+		Out:write('  <member name="{member:name}" cname="{member:name}" value="{member:init}"/>\n');
+	);
+	Out:write("</enum>\n");
+);
+
+VAR name <- (ALL Program.Args[1]:split("/."))[-2];
+name <- name[1]:upper + name[2, 0];
+
+Out:write('<class name="{name}" cname="xml{name}">\n');
+
+EVERY item <- Functions:values \ $:file = mainfileid DO (
+	Out:write('  <method name="{item:name[4, 0]}" cname="{item:name}" shared="true">\n');
+	Out:write('    <return-type type="{Ctype(item:type)}"/>\n');
+	Out:write('    <parameters>\n');
+	VAR param; EVERY param <- item:params:values DO (
+		Out:write('      <parameter name="{param:name}" type="{Ctype(param:type)}"/>\n');
+	);
+	Out:write("    </parameters>\n");
+	Out:write("  </method>\n");
+);
+
+Out:write("</class>\n");
+
+Program.Exit();
+
+END Main.

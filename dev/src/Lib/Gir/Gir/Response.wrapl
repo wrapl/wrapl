@@ -1,0 +1,71 @@
+MOD Response;
+
+IMP .Type;
+
+DEF T! <- <[Type.T]
+    namespace, name,
+    items,
+    ctype, rtype,
+    headers, libraries,
+    gtype
+>;
+
+DEF New!(namespace, name, cname) (
+    VAR type <- T();
+    type:namespace <- namespace;
+    type:name <- name;
+    type:cname <- cname;
+    type:items <- [];
+    type:ctype <- cname;
+    type:rtype <- 'Gtk${namespace}${name}$T';
+    type:headers <- {'Gtk/{namespace}/{name}.h'};
+    type:libraries <- {'Gtk/{namespace}/{name}.rlib'};
+    type:gtype <- '{namespace:lower}_{name:lower}_get_type';
+    
+    Type.Define(cname, type);
+    
+    RET type;
+);
+
+TO :riva_to_c(type@T, in, out, tmp) ['{out} = ((Gtk${type:namespace}${type:name}_t *){in})->Value;'];
+TO :c_to_riva(type@T, in, out, tmp) [
+    'Gtk${type:namespace}${type:name}_t *{tmp}_value = Riva$Memory$alloc(sizeof(Gtk${type:namespace}${type:name}_t));',
+    '{tmp}_value->Type = {type:rtype};',
+    '{tmp}_value->Value = {in};',
+    '{out} = {tmp}_value;'
+];
+
+TO :base_headers(type@T) type:headers + {'Gtk/GObject/Enum.h'};
+TO :base_libraries(type@T) type:libraries + {'Gtk/GObject/Enum.rlib'};
+
+TO :generate_member(type@T, name, value)
+'#ifdef DOCUMENTING
+GLOBAL(T, int, {name});
+#else
+Gtk${type:namespace}${type:name}_t __{name}[] = \{\{T, {value}, {type:gtype}}};
+#endif';
+
+TO :generate_c(type@T) [
+    "",
+    "TYPE(T, Gtk$GObject$Enum$T, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);"
+];
+
+TO :generate_h(type@T) [
+    'typedef struct Gtk${type:namespace}${type:name}_t \{',
+    '\tStd$Type_t *Type;',
+    '\t{type:ctype} Value;',
+    '\tGType (*GetType)();',
+    '} Gtk${type:namespace}${type:name}_t;',
+    '',
+    'extern Std$Type_t Gtk${type:namespace}${type:name}$T[];'
+];
+
+TO :generate_rdef(type@T) [
+    'export(\"T\")'
+];
+
+TO :generate_rlib(type@T) [
+    'export(\"T\")'
+];
+
+END Response.

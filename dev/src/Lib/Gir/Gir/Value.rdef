@@ -1,0 +1,21 @@
+require("Gtk/GObject/Init")
+library("Gtk/GObject/Object.rlib")
+library("Gtk/GObject/Type.rlib")
+library("Gtk/GObject/Enum.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("New")
+export("_to_riva")
+export("_to_value")
+export("_to_gtk")
+export("_valist")
+export("_varargs")
+export("_valist_terminated")
+export("_varargs_terminated")

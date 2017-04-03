@@ -1,0 +1,44 @@
+MOD Varargs;
+
+IMP Sys.Program;
+IMP Std.Integer;
+
+IMP .Type;
+
+DEF T <- <[Type.T]
+	terminator
+>;
+
+DEF New!(terminator) (
+	VAR type <- T();
+	type:terminator <- terminator;
+	RET type;
+);
+
+TO :headers(type@T) {"Gtk/GObject/Value.h"};
+TO :libraries(type@T) {"Gtk/GObject/Value.rlib"};
+TO :signature(type@T) "ANY";
+TO :ctype(type@T) "va_list";
+
+TO :c_precall(type@T, argindex, paramindex)
+	['{type:ctype} param{paramindex} = Gtk$GObject$Value$varargs_terminated(Count - {argindex}, Args + {argindex}, {type:terminator});'];
+
+DEF CountT <- <[Type.T]
+	start
+>;
+
+DEF CountNew!(start) (
+	VAR type <- CountT();
+	type:start <- start;
+	RET type;
+);
+
+TO :ctype(type@CountT) "int";
+TO :rtype(type@CountT) FAIL;
+
+TO :c_argcount(type@CountT) 0;
+TO :c_precall(type@CountT, argindex, paramindex) [
+    'int param{paramindex} = Count - {type:start};'
+];
+
+END Varargs.

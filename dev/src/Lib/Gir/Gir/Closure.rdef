@@ -1,0 +1,13 @@
+library("Gtk/GObject/Value.rlib")
+
+if WINDOWS then
+	_export = export
+	export = function(Name)
+		_export("_" .. Name, Name)
+	end
+end
+
+export("T")
+export("_from_val")
+export("_from_ref")
+export("New")

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gapi-parser-input>
+  <api filename="api.raw">
+    <library name="libgtk">
+      <namespace name="GObject">
+        <file>/usr/include/glib-2.0/gobject/gparamspecs.h</file>
+        <file>/usr/include/glib-2.0/gobject/gparam.h</file>
+      </namespace>
+      <namespace name="Glib">
+        <file>/usr/include/glib-2.0/glib/galloca.h</file>
+        <file>/usr/include/glib-2.0/glib/garray.h</file>
+        <file>/usr/include/glib-2.0/glib/gasyncqueue.h</file>
+        <file>/usr/include/glib-2.0/glib/gatomic.h</file>
+        <file>/usr/include/glib-2.0/glib/gbacktrace.h</file>
+        <file>/usr/include/glib-2.0/glib/gbase64.h</file>
+        <file>/usr/include/glib-2.0/glib/gbookmarkfile.h</file>
+        <file>/usr/include/glib-2.0/glib/gcache.h</file>
+        <file>/usr/include/glib-2.0/glib/gcompletion.h</file>
+        <file>/usr/include/glib-2.0/glib/gconvert.h</file>
+        <file>/usr/include/glib-2.0/glib/gdataset.h</file>
+        <file>/usr/include/glib-2.0/glib/gdate.h</file>
+        <file>/usr/include/glib-2.0/glib/gdir.h</file>
+        <file>/usr/include/glib-2.0/glib/gerror.h</file>
+        <file>/usr/include/glib-2.0/glib/gfileutils.h</file>
+        <file>/usr/include/glib-2.0/glib/ghash.h</file>
+        <file>/usr/include/glib-2.0/glib/ghook.h</file>
+        <file>/usr/include/glib-2.0/glib/gi18n.h</file>
+        <file>/usr/include/glib-2.0/glib/gi18n-lib.h</file>
+        <file>/usr/include/glib-2.0/glib/giochannel.h</file>
+        <file>/usr/include/glib-2.0/glib/gkeyfile.h</file>
+        <!--file>/usr/include/glib-2.0/glib/glist.h</file-->
+        <file>/usr/include/glib-2.0/glib/gmacros.h</file>
+        <file>/usr/include/glib-2.0/glib/gmain.h</file>
+        <file>/usr/include/glib-2.0/glib/gmappedfile.h</file>
+        <file>/usr/include/glib-2.0/glib/gmarkup.h</file>
+        <file>/usr/include/glib-2.0/glib/gmem.h</file>
+        <file>/usr/include/glib-2.0/glib/gmessages.h</file>
+        <file>/usr/include/glib-2.0/glib/gnode.h</file>
+        <file>/usr/include/glib-2.0/glib/goption.h</file>
+        <file>/usr/include/glib-2.0/glib/gpattern.h</file>
+        <file>/usr/include/glib-2.0/glib/gprimes.h</file>
+        <file>/usr/include/glib-2.0/glib/gprintf.h</file>
+        <file>/usr/include/glib-2.0/glib/gqsort.h</file>
+        <file>/usr/include/glib-2.0/glib/gquark.h</file>
+        <file>/usr/include/glib-2.0/glib/gqueue.h</file>
+        <file>/usr/include/glib-2.0/glib/grand.h</file>
+        <file>/usr/include/glib-2.0/glib/gregex.h</file>
+        <file>/usr/include/glib-2.0/glib/grel.h</file>
+        <!--file>/usr/include/glib-2.0/glib/gscanner.h</file-->
+        <file>/usr/include/glib-2.0/glib/gsequence.h</file>
+        <file>/usr/include/glib-2.0/glib/gshell.h</file>
+        <file>/usr/include/glib-2.0/glib/gslice.h</file>
+        <!--file>/usr/include/glib-2.0/glib/gslist.h</file-->
+        <!--file>/usr/include/glib-2.0/glib/gspawn.h</file-->
+        <file>/usr/include/glib-2.0/glib/gstdio.h</file>
+        <file>/usr/include/glib-2.0/glib/gstrfuncs.h</file>
+        <file>/usr/include/glib-2.0/glib/gstring.h</file>
+        <file>/usr/include/glib-2.0/glib/gthread.h</file>
+        <file>/usr/include/glib-2.0/glib/gthreadpool.h</file>
+        <file>/usr/include/glib-2.0/glib/gtimer.h</file>
+        <file>/usr/include/glib-2.0/glib/gtree.h</file>
+        <file>/usr/include/glib-2.0/glib/gtypes.h</file>
+        <file>/usr/include/glib-2.0/glib/gunicode.h</file>
+        <file>/usr/include/glib-2.0/glib/gutils.h</file>
+        <file>/usr/include/glib-2.0/glib/gwin32.h</file>
+      </namespace>
+      <namespace name="Gio">
+        <dir>/usr/include/glib-2.0/gio/</dir>
+      </namespace>
+      <namespace name="Gtk">
+        <dir>/usr/include/gtk-2.0/gtk/</dir>
+      </namespace>
+	  <namespace name="Gdk">
+        <dir>/usr/include/gtk-2.0/gdk/</dir>
+        <dir>/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/</dir>
+      </namespace>
+	  <namespace name="Glade">
+        <dir>/usr/include/libglade-2.0/glade/</dir>
+      </namespace>
+	  <namespace name="SourceView">
+        <dir>/usr/include/gtksourceview-2.0/gtksourceview/</dir>
+      </namespace>
+<!--
+	  <namespace name="Gtk">
+        <dir>/usr/include/gtk-3.0/gtk/</dir>
+      </namespace>
+	  <namespace name="Gdk">
+        <dir>/usr/include/gtk-3.0/gdk/</dir>
+      </namespace>
+	  <namespace name="GladeUI">
+        <dir>/usr/include/libgladeui-2.0/gladeui/</dir>
+      </namespace>
+	  <namespace name="SourceView">
+        <dir>/usr/include/gtksourceview-3.0/gtksourceview/</dir>
+      </namespace>
+-->
+      <namespace name="Pango">
+        <dir>/usr/include/pango-1.0/pango/</dir>
+      </namespace>
+<!--      <namespace name="DBus">
+        <dir>/usr/include/dbus-1.0/dbus/</dir>
+      </namespace>
+-->
+      <namespace name="Atk">
+        <dir>/usr/include/atk-1.0/atk/</dir>
+      </namespace>
+<!--      <namespace name="Gnome">
+        <dir>/usr/include/libgnome-2.0/libgnome/</dir>
+        <dir>/usr/include/libgnomeui-2.0/libgnomeui/</dir>
+        <dir>/usr/include/gnome-menus/</dir>
+      </namespace>
+      <namespace name="GnomeCanvas">
+        <dir>/usr/include/libgnomecanvas-2.0/libgnomecanvas/</dir>
+      </namespace>
+-->
+<!--
+      <namespace name="Art">
+        <dir>/usr/include/libart-2.0/libart_lgpl/</dir>
+      </namespace>
+-->
+      <namespace name="Cairo">
+        <dir>/usr/include/cairo/</dir>
+      </namespace>
+<!--      <namespace name="GooCanvas">
+        <dir>/usr/include/goocanvas-1.0/</dir>
+      </namespace>
+-->
+<!--
+      <namespace name="Panel">
+        <dir>/usr/include/panel-2.0/</dir>
+      </namespace>
+-->
+      <namespace name="Conf">
+        <dir>/usr/include/gconf/2/gconf/</dir>
+      </namespace>
+<!--
+      <namespace name="Bonobo">
+        <dir>/usr/include/libbonobo-2.0/bonobo/</dir>
+      </namespace>
+      <namespace name="Gnet">
+        <dir>/usr/include/gnet-2.0/</dir>
+      </namespace>
+      <namespace name="Soup">
+        <dir>/usr/include/libsoup-2.4/libsoup/</dir>
+      </namespace>
+      <namespace name="GnomeVFS">
+        <dir>/usr/include/gnome-vfs-2.0/libgnomevfs/</dir>
+      </namespace>
+-->
+<!--
+      <namespace name="Xml">
+        <dir>/usr/include/libxml2/libxml/</dir>
+      </namespace>
+-->
+<!--
+      <namespace name="Clutter">
+      	<dir>/usr/include/clutter-1.0/clutter/</dir>
+      	<dir>/usr/include/clutter-1.0/cogl/</dir>
+      	<dir>/usr/include/clutter-0.8/clutter-cairo/</dir>
+      	<dir>/usr/include/clutter-0.8/clutter-gst/</dir>
+      	<dir>/usr/include/clutter-0.8/clutter-gtk/</dir>
+      </namespace>
+      <namespace name="GDome">
+        <dir>/usr/include/libgdome/</dir>
+      </namespace>
+      <namespace name="MathView">
+        <dir>/usr/include/gtkmathview/gtk/</dir>
+        <dir>/usr/include/gtkmathview/MathView/</dir>
+      </namespace>
+      <namespace name="GMime">
+      	<dir>/usr/include/gmime-2.4/gmime/</dir>
+      </namespace>
+      <namespace name="GStreamer">
+        <dir>/usr/include/gstreamer-0.10/gst/</dir>
+      </namespace>
+-->
+      <namespace name="Unique">
+        <dir>/usr/include/unique-1.0/unique/</dir>
+      </namespace>
+<!--
+      <namespace name="Extra">
+        <dir>Extra/include/gtkextra-2.0/gtkextra/</dir>
+      </namespace>
+-->
+      <namespace name="Vte">
+        <dir>/usr/include/vte-0.0/vte/</dir>
+      </namespace>
+      <namespace name="Rsvg">
+        <dir>/usr/include/librsvg-2.0/librsvg/</dir>
+      </namespace>
+<!--	  <namespace name="Gdl">
+	    <dir>/usr/include/libgdl-1.0/gdl/</dir>
+	  </namespace>
+	  <namespace name="Gsf">
+	    <dir>/usr/include/libgsf-1/gsf/</dir>
+	  </namespace>
+-->
+<!--      <namespace name="Gir">
+	    <file>/usr/include/gobject-introspection-1.0/girepository.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giarginfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gibaseinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gicallableinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giconstantinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gienuminfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gifieldinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gifunctioninfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giinterfaceinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giobjectinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gipropertyinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giregisteredtypeinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gisignalinfoinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gistructinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gitypeinfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gitypelib.h</file>
+		<file>/usr/include/gobject-introspection-1.0/gitypes.h</file>
+		<file>/usr/include/gobject-introspection-1.0/giunioninfo.h</file>
+		<file>/usr/include/gobject-introspection-1.0/givfuncinfo.h</file>
+	  </namespace>
+-->
+    </library>
+  </api>
+</gapi-parser-input>

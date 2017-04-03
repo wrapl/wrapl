@@ -1,0 +1,25 @@
+#!/usr/bin/riva
+MOD Main;
+
+IMP IO.File;
+IMP Sys USE Program, FileSys;
+
+VAR base ← Program.Args[1];
+
+FileSys.MakeDir(base, 511);
+FileSys.MakeDir('../../../obj/Lib/Gtk/{base}', 511);
+FileSys.MakeDir('../../../lib/Gtk/{base}', 511);
+FileSys.MakeDir('../../../inc/gcc/Gtk/{base}', 511);
+FileSys.MakeDir('../../lib/Gtk/{base}', 511);
+
+VAR file ← File.Open(base + '/OMakefile', File.Flag.Write + File.Flag.Text);
+file:write('CFLAGS += $(shell pkg-config --cflags {base:lower}) -include {base:lower}/{base:lower}.h
+LDFLAGS += Gtk/{base}.rlib
+
+if $(file-exists $(GTK_AUTOGEN))
+	foreach(FILE, $(rootname $(basename $(glob *.c))))
+		RivaModule(Gtk/{base}/$(FILE), $(FILE))
+');
+file:close;
+
+END Main.

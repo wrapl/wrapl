@@ -1,0 +1,182 @@
+MOD GetAPI;
+
+IMP IO.Terminal USE Out;
+
+IMP IO USE Stream, Process, File, Socket;
+IMP Sys USE FileSys, Config, Program;
+IMP Std.String USE Upper, Lower;
+
+IMP Xml.Loader;
+
+VAR ns!, cname!, name!;
+
+DEF identifiers! ← {};
+
+DEF AddIdent!(name, path) (
+	identifiers:insert(name, path);
+);
+
+DEF FixupXml(node) (
+	--Out:write('node = {node}\n');
+	WHEN node:tag IS :a DO (
+		VAR child ← node[];
+		child ≢ ∅ ⇒ (
+			WHEN child:tag IS :code DO (
+				WHEN child.class IS "function" DO (
+					VAR id ← identifiers[child:text:before(" ()")];
+					id ≢ ∅ ⇒ (
+						VAR prefix ← 'Gtk/{ns}/{name}/';
+						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
+						node:content ← [id];
+						node:tag ← :id;
+						node:attrs ← {};
+					);
+				) IS "literal" DO (
+					VAR id ← identifiers[child:text];
+					id ≢ ∅ ⇒ (
+						VAR prefix ← 'Gtk/{ns}/{name}/';
+						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
+						node:content ← [id];
+						node:tag ← :id;
+						node:attrs ← {};
+					);
+				);
+			) IS :span DO (
+				WHEN child.class IS "type" DO (
+					VAR id ← identifiers[child:text];
+					id ≢ ∅ ⇒ (
+						VAR prefix ← 'Gtk/{ns}/{name}/';
+						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
+						node:content ← [id];
+						node:tag ← :id;
+						node:attrs ← {};
+					);
+				);
+			);
+		);
+	) IS :em DO (
+		WHEN node.class IS "parameter" DO (
+			VAR child ← node;
+			REP WHILE child ← child[];
+			node:tag ← :var;
+			node:content ← [child:text];
+			node:attrs ← {};
+		);
+	) IS :span DO (
+		WHEN node.class IS "term" DO (
+			VAR child ← FixupXml(node[]);
+			child ≡ ∅ ⇒ (
+				node.class ← "literal";
+			) ↷ (
+				node:tag ← child:tag;
+				node:content ← child:content;
+				node:attrs ← {};
+			);
+		);
+	) IS :td DO (
+		node[:p] ⇒ node:content ←  node[:p]:content;
+		EVERY FixupXml(node[]);
+	) IS :code DO (
+		WHEN node.class IS "literal" DO (
+			VAR id ← identifiers[node:text];
+			id ≢ ∅ ⇒ (
+				VAR prefix ← 'Gtk/{ns}/{name}/';
+				id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
+				node:content ← [id];
+				node:tag ← :id;
+				node:attrs ← {};
+			) ↷ (
+				node:tag ← :span;
+			);
+		); 
+	) DO (
+		EVERY FixupXml(node[]);
+	);
+	RET node;
+	RECV msg DO (
+		Out:write('msg = {msg}\n');
+		Out:write('node = {node}\n');
+		Program.Exit(1);
+	);
+);
+
+DEF GetXml!(args) (
+	VAR sgrep ← Process.Open("sgrep", args);
+	VAR tidy ← Process.Open("tidy", ["tidy", "-config", "../../../src/Lib/Gtk/tidyconfig"]);
+	VAR parser ← Loader.New();
+	sgrep:copy(tidy);
+	tidy:close(Stream.CloseMode.Write);
+	sgrep:wait;
+	sgrep:close;
+	REP WHILE parser:parse(tidy:read(128));
+	parser:finish;
+	tidy:wait;
+	tidy:close;
+	VAR xml ← parser:userdata;
+	RET FixupXml(xml[:body]);
+	RECV msg DO (
+		Out:write('msg = {msg}\n');
+		Out:write('xml = {xml}\n');
+		Out:write('args = {args}\n');
+		Program.Exit(1);
+	);
+);
+
+DEF GetFunc!(function) (
+	Config.Get("DOCS") // FAIL;
+	FileSys.Exists('docs/{ns}') // FileSys.MakeDir('docs/{ns}', 511);
+	VAR filename <- 'docs/{ns}/{cname}-{function}.txt';
+	FileSys.Exists(filename) => (
+		RET filename;
+	) // (
+		VAR dir, source, args;
+		ns = "Xml" => (
+			dir <- "/usr/share/doc/libxml2-doc/html";
+			source <- '{dir}/libxml-{cname:lower}.html';
+			args <- ["sgrep", '(("<h3>" .. "</pre>") containing "</a>Function: {function}" __ "</div>")'];
+		) // ns = "Extra" => (
+			dir <- GetAPI:path + "Extra/gtk+extra/docs/reference/html";
+			source <- '{dir}/gtkextra-{cname:lower}.html';
+			args <- ["sgrep", '(("<h3>" .. "</div>") containing "<h3>{function} ()</h3>") extracting ("<h3>{function} ()</h3>" .. "</pre>")'];
+		) // (
+			ns = "Conf" => ns <- "GConf";
+			dir <- "/usr/share/gtk-doc/html/" + ns:map(Upper, Lower);
+			FileSys.Exists(dir) // dir <- "/usr/share/gtk-doc/html/lib" + ns:map(Upper, Lower);
+			FileSys.Exists(dir) // FAIL;
+			source <- '{dir}/{cname}.html';
+			args <- ["sgrep", '(("<h3>" .. "</div>") containing "<h3>{function} ()</h3>") extracting ("<h3>{function} ()</h3>" .. "</pre>")'];
+		);
+		FileSys.Exists(source) => (
+			args:put(source);
+		) // (
+			EVERY args:put(dir + "/" + ("." ~= (".." ~= FileSys.ListDir(dir))));
+		);
+		
+		VAR file ← File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
+		
+		RET filename;
+	);
+);
+
+DEF GetType!() (
+	Config.Get("DOCS") // FAIL;
+	FileSys.Exists('docs/{ns}') // FileSys.MakeDir('docs/{ns}', 511);
+	VAR filename <- 'docs/{ns}/{cname}.txt'; 
+	FileSys.Exists(filename) => (
+		RET filename;
+	) // (
+		VAR dir <- "/usr/share/gtk-doc/html/" + ns:map(Upper, Lower);
+		FileSys.Exists(dir) // dir <- "/usr/share/gtk-doc/html/lib" + ns:map(Upper, Lower);
+		FileSys.Exists(dir) // FAIL;
+		VAR source <- '{dir}/{cname}.html';
+		VAR args <- ["sgrep", '"<h2>Description</h2>" __ "<h2>Details</h2>"'];
+		FileSys.Exists(source) // FAIL;
+		args:put(source);
+		
+		VAR file ← File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
+		
+		RET filename;
+	);
+);
+
+END GetAPI.

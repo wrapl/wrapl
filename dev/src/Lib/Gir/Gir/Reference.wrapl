@@ -1,0 +1,73 @@
+MOD Reference;
+
+IMP .Type;
+IMP .Common USE BlockT;
+
+DEF T <- <[Type.T]
+    base, ctype,
+    headers, libraries
+>;
+
+DEF OutT! <- <[T]>;
+
+DEF OutNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- OutT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :signature(type@OutT) "ANY";
+
+TO :c_precall(type@OutT, argindex, paramindex) [
+    '{type:base:ctype} param{paramindex}_value;',
+    '{type:base:ctype} *param{paramindex} = Args[{argindex}].Ref ? &param{paramindex}_value : 0;'
+];
+
+TO :c_postcall(type@OutT, argindex, paramindex) [
+    'if (Args[{argindex}].Ref) \{'
+] + (ALL '\t' + type:base:c_to_riva('param{paramindex}_value', 'Args[{argindex}].Ref[0]', 'postcall{paramindex}'):values) + [
+    '};'
+];
+
+TO :riva_precall(type@OutT, argindex, paramindex) [
+    'Params[{paramindex}].Val = Std$Object$Nil;',
+    'Params[{paramindex}].Ref = &Params[{paramindex}].Val;'
+];
+
+TO :riva_postcall(type@OutT, argindex, paramindex)
+    type:base:riva_to_c('Params[{paramindex}].Val', 'arg{argindex}[0]', 'postcall{paramindex}');
+
+DEF InOutT! <- <[T]>;
+
+DEF InOutNew!(base) (
+    base <- Type.Lookup(base);
+    VAR type <- InOutT();
+    type:base <- base;
+    type:ctype <- base:ctype + "*";
+    type:headers <- base:headers;
+    type:libraries <- base:libraries;
+    RET type;
+);
+
+TO :signature(type@InOutT) "TYP, " + type:base:rtype;
+
+TO :c_precall(type@InOutT, argindex, paramindex) [
+    '{type:base:ctype} param{paramindex}_value;',
+    '{type:base:ctype} *param{paramindex} = &param{paramindex}_value;'
+] + type:base:riva_to_c('Args[{argindex}].Val', 'param{paramindex}_value', 'precall{paramindex}');
+
+TO :c_postcall(type@InOutT, argindex, paramindex)
+    type:base:c_to_riva('param{paramindex}_value', 'Args[{argindex}].Ref[0]', 'postcall{paramindex}');
+
+TO :riva_precall(type@InOutT, argindex, paramindex)
+    type:base:c_to_riva('arg{argindex}[0]', 'Params[{paramindex}].Val', 'precall{paramindex}') +
+    ['Params[{paramindex}].Ref = &Params[{paramindex}].Val;'];
+
+TO :riva_postcall(type@InOutT, argindex, paramindex)
+    type:base:riva_to_c('Params[{paramindex}].Val', 'arg{argindex}[0]', 'postcall{paramindex}');
+
+END Reference.
