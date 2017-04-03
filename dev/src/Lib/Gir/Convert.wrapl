@@ -6,6 +6,8 @@ IMP Std, Sys, IO, Xml;
 VAR api <- Xml.New(:api);
 VAR namespace, prefix, main, values;
 
+VAR log <- IO.File.Open("convert.log", IO.File.Flag.Write + IO.File.Flag.Text);
+
 VAR gir, gir_list <- IO.File.Open(Sys.Program.Args[1], IO.File.Flag.Read + IO.File.Flag.Text);
 
 VAR gir_file;
@@ -17,7 +19,7 @@ EVERY gir_file <- Sys.FileSys.ListDir("/usr/lib/girepository-1.0") DO gir_file[1
 	VAR gir_xml <- Xml.Load(gir, Xml.NoText);
 	gir:wait;
 	gir:close;
-	Out:write('\nFile: {gir_file}\n');
+	Out:write('File: {gir_file}\n');
 	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
 );
 gir_list:close;
@@ -116,6 +118,13 @@ DEF Opaque {
 	],
 	"Gda" IS [
 		"QuarkList"
+	],
+	"Soup" IS [
+		"MessageHeaders",
+		"MessageBody",
+		"ClientContext",
+		"Multipart",
+		"XMLRPCParams"
 	]
 };
 
@@ -209,6 +218,9 @@ api[:namespace, {"name" IS "GLib"}][:class, {"name" IS "Main"}][:method, {"name"
 api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Once"}][:method, {"name" IS "InitEnter"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
 api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Once"}][:method, {"name" IS "InitLeave"}][:parameters][:parameter, {"name" IS "location"}].type <- 'ref-int';
 EVERY api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Source"}][:field]:detach;
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "MappedFile"}][:method, {"name" IS "get_contents"}][:"return-type"].type <- 'void*';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Bytes"}][:method, {"name" IS "get_data"}][:"return-type"].type <- 'void*';
+api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Bytes"}][:method, {"name" IS "get_data"}][:parameters][:parameter, {"name" IS "size"}].type <- 'out-gint';
 
 EVERY WITH tmp <- "Language" | "Int" | "Float" | "FontDesc" | "String"  | "Shape" | "Size" | "Color" DO (
 	api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS 'Attr{tmp}'}]:attrs:insert("parent", "Pango.Attribute");
@@ -317,7 +329,20 @@ api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoFillRule"}]:det
 api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoLineCap"}]:detach;
 
 EVERY api[:namespace, {"name" IS "cairo"}][:class, {"name" IS "Main"}][:method]:detach;
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Server"}]:prepend(
+	Xml.New(:constructor, {"name" IS "new", "cname" IS "soup_server_new"}, [
+		Xml.New(:parameters, [
+			Xml.New(:parameter, {"name" IS "option", "type" IS "value-char*=0"})
+		])
+	])
+);
+EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
+EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
 
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_body"}].type <- $:after('!');
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_headers"}].type <- $:after('!');
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_body"}].type <- $:after('!');
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_headers"}].type <- $:after('!');
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
 --VAR cairo <- Xml.New(api, :namespace, {"name" IS "cairo"});
@@ -399,7 +424,7 @@ DEF ProcessNamespace() (
 		Err:write('Unknown node type {tag}\n');
 		<> FAIL;
 	));
-	Out:write('Processing namespace {namespace.name}\n');
+	log:write('Processing namespace {namespace.name}\n');
 	prefix <- WHEN namespace.name
 		IS "GObject", "GLib", "Gio" DO "G"
 		IS "GdkX11" DO "Gdk"
@@ -409,7 +434,7 @@ DEF ProcessNamespace() (
 	main <- Xml.New(output, :class, {"name" IS 'Main', "cname" IS '{namespace.name}Main', "gname" IS '{namespace.name}Main'});
 	VAR node;
 	EVERY node <- namespace[] DO output:append(Processors[node:tag](node));
-	Out:write('done.\n');
+	log:write('done.\n');
 	RET output
 );
 
@@ -463,7 +488,7 @@ DEF FixName(name) name:find(".") => name // (BaseTypes[name] | '{namespace.name}
 DEF CamelCaseName(name) (SUM WITH s <- name:split("_") DO s[1]:map(Std.String.Lower, Std.String.Upper) + (s:length > 1 => s[2, 0] // "")) | name;
 
 DEF ProcessClass(class) (
-	Out:write('\tProcessing class {class.name}\n');
+	log:write('\tProcessing class {class.name}\n');
 	VAR output <- Xml.New(:object, {
 		"name" IS class.name,
 		"cname" IS '{prefix}{class.name}',
@@ -493,7 +518,7 @@ DEF ProcessClass(class) (
 );
 
 DEF ProcessInterface(interface) (
-	Out:write('\tProcessing interface {interface.name}\n');
+	log:write('\tProcessing interface {interface.name}\n');
 	VAR output <- Xml.New(:object, {
 		"name" IS interface.name,
 		"cname" IS '{prefix}{interface.name}',
@@ -516,7 +541,7 @@ DEF ProcessInterface(interface) (
 DEF ProcessRecord(record) (
 	record."glib:is-gtype-struct" = "1" => FAIL;
 	record:content:length = 0 => FAIL;
-	Out:write('\tProcessing record {record.name}\n');
+	log:write('\tProcessing record {record.name}\n');
 	VAR output <- Xml.New(:struct, {
 		"name" IS record.name,
 		"cname" IS '{prefix}{record.name}',
@@ -545,7 +570,7 @@ DEF ProcessRecord(record) (
 );
 
 DEF ProcessUnion(union) (
-	Out:write('\tProcessing union {union.name}\n');
+	log:write('\tProcessing union {union.name}\n');
 	VAR output <- Xml.New(:struct, {
 		"name" IS union.name,
 		"cname" IS '{prefix}{union.name}',
@@ -566,7 +591,7 @@ DEF ProcessUnion(union) (
 );
 
 DEF ProcessCallback(callback) (
-	Out:write('\tProcessing callback {callback.name}\n');
+	log:write('\tProcessing callback {callback.name}\n');
 	RET Xml.New(:callback, {
 		"name" IS callback.name,
 		"cname" IS '{prefix}{callback.name}',
@@ -575,7 +600,7 @@ DEF ProcessCallback(callback) (
 );
 
 DEF ProcessEnumeration(enumeration) (
-	Out:write('\tProcessing enumeration {enumeration.name}\n');
+	log:write('\tProcessing enumeration {enumeration.name}\n');
 	VAR output <- Xml.New(:enum, {
 		"type" IS "enum",
 		"name" IS enumeration.name,
@@ -591,7 +616,7 @@ DEF ProcessEnumeration(enumeration) (
 );
 
 DEF ProcessBitField(bitfield) (
-	Out:write('\tProcessing bitfield {bitfield.name}\n');
+	log:write('\tProcessing bitfield {bitfield.name}\n');
 	VAR output <- Xml.New(:enum, {
 		"type" IS "flags",
 		"name" IS bitfield.name,
@@ -607,7 +632,7 @@ DEF ProcessBitField(bitfield) (
 );
 
 DEF ProcessFunction(function) (
-	Out:write('\t\tProcessing function {function.name}\n');
+	log:write('\t\tProcessing function {function.name}\n');
 	VAR parameter <- {}, return, array, aux <- {};
 	return <- function[:"return-value"];
 	(array <- return[:array]) => (

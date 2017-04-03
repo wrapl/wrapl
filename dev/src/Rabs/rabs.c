@@ -13,6 +13,7 @@
 #include "context.h"
 #include "util.h"
 #include "cache.h"
+#include <libHX/io.h>
 
 const char *RootPath = 0;
 static int RabsEnv;
@@ -35,24 +36,11 @@ static void load_file(lua_State *L, const char *FileName) {
 	lua_pop(L, 1);
 }
 
-int mkpath(char *Path, mode_t Mode) {
-	for (char *P = strchr(Path + 1, '/'); P; P = strchr(P + 1, '/')) {
-		*P = '\0';
-		int R = mkdir(Path, Mode);
-		*P = '/';
-		if (R == -1 && errno != EEXIST) return -1;
-		*P = '/';
-	}
-	int R = mkdir(Path, Mode);
-	if (R == -1 && errno != EEXIST) return -1;
-	return 0;
-}
-
 int subdir(lua_State *L) {
 	const char *Path = luaL_checkstring(L, 1);
 	Path = concat(CurrentContext->Path, "/", Path, 0);
 	//printf("Path = %s\n", Path);
-	mkpath(concat(RootPath, Path, 0), 0777);
+	HX_mkdir(concat(RootPath, Path, 0), 0777);
 	const char *FileName = concat(RootPath, Path, "/_build_", 0);
 	//printf("FileName = %s\n", FileName);
 	FileName = vfs_resolve(CurrentContext->Mounts, FileName);
@@ -220,9 +208,19 @@ static void *lua_alloc(void *Data, void *P, size_t Old, size_t New) {
 	}
 }
 
+extern char LuaBuiltins[];
+
 int main(int Argc, const char **Argv) {
 	L = lua_newstate(lua_alloc, 0);
 	luaL_openlibs(L);
+	if (luaL_loadstring(L, LuaBuiltins) != LUA_OK) {
+		fprintf(stderr, "\e[31mError: %s\e[0m", lua_tostring(L, -1));
+		exit(1);
+	}
+	if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+		fprintf(stderr, "\e[31mError: %s\e[0m", lua_tostring(L, -1));
+		exit(1);
+	}
 	vfs_init();
 	target_init();
 	context_init();

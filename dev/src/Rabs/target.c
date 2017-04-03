@@ -128,9 +128,9 @@ void target_update(target_t *Target) {
 		Target->Version = -1;
 		int DependsVersion = 1;
 		for (struct map_node_t *Node = Target->Depends->head; Node; Node = Node->next) {
-			//printf("\e[35m%s depends on %s\e[0m\n", Target->Id, ((target_t *)Node->value)->Id);
 			target_t *Depends = (target_t *)Node->value;
 			target_update(Depends);
+			printf("\t\e[35m%s depends on %s[%d]\e[0m\n", Target->Id, Depends->Id, Depends->Version);
 			if (Depends->Version > DependsVersion) DependsVersion = Depends->Version;
 		}
 		if (Target->Build) {
@@ -139,7 +139,6 @@ void target_update(target_t *Target) {
 				for (struct map_node_t *Node = DetectedDepends->head; Node; Node = Node->next) {
 					target_t *Depends = (target_t *)Node->value;
 					//printf("\e[35m%s depends on %s\e[0m\n", Target->Id, Depends->Id);
-
 					target_update(Depends);
 					if (Depends->Version > DependsVersion) DependsVersion = Depends->Version;
 				}
@@ -206,7 +205,7 @@ void target_update(target_t *Target) {
 			} else if (memcmp(Previous, Current, SHA256_DIGEST_SIZE)) {
 				Target->Version = CurrentVersion;
 			} else {
-				Target->Version = DependsVersion;
+				Target->Version = PreviousVersion;
 			}
 			cache_hash_set(Target->Id, Current, Target->Version);
 		}
@@ -640,6 +639,7 @@ static int build_scan_target(lua_State *L) {
 		target_t *ScanTarget = (target_t *)luaL_checkudata(L, -1, "target");
 		map_set(CurrentDepends, ScanTarget->Id, ScanTarget);
 		lua_pop(L, 1);
+		target_update(ScanTarget);
 	}
 	lua_pop(L, 2);
 	return 0;

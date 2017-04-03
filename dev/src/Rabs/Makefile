@@ -1,24 +1,22 @@
 .PHONY: clean all
 
-all: rabs
+all: ../../bin/rabs
 
-objects = \
-	cache.o \
-	context.o \
-	map.o \
-	rabs.o \
-	target.o \
-	util.o \
-	vfs.o
+sources = \
+	cache.c \
+	context.c \
+	map.c \
+	rabs.c \
+	target.c \
+	util.c \
+	vfs.c \
+	builtins.s
 
 CFLAGS = -I. -g
-LDFLAGS = -llua -lm -lgc -lsqlite3 -lnettle -g
+LDFLAGS = -llua -lm -lgc -lsqlite3 -lnettle -lHX -g
 
-$(objects): %.o: %.c *.h
-	gcc -c $(CFLAGS) $< -o $@
-
-rabs: $(objects)
-	gcc $(objects) $(LDFLAGS) -o $@
+../../bin/rabs: $(sources) *.h builtins.lua
+	gcc $(CFLAGS) $(sources) $(LDFLAGS) -o $@
 
 clean:
 	rm $(objects)

@@ -20,7 +20,7 @@ static sqlite3_stmt *ScanInsertStatement;
 int CurrentVersion = 1;
 
 static int version_callback(void *Data, int NumCols, char **Values, char **Names) {
-	CurrentVersion = atoi(Values[0]) + 1;
+	CurrentVersion = atoi(Values[0] ?: "0");
 	return 0;
 }
 
@@ -78,10 +78,12 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_exec(Cache, "SELECT value FROM info WHERE key = 'version'", version_callback, 0, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "SELECT MAX(version) FROM hashes", version_callback, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
+	++CurrentVersion;
+	printf("CurrentVersion = %d\n", CurrentVersion);
 }
 
 void cache_close() {

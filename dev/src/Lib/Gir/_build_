@@ -18,7 +18,7 @@ API_XML{file("api.gir_list"), file("Convert.wrapl")}:build(function()
 	execute{RIVA, "-L", file("Convert.wrapl"):dir(true)/"", "Convert", file("api.gir_list"), "api.xml"}
 end)
 
-AUTOGEN:scan("WraplSources", function()
+local AUTOGEN_SOURCE = meta("AutogenSource"):scan("WraplSources", function()
 	local Files = {}
 	for FileName in lfs.dir(tostring(file("Main.wrapl"):dir(true))) do
 		if string.sub(FileName, -6) == ".wrapl" then
@@ -28,18 +28,16 @@ AUTOGEN:scan("WraplSources", function()
 	return Files
 end)
 
-AUTOGEN{API_XML}:build(function()
+AUTOGEN{AUTOGEN_SOURCE, API_XML}:build(function()
 	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/""}
 end)
 
 function detect_modules(Path)
-	local Modules = meta("Modules"){AUTOGEN, RLINK}
-
-	DEFAULT{Modules:scan("Modules", function()
-		stringify{LDFLAGS, CFLAGS}
+	execute{"mkdir", "-p", OUT_LIB/Path}
+	local DetectedModules = meta("Modules"):scan("Modules", function()
+		--stringify{LDFLAGS, CFLAGS}
 		local Modules = {}
 		for FileName in lfs.dir(tostring(file(""))) do
-			print(FileName)
 			if string.sub(FileName, -2) == ".c" then
 				local Source = file(FileName)
 				local Scan = Source:scan("INCLUDES", c_includes)
@@ -54,7 +52,9 @@ function detect_modules(Path)
 			end
 		end
 		return Modules
-	end)}
+	end)
+	DetectedModules{AUTOGEN}
+	DEFAULT{DetectedModules}
 end
 
 subdir("GObject")
@@ -67,6 +67,7 @@ subdir("GtkSource")
 subdir("Pango")
 subdir("cairo")
 subdir("Gda")
+subdir("Soup")
 
 --[[mkdir(-p docs)
 

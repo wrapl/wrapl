@@ -25,6 +25,7 @@ DEF New! :?;
 METH New(tag @ Symbol.T) NodeT(NIL, tag, {}, []);
 METH New(tag @ Symbol.T, attrs @ Table.T) NodeT(NIL, tag, attrs, []);
 METH New(tag @ Symbol.T, attrs @ Table.T, content @ List.T) NodeT(NIL, tag, attrs, content);
+METH New(tag @ Symbol.T, content @ List.T) NodeT(NIL, tag, {}, content);
 METH New(xml @ String.T) IS LoadString;
 
 DEF AppendNew(parent, child) (
