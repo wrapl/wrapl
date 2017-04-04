@@ -90,7 +90,7 @@ METHOD("recordhandler", TYP, T) {
 METHOD("set_delim", TYP, T, TYP, Std$String$T) {
 	parser_t *Parser = Args[0].Val;
 	Std$String_t *String = Args[1].Val;
-	csv_set_delim(Parser->Handle, String->Blocks->Chars.Value[0]);
+	csv_set_delim(Parser->Handle, ((char *)String->Blocks->Chars.Value)[0]);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };
@@ -98,7 +98,7 @@ METHOD("set_delim", TYP, T, TYP, Std$String$T) {
 METHOD("set_quote", TYP, T, TYP, Std$String$T) {
 	parser_t *Parser = Args[0].Val;
 	Std$String_t *String = Args[1].Val;
-	csv_set_quote(Parser->Handle, String->Blocks->Chars.Value[0]);
+	csv_set_quote(Parser->Handle, ((char *)String->Blocks->Chars.Value)[0]);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };

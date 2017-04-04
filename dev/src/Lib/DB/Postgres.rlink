@@ -1,6 +1,9 @@
 include('libpq.so')
 include('Alg/UUID.rlib')
 include('Sys/Time.rlib')
+include('Agg.rlib')
+include('Std.rlib')
+include('Riva.rlib')
 
 if WINDOWS then
 	_export = export

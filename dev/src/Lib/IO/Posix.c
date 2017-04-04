@@ -11,6 +11,7 @@
 #include <sys/poll.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/mman.h>
 
 SYMBOL($AS, "@");
 SYMBOL($block, "block");
@@ -991,14 +992,59 @@ METHOD("set_blocking", TYP, T, VAL, $false) {
 	return SUCCESS;
 };
 
+Std$Integer_smallt MMAP_PROT_READ[] = {{Std$Integer$SmallT, PROT_READ}};
+Std$Integer_smallt MMAP_PROT_WRITE[] = {{Std$Integer$SmallT, PROT_WRITE}};
+Std$Integer_smallt MMAP_PROT_EXEC[] = {{Std$Integer$SmallT, PROT_EXEC}};
+
+CONSTANT(Prot, Sys$Module$T) {
+// Flags for selecting opening mode <dl class="submodule">
+// <dt><code>.</code>Read : <id>Std/Integer/SmallT</id></dt><dd>Open a file for reading.</dd>
+// <dt><code>.</code>Write : <id>Std/Integer/SmallT</id></dt><dd>Open a file for writing.</dd>
+// <dt><code>.</code>Text : <id>Std/Integer/SmallT</id></dt><dd>Open a file in text mode (returned object is a <id>IO/Stream/TextReaderT</id> or <id>IO/Stream/TextWriterT</id>.</dd>
+// <dt><code>.</code>Append : <id>Std/Integer/SmallT</id></dt><dd>For files opened in write mode, append new output to the end of the file.</dd>
+// </dl>
+	Sys$Module_t *Module = Sys$Module$new("Prot");
+	Sys$Module$export(Module, "Read", 0, (void *)MMAP_PROT_READ);
+	Sys$Module$export(Module, "Write", 0, (void *)MMAP_PROT_WRITE);
+	Sys$Module$export(Module, "Exec", 0, (void *)MMAP_PROT_EXEC);
+	return (Std$Object_t *)Module;
+};
+
+METHOD("mmap", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
+	void *Address = mmap(0,
+		Std$Integer$get_small(Args[1].Val),
+		Std$Integer$get_small(Args[2].Val),
+		MAP_SHARED,
+		Stream->Handle,
+		Std$Integer$get_small(Args[3].Val)
+	);
+	if (Address == MAP_FAILED) {
+		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		return MESSAGE;
+	};
+	Result->Val = Std$Address$new(Address);
+	return SUCCESS;
+};
+
+METHOD("munmap", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+	void *Address = Std$Address$get_value(Args[0].Val);
+	size_t Length = Std$Integer$get_small(Args[1].Val);
+	if (munmap(Address, Length)) {
+		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		return MESSAGE;
+	};
+	return SUCCESS;
+};
+
 static ssize_t cfile_read(void *Stream, char *Buffer, size_t Size) {
 	printf("cfile_read(0x%x, 0x%x, %d)\n", Stream, Buffer, Size);
-	return _t_read(Stream, Buffer, Size, 1);
+	return IO$Stream$read(Stream, Buffer, Size, 1);
 };
 
 static ssize_t cfile_write(void *Stream, const char *Buffer, size_t Size) {
 	printf("cfile_write(0x%x, 0x%x, %d)\n", Stream, Buffer, Size);
-	return _t_write(Stream, Buffer, Size, 1);
+	return IO$Stream$write(Stream, Buffer, Size, 1);
 };
 
 static int cfile_seek(void *Stream, off64_t *Position, int Whence) {
@@ -1008,16 +1054,16 @@ static int cfile_seek(void *Stream, off64_t *Position, int Whence) {
 		[SEEK_CUR] = IO$Stream$SEEK_CUR,
 		[SEEK_END] = IO$Stream$SEEK_END
 	};
-	return _t_seek(Stream, *(int *)Position, Modes[Whence]);
+	return IO$Stream$seek(Stream, *(int *)Position, Modes[Whence]);
 };
 
 static int cfile_close(void *Stream) {
 	printf("cfile_close(0x%x)\n", Stream);
-	_t_close(Stream, IO$Stream$CLOSE_BOTH);
+	IO$Stream$close(Stream, IO$Stream$CLOSE_BOTH);
 	return 0;
 };
 
-FILE *_cfile(stream_t *Stream) {
+FILE *_cfile(IO$Stream$t *Stream) {
 	static cookie_io_functions_t Functions = {
 		.read = cfile_read,
 		.write = cfile_write,

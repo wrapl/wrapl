@@ -168,7 +168,8 @@ GLOBAL_FUNCTION(Open, 3) {
 		Result->Val = (Std$Object_t *)SndFile;
 		return SUCCESS;
 	} else {
-		return FAILURE;
+		Result->Val = Std$String$copy(sf_strerror(0));
+		return MESSAGE;
 	};
 };
 

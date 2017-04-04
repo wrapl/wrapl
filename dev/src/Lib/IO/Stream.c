@@ -61,6 +61,7 @@ METHOD("@", TYP, MessageT, VAL, Std$String$T) {
 #ifndef DOCUMENTING
 TYPE(ConvertMessageT, MessageT);
 TYPE(GenericMessageT, MessageT);
+TYPE(OpenMessageT, MessageT);
 TYPE(ReadMessageT, MessageT);
 TYPE(WriteMessageT, MessageT);
 TYPE(FlushMessageT, MessageT);
@@ -94,6 +95,7 @@ Std$Object$t *_message_from_errno(const Std$Type$t *Type) {
 
 IO$Stream_messaget ConvertMessage[] = {{ConvertMessageT, "Conversion Error"}};
 IO$Stream_messaget GenericMessage[] = {{GenericMessageT, "Generic Error"}};
+IO$Stream_messaget OpenMessage[] = {{OpenMessageT, "Open Error"}};
 IO$Stream_messaget ReadMessage[] = {{ReadMessageT, "Read Error"}};
 IO$Stream_messaget WriteMessage[] = {{WriteMessageT, "Write Error"}};
 IO$Stream_messaget FlushMessage[] = {{FlushMessageT, "Flush Error"}};

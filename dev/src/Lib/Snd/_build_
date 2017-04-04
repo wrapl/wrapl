@@ -26,5 +26,7 @@ file("libsamplerate.a"){SMC_DIR}:build(function()
 	execute{"cd", SMC_DIR, "&&", "make install"}
 end)
 
+CFLAGS = extend(CFLAGS, "-I", file("include"))
+
 file("SampleRate.o"){file("libsamplerate.a")}
 riva_module("Snd/SampleRate", {file("SampleRate.o")})

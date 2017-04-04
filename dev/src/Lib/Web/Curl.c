@@ -391,9 +391,12 @@ GLOBAL_METHOD(Set, 3, "set", TYP, T, TYP, OptionT, ANY) {
 
 GLOBAL_METHOD(Perform, 1, "perform", TYP, T) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
-	if (curl_easy_perform(Curl->Handle)) {
-		return FAILURE;
+	CURLcode Code = curl_easy_perform(Curl->Handle);
+	if (Code != CURLE_OK) {
+		Result->Val = Std$String$new(curl_easy_strerror(Code));
+		return MESSAGE;
 	} else {
+		Result->Arg = Args[0];
 		return SUCCESS;
 	};
 };

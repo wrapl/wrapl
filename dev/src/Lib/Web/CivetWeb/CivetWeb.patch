@@ -1,0 +1,71 @@
+--- <unnamed>
++++ <unnamed>
+@@ -13189,7 +13189,7 @@
+                             char *error_buffer,
+                             size_t error_buffer_size,
+                             const char *path,
+-                            const char *origin,
++                            const char *headers,
+                             mg_websocket_data_handler data_func,
+                             mg_websocket_close_handler close_func,
+                             void *user_data)
+@@ -13202,24 +13202,14 @@
+ 	static const char *magic = "x3JJHMbDL1EzLkh9GBhXDw==";
+ 	static const char *handshake_req;
+ 
+-	if (origin != NULL) {
+-		handshake_req = "GET %s HTTP/1.1\r\n"
+-		                "Host: %s\r\n"
+-		                "Upgrade: websocket\r\n"
+-		                "Connection: Upgrade\r\n"
+-		                "Sec-WebSocket-Key: %s\r\n"
+-		                "Sec-WebSocket-Version: 13\r\n"
+-		                "Origin: %s\r\n"
+-		                "\r\n";
+-	} else {
+-		handshake_req = "GET %s HTTP/1.1\r\n"
+-		                "Host: %s\r\n"
+-		                "Upgrade: websocket\r\n"
+-		                "Connection: Upgrade\r\n"
+-		                "Sec-WebSocket-Key: %s\r\n"
+-		                "Sec-WebSocket-Version: 13\r\n"
+-		                "\r\n";
+-	}
++	if (headers == NULL) headers = "";
++	handshake_req = "GET %s HTTP/1.1\r\n"
++	                "Host: %s\r\n"
++	                "Upgrade: websocket\r\n"
++	                "Connection: Upgrade\r\n"
++	                "Sec-WebSocket-Key: %s\r\n"
++	                "Sec-WebSocket-Version: 13\r\n"
++	                "%s\r\n";
+ 
+ 	/* Establish the client connection and request upgrade */
+ 	conn = mg_download(host,
+@@ -13231,7 +13221,7 @@
+ 	                   path,
+ 	                   host,
+ 	                   magic,
+-	                   origin);
++	                   headers);
+ 
+ 	/* Connection object will be null if something goes wrong */
+ 	if (conn == NULL || (strcmp(conn->request_info.request_uri, "101") != 0)) {
+@@ -13292,7 +13282,6 @@
+ 	(void)error_buffer;
+ 	(void)error_buffer_size;
+ 	(void)path;
+-	(void)origin;
+ 	(void)user_data;
+ 	(void)data_func;
+ 	(void)close_func;
+
+@@ -13257,7 +13257,7 @@
+ 	thread_data->conn = conn;
+ 	thread_data->data_handler = data_func;
+ 	thread_data->close_handler = close_func;
+-	thread_data->callback_data = NULL;
++	thread_data->callback_data = user_data;
+ 
+ 	/* Start a thread to read the websocket client connection
+ 	 * This thread will automatically stop when mg_disconnect is

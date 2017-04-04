@@ -1,12 +1,15 @@
 include("Std.rlib")
 include("Riva/Memory.rlib")
 include("Agg/Buffer.rlib")
-
+include("Gmp.rlib")
 include("libsamplerate.a")
 
-submodule("Converter")
-subexport("Converter", "ConverterSincBestQuality", "SincBestQuality")
-subexport("Converter", "ConverterSincMediumQuality", "SincMediumQuality")
-subexport("Converter", "ConverterSincFastest", "SincFastest")
-subexport("Converter", "ConverterZeroOrderHold", "ZeroOrderHold")
-subexport("Converter", "ConverterLinear", "Linear")
+export("New")
+export("Convert")
+
+submodule("Type")
+subexport("Type", "TypeSincBestQuality", "SincBestQuality")
+subexport("Type", "TypeSincMediumQuality", "SincMediumQuality")
+subexport("Type", "TypeSincFastest", "SincFastest")
+subexport("Type", "TypeZeroOrderHold", "ZeroOrderHold")
+subexport("Type", "TypeLinear", "Linear")

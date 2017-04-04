@@ -7,7 +7,10 @@ export("ConnectionT");
 
 export("New")
 export("SetRequestHandler")
+export("SetWebSocketHandler")
 export("GetRequestInfo")
+export("OpenWebSocket")
+export("Download")
 
 submodule("Opcode")
 subexport("Opcode", "OPCODE_CONTINUATION", "Continuation")

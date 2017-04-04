@@ -53,7 +53,7 @@ typedef struct buffered_t {
 IO$Stream_t *_new(IO$Stream_t *Base) {
 	static const Std$Type_t *Types[16] = {
 		T, ReaderT, WriterT, ReaderWriterT, SeekerT, ReaderSeekerT, WriterSeekerT, ReaderWriterSeekerT,
-		0, TextReaderT, TextWriterT, TextReaderWriterT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
+		0, TextReaderT, TextWriterT, TextReaderWriterT, SeekerT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
 	};
 	buffered_t *Stream = new(buffered_t);
 	int TypeNo = 0;
@@ -84,7 +84,7 @@ GLOBAL_FUNCTION(New, 1) {
 	CHECK_ARG_TYPE(0, IO$Stream$T);
 	static const Std$Type_t *Types[16] = {
 		T, ReaderT, WriterT, ReaderWriterT, SeekerT, ReaderSeekerT, WriterSeekerT, ReaderWriterSeekerT,
-		0, TextReaderT, TextWriterT, TextReaderWriterT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
+		0, TextReaderT, TextWriterT, TextReaderWriterT, SeekerT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
 	};
 	buffered_t *Stream = new(buffered_t);
 	IO$Stream_t *Base = Args[0].Val;

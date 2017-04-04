@@ -4,4 +4,5 @@ default: ./bin/rabs force
 force:
 
 ./bin/rabs: src/Rabs/*.c
-	cd src/Rabs && make && cp rabs ../../bin
+	mkdir -p bin
+	cd src/Rabs && make

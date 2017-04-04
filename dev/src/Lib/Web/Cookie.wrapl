@@ -1,0 +1,16 @@
+MOD Cookie;
+
+DEF Decode!(header) (
+    VAR cookies <- {};
+    VAR i <- 1, j;
+    EVERY j <- header:find(";") | 0 DO (
+        VAR pair <- header[i, j] | STEP;
+        VAR k <- pair:skip(" ");
+        VAR l <- pair:find("=") | STEP;
+        cookies:insert(pair[k, l], pair[l + 1, 0]);
+        i <- j + 1;
+    );
+    RET cookies;
+);
+
+END Cookie.

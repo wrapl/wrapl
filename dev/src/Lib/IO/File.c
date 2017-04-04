@@ -17,15 +17,6 @@ TYPE(TextReaderT, ReaderT, T, NATIVE($TextReaderT), NATIVE($ReaderT), NATIVE($Se
 TYPE(TextWriterT, WriterT, T, NATIVE($TextWriterT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 TYPE(TextReaderWriterT, ReaderT, WriterT, T, NATIVE($TextReaderT), NATIVE($TextWriterT), NATIVE($ReaderT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
-TYPE(OpenMessageT, IO$Stream$MessageT);
-static IO$Stream_messaget OpenMessage[] = {{OpenMessageT, "Open Error"}};
-
-CONSTANT(Message, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Message");
-	Sys$Module$export(Module, "OpenErrorT", 0, (void *)OpenMessageT);
-	return (Std$Object_t *)Module;
-};
-
 Std$Integer_smallt READ[] = {{Std$Integer$SmallT, IO$File$OPEN_READ}};
 Std$Integer_smallt WRITE[] = {{Std$Integer$SmallT, IO$File$OPEN_WRITE}};
 Std$Integer_smallt APPEND[] = {{Std$Integer$SmallT, IO$File$OPEN_APPEND}};
@@ -87,7 +78,7 @@ GLOBAL_FUNCTION(Open, 2) {
 	};
     HANDLE Handle = CreateFile(FileName, OpenMode.Access, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OpenMode.Create, 0, 0);
     if (Handle == INVALID_HANDLE_VALUE) {
-        Result->Val = (Std$Object_t *)OpenMessage;
+        Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
@@ -101,9 +92,9 @@ GLOBAL_FUNCTION(Open, 2) {
 	openmode_t OpenMode = OpenModes[Flags % 8];
 	int Flags0 = OpenMode.Flags;
 	if (Flags & IO$File$OPEN_NOBLOCK) Flags0 += O_NONBLOCK;
-	int Handle = open(FileName, Flags0, 0644);
+	int Handle = open64(FileName, Flags0, 0644);
 	if (Handle < 0) {
-		Result->Val = (Std$Object_t *)OpenMessage;
+		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
@@ -149,7 +140,7 @@ GLOBAL_FUNCTION(Temp, 0) {
 		Result->Val = NATIVE($new)(TextReaderWriterT, Handle);;
 		return SUCCESS;
 	} else {
-		Result->Val = (Std$Object_t *)OpenMessage;
+		Result->Val = IO$Stream$OpenMessage;
 		return MESSAGE;
 	};
 };
@@ -160,7 +151,7 @@ GLOBAL_FUNCTION(Pipe, 2) {
 // Creates a pipe and storing the reader / writer streams in <var>rd</var> / <var>wr</var> respectively.
 	int Handles[2];
 	if (pipe(Handles)) {
-		Result->Val = (Std$Object_t *)OpenMessage;
+		Result->Val = IO$Stream$OpenMessage;
 		return MESSAGE;
 	} else {
 		if (Args[0].Ref) Args[0].Ref[0] = NATIVE($new)(TextReaderT, Handles[0]);

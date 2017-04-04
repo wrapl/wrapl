@@ -1,4 +1,5 @@
---include("Gmp.rlib")
+include("Std.rlib")
+include("Riva.rlib")
 
 if WINDOWS then
 	_export = export

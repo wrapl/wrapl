@@ -1,32 +1,46 @@
-CIVETWEB_URL = "https://github.com/civetweb/civetweb/archive/master.zip"
-local CIVETWEB_ARCHIVE = file("master.zip")
-local CIVETWEB_DIR = file("civetweb-master")
+CIVETWEB_URL = "https://github.com/civetweb/civetweb/archive/v1.9.1.zip"
+local CIVETWEB_ARCHIVE = file("civetweb-master.zip")
+local CIVETWEB_DIR = file("civetweb-1.9.1")
+local CIVETWEB_SRC = CIVETWEB_DIR/"src/civetweb.c"
+local CIVETWEB_PATCHES = file("CivetWeb.patch")
 local CIVETWEB_LIB = CIVETWEB_DIR/"libcivetweb.a"
 
-CIVETWEB_LIB{CIVETWEB_DIR}:build(function()
-	execute{"cd", CIVETWEB_DIR, "&&",
-		"./configure --disable-shared --enable-static",
-		"--prefix=" .. file(""),
-		"--libdir=" .. file(""),
-		"CFLAGS=\"" .. stringify(CFLAGS) .. " -O2\"",
-		"--without-man-pages"
-	}
+YUAREL_URL = "https://github.com/jacketizer/libyuarel/archive/master.zip"
+local YUAREL_ARCHIVE = file("yuarel-master.zip")
+local YUAREL_DIR = file("libyuarel-master")
+local YUAREL_LIB = YUAREL_DIR/"libyuarel.a"
+
+CIVETWEB_LIB{CIVETWEB_DIR, CIVETWEB_PATCHED}:build(function()
 	execute{"cd", CIVETWEB_DIR, "&&", "make clean"}
 	execute{"cd", CIVETWEB_DIR, "&&", "make WITH_WEBSOCKET=1 lib"}
-	execute{"cp", CIVETWEB_DIR/"libcivetweb.a", "."}
+	execute{"cp", CIVETWEB_LIB, "."}
 end)
 
 CIVETWEB_ARCHIVE:build(function()
-	execute{"wget -nv", CIVETWEB_URL}
+	execute{"wget -nv", CIVETWEB_URL, "-O", CIVETWEB_ARCHIVE}
 end)
 
-CIVETWEB_DIR{CIVETWEB_ARCHIVE}:build(function()
+CIVETWEB_DIR{CIVETWEB_ARCHIVE, CIVETWEB_PATCHES}:build(function()
 	execute{"unzip", CIVETWEB_ARCHIVE}
+	execute{"patch", CIVETWEB_SRC, CIVETWEB_PATCHES}
+end)
+
+YUAREL_LIB{YUAREL_DIR}:build(function()
+	execute{"cd", YUAREL_DIR, "&&", "make"}
+	execute{"cp", YUAREL_LIB, "."}
+end)
+
+YUAREL_ARCHIVE:build(function()
+	execute{"wget -nv", YUAREL_URL, "-O", YUAREL_ARCHIVE}
+end)
+
+YUAREL_DIR{YUAREL_ARCHIVE}:build(function()
+	execute{"unzip", YUAREL_ARCHIVE}
 end)
 
 scope("civetweb", function()
-	CFLAGS = extend(CFLAGS, "-I", CIVETWEB_DIR/"include")
+	CFLAGS = extend(CFLAGS, "-I", CIVETWEB_DIR/"include", "-I", YUAREL_DIR)
 	LDFLAGS = extend(LDFLAGS, "Riva/Memory.rlib", "IO/Stream.rlib", "Util/TypedFunction.rlib")
-	file("CivetWeb.o"){CIVETWEB_LIB}
-	riva_module("Web/CivetWeb", {file("CivetWeb.o")}, {CIVETWEB_LIB})
+	file("CivetWeb.o"){CIVETWEB_LIB, YUAREL_LIB}
+	riva_module("Web/CivetWeb", {file("CivetWeb.o")}, {CIVETWEB_LIB, YUAREL_LIB})
 end)

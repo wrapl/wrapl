@@ -1,0 +1,8 @@
+include("Std.rlib")
+include("Riva.rlib")
+include("Agg/List.rlib")
+include("Agg/Buffer.rlib")
+include("/usr/local/lib/libsphinxbase.so")
+include("/usr/local/lib/libpocketsphinx.so")
+
+export("New")
