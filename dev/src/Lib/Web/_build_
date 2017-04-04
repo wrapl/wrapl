@@ -12,5 +12,5 @@ riva_module("Web/Smtp", {file("Smtp.o")})
 
 subdir("FastCGI")
 subdir("CivetWeb")
-subdir("NoPoll")
+--subdir("NoPoll")
 --subdir("WebSocket")
