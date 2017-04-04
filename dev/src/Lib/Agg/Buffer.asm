@@ -33,7 +33,7 @@ function New, 1
 ;@data:Std$Address$T
 ;:T
 ; Allocates <var>length</var> bytes of memory and returns its address.
-	cmp ecx, byte 1
+	cmp esi, byte 1
 	je .allocate
 	push dword sizeof(Agg$Buffer_t)
 	call Riva$Memory$_alloc
@@ -154,7 +154,7 @@ function %1 %+ New, 1
 ;@data:Std$Address$T
 ;:%1 %+ T
 ; Creates an %1 array length <var>length</var> elements.
-	cmp ecx, byte 1
+	cmp esi, byte 1
 	je .allocate
 	push dword sizeof(Agg$Buffer_t)
 	call Riva$Memory$_alloc
@@ -188,6 +188,17 @@ function %1 %+ New, 1
 	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], ebx
 	xor eax, eax
 	xor edx, edx
+	ret
+
+method "size", TYP, %1 %+ T
+	call Std$Integer$_alloc_small
+	mov edx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Integer_smallt(Agg$Buffer_t(edx).Length).Value]
+	lea edx, [%2 * edx]
+	mov [Std$Integer_smallt(eax).Value], edx
+	mov ecx, eax
+	xor edx, edx
+	xor eax, eax
 	ret
 
 %endmacro

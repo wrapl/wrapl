@@ -1,0 +1,30 @@
+module("Agg", "Buffer")
+if WINDOWS then
+	prefix("_Agg$Buffer$")
+else
+	prefix("Agg$Buffer$")
+end
+export("T")
+export("Compare")
+export("Hash")
+export("New")
+export("_alloc")
+export("_new")
+
+function typed_buffer(Name)
+    module("Agg", "Buffer", Name)
+    if WINDOWS then
+        prefix("_Agg$Buffer$" .. Name .. "$")
+    else
+        prefix("Agg$Buffer$" .. Name .. "$")
+    end
+    export("T")
+    export("_new")
+end
+
+typed_buffer("Int8")
+typed_buffer("Int16")
+typed_buffer("Int32")
+typed_buffer("Float32")
+typed_buffer("Float64")
+	

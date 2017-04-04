@@ -128,6 +128,15 @@ debug_hdr *debug_get_hdr(void *Ptr) {
 #endif
 };
 
+static void debug_gc_warn(char *Message, GC_word Data) {
+	log_writef(Message, Data);
+	if (Data) {
+		debug_hdr *Hdr = debug_get_hdr((void *)Data);
+		if (Hdr) log_writef("%s:%d\n", Hdr->StrInfo, Hdr->IntInfo);
+	};
+	//display_stack((char *)&Data + 4, DebugLevels);
+};
+
 void debug_init(void) {
 #ifdef LINUX
 	struct sigaction Action;
@@ -136,7 +145,7 @@ void debug_init(void) {
 	Action.sa_flags = SA_RESTART;
 	sigaction(SIGSEGV, &Action, NULL);
 #endif
-
+	GC_set_warn_proc(debug_gc_warn);
 	module_t *Module = module_new("Riva/Debug");
 	module_add_alias(Module, "library:/Riva/Debug");
 	module_export(Module, "Key", 0, (void *)DebugKey);

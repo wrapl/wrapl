@@ -1,9 +1,11 @@
-GC_VERSION = "7.4.4"
+GC_VERSION = "7.6.0"
 ATOMIC_OPS_VERSION = "7.4.4"
 local GC_DIR = file("gc-" .. GC_VERSION)
 local ATOMIC_OPS_DIR = GC_DIR/"libatomic_ops"
 
 CFG_OPTS = {
+	"--enable-munmap=4",
+	"--enable-large-config",
 	"--enable-redirect-malloc",
 	"--enable-shared=false",
 	"--enable-static=true",

@@ -24,6 +24,7 @@ RIVA_TYPE(T);
 
 RIVA_CFUN(void, init, Agg$StringTable_t *Table);
 RIVA_CFUN(void, put, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
+RIVA_CFUN(void **, slot, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
 RIVA_CFUN(int, inc, Agg$StringTable_t *Table, const char *Key, int Length, int Value);
 RIVA_CFUN(void *, def, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
 RIVA_CFUN(void *, get, const Agg$StringTable_t *Table, const char *Key, int Length);

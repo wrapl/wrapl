@@ -8,6 +8,7 @@ end
 export("T")
 export("_init")
 export("_put")
+export("_slot")
 export("_get")
 export("_inc")
 export("New")

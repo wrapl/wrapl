@@ -18,6 +18,7 @@ RIVA_TYPE(T);
 
 RIVA_CFUN(void, init, Agg$IntegerTable_t *Table);
 RIVA_CFUN(void, put, Agg$IntegerTable_t *Table, unsigned long Key, void *Value);
+RIVA_CFUN(void **, slot, Agg$IntegerTable_t *Table, unsigned long Key, void *Value);
 RIVA_CFUN(void *, get, const Agg$IntegerTable_t *Table, unsigned long Key);
 
 #undef RIVA_MODULE

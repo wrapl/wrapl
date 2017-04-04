@@ -959,8 +959,8 @@ METHOD("=", TYP, T, TYP, T, TYP, Agg$ObjectTable$T) {
 };
 
 Std$Object_t *_index(table_t *Table, Std$Object_t *Key) {
-	Std$Function_result Result1;
 	RDLOCK(Table);
+	Std$Function_result Result1;
 	Std$Object_t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
 	Slot = avl_find_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
@@ -971,6 +971,16 @@ Std$Object_t *_index(table_t *Table, Std$Object_t *Key) {
 		UNLOCK(Table);
 		return 0;
 	};
+};
+
+Std$Object_t **_probe(table_t *Table, Std$Object_t *Key) {
+	WRLOCK(Table);
+	Std$Function_result Result1;
+	Std$Object_t **Slot;
+	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
+	Slot = avl_probe_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
+	UNLOCK(Table);
+	return Slot;
 };
 
 METHOD("defval", TYP, T, ANY) {
@@ -1153,6 +1163,8 @@ STRING(LeftBrace, "{");
 STRING(RightBrace, "}");
 STRING(SpaceIsSpace, " is ");
 STRING(CommaSpace, ", ");
+STRING(KeyString, "<key>");
+STRING(ValueString, "<value>");
 
 METHOD("@", TYP, T, VAL, Std$String$T) {
 	Std$Function_result Buffer;
@@ -1161,22 +1173,34 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	RDLOCK(Args[0].Val);
 	node_t *Node = avl_t_first(&Traverser, (table_t *)Args[0].Val);
 	if (Node != 0) {
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
-		Final = Std$String$add(Final, Buffer.Val);
+		if (Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0) < FAILURE) {
+			Final = Std$String$add(Final, Buffer.Val);
+		} else {
+			Final = Std$String$add(Final, KeyString);
+		}
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
-			Final = Std$String$add(Final, Buffer.Val);
+			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+				Final = Std$String$add(Final, Buffer.Val);
+			} else {
+				Final = Std$String$add(Final, ValueString);
+			};
 		};
 	};
 	for (Node = avl_t_next(&Traverser); Node; Node = avl_t_next(&Traverser)) {
 		Final = Std$String$add(Final, CommaSpace);
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
-		Final = Std$String$add(Final, Buffer.Val);
+		if (Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0) < FAILURE) {
+			Final = Std$String$add(Final, Buffer.Val);
+		} else {
+			Final = Std$String$add(Final, KeyString);
+		}
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
-			Final = Std$String$add(Final, Buffer.Val);
+			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+				Final = Std$String$add(Final, Buffer.Val);
+			} else {
+				Final = Std$String$add(Final, ValueString);
+			};
 		};
 	};
 	UNLOCK(Args[0].Val);
@@ -1383,7 +1407,7 @@ static long resume_values2_table(avl_resume_pair_data *Data) {
 	} else {
 		return FAILURE;
 	};
-};
+};	
 
 METHOD("values", TYP, T, ANY) {
 //@t
@@ -1393,7 +1417,7 @@ METHOD("values", TYP, T, ANY) {
 	pair_state *Traverser = new(pair_state);
 	node_t *Node = avl_t_first(Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
-	Traverser->State.Invoke = (Std$Function_cresumefn)resume_values_table;
+	Traverser->State.Invoke = (Std$Function_cresumefn)resume_values2_table;
 	Traverser->Pair = Args[1].Ref;
 	if (Node != 0) {
 		Result->Val = *(Result->Ref = &Node->Value);

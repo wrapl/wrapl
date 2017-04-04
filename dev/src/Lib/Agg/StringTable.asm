@@ -95,7 +95,29 @@ method "insert", TYP, T, TYP, Std$String$T, ANY
 	ret
 
 method "missing", TYP, T, TYP, Std$String$T, ANY
-	
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	push byte 0
+	push dword [Std$Integer_smallt(Std$String_t(eax).Length).Value]
+	push eax
+	call Std$String$_flatten
+	mov [esp], eax
+	push dword [Std$Function_argument(edi).Val]
+	call _slot
+	add esp, byte 16
+	mov ecx, [eax]
+	test ecx, ecx
+	jz .missing
+	mov edx, [Std$Function_argument(edi, 2).Ref]
+	mov [edx], ecx
+	xor eax, eax
+	inc eax
+	ret
+.missing:
+	mov ecx, Std$Object$Nil
+	mov [eax], ecx
+	mov edx, eax
+	xor eax, eax
+	ret
 
 method "[]", TYP, T, TYP, Std$String$T
 	push ebp
@@ -465,11 +487,13 @@ cfunction _put;(stringtable Table, const char *Key, int Length, void *Value) -> 
 	mov esi, [esp + 20]
 	dec dword [table(esi).Space]
 	jle near .grow_table
+	push dword [esp + 24]
+	push dword [esp + 36]
 	cmp [node(ebp + 8 * eax).Key], dword 0
 	jne .replace_node
 .empty_node:
-	mov esi, [esp + 24]
-	mov edi, [esp + 32]
+	pop edi
+	pop esi
 	mov [node(ebp + 8 * eax).Hash], ebx
 	mov [node(ebp + 8 * eax).Length], ecx
 	mov [node(ebp + 8 * eax).Key], esi
@@ -497,20 +521,18 @@ cfunction _put;(stringtable Table, const char *Key, int Length, void *Value) -> 
 	pop ecx
 	ja .replace_loop
 .replace_node:
-	mov esi, [esp + 24]
-	mov edi, [esp + 32]
+	pop edi
+	pop esi
 	push dword [node(ebp + 8 * eax).Key]
+	push dword [node(ebp + 8 * eax).Value]
 	push dword [node(ebp + 8 * eax).Hash]
 	push dword [node(ebp + 8 * eax).Length]
-	push dword [node(ebp + 8 * eax).Value]
 	mov [node(ebp + 8 * eax).Key], esi
 	mov [node(ebp + 8 * eax).Hash], ebx
 	mov [node(ebp + 8 * eax).Length], ecx
 	mov [node(ebp + 8 * eax).Value], edi
-	pop dword [esp + 44]
 	pop ecx
 	pop ebx
-	pop dword [esp + 24]
 	jmp .replace_loop
 .grow_table:
 	; First sort table entries so that they are decreasing
@@ -1027,6 +1049,7 @@ cfunction _slot;(stringtable Table, const char *Key, int Length, int Value) -> (
 	push edi
 	push esi
 	push ebp
+.restart_on_grow:
 	mov esi, [esp + 24]
 	mov edx, [esp + 28]
 	mov ecx, edx
@@ -1098,7 +1121,7 @@ cfunction _slot;(stringtable Table, const char *Key, int Length, int Value) -> (
 	mov [node(eax + 8 * edi).Hash], ebx
 	mov [node(eax + 8 * edi).Length], ecx
 	mov ebx, [esp + 24]
-	xor ecx, ecx
+	mov ecx, [esp + 32]
 	mov [node(eax + 8 * edi).Key], ebx
 	mov [node(eax + 8 * edi).Value], ecx
 	lea eax, [node(eax + 8 * edi).Value]
@@ -1112,21 +1135,18 @@ cfunction _slot;(stringtable Table, const char *Key, int Length, int Value) -> (
 	dec dword [table(esi).Space]
 	jle near .grow_table
 	
+	push dword [esp + 24]
+	push dword [esp + 36]
 	cmp [node(ebp + 8 * eax).Key], dword 0
 	jne .replace_node
 .empty_node:
-	mov esi, [esp + 24]
-	mov edi, [esp + 32]
+	pop edi
+	pop esi
 	mov [node(ebp + 8 * eax).Hash], ebx
 	mov [node(ebp + 8 * eax).Length], ecx
 	mov [node(ebp + 8 * eax).Key], esi
 	mov [node(ebp + 8 * eax).Value], edi
-	pop ebp
-	pop esi
-	pop edi
-	pop ebx
-	mov eax, [esp + 16]
-	ret
+	jmp .restart_on_grow
 .replace_loop:
 	lea eax, [eax + 4 * ecx + 2]
 	and eax, edx
@@ -1145,20 +1165,18 @@ cfunction _slot;(stringtable Table, const char *Key, int Length, int Value) -> (
 	pop ecx
 	ja .replace_loop
 .replace_node:
-	mov esi, [esp + 24]
-	mov edi, [esp + 32]
+	pop edi
+	pop esi
 	push dword [node(ebp + 8 * eax).Key]
+	push dword [node(ebp + 8 * eax).Value]
 	push dword [node(ebp + 8 * eax).Hash]
 	push dword [node(ebp + 8 * eax).Length]
-	push dword [node(ebp + 8 * eax).Value]
 	mov [node(ebp + 8 * eax).Key], esi
 	mov [node(ebp + 8 * eax).Hash], ebx
 	mov [node(ebp + 8 * eax).Length], ecx
 	mov [node(ebp + 8 * eax).Value], edi
-	pop dword [esp + 44]
 	pop ecx
 	pop ebx
-	pop dword [esp + 24]
 	jmp .replace_loop
 .grow_table:
 	; First sort table entries so that they are decreasing
@@ -1214,12 +1232,7 @@ cfunction _slot;(stringtable Table, const char *Key, int Length, int Value) -> (
 	add ebp, byte 16
 	cmp [node(ebp).Key], dword 0
 	jne .entry_loop
-	pop ebp
-	pop esi
-	pop edi
-	pop ebx
-	mov eax, [esp + 16]
-	ret
+	jmp .restart_on_grow
 .sort_section:
 	; eax-edx = current node
 	; node(esp + 4) = pivot node

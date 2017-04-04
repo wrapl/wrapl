@@ -30,15 +30,34 @@ RIVA_TYPE(Float64$T);
 
 RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
 
-RIVA_CFUN(Std$Object_t *, Int8$new, void *, size_t) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, Int16$new, void *, size_t) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, Int32$new, void *, size_t) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, Float32$new, void *, size_t) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, Float64$new, void *, size_t) __attribute__ ((malloc));
-
 #define Agg$Buffer$get_value(A) ((Agg$Buffer$t *)A)->Value
 #define Agg$Buffer$get_length(A) ((Agg$Buffer$t *)A)->Length.Value
 
+#undef RIVA_MODULE
+
+#define RIVA_MODULE Agg$Buffer$Int8
+RIVA_TYPE(T);
+RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+#undef RIVA_MODULE
+
+#define RIVA_MODULE Agg$Buffer$Int16
+RIVA_TYPE(T);
+RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+#undef RIVA_MODULE
+
+#define RIVA_MODULE Agg$Buffer$Int32
+RIVA_TYPE(T);
+RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+#undef RIVA_MODULE
+
+#define RIVA_MODULE Agg$Buffer$Float32
+RIVA_TYPE(T);
+RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+#undef RIVA_MODULE
+
+#define RIVA_MODULE Agg$Buffer$Float64
+RIVA_TYPE(T);
+RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #endif

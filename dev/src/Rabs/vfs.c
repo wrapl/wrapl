@@ -14,7 +14,6 @@ struct vmount_t {
 extern const char *RootPath;
 
 const vmount_t *vfs_mount(const vmount_t *Previous, const char *Path, const char *Target) {
-	//printf("vmount(%s, %s)\n", Path, Target);
 	vmount_t *Mount = (vmount_t *)GC_malloc(sizeof(vmount_t));
 	Mount->Previous = Previous;
 	Mount->Path = concat(RootPath, Path, 0);
@@ -23,7 +22,6 @@ const vmount_t *vfs_mount(const vmount_t *Previous, const char *Path, const char
 }
 
 static char *resolve0(const vmount_t *Mount, const char *Path) {
-	//printf("resolve(%s)\n", Path);
 	while (Mount) {
 		const char *Suffix = match_prefix(Path, Mount->Path);
 		if (Suffix) {

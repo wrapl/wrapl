@@ -27,6 +27,8 @@ RIVA_OBJECT(ConvertMessage);
 RIVA_TYPE(ConvertMessageT);
 RIVA_OBJECT(GenericMessage);
 RIVA_TYPE(GenericMessageT);
+RIVA_OBJECT(OpenMessage);
+RIVA_TYPE(OpenMessageT);
 RIVA_OBJECT(ReadMessage);
 RIVA_TYPE(ReadMessageT);
 RIVA_OBJECT(WriteMessage);
@@ -99,6 +101,14 @@ RIVA_CFUN(size_t, remaining, IO$Stream_t *Stream);
 RIVA_CFUN(FILE *, cfile, IO$Stream_t *);
 
 #endif
+
+#undef RIVA_MODULE
+
+#define RIVA_MODULE IO$Stream$Message
+
+RIVA_CFUN(Std$Object$t *, new, const Std$Type$t *, const char *);
+RIVA_CFUN(Std$Object$t *, new_format, const Std$Type$t *, const char *, ...);
+RIVA_CFUN(Std$Object$t *, from_errno, const Std$Type$t *);
 
 #undef RIVA_MODULE
 

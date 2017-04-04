@@ -51,14 +51,36 @@ method "insert", TYP, T, TYP, Std$Integer$SmallT, ANY
 ;@value
 ;:T
 ; Inserts a new entry <code>(key, Std$Object_t)</code> into <var>table</var>. Returns <var>table</var>.
-	push dword [Std$Function_argument(edi + 16).Val]
-	mov eax, [Std$Function_argument(edi + 8).Val]
+	push dword [Std$Function_argument(edi, 2).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	push dword [Std$Integer_smallt(eax).Value]
 	push dword [Std$Function_argument(edi).Val]
 	call _put
 	add esp, byte 12
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
+	xor eax, eax
+	ret
+
+method "missing", TYP, T, TYP, Std$Integer$SmallT, ANY
+	push byte -1
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	push dword [Std$Integer_smallt(eax).Value]
+	push dword [Std$Function_argument(edi).Val]
+	call _slot
+	add esp, byte 12
+	mov ecx, [eax]
+	cmp ecx, byte -1
+	je .missing
+	mov edx, [Std$Function_argument(edi, 2).Ref]
+	mov [edx], ecx
+	xor eax, eax
+	inc eax
+	ret
+.missing:
+	mov ecx, Std$Object$Nil
+	mov [eax], ecx
+	mov edx, eax
 	xor eax, eax
 	ret
 
@@ -128,6 +150,8 @@ cfunction _put;(integertable Table, int Key, void *Value) -> ()
 	cmp [node(ebp + 8 * eax).Key], ebx
 	jb .not_present
 	ja .search_loop
+	cmp [node(ebp + 8 * eax).Value], dword 0
+	je .not_present
 	mov edx, [esp + 28]
 	mov [node(ebp + 8 * eax).Value], edx
 	pop ebp
@@ -151,17 +175,8 @@ cfunction _put;(integertable Table, int Key, void *Value) -> ()
 	lea edi, [ebx + 2 * ecx + 1]
 	and edi, byte 1
 	mov ecx, [esp + 28]
-	jnz .odd
-	mov [node(eax).Key], ebx
-	mov [node(eax).Value], ecx
-	pop ebp
-	pop esi
-	pop edi
-	pop ebx
-	ret
-.odd:
-	mov [node(eax + 8).Key], ebx
-	mov [node(eax + 8).Value], ecx
+	mov [node(eax + 8 * edi).Key], ebx
+	mov [node(eax + 8 * edi).Value], ecx
 	pop ebp
 	pop esi
 	pop edi
@@ -349,3 +364,196 @@ cfunction _get;(integertable Table, int Key) -> (void *)
 	pop edi
 	pop ebx
 	ret
+
+cfunction _slot;(integertable Table, int Key, void *Value) -> (void **Slot)
+	push ebx
+	push edi
+	push esi
+	push ebp
+.restart_on_grow:
+	mov ebx, [esp + 24]
+	mov ecx, ebx
+	rol ecx, 2
+	mov esi, [esp + 20]
+	mov edx, [table(esi).Size]
+	dec edx
+	js .empty_table
+	mov ebp, [table(esi).Entries]
+	mov eax, ebx
+	; ecx = increment
+	; ebx = hash/key
+	; edx = mask
+	; eax = index
+	; ebp = entries
+.search_loop:
+	lea eax, [eax + 2 * ecx + 1]
+	and eax, edx
+	cmp [node(ebp + 8 * eax).Key], ebx
+	jb .not_present
+	ja .search_loop
+	cmp [node(ebp + 8 * eax).Value], dword 0
+	je .not_present
+	lea eax, [node(ebp + 8 * eax).Value]
+	pop ebp
+	pop esi
+	pop edi
+	pop ebx
+	ret
+.empty_table:
+	; ebx = hash/key
+	; ecx = increment
+	push ebx
+	push ecx
+	push byte 32
+	call Riva$Memory$_alloc
+	pop edx
+	pop ecx
+	pop ebx
+	mov [table(esi).Size], dword 2
+	mov [table(esi).Space], dword 1
+	mov [table(esi).Entries], eax
+	lea edi, [ebx + 2 * ecx + 1]
+	and edi, byte 1
+	mov ecx, [esp + 28]
+	mov [node(eax + 8 * edi).Key], ebx
+	mov [node(eax + 8 * edi).Value], ecx
+	lea eax, [node(eax + 8 * edi).Value]
+	pop ebp
+	pop esi
+	pop edi
+	pop ebx
+	ret
+.not_present:
+	dec dword [table(esi).Space]
+	jle near .grow_table
+	mov edi, [esp + 28]
+	cmp [node(ebp + 8 * eax).Value], dword 0
+	jne .replace_node
+.empty_node:
+	mov [node(ebp + 8 * eax).Key], ebx
+	mov [node(ebp + 8 * eax).Value], edi
+	jmp .restart_on_grow
+.replace_loop:
+	lea eax, [eax + 2 * ecx + 1]
+	and eax, edx
+	cmp [node(ebp + 8 * eax).Value], dword 0
+	je .empty_node
+	cmp [node(ebp + 8 * eax).Key], ebx
+	ja .replace_loop
+.replace_node:
+	push dword [node(ebp + 8 * eax).Key]
+	push dword [node(ebp + 8 * eax).Value]
+	mov [node(ebp + 8 * eax).Key], ebx
+	mov [node(ebp + 8 * eax).Value], edi
+	pop edi
+	pop ebx
+	mov ecx, ebx
+	rol ecx, 2
+	jmp .replace_loop
+.grow_table:
+	; First sort table entries so that they are decreasing
+	push esi
+	mov edx, [table(esi).Size]
+	shl edx, 3
+	mov edi, [esp + 32]
+	push edi
+	push ebx
+	; node(esp) is our pivot node
+	mov edi, ebp
+	lea esi, [ebp + edx]
+	mov eax, [node(ebp).Key]
+	mov ebx, [node(ebp).Value]
+	call .sort_section
+	pop esi
+	mov edx, [table(esi).Size]
+	add edx, edx
+	push edx
+	inc edx
+	shl edx, 3
+	push edx
+	call Riva$Memory$_alloc
+	mov edi, eax
+	mov ecx, [esp + 4]
+	pop edx
+	pop edx
+	mov [table(esi).Size], edx
+	mov [table(esi).Entries], eax
+	mov [table(esi).Space], edx
+	dec edx
+.entry_loop:
+	dec dword [table(esi).Space]
+	mov edi, [node(ebp).Key]
+	mov ecx, edi
+	rol ecx, 2
+.find_slot_loop:
+	lea edi, [edi + 2 * ecx + 1]
+	and edi, edx
+	cmp [node(eax + 8 * edi).Value], dword 0
+	jne .find_slot_loop
+	mov ebx, [node(ebp).Key]
+	mov ecx, [node(ebp).Value]
+	mov [node(eax + 8 * edi).Key], ebx
+	mov [node(eax + 8 * edi).Value], ecx
+	add ebp, byte 8
+	cmp [node(ebp).Value], dword 0
+	jne .entry_loop
+	jmp .restart_on_grow
+.sort_section:
+	; eax-edx = current node
+	; node(esp + 4) = pivot node
+	; edi = bottom free slot
+	; esi = top free slot
+	push edi
+	push esi
+.sort_loop:
+	cmp eax, [node(esp + 12).Key]
+	ja .add_to_bottom
+	jb .add_to_top
+	test ebx, ebx
+	jnz .add_to_bottom
+.add_to_top:
+	mov [node(esi).Key], eax
+	mov [node(esi).Value], ebx
+	sub esi, byte 8
+	cmp esi, edi
+	je .finished_section
+	mov eax, [node(esi).Key]
+	mov ebx, [node(esi).Value]
+	jmp .sort_loop
+.add_to_bottom:
+	mov [node(edi).Key], eax
+	mov [node(edi).Value], ebx
+	add edi, byte 8
+	cmp esi, edi
+	je .finished_section
+	mov eax, [node(edi).Key]
+	mov ebx, [node(edi).Value]
+	jmp .sort_loop
+.finished_section:
+	mov eax, [node(esp + 12).Key]
+	mov ebx, [node(esp + 12).Value]
+	mov [node(edi).Key], eax
+	mov [node(edi).Value], ebx
+	pop esi
+	push edi
+	add edi, byte 8
+	cmp esi, edi
+	jbe .no_recurse_1
+	push dword [node(edi).Value]
+	push dword [node(edi).Key]
+	mov eax, [node(esi).Key]
+	mov ebx, [node(esi).Value]
+	call .sort_section
+.no_recurse_1:
+	pop esi
+	pop edi
+	sub esi, byte 8
+	cmp esi, edi
+	jbe .no_recurse_2
+	push dword [node(edi).Value]
+	push dword [node(edi).Key]
+	mov eax, [node(esi).Key]
+	mov ebx, [node(esi).Value]
+	call .sort_section
+.no_recurse_2:
+	ret 8

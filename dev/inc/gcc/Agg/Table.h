@@ -12,6 +12,7 @@ RIVA_CFUN(Std$Object_t *, new, Std$Object_t *, Std$Object_t *)  __attribute__ ((
 RIVA_CFUN(void, insert, Std$Object_t *, Std$Object_t *, Std$Object_t *);
 RIVA_CFUN(int, delete, Std$Object_t *, Std$Object_t *);
 RIVA_CFUN(Std$Object_t *, index, Std$Object_t *, Std$Object_t *);
+RIVA_CFUN(Std$Object_t **, probe, Std$Object_t *, Std$Object_t *);
 RIVA_CFUN(size_t, size, Std$Object_t *);
 RIVA_CFUN(size_t, generation, Std$Object_t *);
 RIVA_CFUN(void, foreach, Std$Object$t *, int (*)(Std$Object$t *, Std$Object$t *, void *), void *);
