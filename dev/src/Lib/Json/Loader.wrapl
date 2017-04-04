@@ -1,0 +1,31 @@
+MOD Loader;
+
+IMP IO.Terminal USE Err;
+IMP Std.String;
+IMP Agg.Table;
+IMP IO.File, IO.Stream;
+IMP Json.Parser;
+
+DEF New!(flags) (
+	VAR parser <- Parser.New();
+	(NIL ≡ flags) <- 0;
+	parser:userdata <- [];
+	parser:onfinal <- <userdata+, value> userdata <- value;
+	parser:onvalue <- <stack, value> stack[1]:put(value);
+	parser:onmapstart <- <stack> stack:push(Table.New(String.Compare, String.Hash));
+	parser:onmappair <- <stack, key, value> stack[1]:insert(key, value);
+	parser:onmapend <- <stack> stack:pop;
+	parser:onarraystart <- <stack> stack:push([]);
+	parser:onarrayend <- <stack> stack:pop;
+	RET parser;
+);
+
+DEF Load!(filename, flags) (
+	VAR file ← File.Open(filename, File.Flag.Read);
+	VAR parser ← New(flags);
+	REP WHILE parser:parse(file:read(128));
+	file:close;
+	RET parser:userdata;
+);
+
+END Loader.

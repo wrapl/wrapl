@@ -1,0 +1,141 @@
+MOD Json;
+
+IMP Std USE Number, String, Symbol;
+IMP Agg USE List, Table;
+IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
+IMP Json.Parser;
+IMP Wrapl;
+
+DEF EscapeMap! Escaped.MapNew({
+	"\n" IS "\\n",
+	"\r" IS "\\r",
+	"\t" IS "\\t",
+	"\"" IS "\\\"",
+	"\\" IS "\\\\"
+});
+
+DEF Loader! MOD
+	DEF New!(flags | 0) (
+		VAR parser <- Parser.New();
+		parser:userdata <- [];
+		parser:onfinal <- <userdata+, value> userdata <- value;
+		parser:onvalue <- <stack, value> stack[1]:put(value);
+		parser:onmapstart <- <stack> stack:push(Table.New(String.Compare, String.Hash));
+		parser:onmappair <- <stack, key, value> stack[1]:insert(key, value);
+		parser:onmapend <- <stack> stack:pop;
+		parser:onarraystart <- <stack> stack:push([]);
+		parser:onarrayend <- <stack> stack:pop;
+		RET parser;
+	);
+END;
+
+DEF Encode! :?;
+DEF Decode! :?;
+
+METH Encode(@Stream.WriterT, @Symbol.T) IS <stream, symbol, escaped | Escaped.New(stream, EscapeMap)> (
+	escaped:write('{symbol}');
+);
+
+METH Encode(@Stream.WriterT, @Table.T) IS <stream, table, escaped | Escaped.New(stream, EscapeMap)> (
+	stream:write("{");
+	VAR conjunction <- "", key, value;
+	EVERY table:loop(key, value) DO (
+		stream:write(conjunction);
+		Encode(stream, '{key}');
+		stream:write(":");
+		Encode(stream, value, escaped);
+		conjunction <- ",";
+	);
+	stream:write("}");
+);
+
+METH Encode(@Stream.WriterT, @List.T) IS <stream, list, escaped | Escaped.New(stream, EscapeMap)> (
+	stream:write("[");
+	VAR conjunction <- "", value;
+	EVERY value <- list:values DO (
+		stream:writes(conjunction);
+		Encode(stream, value, escaped);
+		conjunction <- ",";
+	);
+	stream:write("]");
+);
+
+METH Encode(stream @ Stream.WriterT, number @ Number.T) (
+	stream:write('{number}');
+);
+
+METH Encode(@Stream.WriterT, @String.T) IS <stream, string, escaped | Escaped.New(stream, EscapeMap)> (
+	stream:write('"');
+	escaped:write(string);
+	stream:write('"');
+);
+
+METH Encode(stream @ Stream.WriterT, =NIL) (
+	stream:write("null");
+);
+
+METH Decode(@Stream.ReaderT) IS <stream, flags> (
+	VAR loader <- Loader.New(flags);
+	stream:copy(loader);
+	loader:finish;
+	RET loader:userdata;
+);
+
+METH Decode(@String.T) IS <string, flags> (
+	VAR loader <- Loader.New(flags);
+	loader:write(string);
+	loader:finish;
+	RET loader:userdata;
+);
+
+DEF LoadFile!(filename, flags) (
+	VAR file <- File.Open(filename, File.Flag.Read);
+	VAR parser <- Loader.New(flags);
+	REP WHILE parser:parse(file:read(128));
+	parser:finish;
+	file:close;
+	RET parser:userdata;
+);
+
+DEF LoadString!(string, flags) (
+	VAR parser <- Loader.New(flags);
+	VAR i; EVERY i <- 1:to(string:length + 1, 128) DO parser:parse(string[i, i + 128]);
+	parser:parse(string[i, 0]);
+	parser:finish;
+	RET parser:userdata;
+);
+
+DEF EncodeString! :?;
+
+METH EncodeString(=NIL) 'null';
+METH EncodeString(x @ Std.Integer.T) '{x}';
+METH EncodeString(x @ Std.Real.T) '{x}';
+METH EncodeString(x @ Std.Symbol.T) '{x}';
+METH EncodeString(x @ Std.String.T) (
+	VAR buffer <- Buffer.New();
+	VAR escaped <- Escaped.New(buffer, EscapeMap);
+	buffer:write("\"");
+	escaped:write(x);
+	buffer:write("\"");
+	RET buffer:rest;
+);
+
+METH EncodeString(x @ List.T) (
+	VAR b <- Buffer.New();
+	b:write('[');
+	VAR conj <- "";
+	EVERY b:writes(conj, EncodeString(x:values)) DO conj <- ",";
+	b:write(']');
+	RET b:rest;
+);
+
+METH EncodeString(x @ Table.T) (
+	VAR b <- Buffer.New();
+	b:write("{");
+	VAR key, value, conj <- "";
+	EVERY x:loop(key, value) & b:writes(conj, EncodeString(key), ":", EncodeString(value)) DO conj <- ",";
+	b:write("}");
+	RET b:rest;
+);
+
+END Json.
