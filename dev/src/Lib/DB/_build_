@@ -1,0 +1,6 @@
+CFLAGS = extend(CFLAGS,
+	"-I/usr/include/postgresql",
+	"-I/usr/include/postgresql/9.5/server/"
+)
+
+riva_module("DB/Postgres", {file("Postgres.o")})
