@@ -114,14 +114,14 @@ TO :riva_to_c(type@SizedFieldT, in, out, tmp) [
     '\t{tmp}_ptr++;',
     '};',
     '{tmp}_ptr[0] = 0;',
-    'param0->value->{type:length} = ((Agg$List$t *){in})->Length;',
+    'param0->{type:length} = ((Agg$List$t *){in})->Length;',
     '{out} = {tmp}_array;'
 ];
 
 TO :c_to_riva(type@SizedFieldT, in, out, tmp) [
 	'Agg$List$t *{tmp}_list = Agg$List$new0();',
     '{type:ctype} {tmp}_ptr = {in};',
-    'for (int {tmp}_i = 0; {tmp}_i < param0->value->{type:length}; ++{tmp}_i) \{',
+    'for (int {tmp}_i = 0; {tmp}_i < param0->{type:length}; ++{tmp}_i) \{',
     '\tStd$Object$t *{tmp}_value;'
 ] + (ALL "\t" + type:base:c_to_riva('{tmp}_ptr[0]', '{tmp}_value', '{tmp}_base'):values) + [
     '\tAgg$List$put({tmp}_list, {tmp}_value);',

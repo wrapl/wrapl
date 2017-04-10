@@ -33,7 +33,7 @@ scope("fontconfig", function()
 			"CFLAGS=\"" .. stringify(CFLAGS) .. " -O2\"",
 			--"LDFLAGS=\"" .. stringify(LDFLAGS) .. "\"",
 			"LDFLAGS=\"" .. FCFIX_SO .. "\"",
-			"--without-man-pages"
+			"--disable-docs"
 		}
 		execute{"cd", FONTCONFIG_DIR, "&&",
 			"make clean"

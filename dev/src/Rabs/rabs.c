@@ -136,12 +136,12 @@ int execute(lua_State *L) {
 	char *Buffer = GC_malloc_atomic(8192);
 	stringify(Buffer);
 	printf("\e[34m%s\e[0m\n", Buffer);
-	system(Buffer);
-	/*if (system(Buffer)) {
+	//system(Buffer);
+	if (system(Buffer)) {
 		return luaL_error(L, "Process returned non-zero exit code");
-	} else {*/
+	} else {
 		return 0;
-	//}
+	}
 }
 
 int rabs_index(lua_State *L) {
@@ -238,6 +238,8 @@ int main(int Argc, const char **Argv) {
 	} else {
 		cache_open(RootPath);
 		context_push("");
+		lua_pushinteger(L, CurrentVersion);
+		lua_setglobal(L, "VERSION");
 		load_file(L, concat(RootPath, "/_build_", 0));
 		printf("RootPath = %s, Path = %s\n", RootPath, Path);
 		context_t *Context = context_find(match_prefix(Path, RootPath));
@@ -246,7 +248,6 @@ int main(int Argc, const char **Argv) {
 			exit(1);
 		}
 		target_update(Context->Default);
-		cache_close();
 	}
 	return 0;
 }

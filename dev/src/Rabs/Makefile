@@ -12,8 +12,8 @@ sources = \
 	vfs.c \
 	builtins.s
 
-CFLAGS = `pkg-config --cflags lua5.3` -I. -g
-LDFLAGS = `pkg-config --libs lua5.3` -lm -lgc -lsqlite3 -lnettle -lHX -g
+CFLAGS = `pkg-config --cflags lua53` -I. -g
+LDFLAGS = `pkg-config --libs lua53` -lm -lgc -lsqlite3 -lnettle -lHX -g
 
 ../../bin/rabs: $(sources) *.h builtins.lua
 	gcc $(CFLAGS) $(sources) $(LDFLAGS) -o $@

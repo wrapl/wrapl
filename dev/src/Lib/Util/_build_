@@ -10,3 +10,4 @@ wrapl_module("Util/Pattern")
 
 subdir("Tecla")
 subdir("Editline")
+subdir("Linenoise")

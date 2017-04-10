@@ -177,6 +177,7 @@ api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "ParamSpecVariant"}][
 api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "SignalQuery"}][:field, {"name" IS "param_types"}].type <- 'array-GType*';
 EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'Closure'}][:field]:detach;
 EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'TypeInstance'}][:field]:detach;
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "Object"}][:constructor, {"cname" IS "g_object_newv"}][:parameters][:parameter, {"name" IS "parameters"}].type <- 'sized-1-!GObject.Parameter';
 
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "OutputMessage"}][:field, {"name" IS "control_messages"}]:detach;
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "vectors"}]:detach;
@@ -343,6 +344,8 @@ api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"na
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_headers"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_body"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_headers"}].type <- $:after('!');
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
+api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
 --VAR cairo <- Xml.New(api, :namespace, {"name" IS "cairo"});

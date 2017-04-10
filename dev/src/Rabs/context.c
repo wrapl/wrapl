@@ -2,6 +2,7 @@
 #include "rabs.h"
 #include "util.h"
 #include "map.h"
+#include "cache.h"
 #include <gc.h>
 #include <unistd.h>
 

@@ -35,6 +35,7 @@ end)
 function detect_modules(Path)
 	execute{"mkdir", "-p", OUT_LIB/Path}
 	local DetectedModules = meta("Modules"):scan("Modules", function()
+		local _ = VERSION
 		--stringify{LDFLAGS, CFLAGS}
 		local Modules = {}
 		for FileName in lfs.dir(tostring(file(""))) do
@@ -68,6 +69,7 @@ subdir("Pango")
 subdir("cairo")
 subdir("Gda")
 subdir("Soup")
+subdir("GooCanvas")
 
 --[[mkdir(-p docs)
 

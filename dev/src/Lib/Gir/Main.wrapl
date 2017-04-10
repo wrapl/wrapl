@@ -190,6 +190,7 @@ mapfile:write("GDummyFile = Gir/Gio/File\n");
 mapfile:write("GDaemonFile = Gir/Gio/File\n");
 mapfile:write("GParam = Gir/GObject/GParamSpec\n");
 mapfile:write("MurrineStyle = Gir/Gtk/Style\n");
+mapfile:write("GTlsCertificateGnutls = Gir/Gio/TlsCertificate\n");
 VAR type;
 EVERY type <- Common.Targets:values DO (
 	Out:write('Generating files for {type:cname}.\n');

@@ -11,6 +11,8 @@
 static sqlite3 *Cache;
 static sqlite3_stmt *HashGetStatement;
 static sqlite3_stmt *HashSetStatement;
+static sqlite3_stmt *UpdatedGetStatement;
+static sqlite3_stmt *UpdatedSetStatement;
 static sqlite3_stmt *DependsGetStatement;
 static sqlite3_stmt *DependsDeleteStatement;
 static sqlite3_stmt *DependsInsertStatement;
@@ -34,7 +36,7 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, version INTEGER, hash BLOB);", 0, 0, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, version INTEGER, updated INTEGER, hash BLOB);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -50,7 +52,15 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, version) VALUES(?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, version, updated) VALUES(?, ?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
+	if (sqlite3_prepare_v2(Cache, "SELECT updated FROM hashes WHERE id = ?", -1, &UpdatedGetStatement, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
+	if (sqlite3_prepare_v2(Cache, "UPDATE hashes SET updated = ? WHERE id = ?", -1, &UpdatedSetStatement, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -84,6 +94,7 @@ void cache_open(const char *RootPath) {
 	}
 	++CurrentVersion;
 	printf("CurrentVersion = %d\n", CurrentVersion);
+	atexit(cache_close);
 }
 
 void cache_close() {
@@ -120,8 +131,26 @@ void cache_hash_set(const char *Id, uint8_t Digest[SHA256_DIGEST_SIZE], int Vers
 	sqlite3_bind_text(HashSetStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_bind_blob(HashSetStatement, 2, Digest, SHA256_DIGEST_SIZE, SQLITE_STATIC);
 	sqlite3_bind_int(HashSetStatement, 3, Version);
+	sqlite3_bind_int(HashSetStatement, 4, CurrentVersion);
 	sqlite3_step(HashSetStatement);
 	sqlite3_reset(HashSetStatement);
+}
+
+int cache_updated_get(const char *Id) {
+	sqlite3_bind_text(UpdatedGetStatement, 1, Id, -1, SQLITE_STATIC);
+	int Updated = 0;
+	if (sqlite3_step(UpdatedGetStatement) == SQLITE_ROW) {
+		Updated = sqlite3_column_int(UpdatedGetStatement, 0);
+	}
+	sqlite3_reset(UpdatedGetStatement);
+	return Updated;
+}
+
+void cache_updated_set(const char *Id) {
+	sqlite3_bind_int(UpdatedSetStatement, 1, CurrentVersion);
+	sqlite3_bind_text(UpdatedSetStatement, 2, Id, -1, SQLITE_STATIC);
+	sqlite3_step(UpdatedSetStatement);
+	sqlite3_reset(UpdatedSetStatement);
 }
 
 struct map_t *cache_depends_get(const char *Id) {
