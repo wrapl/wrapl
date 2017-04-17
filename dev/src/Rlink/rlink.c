@@ -1748,7 +1748,7 @@ static void add_script_file(const char *FileName, int AutoExport) {
     lua_pushlightuserdata(State, Library);
     lua_setglobal(State, "Library");
     if (luaL_dofile(State, FileName)) {
-        printf("%s: error parsing file.\n", FileName);
+        fprintf(stderr, "\e[31m%s: error: %s\e[0m", FileName, lua_tostring(State, -1));
     };
 };
 
@@ -1782,7 +1782,7 @@ static void add_library_file(const char *FileName, int AutoExport) {
     lua_setglobal(State, "Library");
 
     if (luaL_dofile(State, FileName)) {
-        printf("%s: error parsing file.\n", FileName);
+        fprintf(stderr, "\e[31m%s: error: %s\e[0m", FileName, lua_tostring(State, -1));
     };
 };
 
@@ -1817,7 +1817,7 @@ static void add_definition_file(const char *FileName, int AutoExport) {
     	lua_setglobal(State, Define->Name);
     };
     if (luaL_dofile(State, FileName)) {
-        printf("%s: error parsing file.\n", FileName);
+		fprintf(stderr, "\e[31m%s: error: %s\e[0m", FileName, lua_tostring(State, -1));
     };
 };
 

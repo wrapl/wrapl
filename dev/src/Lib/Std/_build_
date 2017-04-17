@@ -2,15 +2,17 @@ CFLAGS = extend(CFLAGS, "-std=gnu99")
 LDFLAGS = extend(LDFLAGS, "Std.rlib", "Agg.rlib", "Riva.rlib", "Gmp.rlib")
 RDOCFLAGS = extend(RDOCFLAGS, "-I", file(""))
 
-riva_module("Std/Address", {file("Address.o")})
-riva_module("Std/Array", {file("Array.o")})
-riva_module("Std/Function", {file("Function.o")})
-riva_module("Std/Number", {file("Number.o"), file("Number2.o")})
-riva_module("Std/Integer", {file("Integer.o"), file("Integer2.o")})
-riva_module("Std/Methods", {file("Methods.o"), file("Methods2.o")})
-riva_module("Std/Object", {file("Object.o")})
-riva_module("Std/Rational", {file("Rational.o")})
-riva_module("Std/Real", {file("Real.o"), file("Real2.o")})
-riva_module("Std/String", {file("String.o"), file("String2.o")})
-riva_module("Std/Symbol", {file("Symbol.o")})
-riva_module("Std/Type", {file("Type.o"), file("Type2.o")})
+WRAPL_MODULES{
+	riva_module("Std/Address", {file("Address.o")}),
+	riva_module("Std/Array", {file("Array.o")}),
+	riva_module("Std/Function", {file("Function.o")}),
+	riva_module("Std/Number", {file("Number.o"), file("Number2.o")}),
+	riva_module("Std/Integer", {file("Integer.o"), file("Integer2.o")}),
+	riva_module("Std/Methods", {file("Methods.o"), file("Methods2.o")}),
+	riva_module("Std/Object", {file("Object.o")}),
+	riva_module("Std/Rational", {file("Rational.o")}),
+	riva_module("Std/Real", {file("Real.o"), file("Real2.o")}),
+	riva_module("Std/String", {file("String.o"), file("String2.o")}),
+	riva_module("Std/Symbol", {file("Symbol.o")}),
+	riva_module("Std/Type", {file("Type.o"), file("Type2.o")})
+}

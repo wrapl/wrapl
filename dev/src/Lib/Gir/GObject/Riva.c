@@ -19,8 +19,8 @@ Gir$GObject$Object$t *_object_new(GObject *Handle, Std$Type$t *Type) {
 	Object->Handle = Handle;
 //	Object->Extra = Std$Object$Nil;
 	g_object_set_qdata(Handle, RivaQuark, Object);	
-//	g_object_ref_sink(Handle);
-//	Riva$Memory$register_finalizer(Object, finalize, 0, 0, 0);
+	g_object_ref_sink(Handle);
+	Riva$Memory$register_finalizer(Object, finalize, 0, 0, 0);
 	return Object;
 };
 

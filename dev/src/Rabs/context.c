@@ -66,24 +66,21 @@ int context_symb_get(context_t *Context, const char *Name) {
 		lua_pushstring(L, Name);
 		if (lua_rawget(L, -2) != LUA_TNIL) {
 			lua_remove(L, -2);
-			target_t *Target = target_symb_new(Name);
-			target_depends_auto(Target);
 			return 1;
 		}
 		lua_pop(L, 2);
 		Context = Context->Parent;
 	}
 	lua_getglobal(L, Name);
-	return 1;
+	return 0;
 }
 
-int context_symb_set(const char *Name) {
+void context_symb_set(const char *Name) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, CurrentContext->Locals);
 	lua_pushstring(L, Name);
 	lua_pushvalue(L, -3);
 	lua_rawset(L, -3);
 	lua_pop(L, 1);
-	return 0;
 }
 
 int msghandler(lua_State *L) {

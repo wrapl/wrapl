@@ -11,8 +11,7 @@
 static sqlite3 *Cache;
 static sqlite3_stmt *HashGetStatement;
 static sqlite3_stmt *HashSetStatement;
-static sqlite3_stmt *UpdatedGetStatement;
-static sqlite3_stmt *UpdatedSetStatement;
+static sqlite3_stmt *LastCheckSetStatement;
 static sqlite3_stmt *DependsGetStatement;
 static sqlite3_stmt *DependsDeleteStatement;
 static sqlite3_stmt *DependsInsertStatement;
@@ -36,7 +35,7 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, version INTEGER, updated INTEGER, hash BLOB);", 0, 0, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, last_updated INTEGER, last_checked INTEGER, hash BLOB);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -48,19 +47,15 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "SELECT hash, version FROM hashes WHERE id = ?", -1, &HashGetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(Cache, "SELECT hash, last_updated, last_checked FROM hashes WHERE id = ?", -1, &HashGetStatement, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, version, updated) VALUES(?, ?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, last_updated, last_checked) VALUES(?, ?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "SELECT updated FROM hashes WHERE id = ?", -1, &UpdatedGetStatement, 0) != SQLITE_OK) {
-		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
-		exit(1);
-	}
-	if (sqlite3_prepare_v2(Cache, "UPDATE hashes SET updated = ? WHERE id = ?", -1, &UpdatedSetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(Cache, "UPDATE hashes SET last_checked = ? WHERE id = ?", -1, &LastCheckSetStatement, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -88,7 +83,7 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_exec(Cache, "SELECT MAX(version) FROM hashes", version_callback, 0, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "SELECT value FROM info WHERE key = \'version\'", version_callback, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -116,41 +111,35 @@ void cache_close() {
 }
 
 
-int cache_hash_get(const char *Id, uint8_t Digest[SHA256_DIGEST_SIZE]) {
+void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, uint8_t Digest[SHA256_DIGEST_SIZE]) {
 	sqlite3_bind_text(HashGetStatement, 1, Id, -1, SQLITE_STATIC);
 	int Version = 0;
 	if (sqlite3_step(HashGetStatement) == SQLITE_ROW) {
 		memcpy(Digest, sqlite3_column_blob(HashGetStatement, 0), SHA256_DIGEST_SIZE);
-		Version = sqlite3_column_int(HashGetStatement, 1);;
+		*LastUpdated = sqlite3_column_int(HashGetStatement, 1);
+		*LastChecked = sqlite3_column_int(HashGetStatement, 2);
+	} else {
+		memset(Digest, 0, SHA256_DIGEST_SIZE);
+		*LastUpdated = 0;
+		*LastChecked = 0;
 	}
 	sqlite3_reset(HashGetStatement);
-	return Version;
 }
 
-void cache_hash_set(const char *Id, uint8_t Digest[SHA256_DIGEST_SIZE], int Version) {
+void cache_hash_set(const char *Id, uint8_t Digest[SHA256_DIGEST_SIZE]) {
 	sqlite3_bind_text(HashSetStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_bind_blob(HashSetStatement, 2, Digest, SHA256_DIGEST_SIZE, SQLITE_STATIC);
-	sqlite3_bind_int(HashSetStatement, 3, Version);
+	sqlite3_bind_int(HashSetStatement, 3, CurrentVersion);
 	sqlite3_bind_int(HashSetStatement, 4, CurrentVersion);
 	sqlite3_step(HashSetStatement);
 	sqlite3_reset(HashSetStatement);
 }
 
-int cache_updated_get(const char *Id) {
-	sqlite3_bind_text(UpdatedGetStatement, 1, Id, -1, SQLITE_STATIC);
-	int Updated = 0;
-	if (sqlite3_step(UpdatedGetStatement) == SQLITE_ROW) {
-		Updated = sqlite3_column_int(UpdatedGetStatement, 0);
-	}
-	sqlite3_reset(UpdatedGetStatement);
-	return Updated;
-}
-
-void cache_updated_set(const char *Id) {
-	sqlite3_bind_int(UpdatedSetStatement, 1, CurrentVersion);
-	sqlite3_bind_text(UpdatedSetStatement, 2, Id, -1, SQLITE_STATIC);
-	sqlite3_step(UpdatedSetStatement);
-	sqlite3_reset(UpdatedSetStatement);
+void cache_last_check_set(const char *Id) {
+	sqlite3_bind_int(LastCheckSetStatement, 1, CurrentVersion);
+	sqlite3_bind_text(LastCheckSetStatement, 2, Id, -1, SQLITE_STATIC);
+	sqlite3_step(LastCheckSetStatement);
+	sqlite3_reset(LastCheckSetStatement);
 }
 
 struct map_t *cache_depends_get(const char *Id) {
@@ -166,6 +155,7 @@ struct map_t *cache_depends_get(const char *Id) {
 }
 
 void cache_depends_set(const char *Id, struct map_t *Depends) {
+	sqlite3_exec(Cache, "BEGIN TRANSACTION", 0, 0, 0);
 	sqlite3_bind_text(DependsDeleteStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_step(DependsDeleteStatement);
 	sqlite3_reset(DependsDeleteStatement);
@@ -175,6 +165,7 @@ void cache_depends_set(const char *Id, struct map_t *Depends) {
 		sqlite3_step(DependsInsertStatement);
 		sqlite3_reset(DependsInsertStatement);
 	}
+	sqlite3_exec(Cache, "COMMIT TRANSACTION", 0, 0, 0);
 }
 
 struct map_t *cache_scan_get(const char *Id) {
@@ -190,6 +181,7 @@ struct map_t *cache_scan_get(const char *Id) {
 }
 
 void cache_scan_set(const char *Id, struct map_t *Scans) {
+	sqlite3_exec(Cache, "BEGIN TRANSACTION", 0, 0, 0);
 	sqlite3_bind_text(ScanDeleteStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_step(ScanDeleteStatement);
 	sqlite3_reset(ScanDeleteStatement);
@@ -199,4 +191,5 @@ void cache_scan_set(const char *Id, struct map_t *Scans) {
 		sqlite3_step(ScanInsertStatement);
 		sqlite3_reset(ScanInsertStatement);
 	}
+	sqlite3_exec(Cache, "COMMIT TRANSACTION", 0, 0, 0);
 }

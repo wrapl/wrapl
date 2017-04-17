@@ -22,7 +22,7 @@ context_t *context_scope(const char *Name);
 void context_pop();
 
 int context_symb_get(context_t *Context, const char *Name);
-int context_symb_set(const char *Name);
+void context_symb_set(const char *Name);
 
 extern int msghandler(lua_State *L);
 

@@ -28,15 +28,14 @@ local AUTOGEN_SOURCE = meta("AutogenSource"):scan("WraplSources", function()
 	return Files
 end)
 
-AUTOGEN{AUTOGEN_SOURCE, API_XML}:build(function()
+AUTOGEN{AUTOGEN_SOURCE, API_XML, WRAPL_MODULES}:build(function()
 	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/""}
 end)
 
 function detect_modules(Path)
 	execute{"mkdir", "-p", OUT_LIB/Path}
-	local DetectedModules = meta("Modules"):scan("Modules", function()
+	local DetectedModules = AUTOGEN:scan(Path, function()
 		local _ = VERSION
-		--stringify{LDFLAGS, CFLAGS}
 		local Modules = {}
 		for FileName in lfs.dir(tostring(file(""))) do
 			if string.sub(FileName, -2) == ".c" then
@@ -54,7 +53,6 @@ function detect_modules(Path)
 		end
 		return Modules
 	end)
-	DetectedModules{AUTOGEN}
 	DEFAULT{DetectedModules}
 end
 

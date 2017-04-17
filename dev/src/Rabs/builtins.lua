@@ -28,10 +28,10 @@ function extend(List, ...)
 	return Copy
 end
 
-function shell(...)
+--[[function shell(...)
 	local Command = stringify(...)
 	local Input = io.popen(Command)
 	local Result = Input:read("a")
 	Input:close()
 	return Result
-end
+end]]--

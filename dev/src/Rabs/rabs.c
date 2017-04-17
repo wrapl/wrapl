@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <time.h>
 #include "target.h"
 #include "context.h"
 #include "util.h"
@@ -135,23 +136,49 @@ static char *stringify(char *Buffer) {
 int execute(lua_State *L) {
 	char *Buffer = GC_malloc_atomic(8192);
 	stringify(Buffer);
+	clock_t Start = clock();
 	printf("\e[34m%s\e[0m\n", Buffer);
-	//system(Buffer);
 	if (system(Buffer)) {
 		return luaL_error(L, "Process returned non-zero exit code");
 	} else {
+		clock_t End = clock();
+		printf("\t\e[34m%f seconds.\e[0m\n", ((double)(End - Start)) / CLOCKS_PER_SEC);
 		return 0;
 	}
 }
 
+int shell(lua_State *L) {
+	char *Buffer = GC_malloc_atomic(8192);
+	stringify(Buffer);
+	printf("\e[34m%s\e[0m\n", Buffer);
+	clock_t Start = clock();
+	FILE *File = popen(Buffer, "r");
+	luaL_Buffer Output[1];
+	luaL_buffinit(L, Output);
+	while (!feof(File)) {
+		size_t Count = fread(Buffer, 1, 8192, File);
+		luaL_addlstring(Output, Buffer, Count);
+	}
+	luaL_pushresult(Output);
+	clock_t End = clock();
+	printf("\t\e[34m%f seconds.\e[0m\n", ((double)(End - Start)) / CLOCKS_PER_SEC);
+	return 1;
+}
+
 int rabs_index(lua_State *L) {
 	const char *Name = lua_tostring(L, 2);
-	return context_symb_get(CurrentContext, Name);
+	if (context_symb_get(CurrentContext, Name)) {
+		target_t *Target = target_symb_new(Name);
+		target_depends_auto(Target);
+		target_update(Target);
+	}
+	return 1;
 }
 
 int rabs_newindex(lua_State *L) {
 	const char *Name = lua_tostring(L, 2);
-	return context_symb_set(Name);
+	context_symb_set(Name);
+	return 0;
 }
 
 static const char *find_root() {
@@ -190,6 +217,7 @@ static const luaL_Reg Globals[] = {
 	{"include", include},
 	{"context", context},
 	{"execute", execute},
+	{"shell", shell},
 	{"scope", scope},
 	{0, 0}
 };
@@ -224,7 +252,6 @@ int main(int Argc, const char **Argv) {
 	vfs_init();
 	target_init();
 	context_init();
-	
 	lua_createtable(L, 0, sizeof(Globals) / sizeof(luaL_Reg));
 	luaL_setfuncs(L, Globals, 0);
 	luaL_newmetatable(L, "rabs");
@@ -239,7 +266,8 @@ int main(int Argc, const char **Argv) {
 		cache_open(RootPath);
 		context_push("");
 		lua_pushinteger(L, CurrentVersion);
-		lua_setglobal(L, "VERSION");
+		context_symb_set("VERSION");
+		lua_pop(L, 1);
 		load_file(L, concat(RootPath, "/_build_", 0));
 		printf("RootPath = %s, Path = %s\n", RootPath, Path);
 		context_t *Context = context_find(match_prefix(Path, RootPath));

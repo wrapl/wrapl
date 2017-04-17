@@ -36,4 +36,4 @@ file("build"):build(function(Target)
 	execute{"svnversion", "-n", "../../../..", ">", file("build")}
 end)
 
-riva_module("Wrapl/Loader", Files)
+WRAPL_MODULES{riva_module("Wrapl/Loader", Files)}

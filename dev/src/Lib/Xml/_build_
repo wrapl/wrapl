@@ -1,2 +1,4 @@
-riva_module("Xml/Parser", {file("Parser.o")})
-wrapl_module("Xml")
+WRAPL_MODULES{
+	riva_module("Xml/Parser", {file("Parser.o")}),
+	wrapl_module("Xml")
+}
