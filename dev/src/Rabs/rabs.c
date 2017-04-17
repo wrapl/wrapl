@@ -159,6 +159,7 @@ int shell(lua_State *L) {
 		size_t Count = fread(Buffer, 1, 8192, File);
 		luaL_addlstring(Output, Buffer, Count);
 	}
+	fclose(File);
 	luaL_pushresult(Output);
 	clock_t End = clock();
 	printf("\t\e[34m%f seconds.\e[0m\n", ((double)(End - Start)) / CLOCKS_PER_SEC);
