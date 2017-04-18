@@ -14,7 +14,7 @@ riva_module("Gir/TypeMap", {file("TypeMap.o")})
 
 LDFLAGS = extend(LDFLAGS, "Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/")
 
-API_XML{RIVA, file("api.gir_list"), file("Convert.wrapl")}:build(function()
+API_XML{RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")}:build(function()
 	execute{RIVA, "-L", file("Convert.wrapl"):dir(true)/"", "Convert", file("api.gir_list"), "api.xml"}
 end)
 
@@ -28,7 +28,7 @@ local AUTOGEN_SOURCE = meta("AutogenSource"):scan("WraplSources", function()
 	return Files
 end)
 
-AUTOGEN{RIVA, AUTOGEN_SOURCE, API_XML, WRAPL_MODULES}:build(function()
+AUTOGEN{RIVA, AUTOGEN_SOURCE, API_XML}:build(function()
 	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/""}
 end)
 
