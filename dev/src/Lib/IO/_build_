@@ -2,8 +2,10 @@ CFLAGS = extend(CFLAGS, "-std=gnu99")
 LDFLAGS = extend(LDFLAGS, "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib")
 RDOCFLAGS = extend(RDOCFLAGS, "-I", file(""))
 
-riva_module("IO/Stream", {file("Stream.o")})
-riva_module("IO/Posix", {file("Posix.o")})
+WRAPL_MODULES{
+	riva_module("IO/Stream", {file("Stream.o")}),
+	riva_module("IO/Posix", {file("Posix.o")})
+}
 
 scope("with_posix", function()
 	LDFLAGS = extend(LDFLAGS, "IO/Posix.rlib")
