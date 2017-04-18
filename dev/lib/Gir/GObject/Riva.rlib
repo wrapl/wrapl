@@ -1,0 +1,13 @@
+module("Gir", "GObject", "Riva")
+if WINDOWS then
+	prefix("_Gir$GObject$Riva$")
+else
+	prefix("Gir$GObject$Riva$")
+end
+
+export("_object_to_riva")
+export("_value_to_riva")
+export("_riva_to_value")
+export("_to_value")
+export("_closure_from_ref")
+export("_closure_from_val")

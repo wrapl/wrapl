@@ -494,13 +494,13 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 );
 
 (VAR varargs <- Type.T();
-    TO :headers(=varargs) {"Gir/GObject/Value.h"};
-	TO :libraries(=varargs) {"Gir/GObject/Value.rlib"};
+    TO :headers(=varargs) {};
+	TO :libraries(=varargs) {};
 	TO :signature(=varargs) "ANY";
 	TO :ctype(=varargs) "va_list";
 
 	TO :c_precall(=varargs, argindex, paramindex)
-	['va_list param{paramindex} = Gir$GObject$Value$varargs(Count - {argindex}, Args + {argindex});'];
+	['va_list param{paramindex} = Gir$GObject$Riva$varargs(Count - {argindex}, Args + {argindex});'];
     Type.Define("varargs", varargs);
 );
 
@@ -647,7 +647,7 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
     TO :libraries(=varargs) {"Gir/GObject/Value.rlib"};
     TO :rtype(=varargs) "Agg$List$T";
     TO :ctype(=varargs) "va_list";
-    TO :riva_to_c(=varargs, in, out, tmp) ['{out} = Gir$GObject$Value$valist({in});'];
+    TO :riva_to_c(=varargs, in, out, tmp) ['{out} = Gir$GObject$Riva$valist({in});'];
     Type.Define("va_list", varargs);
 );
 

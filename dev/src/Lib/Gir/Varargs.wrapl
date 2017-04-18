@@ -15,13 +15,13 @@ DEF New!(terminator) (
 	RET type;
 );
 
-TO :headers(type@T) {"Gir/GObject/Value.h"};
-TO :libraries(type@T) {"Gir/GObject/Value.rlib"};
+TO :headers(type@T) {};
+TO :libraries(type@T) {};
 TO :signature(type@T) "ANY";
 TO :ctype(type@T) "va_list";
 
 TO :c_precall(type@T, argindex, paramindex)
-	['{type:ctype} param{paramindex} = Gir$GObject$Value$varargs_terminated(Count - {argindex}, Args + {argindex}, {type:terminator});'];
+	['{type:ctype} param{paramindex} = Gir$GObject$Riva$varargs_terminated(Count - {argindex}, Args + {argindex}, {type:terminator});'];
 
 DEF CountT <- <[Type.T]
 	start

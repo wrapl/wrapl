@@ -110,7 +110,7 @@ TO :generate_c(type@T) (
     WITH item <- type:items:values \ (?$ == Common.FunctionT & $:name = "GetType" & $:type = "GType" & $:params:length = 0) DO (
 		r:push("#include <Util/TypedFunction.h>", "#include <Gir/GObject/Value.h>");
 		r:put("",
-			'TYPED_INSTANCE(void, Gir$GObject$Value$to_value, T, Gir${type:namespace}${type:name}$t const *Source, GValue *Dest) \{',
+			'TYPED_INSTANCE(void, Gir$GObject$Riva$to_value, T, Gir${type:namespace}${type:name}$t const *Source, GValue *Dest) \{',
 			'\tg_value_init(Dest, {item:cname}());',
 			'\tg_value_set_boxed(Dest, Source->Value);',
 			"}"
@@ -151,7 +151,6 @@ TO :generate_h(type@T) [
 ];
 
 TO :generate_rdef(type@T) [
-	'library(\"Gir/GObject/Value.rlib\")',
     'export(\"T\")',
     'export(\"Nil\")'
 ];
