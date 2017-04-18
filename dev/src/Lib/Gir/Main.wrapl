@@ -16,13 +16,18 @@ DEF ObjDir <- "../../../obj/Lib/Gir";
 DEF IncDir <- "../../../inc/gcc/Gir";
 DEF LibDir <- "../../../lib/Gir";
 
+DEF CheckDir(dir) FileSys.Exists(dir) // FileSys.MakeDir(dir, 511);
+
+CheckDir(ObjDir);
+CheckDir(IncDir);
+CheckDir(LibDir);
+
 DEF EnvT <- <[] namespace, object, function>;
 DEF Handle <- :?;
 
 TO Handle(env, =:api, attrs) ();
 
 TO Handle(env, =:namespace, attrs) (
-    DEF CheckDir(dir) FileSys.Exists(dir) // FileSys.MakeDir(dir, 511);
     env:namespace <- attrs["name"];
     CheckDir('{ObjDir}/{env:namespace}');
     CheckDir('{IncDir}/{env:namespace}');
