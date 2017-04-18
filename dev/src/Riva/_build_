@@ -68,7 +68,7 @@ local Files = {
 RIVA_CONF = OUT_BIN/"riva.conf"
 
 RIVA_CONF:build(function(FileName)
-	local File = io.open(FileName, "w")
+	local File = io.open(tostring(FileName), "w")
 	File:write([[
 library = {
 	/lib,
