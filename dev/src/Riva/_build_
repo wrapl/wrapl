@@ -76,7 +76,7 @@ library = {
 	/usr/lib/i386-linux-gnu,
 	/usr/local/lib,
 ]])
-	File:write(OUT_LIB)
+	File:write(tostring(OUT_LIB))
 	File:write([[
 }
 
