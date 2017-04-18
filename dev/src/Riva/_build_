@@ -75,8 +75,10 @@ library = {
 	/usr/lib,
 	/usr/lib/i386-linux-gnu,
 	/usr/local/lib,
+
 ]])
 	File:write(tostring(OUT_LIB))
+	File:write("\n")
 	File:write([[
 }
 
@@ -86,6 +88,7 @@ modules = {
 	Wrapl/Loader
 }
 	]])
+	File:close()
 end)
 
 RIVA{RIVA_CONF}
