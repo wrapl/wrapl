@@ -21,7 +21,7 @@ CIVETWEB_ARCHIVE:build(function()
 end)
 
 CIVETWEB_DIR{CIVETWEB_ARCHIVE, CIVETWEB_PATCHES}:build(function()
-	execute{"unzip", CIVETWEB_ARCHIVE}
+	execute{"unzip", "-o", CIVETWEB_ARCHIVE}
 	execute{"patch", CIVETWEB_SRC, CIVETWEB_PATCHES}
 end)
 
@@ -35,7 +35,7 @@ YUAREL_ARCHIVE:build(function()
 end)
 
 YUAREL_DIR{YUAREL_ARCHIVE}:build(function()
-	execute{"unzip", YUAREL_ARCHIVE}
+	execute{"unzip", "-o", YUAREL_ARCHIVE}
 end)
 
 scope("civetweb", function()

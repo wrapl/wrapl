@@ -137,17 +137,17 @@ void target_update(target_t *Target) {
 			if (Depends->LastUpdated > DependsLastUpdated) DependsLastUpdated = Depends->LastUpdated;
 		}
 		int8_t Previous[SHA256_DIGEST_SIZE];
-		int8_t Current[SHA256_DIGEST_SIZE];
 		int LastUpdated, LastChecked;
 		if (Target->Build) {	
+			int8_t BuildHash[SHA256_DIGEST_SIZE];
 			lua_rawgeti(L, LUA_REGISTRYINDEX, Target->Build);
-			target_value_hash(Current);
+			target_value_hash(BuildHash);
 			lua_pop(L, 1);
 			struct map_t *PreviousDetectedDepends = cache_depends_get(Target->Id);
 			const char *BuildId = concat(Target->Id, "::build", 0);
 			cache_hash_get(BuildId, &LastUpdated, &LastChecked, Previous);
-			if (!LastUpdated || memcmp(Previous, Current, SHA256_DIGEST_SIZE)) {
-				cache_hash_set(BuildId, Current);
+			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_DIGEST_SIZE)) {
+				cache_hash_set(BuildId, BuildHash);
 				DependsLastUpdated = CurrentVersion;
 				printf("\t\e[35m<build function>\e[0m\n");
 			} else {
@@ -189,30 +189,21 @@ void target_update(target_t *Target) {
 				CurrentContext = PreviousContext;
 				chdir(concat(RootPath, CurrentContext->Path, 0));
 			}
-			Target->Class->hash(Target);
-			if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_DIGEST_SIZE)) {
-				Target->LastUpdated = CurrentVersion;
-				cache_hash_set(Target->Id, Current);
-			} else {
-				Target->LastUpdated = LastUpdated;
-				cache_last_check_set(Target->Id);
-			}
 		} else {
-			int LastUpdated, LastChecked;
-			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, Previous);
-			Target->Class->hash(Target);
-			if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_DIGEST_SIZE)) {
-				/*printf("hash_changed(%s)\n\t", Target->Id);
-				for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
-				printf("\n\t");
-				for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Current[I] & 0xFF);
-				printf("\n");*/
-				Target->LastUpdated = CurrentVersion;
-				cache_hash_set(Target->Id, Current);
-			} else {
-				Target->LastUpdated = LastUpdated;
-				cache_last_check_set(Target->Id);
-			}
+			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, Previous);	
+		}
+		Target->Class->hash(Target);
+		if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_DIGEST_SIZE)) {
+			/*printf("hash_changed(%s)\n\t", Target->Id);
+			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
+			printf("\n\t");
+			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Target->Hash[I] & 0xFF);
+			printf("\n");*/
+			Target->LastUpdated = CurrentVersion;
+			cache_hash_set(Target->Id, Target->Hash);
+		} else {
+			Target->LastUpdated = LastUpdated;
+			cache_last_check_set(Target->Id);
 		}
 	}
 	if (Top != lua_gettop(L)) {

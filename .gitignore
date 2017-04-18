@@ -26,6 +26,7 @@ dev/src/Lib/Event
 **/.codelite
 *.project
 *.cbp
-/dev/_build_.db
-/dev/.omakedb
-/dev/.omakedb.lock
+dev/_build_.db
+dev/.omakedb
+dev/.omakedb.lock
+dev/web/
