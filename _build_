@@ -1,0 +1,7 @@
+-- ROOT --
+
+OUT_BIN = file("bin")
+OUT_LIB = file("lib")
+OUT_DOC = file("doc")
+
+subdir("dev")
