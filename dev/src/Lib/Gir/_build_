@@ -18,17 +18,15 @@ API_XML{RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")}:build(
 	execute{RIVA, "-L", file("Convert.wrapl"):dir(true)/"", "Convert", file("api.gir_list"), "api.xml"}
 end)
 
-local AUTOGEN_SOURCE = meta("AutogenSource"):scan("WraplSources", function()
-	local Files = {}
-	for FileName in lfs.dir(tostring(file("Main.wrapl"):dir(true))) do
-		if string.sub(FileName, -6) == ".wrapl" then
-			table.insert(Files, file(FileName))
-		end
-	end
-	return Files
-end)
+AUTOGEN_SOURCES = {}
 
-AUTOGEN{RIVA, AUTOGEN_SOURCE, API_XML}:build(function()
+for FileName in lfs.dir(tostring(file("Main.wrapl"):dir(true))) do
+	if string.sub(FileName, -6) == ".wrapl" then
+		table.insert(AUTOGEN_SOURCES, file(FileName))
+	end
+end
+
+AUTOGEN{RIVA, AUTOGEN_SOURCES, API_XML}:build(function()
 	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/""}
 end)
 
