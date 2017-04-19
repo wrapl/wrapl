@@ -14,6 +14,6 @@ LINENOISE_SOURCE:build(function()
 end)
 
 scope("linenoise", function()
-	file("linenoise.o"){LINENOISE_SOURCE}:build(c_compile)
+	file("Linenoise.o"){LINENOISE_SOURCE}:build(c_compile)
 	riva_module("Util/Linenoise", {file("Linenoise.o"), file("linenoise.o")})
 end)
