@@ -10,7 +10,7 @@ end)
 
 file("TypeMap.o"){file("TypeMap.c")}:build(c_compile)
 
-TYPEMAP = riva_module("Gir/TypeMap", {file("TypeMap.o")})
+riva_module("Gir/TypeMap", {file("TypeMap.o")})
 
 LDFLAGS = extend(LDFLAGS, "Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/")
 
@@ -43,7 +43,7 @@ function detect_modules(Path)
 				Object{Source, Scan, TYPEMAP}:build(c_compile)
 				local Script = Source % "rdef"
 				local Module = (OUT_LIB/Path/string.sub(FileName, 1, -2)) % "riva"
-				Module{RLINK, TYPEMAP, Script, Object}:build(function(Module)
+				Module{RLINK, Script, Object}:build(function(Module)
 					execute{RLINK, LDFLAGS, "-o", Module, Object, Script, "-v0", "-?", Script % "lst"}
 				end)
 				table.insert(Modules, Module)

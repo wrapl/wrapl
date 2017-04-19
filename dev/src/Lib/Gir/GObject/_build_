@@ -3,8 +3,6 @@ LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l gthread-2.0 go
 
 detect_modules("Gir/GObject")
 
-file("Type.o"){TYPEMAP}
-
 riva_module("Gir/GObject/Init", {file("Init.o")})
 riva_module("Gir/GObject/Riva", {file("Riva.o")})
 riva_module("Gir/GObject/Type", {file("Type.o")})

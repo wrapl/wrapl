@@ -1,0 +1,7 @@
+module("Gir", "TypeMap")
+if WINDOWS then
+	prefix("_Gir$TypeMap$")
+else
+	prefix("Gir$TypeMap$")
+end
+export("Table")
