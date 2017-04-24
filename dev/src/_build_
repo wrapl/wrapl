@@ -4,6 +4,7 @@ RLINK = DEV_BIN/"rlink"
 WRAPL_MODULES = meta("WraplModules")
 
 CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
+CXXFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
 ASFLAGS = {"-DCMOVSUPPORT", "-Ov", "-w-all", "-DLINUX", "-felf"}
 GOFLAGS = {}
 LDFLAGS = {}
@@ -38,6 +39,38 @@ end
 function c_compile(Object)
 	local Source = Object % "c"
 	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
+end
+
+function cpp_includes(Source)
+	local Files = {}
+	local Lines = shell{"gcc", CXXFLAGS, "-I", Source:dir(), "-M", "-MG", Source}
+	local Start, I = Lines:find(": ")
+	local File = ""
+	while I <= #Lines do
+		local Char = Lines:sub(I, I)
+		if Char <= ' ' then
+			if File ~= "" then
+				--print(File)
+				table.insert(Files, file(File))
+				File = ""
+			end
+		elseif Char == '\\' then
+			I = I + 1
+			Char = Lines:sub(I, I)
+			if Char == ' ' then
+				File = File .. ' '
+			end
+		else
+			File = File .. Char
+		end
+		I = I + 1
+	end
+	return Files
+end
+
+function cpp_compile(Object)
+	local Source = Object % "cpp"
+	execute{"gcc", "-c", CXXFLAGS, "-o", Object, "-I", Source:dir(), Source}
 end
 
 function asm_includes(Source)
@@ -101,15 +134,6 @@ end
 
 function as_compile(Object)
 	local Source = Object % "S"
-	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
-end
-
-function go_includes(Source)
-	return {}
-end
-
-function go_compile(Object)
-	local Source = Object % "go"
 	execute{"gcc", "-c", CFLAGS, "-o", Object, "-I", Source:dir(), Source}
 end
 

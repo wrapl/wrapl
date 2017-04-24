@@ -33,7 +33,9 @@ scope("gmp", function()
 end)
 
 scope("libc", function()
-	LDFLAGS = extend(LDFLAGS, "-L/usr/lib/gcc/i686-pc-linux-gnu/6.1.1/", "-Z -d",
+	GCC_HOST = shell("gcc -dumpmachine"):match("(.-)%s*$")
+	GCC_VERSION = shell("gcc -dumpversion"):match("(.-)%s*$")
+	LDFLAGS = extend(LDFLAGS, "-L/usr/lib/gcc/" .. GCC_HOST .. "/" .. GCC_VERSION .. "/", "-Z -d",
 		"-xlibgcc.a", "-xlibgcc_eh.a", "-xlibc_nonshared.a", "-xlibstdc++.a",
 		"-xlibsupc++.a", "-xlibpthread.a", "libpthread.rlib", "-XGcc.exports"
 	)

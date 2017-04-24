@@ -14,9 +14,7 @@
 #include <unistd.h>
 #include <gc.h>
 #include <errno.h>
-#include <time.h>
 
-typedef struct target_class_t target_class_t;
 typedef struct target_update_t target_update_t;
 typedef struct target_pair_t target_pair_t;
 typedef struct target_file_t target_file_t;
@@ -27,33 +25,14 @@ typedef struct target_symb_t target_symb_t;
 extern const char *RootPath;
 static int TargetMetatable;
 static int BuildScanTarget;
-static struct map_t *TargetCache;
+static struct HXmap *TargetCache;
 struct target_t *CurrentTarget = 0;
-static struct map_t *DetectedDepends = 0;
+static struct HXmap *DetectedDepends = 0;
 static int BuiltTargets = 0;
-
-struct target_class_t {
-	size_t Size;
-	void (*tostring)(target_t *Target, luaL_Buffer *Buffer);
-	int (*hash)(target_t *Target);
-	int (*missing)(target_t *Target);
-};
-
-#define TARGET_FIELDS \
-	const target_class_t *Class; \
-	int Ref, Build, LastUpdated; \
-	context_t *BuildContext; \
-	const char *Id; \
-	struct map_t *Depends; \
-	int8_t Hash[SHA256_DIGEST_SIZE];
-
-struct target_t {
-	TARGET_FIELDS
-};
 
 void target_depends_add(target_t *Target, target_t *Depend) {
 	if (Target != Depend) {
-		map_set(Target->Depends, Depend->Id, Depend);
+		HXmap_add(Target->Depends, Depend, 0);
 	}
 }
 
@@ -120,6 +99,19 @@ static void target_value_hash(int8_t Hash[SHA256_DIGEST_SIZE]) {
 	return;
 }
 
+bool depends_update_fn(const struct HXmap_node *Node, int *DependsLastUpdated) {
+	target_t *Depends = (target_t *)Node->key;
+	target_update(Depends);
+	if (Depends->LastUpdated > *DependsLastUpdated) *DependsLastUpdated = Depends->LastUpdated;
+	return true;
+}
+
+bool depends_print_fn(const struct HXmap_node *Node, int *DependsLastUpdated) {
+	target_t *Depends = (target_t *)Node->key;
+	if (Depends->LastUpdated == *DependsLastUpdated) printf("\t\e[35m%s[%d]\e[0m\n", Depends->Id, Depends->LastUpdated);
+	return true;
+}
+
 void target_update(target_t *Target) {
 	if (Target->LastUpdated == -1) {
 		printf("\e[31mError: build cycle with %s\e[0m\n", Target->Id);
@@ -129,50 +121,39 @@ void target_update(target_t *Target) {
 	if (Target->LastUpdated == 0) {
 		Target->LastUpdated = -1;
 		++BuiltTargets;
-		printf("\e[32m[%d/%d] \e[33mtarget_update(%s)\e[0m\n", BuiltTargets, map_size(TargetCache), Target->Id);
+		printf("\e[32m[%d/%d] \e[33mtarget_update(%s)\e[0m\n", BuiltTargets, TargetCache->items, Target->Id);
 		int DependsLastUpdated = 0;
-		for (struct map_node_t *Node = Target->Depends->head; Node; Node = Node->next) {
-			target_t *Depends = (target_t *)Node->value;
-			target_update(Depends);
-			if (Depends->LastUpdated > DependsLastUpdated) DependsLastUpdated = Depends->LastUpdated;
-		}
+		HXmap_qfe(Target->Depends, depends_update_fn, &DependsLastUpdated);
 		int8_t Previous[SHA256_DIGEST_SIZE];
 		int LastUpdated, LastChecked;
+		time_t FileTime;
 		if (Target->Build) {	
 			int8_t BuildHash[SHA256_DIGEST_SIZE];
 			lua_rawgeti(L, LUA_REGISTRYINDEX, Target->Build);
 			target_value_hash(BuildHash);
 			lua_pop(L, 1);
-			struct map_t *PreviousDetectedDepends = cache_depends_get(Target->Id);
+			struct HXmap *PreviousDetectedDepends = cache_depends_get(Target->Id);
 			const char *BuildId = concat(Target->Id, "::build", 0);
-			cache_hash_get(BuildId, &LastUpdated, &LastChecked, Previous);
+			cache_hash_get(BuildId, &LastUpdated, &LastChecked, &FileTime, Previous);
 			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_DIGEST_SIZE)) {
-				cache_hash_set(BuildId, BuildHash);
+				cache_hash_set(BuildId, 0, BuildHash);
 				DependsLastUpdated = CurrentVersion;
 				printf("\t\e[35m<build function>\e[0m\n");
-			} else {
-				if (PreviousDetectedDepends) for (struct map_node_t *Node = PreviousDetectedDepends->head; Node; Node = Node->next) {
-					target_t *Depends = (target_t *)Node->value;
-					target_update(Depends);
-					if (Depends->LastUpdated > DependsLastUpdated) DependsLastUpdated = Depends->LastUpdated;
-				}
+			} else if (PreviousDetectedDepends) {
+				HXmap_qfe(PreviousDetectedDepends, depends_update_fn, &DependsLastUpdated);
 			}
-			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, Previous);
+			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);
 			if ((DependsLastUpdated > LastChecked) || Target->Class->missing(Target)) {
 				printf("\e[33mtarget_build(%s) Depends = %d, Last Updated = %d\e[0m\n", Target->Id, DependsLastUpdated, LastChecked);
-				for (struct map_node_t *Node = Target->Depends->head; Node; Node = Node->next) {
-					target_t *Depends = (target_t *)Node->value;
-					if (Depends->LastUpdated == DependsLastUpdated) printf("\t\e[35m%s[%d]\e[0m\n", Node->key, Depends ? Depends->LastUpdated : 0);
-				}
-				if (PreviousDetectedDepends) for (struct map_node_t *Node = PreviousDetectedDepends->head; Node; Node = Node->next) {
-					target_t *Depends = (target_t *)Node->value;
-					if (Depends->LastUpdated == DependsLastUpdated) printf("\t\e[35m%s[%d]\e[0m\n", Node->key, Depends ? Depends->LastUpdated : 0);
+				HXmap_qfe(Target->Depends, depends_print_fn, &DependsLastUpdated);
+				if (PreviousDetectedDepends) {
+					HXmap_qfe(PreviousDetectedDepends, depends_print_fn, &DependsLastUpdated);
 				}
 				target_t *PreviousTarget = CurrentTarget;
-				struct map_t *PreviousDepends = DetectedDepends;
+				struct HXmap *PreviousDepends = DetectedDepends;
 				context_t *PreviousContext = CurrentContext;
 				CurrentTarget = Target;
-				DetectedDepends = new_map();
+				DetectedDepends = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
 				CurrentContext = Target->BuildContext;
 				chdir(concat(RootPath, CurrentContext->Path, 0));
 				lua_pushcfunction(L, msghandler);
@@ -190,9 +171,9 @@ void target_update(target_t *Target) {
 				chdir(concat(RootPath, CurrentContext->Path, 0));
 			}
 		} else {
-			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, Previous);	
+			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);	
 		}
-		Target->Class->hash(Target);
+		FileTime = Target->Class->hash(Target, FileTime, Previous);
 		if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_DIGEST_SIZE)) {
 			/*printf("hash_changed(%s)\n\t", Target->Id);
 			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
@@ -200,7 +181,7 @@ void target_update(target_t *Target) {
 			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Target->Hash[I] & 0xFF);
 			printf("\n");*/
 			Target->LastUpdated = CurrentVersion;
-			cache_hash_set(Target->Id, Target->Hash);
+			cache_hash_set(Target->Id, FileTime, Target->Hash);
 		} else {
 			Target->LastUpdated = LastUpdated;
 			cache_last_check_set(Target->Id);
@@ -212,8 +193,8 @@ void target_update(target_t *Target) {
 }
 
 void target_depends_auto(target_t *Depend) {
-	if (CurrentTarget && CurrentTarget != Depend && !map_get(CurrentTarget->Depends, Depend->Id)) {
-		map_set(DetectedDepends, Depend->Id, Depend);
+	if (CurrentTarget && CurrentTarget != Depend && !HXmap_get(CurrentTarget->Depends, Depend)) {
+		HXmap_add(DetectedDepends, Depend, 0);
 	}
 }
 
@@ -229,9 +210,9 @@ static target_t *target_new(target_class_t *Class, const char *Id) {
 	Target->Id = Id;
 	Target->Build = 0;
 	Target->LastUpdated = 0;
-	Target->Depends = new_map();
+	Target->Depends = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
 	Target->Ref = luaL_ref(L, LUA_REGISTRYINDEX);
-	map_set(TargetCache, Id, Target);
+	HXmap_add(TargetCache, Id, Target);
 	return Target;
 }
 
@@ -277,25 +258,27 @@ static void target_file_tostring(target_file_t *Target, luaL_Buffer *Buffer) {
 	if (Target->Absolute) {
 		luaL_addstring(Buffer, Target->Path);
 	} else {
-		const char *Path = vfs_resolve(CurrentContext->Mounts, concat(RootPath, "/", Target->Path, 0));
+		const char *Path = vfs_resolve(Target->BuildContext->Mounts, concat(RootPath, "/", Target->Path, 0));
 		luaL_addstring(Buffer, Path);
 	}
 }
 
-static void target_file_hash(target_file_t *Target) {
+static time_t target_file_hash(target_file_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
 	const char *FileName;
 	if (Target->Absolute) {
 		FileName = Target->Path;
 	} else {
-		FileName = vfs_resolve(CurrentContext->Mounts, concat(RootPath, "/", Target->Path, 0));
+		FileName = vfs_resolve(Target->BuildContext->Mounts, concat(RootPath, "/", Target->Path, 0));
 	}
 	struct stat Stat[1];
 	if (stat(FileName, Stat)) {
 		printf("\e[31mWarning: rule failed to build: %s\e[0m\n", FileName);
-		return;
+		return 0;
 	}
 	if (!S_ISREG(Stat->st_mode)) {
 		memset(Target->Hash, -1, SHA256_DIGEST_SIZE);
+	} else if (Stat->st_mtime == PreviousTime) {
+		memcpy(Target->Hash, PreviousHash, SHA256_DIGEST_SIZE);
 	} else {
 		int File = open(FileName, 0, O_RDONLY);
 		struct sha256_ctx Ctx[1];
@@ -313,6 +296,7 @@ static void target_file_hash(target_file_t *Target) {
 		close(File);
 		sha256_digest(Ctx, SHA256_DIGEST_SIZE, Target->Hash);
 	}
+	return Stat->st_mtime;
 }
 
 static int target_file_missing(target_file_t *Target) {
@@ -336,12 +320,13 @@ target_class_t FileClass[] = {{
 static target_t *target_file_check(const char *Path, int Absolute) {
 	Path = concat(Path, 0);
 	const char *Id = concat("file:", Path, 0);
-	target_file_t *Target = (target_file_t *)map_get(TargetCache, Id);
+	target_file_t *Target = (target_file_t *)HXmap_get(TargetCache, Id);
 	if (!Target) {
 		Target = (target_file_t *)target_new(FileClass, Id);
 		Target->Absolute = Absolute;
 		Target->Path = Path;
-		Target->Depends = new_map();
+		Target->Depends = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
+		Target->BuildContext = CurrentContext;
 	}
 	return (target_t *)Target;
 }
@@ -369,7 +354,7 @@ int target_file_dir(lua_State *L) {
 	char *Path;
 	int Absolute;
 	if ((lua_gettop(L) == 2) && lua_toboolean(L, 2)) {
-		Path = vfs_resolve(CurrentContext->Mounts, concat(RootPath, "/", FileTarget->Path, 0));
+		Path = vfs_resolve(FileTarget->BuildContext->Mounts, concat(RootPath, "/", FileTarget->Path, 0));
 		Absolute = 1;
 	} else {
 		Path = concat(FileTarget->Path, 0);
@@ -447,8 +432,9 @@ static void target_meta_tostring(target_meta_t *Target, luaL_Buffer *Buffer) {
 	luaL_addstring(Buffer, Target->Name);
 }
 
-static void target_meta_hash(target_meta_t *Target) {
+static time_t target_meta_hash(target_meta_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
 	memset(Target->Hash, -1, SHA256_DIGEST_SIZE);
+	return 0;
 }
 
 /*static target_status_t target_meta_build(target_meta_t *Target, int Updated) {
@@ -465,7 +451,7 @@ static target_class_t MetaClass[] = {{
 int target_meta_new(lua_State *L) {
 	const char *Name = luaL_checkstring(L, 1);
 	const char *Id = concat("meta:", CurrentContext->Path, "::", Name, 0);
-	target_meta_t *Target = (target_meta_t *)map_get(TargetCache, Id);
+	target_meta_t *Target = (target_meta_t *)HXmap_get(TargetCache, Id);
 	if (!Target) {
 		Target = (target_meta_t *)target_new(MetaClass, Id);
 		Target->Name = Name;
@@ -476,18 +462,21 @@ int target_meta_new(lua_State *L) {
 
 int target_depends(lua_State *L) {
 	target_t *Target = luaL_checkudata(L, 1, "target");
-	if (lua_type(L, 2) == LUA_TTABLE) {
-		lua_pushnil(L);
-		while (lua_next(L, 2)) {
-			lua_pushcfunction(L, target_depends);
-			lua_pushvalue(L, 1);
-			lua_pushvalue(L, -3);
-			lua_call(L, 2, 0);
-			lua_pop(L, 1);
+	int N = lua_gettop(L);
+	for (int I = 2; I <= N; ++I) {
+		if (lua_type(L, I) == LUA_TTABLE) {
+			lua_pushnil(L);
+			while (lua_next(L, I)) {
+				lua_pushcfunction(L, target_depends);
+				lua_pushvalue(L, 1);
+				lua_pushvalue(L, -3);
+				lua_call(L, 2, 0);
+				lua_pop(L, 1);
+			}
+		} else {
+			target_t *Depend = luaL_checkudata(L, I, "target");
+			HXmap_add(Target->Depends, Depend, 0);
 		}
-	} else {
-		target_t *Depend = luaL_checkudata(L, 2, "target");
-		map_set(Target->Depends, Depend->Id, Depend);
 	}
 	lua_pushvalue(L, 1);
 	return 1;
@@ -516,25 +505,25 @@ struct target_scan_t {
 static void target_scan_tostring(target_scan_t *Target, luaL_Buffer *Buffer) {
 }
 
-static void target_scan_hash(target_scan_t *Target) {
-	struct map_t *Scans = cache_scan_get(Target->Id);
-	memset(Target->Hash, 0, SHA256_DIGEST_SIZE);
-	for (struct map_node_t *Node = Scans->head; Node; Node = Node->next) {
-		target_t *Depends = (target_t *)Node->value;
-		target_update(Depends);
-		for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) Target->Hash[I] ^= Depends->Hash[I];
-	}
+bool scan_depends_hash(const struct HXmap_node *Node, int8_t Hash[SHA256_DIGEST_SIZE]) {
+	target_t *Depends = (target_t *)Node->key;
+	target_update(Depends);
+	for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) Hash[I] ^= Depends->Hash[I];
+	return true;
 }
 
-static int target_scan_missing(target_scan_t *Target) {
-	return !cache_scan_get(Target->Id);
+static time_t target_scan_hash(target_scan_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
+	struct HXmap *Scans = cache_scan_get(Target->Id);
+	memset(Target->Hash, 0, SHA256_DIGEST_SIZE);
+	if (Scans) HXmap_qfe(Scans, scan_depends_hash, Target->Hash);
+	return 0;
 }
 
 static target_class_t ScanClass[] = {{
 	sizeof(target_scan_t),
 	(void *)target_scan_tostring,
 	(void *)target_scan_hash,
-	(void *)target_scan_missing
+	target_default_missing
 }};
 
 static int build_scan_target(lua_State *L) {
@@ -547,11 +536,11 @@ static int build_scan_target(lua_State *L) {
 		exit(1);
 	}
 	luaL_checktype(L, -1, LUA_TTABLE);
-	struct map_t *Scans = new_map();
+	struct HXmap *Scans = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
 		target_t *ScanTarget = (target_t *)luaL_checkudata(L, -1, "target");
-		map_set(Scans, ScanTarget->Id, ScanTarget);
+		HXmap_add(Scans, ScanTarget, 0);
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 2);
@@ -563,10 +552,10 @@ int target_scan_new(lua_State *L) {
 	target_t *ParentTarget = (target_t *)luaL_checkudata(L, 1, "target");
 	const char *Name = luaL_checkstring(L, 2);
 	const char *Id = concat("scan:", ParentTarget->Id, "::", Name, 0);
-	target_scan_t *Target = (target_scan_t *)map_get(TargetCache, Id);
+	target_scan_t *Target = (target_scan_t *)HXmap_get(TargetCache, Id);
 	if (!Target) {
 		Target = (target_scan_t *)target_new(ScanClass, Id);
-		map_set(Target->Depends, ParentTarget->Id, ParentTarget);
+		HXmap_add(Target->Depends, ParentTarget, 0);
 		Target->Name = Name;
 		Target->Source = ParentTarget;
 		Target->Build = BuildScanTarget;
@@ -587,11 +576,12 @@ struct target_symb_t {
 static void target_symb_tostring(target_symb_t *Target, luaL_Buffer *Buffer) {
 }
 
-static void target_symb_hash(target_symb_t *Target) {
+static time_t target_symb_hash(target_symb_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
 	context_t *Context = context_find(Target->Path);
 	context_symb_get(Context, Target->Name);
 	target_value_hash(Target->Hash);
 	lua_pop(L, 1);
+	return 0;
 }
 
 static target_class_t SymbClass[] = {{
@@ -603,7 +593,7 @@ static target_class_t SymbClass[] = {{
 
 target_t *target_symb_new(const char *Name) {
 	const char *Id = concat("symb:", CurrentContext->Path, CurrentContext->Name, "/", Name, 0);
-	target_symb_t *Target = (target_symb_t *)map_get(TargetCache, Id);
+	target_symb_t *Target = (target_symb_t *)HXmap_get(TargetCache, Id);
 	if (!Target) {
 		Target = (target_symb_t *)target_new(SymbClass, Id);
 		Target->Path = CurrentContext->Path;
@@ -645,10 +635,11 @@ static int target_index(lua_State *L) {
 }
 
 target_t *target_find(const char *Id) {
-	target_t *Target = (target_t *)map_get(TargetCache, Id);
+	target_t *Target = (target_t *)HXmap_get(TargetCache, Id);
 	if (Target) return Target;
 	if (!memcmp(Id, "file", 4)) return target_file_check(Id + 5, Id[5] == '/');
 	if (!memcmp(Id, "symb", 4)) {
+		Id = concat(Id, 0);
 		target_symb_t *Target = (target_symb_t *)target_new(SymbClass, Id);
 		const char *Name;
 		for (Name = Id + strlen(Id); --Name > Id + 5;) {
@@ -681,5 +672,5 @@ void target_init() {
 	TargetMetatable = luaL_ref(L, LUA_REGISTRYINDEX);
 	lua_pushcfunction(L, build_scan_target);
 	BuildScanTarget = luaL_ref(L, LUA_REGISTRYINDEX);
-	TargetCache = new_map();
+	TargetCache = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
 }

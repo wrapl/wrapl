@@ -92,7 +92,7 @@ int context(lua_State *L) {
 	return 1;
 }
 
-static char *stringify(char *Buffer) {
+char *stringify(char *Buffer) {
 	switch (lua_type(L, -1)) {
 	case LUA_TNIL: return Buffer;
 	case LUA_TNUMBER: if (lua_isinteger(L, -1)) {
@@ -135,7 +135,16 @@ static char *stringify(char *Buffer) {
 
 int execute(lua_State *L) {
 	char *Buffer = GC_malloc_atomic(8192);
-	stringify(Buffer);
+	int N = lua_gettop(L);
+	lua_pushvalue(L, 1);
+	char *Next = stringify(Buffer);
+	lua_pop(L, 1);
+	for (int I = 2; I <= N; ++I) {
+		*Next++ = ' ';
+		lua_pushvalue(L, I);
+		Next = stringify(Next);
+		lua_pop(L, 1);
+	}
 	clock_t Start = clock();
 	printf("\e[34m%s\e[0m\n", Buffer);
 	if (system(Buffer)) {
@@ -149,7 +158,16 @@ int execute(lua_State *L) {
 
 int shell(lua_State *L) {
 	char *Buffer = GC_malloc_atomic(8192);
-	stringify(Buffer);
+	int N = lua_gettop(L);
+	lua_pushvalue(L, 1);
+	char *Next = stringify(Buffer);
+	lua_pop(L, 1);
+	for (int I = 2; I <= N; ++I) {
+		*Next++ = ' ';
+		lua_pushvalue(L, I);
+		Next = stringify(Next);
+		lua_pop(L, 1);
+	}
 	printf("\e[34m%s\e[0m\n", Buffer);
 	clock_t Start = clock();
 	FILE *File = popen(Buffer, "r");

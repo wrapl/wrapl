@@ -39,11 +39,11 @@ end)
 ATOMIC_OPS_DIR{GC_DIR}:build(function()
 	execute{"mkdir", "-p", ATOMIC_OPS_DIR}
 	execute{"cd", ATOMIC_OPS_DIR, "&&",
-		"wget -nv http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-" .. ATOMIC_OPS_VERSION .. ".tar.gz -O- | tar xvzP --strip-components=1"
+		"wget -nv http://hboehm.info/gc/gc_source/libatomic_ops-" .. ATOMIC_OPS_VERSION .. ".tar.gz -O- | tar xvzP --strip-components=1"
 	}
 end)
 
-local Files = {
+RIVA_FILES = {
 	file("config.o"),
 	file("debug.o"),
 	file("directory.o"),
@@ -91,6 +91,6 @@ modules = {
 	File:close()
 end)
 
-RIVA{RIVA_CONF}
+WRAPL_MODULES{RIVA_CONF}
 
-c_program(RIVA, Files, {file("libgc.a")})
+c_program(RIVA, RIVA_FILES, {file("libgc.a")})

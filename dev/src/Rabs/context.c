@@ -1,16 +1,16 @@
 #include "context.h"
 #include "rabs.h"
 #include "util.h"
-#include "map.h"
 #include "cache.h"
+#include "target.h"
 #include <gc.h>
 #include <unistd.h>
 
 context_t *CurrentContext = 0;
-static struct map_t *ContextCache;
+static struct HXmap *ContextCache;
 
 context_t *context_find(const char *Path) {
-	return map_get(ContextCache, Path);
+	return HXmap_get(ContextCache, Path);
 }
 
 context_t *context_push(const char *Path) {
@@ -33,7 +33,7 @@ context_t *context_push(const char *Path) {
 	Context->Default = luaL_checkudata(L, -1, "target");
 	lua_rawset(L, -3);
 	Context->Locals = luaL_ref(L, LUA_REGISTRYINDEX);
-	map_set(ContextCache, Context->Path, Context);
+	HXmap_add(ContextCache, Context->Path, Context);
 	return Context;
 }
 
@@ -51,7 +51,8 @@ context_t *context_scope(const char *Name) {
 	Context->Default = Context->Parent->Default;
 	lua_createtable(L, 0, 0);
 	Context->Locals = luaL_ref(L, LUA_REGISTRYINDEX);
-	map_set(ContextCache, concat(Context->Path, Context->Name, 0), Context);
+	const char *Id = concat(Context->Path, Context->Name, 0);
+	HXmap_add(ContextCache, Id, Context);
 	return Context;
 }
 
@@ -97,5 +98,5 @@ int msghandler(lua_State *L) {
 }
 
 void context_init() {
-	ContextCache = new_map();
+	ContextCache = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
 }

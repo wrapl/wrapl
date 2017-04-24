@@ -31,11 +31,23 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
+	if (sqlite3_exec(Cache, "PRAGMA locking_mode = EXCLUSIVE", 0, 0, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
+	if (sqlite3_exec(Cache, "PRAGMA journal_mode = PERSIST", 0, 0, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
+	if (sqlite3_exec(Cache, "PRAGMA synchronous = OFF", 0, 0, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
 	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS info(key TEXT PRIMARY KEY, value);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, last_updated INTEGER, last_checked INTEGER, hash BLOB);", 0, 0, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS hashes(id TEXT PRIMARY KEY, last_updated INTEGER, last_checked INTEGER, hash BLOB, file_time INTEGER);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -43,15 +55,23 @@ void cache_open(const char *RootPath) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
+	if (sqlite3_exec(Cache, "CREATE INDEX IF NOT EXISTS scans_idx ON scans(id);", 0, 0, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
 	if (sqlite3_exec(Cache, "CREATE TABLE IF NOT EXISTS depends(id TEXT, depend TEXT);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "SELECT hash, last_updated, last_checked FROM hashes WHERE id = ?", -1, &HashGetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_exec(Cache, "CREATE INDEX IF NOT EXISTS depends_idx ON depends(id);", 0, 0, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
-	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, last_updated, last_checked) VALUES(?, ?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(Cache, "SELECT hash, last_updated, last_checked, file_time FROM hashes WHERE id = ?", -1, &HashGetStatement, 0) != SQLITE_OK) {
+		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
+		exit(1);
+	}
+	if (sqlite3_prepare_v2(Cache, "REPLACE INTO hashes(id, hash, last_updated, last_checked, file_time) VALUES(?, ?, ?, ?, ?)", -1, &HashSetStatement, 0) != SQLITE_OK) {
 		printf("Sqlite error: %s\n", sqlite3_errmsg(Cache));
 		exit(1);
 	}
@@ -111,26 +131,29 @@ void cache_close() {
 }
 
 
-void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, uint8_t Digest[SHA256_DIGEST_SIZE]) {
+void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, time_t *FileTime, uint8_t Digest[SHA256_DIGEST_SIZE]) {
 	sqlite3_bind_text(HashGetStatement, 1, Id, -1, SQLITE_STATIC);
 	int Version = 0;
 	if (sqlite3_step(HashGetStatement) == SQLITE_ROW) {
 		memcpy(Digest, sqlite3_column_blob(HashGetStatement, 0), SHA256_DIGEST_SIZE);
 		*LastUpdated = sqlite3_column_int(HashGetStatement, 1);
 		*LastChecked = sqlite3_column_int(HashGetStatement, 2);
+		*FileTime = sqlite3_column_int(HashGetStatement, 3);
 	} else {
 		memset(Digest, 0, SHA256_DIGEST_SIZE);
 		*LastUpdated = 0;
 		*LastChecked = 0;
+		*FileTime = 0;
 	}
 	sqlite3_reset(HashGetStatement);
 }
 
-void cache_hash_set(const char *Id, uint8_t Digest[SHA256_DIGEST_SIZE]) {
+void cache_hash_set(const char *Id, time_t FileTime, uint8_t Digest[SHA256_DIGEST_SIZE]) {
 	sqlite3_bind_text(HashSetStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_bind_blob(HashSetStatement, 2, Digest, SHA256_DIGEST_SIZE, SQLITE_STATIC);
 	sqlite3_bind_int(HashSetStatement, 3, CurrentVersion);
 	sqlite3_bind_int(HashSetStatement, 4, CurrentVersion);
+	sqlite3_bind_int(HashSetStatement, 5, FileTime);
 	sqlite3_step(HashSetStatement);
 	sqlite3_reset(HashSetStatement);
 }
@@ -142,54 +165,62 @@ void cache_last_check_set(const char *Id) {
 	sqlite3_reset(LastCheckSetStatement);
 }
 
-struct map_t *cache_depends_get(const char *Id) {
+struct HXmap *cache_depends_get(const char *Id) {
 	sqlite3_bind_text(DependsGetStatement, 1, Id, -1, SQLITE_STATIC);
-	struct map_t *Depends = 0;
+	struct HXmap *Depends = 0;
 	while (sqlite3_step(DependsGetStatement) == SQLITE_ROW) {
-		if (Depends == 0) Depends = new_map();
-		const char *DependId = concat(sqlite3_column_text(DependsGetStatement, 0), 0);
-		map_set(Depends, DependId, target_find(DependId));
+		if (Depends == 0) Depends = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
+		const char *DependId = sqlite3_column_text(DependsGetStatement, 0);
+		HXmap_add(Depends, target_find(DependId), 0);
 	}
 	sqlite3_reset(DependsGetStatement);
 	return Depends;
 }
 
-void cache_depends_set(const char *Id, struct map_t *Depends) {
+bool cache_depends_set_fn(const struct HXmap_node *Node, void *Arg) {
+	target_t *Target = (target_t *)Node->key;
+	sqlite3_bind_text(DependsInsertStatement, 2, Target->Id, -1, SQLITE_STATIC);
+	sqlite3_step(DependsInsertStatement);
+	sqlite3_reset(DependsInsertStatement);
+	return true;
+}
+
+void cache_depends_set(const char *Id, struct HXmap *Depends) {
 	sqlite3_exec(Cache, "BEGIN TRANSACTION", 0, 0, 0);
 	sqlite3_bind_text(DependsDeleteStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_step(DependsDeleteStatement);
 	sqlite3_reset(DependsDeleteStatement);
 	sqlite3_bind_text(DependsInsertStatement, 1, Id, -1, SQLITE_STATIC);
-	for (struct map_node_t *Node = Depends->head; Node; Node = Node->next) {
-		sqlite3_bind_text(DependsInsertStatement, 2, Node->key, -1, SQLITE_STATIC);
-		sqlite3_step(DependsInsertStatement);
-		sqlite3_reset(DependsInsertStatement);
-	}
+	HXmap_qfe(Depends, cache_depends_set_fn, 0);
 	sqlite3_exec(Cache, "COMMIT TRANSACTION", 0, 0, 0);
 }
 
-struct map_t *cache_scan_get(const char *Id) {
+struct HXmap *cache_scan_get(const char *Id) {
 	sqlite3_bind_text(ScanGetStatement, 1, Id, -1, SQLITE_STATIC);
-	struct map_t *Scans = 0;
+	struct HXmap *Scans = 0;
 	while (sqlite3_step(ScanGetStatement) == SQLITE_ROW) {
-		if (Scans == 0) Scans = new_map();
-		const char *ScanId = concat(sqlite3_column_text(ScanGetStatement, 0), 0);
-		map_set(Scans, ScanId, target_find(ScanId));
+		if (Scans == 0) Scans = HXmap_init(HXMAPT_DEFAULT, HXMAP_SINGULAR);
+		const char *ScanId = sqlite3_column_text(ScanGetStatement, 0);
+		HXmap_add(Scans, target_find(ScanId), 0);
 	}
 	sqlite3_reset(ScanGetStatement);
 	return Scans;
 }
 
-void cache_scan_set(const char *Id, struct map_t *Scans) {
+bool cache_scan_set_fn(const struct HXmap_node *Node, void *Arg) {
+	target_t *Target = (target_t *)Node->key;
+	sqlite3_bind_text(ScanInsertStatement, 2, Target->Id, -1, SQLITE_STATIC);
+	sqlite3_step(ScanInsertStatement);
+	sqlite3_reset(ScanInsertStatement);
+	return true;
+}
+
+void cache_scan_set(const char *Id, struct HXmap *Scans) {
 	sqlite3_exec(Cache, "BEGIN TRANSACTION", 0, 0, 0);
 	sqlite3_bind_text(ScanDeleteStatement, 1, Id, -1, SQLITE_STATIC);
 	sqlite3_step(ScanDeleteStatement);
 	sqlite3_reset(ScanDeleteStatement);
 	sqlite3_bind_text(ScanInsertStatement, 1, Id, -1, SQLITE_STATIC);
-	for (struct map_node_t *Node = Scans->head; Node; Node = Node->next) {
-		sqlite3_bind_text(ScanInsertStatement, 2, Node->key, -1, SQLITE_STATIC);
-		sqlite3_step(ScanInsertStatement);
-		sqlite3_reset(ScanInsertStatement);
-	}
+	HXmap_qfe(Scans, cache_scan_set_fn, 0);
 	sqlite3_exec(Cache, "COMMIT TRANSACTION", 0, 0, 0);
 }

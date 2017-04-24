@@ -3,8 +3,30 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <nettle/sha2.h>
+#include <time.h>
 
 typedef struct target_t target_t;
+typedef struct target_class_t target_class_t;
+
+struct target_class_t {
+	size_t Size;
+	void (*tostring)(target_t *Target, luaL_Buffer *Buffer);
+	time_t (*hash)(target_t *Target, time_t FileTime, int8_t Hash[SHA256_DIGEST_SIZE]);
+	int (*missing)(target_t *Target);
+};
+
+#define TARGET_FIELDS \
+	const target_class_t *Class; \
+	int Ref, Build, LastUpdated; \
+	struct context_t *BuildContext; \
+	const char *Id; \
+	struct HXmap *Depends; \
+	int8_t Hash[SHA256_DIGEST_SIZE];
+
+struct target_t {
+	TARGET_FIELDS
+};
 
 void target_init();
 

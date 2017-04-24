@@ -1,0 +1,89 @@
+#!/usr/bin/riva -tWrapl
+MOD Rimplib;
+
+IMP IO.Terminal USE Out;
+IMP IO USE Process, File;
+IMP Sys USE Program;
+
+DEF ProcessSO(input, output, path, prefix) (
+    VAR dump <- Process.Open("objdump", ["objdump", "-T", input]);
+    VAR outfile <- File.Open(output, File.Flag.Write + File.Flag.Text);
+    outfile:write('module("{path}")\n');
+    outfile:write('prefix("{NIL ~== prefix}")\n');
+    VAR line, section, i;
+    VAR exports <- {};
+    REP (WHILE line <- dump:read;
+        line <- ALL line:split(" \t");
+        (line:length = 7) & (line[4] ~= "*UND*") => exports:insert(line[7]);
+    );
+    EVERY outfile:writes('export("{exports:keys}")\n');
+    outfile:close;
+    dump:close;
+    dump:wait;
+);
+
+DEF ProcessA(input, output, path, prefix) (
+    VAR dump <- Process.Open("objdump", ["objdump", "-t", input]);
+    VAR outfile <- File.Open(output, File.Flag.Write + File.Flag.Text);
+    outfile:write('module("{path}")\n');
+    outfile:write('prefix("{NIL ~== prefix}")\n');
+    VAR line, section, i;
+    VAR exports <- {};
+    REP (WHILE line <- dump:read;
+        line <- ALL line:split(" \t");
+        (line:length = 6) & (line[2] = "g") => exports:insert(line[6]);
+    );
+    EVERY outfile:writes('export("{exports:keys}")\n');
+    outfile:close;
+    dump:close;
+    dump:wait;
+);
+
+DEF ProcessDLL(input, output, path, prefix) (
+);
+
+Sys.Program.Args:length = 0 => (
+    Out:write('\
+usage: rimplib [options] <input> <output>
+options:
+    -n <path>
+    -p <prefix>
+    -t <type>
+    -v
+');
+) // (
+    VAR i <- 1;
+    VAR path, prefix, type, verbose;
+    VAR input, output;
+    REP (WHILE i < Program.Args:length;
+        WHEN Sys.Program.Args[i]
+        IS "-n" DO
+            path <- Program.Args[i <- i + 1]
+        IS "-p" DO
+            prefix <- Program.Args[i <- i + 1]
+        IS "-t" DO
+            type <- Program.Args[i <- i + 1]
+        IS "-v" DO
+            verbose <- 1
+        DO
+            EXIT
+        ;
+        i <- i + 1;
+    );
+    input <- Program.Args[i];
+    output <- Program.Args[i + 1];
+    VAR i <- 0, j <- 0;
+    EVERY i <- input:any("/");
+    EVERY j <- input:any(".");
+    path == NIL => (path <- input[i + 1, j]);
+    type == NIL => (type <- input[j + 1, 0]);
+    WHEN type
+    IS "so", "0", "6" DO ProcessSO(input, output, path, prefix)
+    IS "dll" DO ProcessDLL(input, output, path, prefix)
+    IS "a" DO ProcessA(input, output, path, prefix)
+    ;
+);
+
+Program.Exit(0);
+
+END Rimplib.

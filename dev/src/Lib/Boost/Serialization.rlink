@@ -1,0 +1,3 @@
+include("libboost_serialization.a", true)
+include("libstdc++.rlib")
+include("libpthread.rlib")

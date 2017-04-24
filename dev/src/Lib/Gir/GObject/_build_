@@ -10,53 +10,37 @@ riva_module("Gir/GObject/Enum", {file("Enum.o")})
 riva_module("Gir/GObject/Interface", {file("Interface.o")})
 
 FONTCONFIG_URL = "https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.1.tar.bz2"
-local FONTCONFIG_ARCHIVE = file("fontconfig-2.12.1.tar.bz2")
 local FONTCONFIG_DIR = file("fontconfig-2.12.1")
 local FONTCONFIG_SO = OUT_LIB/"Gir/GObject/libfontconfig.so"
-local FCFIX_SO = file("fcfix.so")
+local FCFIX_SO = file("libfcfix.so")
 
-scope("fcfix", function()
-	FCFIX_SO{file("fcfix.c"), file("fcfix.h")}:build(function()
-		execute{"gcc", "-shared", "-ofcfix.so", "-fPIC", file("fcfix.c")}
-	end)
+FCFIX_SO{file("fcfix.c"), file("fcfix.h")}:build(function()
+	execute{"gcc", "-shared", "-o", FCFIX_SO, "-fPIC", file("fcfix.c")}
 end)
 
 scope("fontconfig", function()
 	CFLAGS = {"-Dmalloc=fcfix_malloc", "-Drealloc=fcfix_realloc", "-Dfree=fcfix_free", "-Dcalloc=fcfix_calloc", "-include", file("fcfix.h")}
-	--LDFLAGS = {"-Wl,--unresolved-symbols=ignore-all"}
 	
-	file("libfontconfig.so"){FONTCONFIG_DIR, FCFIX_SO}:build(function()
+	FONTCONFIG_SO{FONTCONFIG_DIR, FCFIX_SO}:build(function()
 		execute{"cd", FONTCONFIG_DIR, "&&",
 			"./configure --enable-shared",
 			"--prefix=/usr",
 			"--sysconfdir=/etc",
 			"CFLAGS=\"" .. stringify(CFLAGS) .. " -O2\"",
-			--"LDFLAGS=\"" .. stringify(LDFLAGS) .. "\"",
-			"LDFLAGS=\"" .. FCFIX_SO .. "\"",
+			--"LDFLAGS=\"-L" .. FCFIX_SO:dir() .. " -lfcfix\"",
 			"--disable-docs"
 		}
 		execute{"cd", FONTCONFIG_DIR, "&&",
 			"make clean"
 		}
-		execute{"cd", FONTCONFIG_DIR, "&&",
-			"make"
-		}
-		execute{"cp", FONTCONFIG_DIR/"src/.libs/libfontconfig.so", file("libfontconfig.so")}
+		pcall(execute, {"cd", FONTCONFIG_DIR, "&&",
+			"make -k"
+		})
+		execute{"cp", FONTCONFIG_DIR/"src/.libs/libfontconfig.so", FONTCONFIG_SO}
 	end)
 
-	FONTCONFIG_ARCHIVE:build(function()
-		execute{"wget -nv", FONTCONFIG_URL}
-	end)
-
-	FONTCONFIG_DIR{FONTCONFIG_ARCHIVE}:build(function()
-		execute{"tar", "xvjPf", FONTCONFIG_ARCHIVE}
-		--[[execute{"cd", FONTCONFIG_DIR, "&&",
-			"patch -p0 <", file("fcgi.diff")
-		}]]--
-	end)
-
-	FONTCONFIG_SO{file("libfontconfig.so")}:build(function()
-		execute{"cp", file("libfontconfig.so"), FONTCONFIG_SO}
+	FONTCONFIG_DIR{}:build(function()
+		execute{"wget -nv", FONTCONFIG_URL, "-O-", "|", "tar", "xvjP"}
 	end)
 	
 	DEFAULT{FONTCONFIG_SO}

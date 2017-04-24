@@ -2024,6 +2024,7 @@ int main(int Argc, char **Argv) {
 		char *OutFile = 0;
 		char *ListFile = 0;
 		char *ExportFile = 0;
+		char *ModuleName = 0;
 		for (int I = 1; I < Argc; ++I) {
 			if (Argv[I][0] == '-') {
 				switch (Argv[I][1]) {
@@ -2060,7 +2061,18 @@ int main(int Argc, char **Argv) {
 					}
 					break;
 				case 'X':
-					ExportFile = Argv[I] + 2;
+					if (Argv[I][2]) {
+						ExportFile = Argv[I] + 2;
+					} else {
+						ExportFile = Argv[++I];
+					}
+					break;
+				case 'N':
+					if (Argv[I][2]) {
+						ModuleName = Argv[I] + 2;
+					} else {
+						ModuleName = Argv[++I];
+					}
 					break;
 				case 'v':
 					Version = atoi(Argv[I] + 2);
@@ -2110,6 +2122,18 @@ int main(int Argc, char **Argv) {
 		};
 		if (ExportFile) {
 			FILE *File = fopen(ExportFile, "w");
+			if (ModuleName) {
+				fprintf(File, "module(");
+				char *PartStart = ModuleName;
+				char *PartEnd = strchr(PartStart, '/');
+				while (PartEnd) {
+					*PartEnd = 0;
+					fprintf(File, "\"%s\", ", PartStart);
+					PartStart = PartEnd + 1;
+					PartEnd = strchr(PartStart, '/');
+				}
+				fprintf(File, "\"%s\")\n", PartStart);
+			}
 			for (export_t *Export = Exports.Head; Export; Export = Export->Next) {
 				if (Export->Section) fprintf(File, "import(\"%s\")\n", Export->External);
 			};

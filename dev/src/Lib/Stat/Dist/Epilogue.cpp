@@ -78,6 +78,8 @@ METHOD("kurtosis", TYP, T) {
 #ifdef HAS_RANDOM_GENERATOR
 
 struct urng_t {
+	typedef double result_type;
+
 	Std$Object_t *Rand;
 	urng_t(Std$Object_t *_Rand) : Rand(_Rand) {};
 	inline bool has_fixed_range(void) const {return true;};

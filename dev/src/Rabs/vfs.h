@@ -1,8 +1,6 @@
 #ifndef VFS_H
 #define VFS_H
 
-#include "target.h"
-
 typedef struct vmount_t vmount_t;
 
 const vmount_t *vfs_mount(const vmount_t *Previous, const char *Path, const char *Target);

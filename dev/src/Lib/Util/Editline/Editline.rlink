@@ -1,6 +1,6 @@
 include("libedit.a")
-include("/usr/lib/libncurses.so")
-include("/usr/lib/libtinfo.so")
+include("libncurses.so")
+include("libtinfo.so")
 
 export("T")
 export("New")
