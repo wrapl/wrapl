@@ -109,9 +109,18 @@ GLOBAL_FUNCTION(FormatCheck, 1) {
 };
 
 static sf_count_t sndfile_get_filelen(sndfile_t *SndFile) {
+	int Current = SndFile->tell(SndFile->Stream);
+	int FileLen = SndFile->seek(SndFile->Stream, 0, IO$Stream$SEEK_END);
+	SndFile->seek(SndFile->Stream, Current, IO$Stream$SEEK_SET);
+	return FileLen;
 };
 
 static sf_count_t sndfile_seek(sf_count_t Offset, int Whence, sndfile_t *SndFile) {
+	switch (Whence) {
+	case SEEK_SET: Whence = IO$Stream$SEEK_SET; break;
+	case SEEK_CUR: Whence = IO$Stream$SEEK_CUR; break;
+	case SEEK_END: Whence = IO$Stream$SEEK_END; break;
+	}
 	return SndFile->seek(SndFile->Stream, Offset, Whence);
 };
 

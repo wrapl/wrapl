@@ -12,9 +12,9 @@ IMP .Type, .API, .Log;
 IMP .Common USE Targets;
 IMP .Special, .Object, .Opaque, .Struct, .Class, .Interface, .Enum, .Flags, .Callback, .Alias, .Response;
 
-DEF ObjDir <- "../../../obj/Lib/Gir";
-DEF IncDir <- "../../../inc/gcc/Gir";
-DEF LibDir <- "../../../lib/Gir";
+DEF ObjDir <- Args[1];
+DEF IncDir <- Args[2] + "/gcc";
+DEF LibDir <- Args[3];
 
 DEF CheckDir(dir) FileSys.Exists(dir) // FileSys.MakeDir(dir, 511);
 

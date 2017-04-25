@@ -3,6 +3,12 @@ local lfs = require "lfs"
 RLINK = DEV_BIN/"rlink"
 WRAPL_MODULES = meta("WraplModules")
 
+GEN_INC = file("gen/inc")
+GEN_LIB = file("gen/lib")
+
+mkdir(GEN_INC)
+mkdir(GEN_LIB)
+
 CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
 CXXFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
 ASFLAGS = {"-DCMOVSUPPORT", "-Ov", "-w-all", "-DLINUX", "-felf"}

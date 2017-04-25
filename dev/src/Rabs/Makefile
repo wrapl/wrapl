@@ -18,5 +18,4 @@ LDFLAGS = `pkg-config --libs lua53` -lm -lgc -lsqlite3 -lnettle -lHX -g
 	gcc $(CFLAGS) $(sources) $(LDFLAGS) -o $@
 
 clean:
-	rm $(objects)
 	rm ../../bin/rabs

@@ -7,7 +7,7 @@ file("libgmp.a"){GMP_DIR}:build(function()
 		"--prefix=" .. file(""),
 		"--libdir=" .. file(""),
 		"ABI=32",
-		"CFLAGS=\"" .. stringify(CFLAGS) .. " -O2\"",
+		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
 		"--without-man-pages"
 	}
 	execute{"cd", GMP_DIR, "&&",

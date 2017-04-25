@@ -1,6 +1,0 @@
-module("Boost", "System")
-import("_ZN5boost6system6throwsE")
-import("_ZN5boost6system16generic_categoryEv")
-import("_ZN5boost6system15system_categoryEv")
-import("__x86.get_pc_thunk.bx")
-import("__x86.get_pc_thunk.ax")

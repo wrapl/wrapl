@@ -27,11 +27,11 @@ for FileName in lfs.dir(tostring(file("Main.wrapl"):dir(true))) do
 end
 
 AUTOGEN{RIVA, AUTOGEN_SOURCES, API_XML}:build(function()
-	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/""}
+	execute{RIVA, "-L", file("Main.wrapl"):dir(true)/"", "--", file(""), GEN_INC, GEN_LIB}
 end)
 
 function detect_modules(Path)
-	execute{"mkdir", "-p", OUT_LIB/Path}
+	mkdir(OUT_LIB/Path)
 	local DetectedModules = AUTOGEN:scan(Path, function()
 		local _ = VERSION
 		local Modules = {}

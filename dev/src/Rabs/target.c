@@ -3,7 +3,6 @@
 #include "util.h"
 #include "context.h"
 #include "cache.h"
-#include "map.h"
 #include <lauxlib.h>
 #include <libHX/map.h>
 #include <string.h>
@@ -121,9 +120,9 @@ void target_update(target_t *Target) {
 	if (Target->LastUpdated == 0) {
 		Target->LastUpdated = -1;
 		++BuiltTargets;
-		printf("\e[32m[%d/%d] \e[33mtarget_update(%s)\e[0m\n", BuiltTargets, TargetCache->items, Target->Id);
+		//printf("\e[32m[%d/%d] \e[33mtarget_update(%s)\e[0m\n", BuiltTargets, TargetCache->items, Target->Id);
 		int DependsLastUpdated = 0;
-		HXmap_qfe(Target->Depends, depends_update_fn, &DependsLastUpdated);
+		HXmap_qfe(Target->Depends, (void *)depends_update_fn, &DependsLastUpdated);
 		int8_t Previous[SHA256_DIGEST_SIZE];
 		int LastUpdated, LastChecked;
 		time_t FileTime;
@@ -140,14 +139,14 @@ void target_update(target_t *Target) {
 				DependsLastUpdated = CurrentVersion;
 				printf("\t\e[35m<build function>\e[0m\n");
 			} else if (PreviousDetectedDepends) {
-				HXmap_qfe(PreviousDetectedDepends, depends_update_fn, &DependsLastUpdated);
+				HXmap_qfe(PreviousDetectedDepends, (void *)depends_update_fn, &DependsLastUpdated);
 			}
 			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);
 			if ((DependsLastUpdated > LastChecked) || Target->Class->missing(Target)) {
 				printf("\e[33mtarget_build(%s) Depends = %d, Last Updated = %d\e[0m\n", Target->Id, DependsLastUpdated, LastChecked);
-				HXmap_qfe(Target->Depends, depends_print_fn, &DependsLastUpdated);
+				HXmap_qfe(Target->Depends, (void *)depends_print_fn, &DependsLastUpdated);
 				if (PreviousDetectedDepends) {
-					HXmap_qfe(PreviousDetectedDepends, depends_print_fn, &DependsLastUpdated);
+					HXmap_qfe(PreviousDetectedDepends, (void *)depends_print_fn, &DependsLastUpdated);
 				}
 				target_t *PreviousTarget = CurrentTarget;
 				struct HXmap *PreviousDepends = DetectedDepends;
@@ -263,7 +262,7 @@ static void target_file_tostring(target_file_t *Target, luaL_Buffer *Buffer) {
 	}
 }
 
-static time_t target_file_hash(target_file_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
+static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
 	const char *FileName;
 	if (Target->Absolute) {
 		FileName = Target->Path;
@@ -515,7 +514,7 @@ bool scan_depends_hash(const struct HXmap_node *Node, int8_t Hash[SHA256_DIGEST_
 static time_t target_scan_hash(target_scan_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
 	struct HXmap *Scans = cache_scan_get(Target->Id);
 	memset(Target->Hash, 0, SHA256_DIGEST_SIZE);
-	if (Scans) HXmap_qfe(Scans, scan_depends_hash, Target->Hash);
+	if (Scans) HXmap_qfe(Scans, (void *)scan_depends_hash, Target->Hash);
 	return 0;
 }
 

@@ -245,8 +245,10 @@ recv_value_fn lookup_recv_value_fn(const PGresult *Res, int Col) {
 			return recv_bool_text;
 		case INT4OID:
 			return recv_int4_text;
+		case FLOAT4OID:
 		case FLOAT8OID:
 			return recv_float8_text;
+		case BPCHAROID:
 		case VARCHAROID:
 		case TEXTOID:
 		case BYTEAOID:

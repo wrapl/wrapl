@@ -1,4 +1,4 @@
-include("/usr/lib/libesmtp.so")
+include("libesmtp.so")
 include("Sys/Time.rlib")
 include("IO/Stream.rlib")
 

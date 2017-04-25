@@ -184,6 +184,24 @@ int shell(lua_State *L) {
 	return 1;
 }
 
+int lua_mkdir(lua_State *L) {
+	char *Buffer = GC_malloc_atomic(8192);
+	int N = lua_gettop(L);
+	lua_pushvalue(L, 1);
+	char *Next = stringify(Buffer);
+	lua_pop(L, 1);
+	for (int I = 2; I <= N; ++I) {
+		*Next++ = '/';
+		lua_pushvalue(L, I);
+		Next = stringify(Next);
+		lua_pop(L, 1);
+	}
+	if (HX_mkdir(Buffer, 0777) < 0) {
+		return luaL_error(L, "Failed to create directory");
+	}
+	return 0;
+}
+
 int rabs_index(lua_State *L) {
 	const char *Name = lua_tostring(L, 2);
 	if (context_symb_get(CurrentContext, Name)) {
@@ -237,6 +255,7 @@ static const luaL_Reg Globals[] = {
 	{"context", context},
 	{"execute", execute},
 	{"shell", shell},
+	{"mkdir", lua_mkdir},
 	{"scope", scope},
 	{0, 0}
 };
@@ -282,13 +301,13 @@ int main(int Argc, const char **Argv) {
 	if (!RootPath) {
 		puts("\e[31mError: could not find project root\e[0m");
 	} else {
+		printf("RootPath = %s, Path = %s\n", RootPath, Path);
 		cache_open(RootPath);
 		context_push("");
 		lua_pushinteger(L, CurrentVersion);
 		context_symb_set("VERSION");
 		lua_pop(L, 1);
 		load_file(L, concat(RootPath, "/_build_", 0));
-		printf("RootPath = %s, Path = %s\n", RootPath, Path);
 		context_t *Context = context_find(match_prefix(Path, RootPath));
 		if (!Context) {
 			printf("\e[31mError: current directory is not in project\e[0m");

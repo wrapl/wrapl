@@ -11,13 +11,12 @@ dev/bin/rabs
 dev/bin/rlink
 dev/doc
 dev/rst/*
+dev/gen
 /.project
 /.anjuta/*
 **/*.bz2
 **/*.o
 **/Gtk/*
-dev/inc/gcc/Gir
-dev/lib/Gir
 dev/pkg/debian/*
 dev/src/Lib/Csv/Csv
 dev/inc/gcc/Event
@@ -30,3 +29,11 @@ dev/_build_.db
 dev/.omakedb
 dev/.omakedb.lock
 dev/web/
+callgrind.out.*
+_build_.db*
+
+**/NME
+**/Haru
+**/Raw
+**/Wrapl/Compiler
+tst
