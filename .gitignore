@@ -36,4 +36,7 @@ _build_.db*
 **/Haru
 **/Raw
 **/Wrapl/Compiler
+dev/src/Lib/WraplC
+dev/src/Wredit
+dev/src/Plugin
 tst
