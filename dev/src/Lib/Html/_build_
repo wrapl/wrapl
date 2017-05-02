@@ -1,0 +1,28 @@
+GUMBO_VERSION = "0.10.1"
+GUMBO_URL = "https://github.com/google/gumbo-parser/archive/v" .. GUMBO_VERSION .. ".tar.gz"
+local GUMBO_DIR = file("gumbo")
+local GUMBO_LIB = file("libgumbo.a")
+
+GUMBO_LIB:build(function()
+	execute{"mkdir -p", GUMBO_DIR}
+	execute{"cd", GUMBO_DIR, "&&",
+		"wget --user-agent=\"Firefox/3.6.12\" -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
+	}
+	execute{"cd", GUMBO_DIR, "&&", "./autogen.sh"}
+	execute{"cd", GUMBO_DIR, "&&", "./configure",
+		"--prefix=" .. file(""),
+		"--libdir=" .. file(""),
+		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		"--without-man-pages"
+	}
+	execute{"cd", GUMBO_DIR, "&&",
+		"make install"
+	}
+end)
+
+scope("html", function()
+	CFLAGS = extend(CFLAGS, "-I", file("include"))
+	file("Gumbo.o"){file("libgumbo.a")}
+	riva_module("Html/Gumbo", {file("Gumbo.o")}, {GUMBO_LIB})
+	wrapl_module("Html")
+end)

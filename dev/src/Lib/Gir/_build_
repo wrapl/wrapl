@@ -42,11 +42,17 @@ function detect_modules(Path)
 				local Object = Source % "o"
 				Object{Source, Scan, TYPEMAP}:build(c_compile)
 				local Script = Source % "rdef"
-				local Module = (OUT_LIB/Path/string.sub(FileName, 1, -2)) % "riva"
+				local Name = Path .. "/" .. string.sub(FileName, 1, -3)
+				local Module = OUT_LIB/Name % "riva"
+				local Doc = GEN_DOC/Name % "xml"
 				Module{RLINK, Script, Object}:build(function(Module)
 					execute{RLINK, LDFLAGS, "-o", Module, Object, Script, "-v0", "-?", Script % "lst"}
 				end)
+				Doc{RDOC, RIVA, Source}:build(function(Doc)
+					execute{RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, Name, Source}
+				end)
 				table.insert(Modules, Module)
+				table.insert(Modules, Doc)
 			end
 		end
 		return Modules

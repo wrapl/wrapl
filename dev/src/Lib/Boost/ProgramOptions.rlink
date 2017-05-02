@@ -1,3 +1,3 @@
-include("/usr/lib/i386-linux-gnu/libboost_program_options.a", true)
+include("libboost_program_options.a", true)
 include("libstdc++.rlib")
 include("libpthread.rlib")

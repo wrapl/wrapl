@@ -1,4 +1,3 @@
-#!/usr/bin/riva -tWrapl
 MOD Main;
 
 IMP IO.File;
@@ -8,16 +7,16 @@ IMP Sys.FileSys;
 IMP IO.Process;
 IMP Std.Integer;
 
-DEF Item ← <[] line, comment>;
-DEF Module ← <[Item] path>;
-DEF Method ← <[Item] symbol, signature, params, return>;
-DEF AMethod ← <[Method]>;
-DEF Function ← <[Item] name, count, params, return>;
-DEF Type ← <[Item] name, parents>;
-DEF Constant ← <[Item] name, type>;
-DEF Symbol ← <[Item] name>;
-DEF Param ← <[] name, type, value>;
-DEF SubModule ← <[Item] name, comment, subitems>; 
+DEF Item <- <[] line, comment>;
+DEF Module <- <[Item] path>;
+DEF Method <- <[Item] symbol, signature, params, return>;
+DEF AMethod <- <[Method]>;
+DEF Function <- <[Item] name, count, params, return>;
+DEF Type <- <[Item] name, parents>;
+DEF Constant <- <[Item] name, type>;
+DEF Symbol <- <[Item] name>;
+DEF Param <- <[] name, type, value>;
+DEF SubModule <- <[Item] name, comment, subitems>; 
 
 VAR xmlfile;
 
@@ -122,7 +121,7 @@ TO :write(item@Function) (
 
 TO :write(item@SubModule) (
 	xmlfile:write('\t<module name="{item:name}">\n');
-	EVERY WITH subitem ← item:subitems:values DO (
+	EVERY WITH subitem <- item:subitems:values DO (
 		xmlfile:write('\t\t<constant name="{subitem:name}"');
 		xmlfile:write(' type="{(NIL ~== subitem:type):map("$", "/")}"');
 		xmlfile:write(">\n");
@@ -141,17 +140,19 @@ Args:length = 0 => (
 VAR type, file, args;
 VAR module;
 VAR includes <- [];
+VAR libdirs <- [];
 VAR xmlfilename;
-VAR asm <- "cat";
+VAR asm <- "nasm";
 
 VAR i <- 1, option;
 REP (WHILE option <- Args[i];
-    i <- i + 1;
     option[1] = "-" => (
         option[2] = "I" => (
-            includes:put(option[3, 0] | SEND "-I expects directory");
+            includes:put(option[3, 0] | Args[i <- i + 1] | SEND "-I expects directory");
+		) // option[2] = "L" => (
+			libdirs:put(option[3, 0] | Args[i <- i + 1] | SEND "-L expects directory");
         ) // option[2] = "o" => (
-            xmlfilename <- option[3, 0] | SEND "-o expects a filename";
+            xmlfilename <- option[3, 0] | Args[i <- i + 1] | SEND "-o expects a filename";
         ) // option[2] = "a" => (
         	asm <- option[3, 0] | SEND "-a expects an assembler name";
         ) // option[2, 0] = "include" ⇒ (
@@ -161,8 +162,10 @@ REP (WHILE option <- Args[i];
         );
     ) // (
         module <- option;
+		i <- i + 1;
         EXIT;
     );
+	i <- i + 1;
 );
 
 VAR items <- [];
@@ -343,25 +346,25 @@ EVERY file <- Args[i:to(Args:length)] DO (
                 );
                 items:put(item);
             ) IS "SUBMODULE" DO (
-            	line ← oline[11, 0]:split(")");
-            	info ← ALL line:split(", ");
-            	item ← SubModule();
-            	item:line ← info:pop@Integer.T;
-            	item:name ← info:pop;
-            	item:subitems ← [];
-            	item:comment ← [];
+            	line <- oline[11, 0]:split(")");
+            	info <- ALL line:split(", ");
+            	item <- SubModule();
+            	item:line <- info:pop@Integer.T;
+            	item:name <- info:pop;
+            	item:subitems <- [];
+            	item:comment <- [];
             	EVERY lineno:to(item:line) DO input:read;
             	lineno <- item:line + 1;
             	VAR subitem;
                 REP (lineno <- lineno + 1;
                     WHILE (line <- input:read)[1, 3] = "//";
                     line[3] = "@" => (
-                    	subitem ← Constant();
+                    	subitem <- Constant();
                         info <- ALL line[4, 0]:split(" :=");
-                        subitem:line ← lineno;
-                        subitem:name ← info:pop;
-                        subitem:type ← info:pop;
-                        subitem:comment ← [];
+                        subitem:line <- lineno;
+                        subitem:name <- info:pop;
+                        subitem:type <- info:pop;
+                        subitem:comment <- [];
                         item:subitems:put(subitem);
                     ) // (
                     	((NIL ≢ subitem) | item):comment:put(line[3, 0]);

@@ -16,22 +16,29 @@ end
 
 function riva_module(Name, Objects, Libraries, AutoExport)
 	local Module = OUT_LIB/Name % "riva"
+	local Doc = GEN_DOC/Name % "xml"
 	mkdir(Module:dir())
+	mkdir(Doc:dir())
+	local Sources = {}
 	for I, Object in ipairs(Objects) do
 		local SourceC = Object % "c"
 		local SourceCpp = Object % "cpp"
 		local SourceAsm = Object % "asm"
 		local SourceAs = Object % "S"
 		if lfs.attributes(tostring(SourceC)) then
+			table.insert(Sources, SourceC)
 			local ScanC = SourceC:scan("INCLUDES", c_includes)
 			Object{SourceC, ScanC}:build(c_compile)
 		elseif lfs.attributes(tostring(SourceCpp)) then
+			table.insert(Sources, SourceCpp)
 			local ScanCpp = SourceCpp:scan("INCLUDES", cpp_includes)
 			Object{SourceCpp, ScanCpp}:build(cpp_compile)
 		elseif lfs.attributes(tostring(SourceAsm)) then
+			table.insert(Sources, SourceAsm)
 			local ScanAsm = SourceAsm:scan("INCLUDES", asm_includes)
 			Object{SourceAsm, ScanAsm}:build(asm_compile)
 		elseif lfs.attributes(tostring(SourceAs)) then
+			--table.insert(Sources, SourceAs)
 			local ScanAs = SourceAs:scan("INCLUDES", as_includes)
 			Object{SourceAs, ScanAs}:build(as_compile)
 		end
@@ -53,7 +60,10 @@ function riva_module(Name, Objects, Libraries, AutoExport)
 			execute{RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst"}
 		end)
 	end
-	DEFAULT{Module}
+	Doc{RDOC, RIVA, Sources}:build(function(Doc)
+		execute{RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Sources}
+	end)
+	DEFAULT{Module, Doc}
 	return Module
 end
 
@@ -123,4 +133,5 @@ subdir("DB")
 subdir("Math")
 subdir("Boost")
 subdir("Stat")
+subdir("Html")
 --subdir("Tst")

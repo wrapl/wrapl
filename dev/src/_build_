@@ -1,13 +1,16 @@
 local lfs = require "lfs"
 
 RLINK = DEV_BIN/"rlink"
+RDOC = DEV_BIN/"rdoc"
 WRAPL_MODULES = meta("WraplModules")
 
 GEN_INC = file("gen/inc")
 GEN_LIB = file("gen/lib")
+GEN_DOC = file("gen/doc")
 
 mkdir(GEN_INC)
 mkdir(GEN_LIB)
+mkdir(GEN_DOC)
 
 CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
 CXXFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}

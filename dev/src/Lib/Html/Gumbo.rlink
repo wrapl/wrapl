@@ -1,0 +1,16 @@
+include("Std.rlib")
+include("Riva.rlib")
+include("IO/Stream.rlib")
+
+export("T")
+export("Parse")
+
+submodule("Node")
+subexport("Node", "NodeT", "T")
+subexport("Node", "DocumentNodeT", "DocumentT")
+subexport("Node", "ElementNodeT", "ElementT")
+subexport("Node", "TextNodeT", "TextT")
+subexport("Node", "CDataNodeT", "CDataT")
+subexport("Node", "CommentNodeT", "CommentT")
+subexport("Node", "WhitespaceNodeT", "WhitespaceT")
+subexport("Node", "TemplateNodeT", "TemplateT")
