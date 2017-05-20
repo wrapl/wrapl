@@ -68,10 +68,12 @@ subdir("GdkPixbuf")
 subdir("Gtk")
 subdir("GtkSource")
 subdir("Pango")
-subdir("cairo")
+subdir("PangoCairo")
+subdir("Cairo")
 subdir("Gda")
 subdir("Soup")
 subdir("GooCanvas")
+subdir("Lasem")
 
 --[[mkdir(-p docs)
 

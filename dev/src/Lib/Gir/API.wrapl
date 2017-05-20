@@ -10,7 +10,7 @@ IMP Xml.Loader;
 
 VAR ns!, cname!, name!;
 
-DEF identifiers! ← {};
+DEF identifiers! <- {};
 
 DEF AddIdent!(name, path) (
 	identifiers:insert(name, path);
@@ -19,74 +19,74 @@ DEF AddIdent!(name, path) (
 DEF FixupXml(node) (
 	--Out:write('node = {node}\n');
 	WHEN node:tag IS :a DO (
-		VAR child ← node[];
-		child ≢ ∅ ⇒ (
+		VAR child <- node[];
+		child ~== NIL => (
 			WHEN child:tag IS :code DO (
 				WHEN child.class IS "function" DO (
-					VAR id ← identifiers[child:text:before(" ()")];
-					id ≢ ∅ ⇒ (
-						VAR prefix ← 'Gir/{ns}/{name}/';
-						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
-						node:content ← [id];
-						node:tag ← :id;
-						node:attrs ← {};
+					VAR id <- identifiers[child:text:before(" ()")];
+					id ~== NIL => (
+						VAR prefix <- 'Gir/{ns}/{name}/';
+						id:begins(prefix) => id <- id[prefix:length + 1, 0];
+						node:content <- [id];
+						node:tag <- :id;
+						node:attrs <- {};
 					);
 				) IS "literal" DO (
-					VAR id ← identifiers[child:text];
-					id ≢ ∅ ⇒ (
-						VAR prefix ← 'Gir/{ns}/{name}/';
-						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
-						node:content ← [id];
-						node:tag ← :id;
-						node:attrs ← {};
+					VAR id <- identifiers[child:text];
+					id ~== NIL => (
+						VAR prefix <- 'Gir/{ns}/{name}/';
+						id:begins(prefix) => id <- id[prefix:length + 1, 0];
+						node:content <- [id];
+						node:tag <- :id;
+						node:attrs <- {};
 					);
 				);
 			) IS :span DO (
 				WHEN child.class IS "type" DO (
-					VAR id ← identifiers[child:text];
-					id ≢ ∅ ⇒ (
-						VAR prefix ← 'Gir/{ns}/{name}/';
-						id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
-						node:content ← [id];
-						node:tag ← :id;
-						node:attrs ← {};
+					VAR id <- identifiers[child:text];
+					id ~== NIL => (
+						VAR prefix <- 'Gir/{ns}/{name}/';
+						id:begins(prefix) => id <- id[prefix:length + 1, 0];
+						node:content <- [id];
+						node:tag <- :id;
+						node:attrs <- {};
 					);
 				);
 			);
 		);
 	) IS :em DO (
 		WHEN node.class IS "parameter" DO (
-			VAR child ← node;
-			REP WHILE child ← child[];
-			node:tag ← :var;
-			node:content ← [child:text];
-			node:attrs ← {};
+			VAR child <- node;
+			REP WHILE child <- child[];
+			node:tag <- :var;
+			node:content <- [child:text];
+			node:attrs <- {};
 		);
 	) IS :span DO (
 		WHEN node.class IS "term" DO (
-			VAR child ← FixupXml(node[]);
-			child ≡ ∅ ⇒ (
-				node.class ← "literal";
-			) ↷ (
-				node:tag ← child:tag;
-				node:content ← child:content;
-				node:attrs ← {};
+			VAR child <- FixupXml(node[]);
+			child == NIL => (
+				node.class <- "literal";
+			) // (
+				node:tag <- child:tag;
+				node:content <- child:content;
+				node:attrs <- {};
 			);
 		);
 	) IS :td DO (
-		node[:p] ⇒ node:content ←  node[:p]:content;
+		node[:p] => node:content <-  node[:p]:content;
 		EVERY FixupXml(node[]);
 	) IS :code DO (
 		WHEN node.class IS "literal" DO (
-			VAR id ← identifiers[node:text];
-			id ≢ ∅ ⇒ (
-				VAR prefix ← 'Gir/{ns}/{name}/';
-				id:begins(prefix) ⇒ id ← id[prefix:length + 1, 0];
-				node:content ← [id];
-				node:tag ← :id;
-				node:attrs ← {};
-			) ↷ (
-				node:tag ← :span;
+			VAR id <- identifiers[node:text];
+			id ~== NIL => (
+				VAR prefix <- 'Gir/{ns}/{name}/';
+				id:begins(prefix) => id <- id[prefix:length + 1, 0];
+				node:content <- [id];
+				node:tag <- :id;
+				node:attrs <- {};
+			) // (
+				node:tag <- :span;
 			);
 		); 
 	) DO (
@@ -101,9 +101,9 @@ DEF FixupXml(node) (
 );
 
 DEF GetXml!(args) (
-	VAR sgrep ← Process.Open("sgrep", args);
-	VAR tidy ← Process.Open("tidy", ["tidy", "-config", "../../../src/Lib/Gir/tidyconfig"]);
-	VAR parser ← Loader.New();
+	VAR sgrep <- Process.Open("sgrep", args);
+	VAR tidy <- Process.Open("tidy", ["tidy", "-config", "../../../src/Lib/Gir/tidyconfig"]);
+	VAR parser <- Loader.New();
 	sgrep:copy(tidy);
 	tidy:close(Stream.CloseMode.Write);
 	sgrep:wait;
@@ -112,7 +112,7 @@ DEF GetXml!(args) (
 	parser:finish;
 	tidy:wait;
 	tidy:close;
-	VAR xml ← parser:userdata;
+	VAR xml <- parser:userdata;
 	RET FixupXml(xml[:body]);
 	RECV msg DO (
 		Out:write('msg = {msg}\n');
@@ -152,7 +152,7 @@ DEF GetFunc!(function) (
 			EVERY args:put(dir + "/" + ("." ~= (".." ~= FileSys.ListDir(dir))));
 		);
 		
-		VAR file ← File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
+		VAR file <- File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
 		
 		RET filename;
 	);
@@ -173,7 +173,7 @@ DEF GetType!() (
 		FileSys.Exists(source) // FAIL;
 		args:put(source);
 		
-		VAR file ← File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
+		VAR file <- File.Open(filename, File.Flag.Write + File.Flag.Text):write(GetXml(args)):close;
 		
 		RET filename;
 	);

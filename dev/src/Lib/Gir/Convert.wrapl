@@ -8,21 +8,23 @@ VAR namespace, prefix, main, values;
 
 VAR log <- IO.File.Open("convert.log", IO.File.Flag.Write + IO.File.Flag.Text);
 
-VAR gir, gir_list <- IO.File.Open(Sys.Program.Args[1], IO.File.Flag.Read + IO.File.Flag.Text);
+VAR gir_dirs <- [
+	"/usr/lib/girepository-1.0",
+	"/usr/lib/i386-linux-gnu/girepository-1.0"
+];
 
-VAR gir_file;
-EVERY gir_file <- Sys.FileSys.ListDir("/usr/lib/girepository-1.0") DO gir_file[1] ~= "." => (
+VAR gir_file, gir_dir, gir;
+EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:values)) DO gir_file[1] ~= "." => (
 	gir_file = "Gtk-2.0.typelib" => STEP;
 	gir_file = "Vte-0.0.typelib" => STEP;
-	--gir_file = "cairo-1.0.typelib" => STEP;
-	WHILE gir <- IO.Process.Open("g-ir-generate", '/usr/lib/girepository-1.0/{gir_file}');
+	gir_file = "Dfu-1.0.typelib" => STEP;
+	Out:write('File: {gir_file}\n');
+	WHILE gir <- IO.Process.Open("g-ir-generate", '{gir_dir}/{gir_file}');
 	VAR gir_xml <- Xml.Load(gir, Xml.NoText);
 	gir:wait;
 	gir:close;
-	Out:write('File: {gir_file}\n');
 	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
 );
-gir_list:close;
 
 -- Additional fixups go here
 
@@ -239,6 +241,16 @@ api[:namespace, {"name" IS "Pango"}][:class, {"name" IS 'Main'}][:method, {"name
 api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "ScriptForLang"}]:detach;
 api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "GlyphString"}][:field, {"name" IS "glyphs"}]:detach;
 
+api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrFontDesc"}]:prepend(
+	Xml.New(:constructor, {"name" IS "new", "cname" IS "pango_attr_font_desc_new"}, [
+		Xml.New(:parameters, [
+			Xml.New(:parameter, {"name" IS "desc", "type" IS "Pango.FontDescription"})
+		])
+	])
+);
+
+api[:namespace, {"name" IS "PangoCairo"}][:object, {"name" IS "FcFontMap"}]:detach;
+
 api[:namespace, {"name" IS "Gdk"}][:object, {"name" IS "Cursor"}][:method, {"name" IS "get_surface"}][:parameters][:parameter, {"name" IS "x_hot"}].type <- 'out-{$}';
 api[:namespace, {"name" IS "Gdk"}][:object, {"name" IS "Cursor"}][:method, {"name" IS "get_surface"}][:parameters][:parameter, {"name" IS "y_hot"}].type <- 'out-{$}';
 
@@ -329,7 +341,6 @@ api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoHintMetrics"}]:
 api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoFillRule"}]:detach;
 api[:namespace, {"name" IS "GooCanvas"}][:enum, {"name" IS "CairoLineCap"}]:detach;
 
-EVERY api[:namespace, {"name" IS "cairo"}][:class, {"name" IS "Main"}][:method]:detach;
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Server"}]:prepend(
 	Xml.New(:constructor, {"name" IS "new", "cname" IS "soup_server_new"}, [
 		Xml.New(:parameters, [
@@ -348,7 +359,9 @@ api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
---VAR cairo <- Xml.New(api, :namespace, {"name" IS "cairo"});
+
+EVERY api[:namespace, {"name" IS "cairo"}][:class, {"name" IS "Main"}][:method]:detach;
+
 EVERY WITH cname <- cairo[].cname DO (
 	VAR i <- 0, j, s <- ['cairo'];
 	EVERY j <- cname:any(Std.String.Upper) | 0 DO (
@@ -359,14 +372,14 @@ EVERY WITH cname <- cairo[].cname DO (
 	cname <- s @ (Std.String.T, '_');
 );
 
-VAR cairo_api <- Xml.LoadFile(Main:path + "/cairo/extra.xml", Xml.NoText);
-EVERY WITH name <- cairo_api[][:method].name DO (
+VAR cairo_api <- Xml.LoadFile(Main:path + "/Cairo/extra.xml", Xml.NoText);
+EVERY WITH method <- cairo_api[][:method] DO method.shared // (
 	VAR i <- 0, j, s <- [];
-	EVERY j <- name:any(Std.String.Upper) | 0 DO (
-		s:put(name[i, j]:lower);
+	EVERY j <- method.name:any(Std.String.Upper) | 0 DO (
+		s:put(method.name[i, j]:lower);
 		i <- j;
 	);
-	name <- s @ (Std.String.T, '_');
+	method.name <- s @ (Std.String.T, '_');
 );
 EVERY WITH node <- cairo_api[] DO (
 	VAR name <- ALL node.cname:split('_');
@@ -384,7 +397,7 @@ EVERY WITH node <- cairo_api[:struct][:method][:"return-type"] DO node.type:begi
 	type:pull;
 	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
 	type <- (SUM type:values) | 'Cairo';
-	node.type <- 'cairo.{type}';
+	node.type <- 'Cairo.{type}';
 );
 
 EVERY WITH node <- cairo_api[:struct][:method][:parameters][:parameter] DO node.type:begins("cairo") => (
@@ -393,18 +406,23 @@ EVERY WITH node <- cairo_api[:struct][:method][:parameters][:parameter] DO node.
 	type:pull;
 	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
 	type <- (SUM type:values) | 'Cairo';
-	node.type <- 'cairo.{type}';
+	node.type <- 'Cairo.{type}';
 ) // node.type:begins("const-cairo") => (
 	VAR type <- ALL node.type:split('_');
 	type:pop;
 	type:pull;
 	EVERY type:values <- $[1]:map(Std.String.Lower, Std.String.Upper) + $[2, 0];
 	type <- (SUM type:values) | 'Cairo';
-	node.type <- 'const-cairo.{type}';
+	node.type <- 'const-Cairo.{type}';
 );
 
 EVERY cairo:append(cairo_api[]);
 
+cairo.name <- "Cairo";
+
+EVERY WITH node <- api:find(; node) node.type:find("cairo.") DO (
+	node.type <- $:map(["cairo."], ["Cairo."]);
+);
 
 VAR out <- IO.File.Open(Sys.Program.Args[2], IO.File.Flag.Write + IO.File.Flag.Text) | Out;
 out:write(api);

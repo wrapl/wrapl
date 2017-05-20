@@ -60,7 +60,7 @@ function riva_module(Name, Objects, Libraries, AutoExport)
 			execute{RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst"}
 		end)
 	end
-	Doc{RDOC, RIVA, Sources}:build(function(Doc)
+	Doc{RDOC, RIVA, WRAPL_MODULES, Sources}:build(function(Doc)
 		execute{RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Sources}
 	end)
 	DEFAULT{Module, Doc}
@@ -73,12 +73,16 @@ end
 
 function wrapl_module(Name)
 	local Module = OUT_LIB/Name % "wrapl"
+	local Doc = GEN_DOC/Name % "xml"
 	mkdir(Module:dir())
 	local Source = file(Module:basename())
 	Module{Source}:build(function(Module)
 		execute{"cp", Source, Module}
 	end)
-	DEFAULT{Module}
+	Doc{RDOC, RIVA, WRAPL_MODULES, Sources}:build(function(Doc)
+		execute{RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Source}
+	end)
+	DEFAULT{Module, Doc}
 	return Module
 end
 

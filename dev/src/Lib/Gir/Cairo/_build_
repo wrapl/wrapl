@@ -4,4 +4,4 @@ CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags --cflags cairo glib-2
 )
 LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l --cflags cairo glib-2.0"))
 
-detect_modules("Gir/cairo")
+detect_modules("Gir/Cairo")

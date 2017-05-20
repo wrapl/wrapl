@@ -208,9 +208,9 @@ Out:write("done.\n");
 Log.Log:close;
 Log.List:close;
 
-VAR idfile ← File.Open("/tmp/identifiers.txt", File.Flag.Write + File.Flag.Text);
+VAR idfile ← File.Open("identifiers.txt", File.Flag.Write + File.Flag.Text);
 VAR idkey, idvalue;
-EVERY API.identifiers:loop(idkey, idvalue) DO idfile:writes(idkey, " → ", idvalue, "\n");
+EVERY API.identifiers:loop(idkey, idvalue) DO idfile:writes(idkey, " -> ", idvalue, "\n");
 idfile:close;
 
 Program.Exit();
