@@ -113,7 +113,7 @@ int posix_memalign(void **Ptr, size_t Alignment, size_t Size) {
 
 void *fcfix_malloc(size_t Size) {
 	//printf("%s:%d\n", __FILE__, __LINE__);
-	return GC_malloc_atomic_uncollectable(Size);
+	return GC_malloc_uncollectable(Size);
 };
 
 void fcfix_free(void *Pointer) {
@@ -123,7 +123,7 @@ void fcfix_free(void *Pointer) {
 
 void *fcfix_calloc(size_t Size, size_t Num) {
 	//printf("%s:%d\n", __FILE__, __LINE__);
-	return GC_malloc_atomic_uncollectable(Size * Num);
+	return GC_malloc_uncollectable(Size * Num);
 };
 
 void *fcfix_realloc(void *Pointer, size_t Size) {

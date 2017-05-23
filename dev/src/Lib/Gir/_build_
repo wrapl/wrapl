@@ -73,30 +73,4 @@ subdir("Cairo")
 subdir("Gda")
 subdir("Soup")
 subdir("GooCanvas")
-subdir("Lasem")
-
---[[mkdir(-p docs)
-
-.DEFAULT: Autogen.log
-
-DIRS = \
-	GObject \
-	GLib \
-	Gio \
-	Pango \
-	Gdk \
-	GdkX11 \
-	GdkPixbuf \
-	Gtk \
-	GtkSource \
-	Vte \
-	GConf \
-	Atk \
-	GooCanvas \
-	cairo
-
-if $(file-exists Autogen.log)
-	foreach(DIR, $(DIRS))
-		mkdir(-p $(DIR))
-		.SUBDIRS: $(DIR)
-]]--
+--subdir("Lasem")

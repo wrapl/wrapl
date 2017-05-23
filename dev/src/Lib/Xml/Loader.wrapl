@@ -11,80 +11,80 @@ DEF NoText! 1;
 
 DEF NodeT! <[] parent, tag, attrs, content>;
 
-METH :"@"(node@NodeT, =String.T) (
-	VAR s ← "<" + node:tag @ String.T;
-	VAR k, v; EVERY node:attrs:loop(k, v) DO s ← '{s} {k}="{v:map(SpecialChars, HtmlEntities)}"';
-	node:content:length = 0 ⇒ RET s + "/>";
-	s ← s + ">";
-	VAR child; EVERY child ← node:content:values DO (
-		?child ≡ String.T ⇒ (
-			s ← s + child:map(SpecialChars, HtmlEntities);
-		) ↷ (
-			s ← s + child @ String.T;
+METH :"@"(node @ NodeT, =String.T) (
+	VAR s <- "<" + node:tag @ String.T;
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{v:map(SpecialChars, HtmlEntities)}"';
+	node:content:length = 0 => RET s + "/>";
+	s <- s + ">";
+	VAR child; EVERY child <- node:content:values DO (
+		?child ≡ String.T => (
+			s <- s + child:map(SpecialChars, HtmlEntities);
+		) // (
+			s <- s + child @ String.T;
 		);
 	);
-	s ← '{s}</{node:tag}>';
+	s <- '{s}</{node:tag}>';
 	RET s;
 );
 
-METH :write(s@Stream.T, node@NodeT) (
+METH :write(s @ Stream.T, node @ NodeT) (
 	s:write("<" + node:tag @ String.T);
 	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{v:map(SpecialChars, HtmlEntities)}"');
-	node:content:length = 0 ⇒ RET s:write("/>");
+	node:content:length = 0 => RET s:write("/>");
 	s:write(">");
-	VAR child; EVERY child ← node:content:values DO (
-		?child ≡ String.T ⇒ (
+	VAR child; EVERY child <- node:content:values DO (
+		?child ≡ String.T => (
 			s:write(child:map(SpecialChars, HtmlEntities));
-		) ↷ (
+		) // (
 			s:write(child);
 		);
 	);
 	RET s:write('</{node:tag}>');
 );
 
-METH :"."(node@NodeT, attr) node:attrs[attr];
+METH :"."(node @ NodeT, attr) node:attrs[attr];
 
-METH :"[]"(node+@NodeT) EVERY SUSP node:content:values \ ?$ ≡ NodeT;
+METH :"[]"(node+ @ NodeT) EVERY SUSP node:content:values \ ?$ ≡ NodeT;
 
-METH :"[]"(node+@NodeT, tag) EVERY SUSP node:content:values \ (?$ ≡ NodeT & $:tag ≡ tag);
+METH :"[]"(node+ @ NodeT, tag) EVERY SUSP node:content:values \ (?$ ≡ NodeT & $:tag ≡ tag);
 
-METH :text(node@NodeT) (
-	VAR s ← "";
-	EVERY s ← s + (node:content:values \ ?$ ≡ String.T);
+METH :text(node @ NodeT) (
+	VAR s <- "";
+	EVERY s <- s + (node:content:values \ ?$ ≡ String.T);
 	RET s;
 );
 
 DEF Find(node+, filter) (
-	filter(node) ⇒ SUSP node;
+	filter(node) => SUSP node;
 	?node == NodeT => EVERY SUSP Find(node[], filter);
 );
 
-METH :find(node@NodeT, filter) IS Find;
+METH :find(node @ NodeT, filter) IS Find;
 
 DEF New!(flags) (
-	VAR parser ← Parser.New();
+	VAR parser <- Parser.New();
 	(NIL ≡ flags) <- 0;
-	parser:userdata ← NIL;
-	parser:onstartelement ← <node+, tag, attrs> (
-		VAR child ← NodeT(node, tag, attrs, []);
+	parser:userdata <- NIL;
+	parser:onstartelement <- <node+, tag, attrs> (
+		VAR child <- NodeT(node, tag, attrs, []);
 		(NIL ≢ node):content:put(child);
-		node ← child;
+		node <- child;
 	);
-	parser:onendelement ← <node+, tag> (
-		node ← NIL ≢ node:parent;
+	parser:onendelement <- <node+, tag> (
+		node <- NIL ≢ node:parent;
 	);
-	flags:covers(NoText) ↷ (
-		parser:oncharacterdata ← <node+, data> (
-			VAR content ← node:content;
-			((content[-1] \ ?$ ≡ String.T) ← $ + data) ↷ content:put(data);
+	flags:covers(NoText) // (
+		parser:oncharacterdata <- <node+, data> (
+			VAR content <- node:content;
+			((content[-1] \ ?$ ≡ String.T) <- $ + data) // content:put(data);
 		);
 	);
 	RET parser;
 );
 
 DEF Load!(filename, flags) (
-	VAR file ← File.Open(filename, File.Flag.Read);
-	VAR parser ← New(flags);
+	VAR file <- File.Open(filename, File.Flag.Read);
+	VAR parser <- New(flags);
 	REP WHILE parser:parse(file:read(128));
 	parser:finish;
 	file:close;
@@ -92,7 +92,7 @@ DEF Load!(filename, flags) (
 );
 
 DEF LoadString!(string, flags) (
-	VAR parser ← New(flags);
+	VAR parser <- New(flags);
 	VAR i; EVERY i <- 1:to(string:length, 128) DO parser:parse(string[i, i + 128]);
 	parser:parse(string[i, 0]);
 	parser:finish;

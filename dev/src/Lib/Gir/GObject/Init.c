@@ -161,9 +161,8 @@ INITIAL(Riva$Module$provider_t *Provider) {
 	Sys$Service_t *Service = Sys$Service$new("gobject");
 	if (Service) {
 		printf("Initializing gobject system...\n");
-		g_slice_set_config(G_SLICE_CONFIG_ALWAYS_MALLOC, 1);
-		g_mem_set_vtable(&MemVTable);
-		
+		//g_slice_set_config(G_SLICE_CONFIG_ALWAYS_MALLOC, 1);
+		//g_mem_set_vtable(&MemVTable);
 		
 		char Buffer[1024];
 		strcpy(stpcpy(Buffer, Riva$Module$get_path(Provider->Module)), "/libfontconfig.so");

@@ -23,20 +23,20 @@ VAR xmlfile;
 DEF Entities <- {"<" IS "&lt;", ">" IS "&gt;", "&" IS "&amp;"};
 
 DEF Escape(text) (
-    text:any("<>&") => (
+	text:any("<>&") => (
 	VAR r <- "", a <- 1, b;
 	EVERY b <- text:any("<>&") DO (
-	    r <- r + text[a, b] + Entities[text[b]];
-	    a <- b + 1;
+		r <- r + text[a, b] + Entities[text[b]];
+		a <- b + 1;
 	);
 	r <- r + text[a, 0];
 	RET r;
-    );
-    RET text;
+	);
+	RET text;
 );
 
 TO :write(item@Item) (
-    xmlfile:write("<p>To be implemented...</p>\n\n");
+	xmlfile:write("<p>To be implemented...</p>\n\n");
 );
 
 TO :write(item@Module) (
@@ -44,79 +44,79 @@ TO :write(item@Module) (
 );
 
 TO :write(item@Type) (
-    xmlfile:write('\t<type name="{item:name}">\n');
-    VAR parents <- item:parents;
-    EVERY xmlfile:write('\t\t<parent type="{parents:values:map("$", "/")}"/>\n');
-    EVERY xmlfile:writes(item:comment:values, "<br/>\n");
-    xmlfile:write('\t</type>\n');
+	xmlfile:write('\t<type name="{item:name}">\n');
+	VAR parents <- item:parents;
+	EVERY xmlfile:write('\t\t<parent type="{parents:values:map("$", "/")}"/>\n');
+	EVERY xmlfile:writes(item:comment:values, "<br/>\n");
+	xmlfile:write('\t</type>\n');
 );
 
 TO :write(item@Constant) (
-    xmlfile:write('\t<constant name="{item:name}"');
-    xmlfile:write(' type="{(NIL ~== item:type):map("$", "/")}"');
-    xmlfile:write(">\n");
-    EVERY xmlfile:writes(item:comment:values, "<br/>\n");
-    xmlfile:write('\t</constant>\n');
+	xmlfile:write('\t<constant name="{item:name}"');
+	xmlfile:write(' type="{(NIL ~== item:type):map("$", "/")}"');
+	xmlfile:write(">\n");
+	EVERY xmlfile:writes(item:comment:values, "<br/>\n");
+	xmlfile:write('\t</constant>\n');
 );
 
 TO :write(item@Method) (
-    xmlfile:write('\t<method name="{item:symbol}"');
-    xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
-    xmlfile:write('>\n');
-    VAR params <- item:params;
-    VAR signature <- item:signature;
-    REP (WHILE signature:length > 0;
+	xmlfile:write('\t<method name="{item:symbol}"');
+	xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
+	xmlfile:write('>\n');
+	VAR params <- item:params;
+	VAR signature <- item:signature;
+	REP (WHILE signature:length > 0;
 	xmlfile:write('\t\t<parameter');
 	xmlfile:write(' name="{params:pop:name}"');
 	WHEN signature:pop IS "VAL" DO (
-	    xmlfile:write(' value="{signature:pop:map("$", "/")}"/>\n');
+		xmlfile:write(' value="{signature:pop:map("$", "/")}"/>\n');
 	) IS "TYP" DO (
-	    xmlfile:write(' type="{signature:pop:map("$", "/")}"/>\n');
+		xmlfile:write(' type="{signature:pop:map("$", "/")}"/>\n');
 	) IS "ANY", "SKP" DO (
-            xmlfile:write('/>\n');
-        );
-    );
+			xmlfile:write('/>\n');
+		);
+	);
 --    xmlfile:write('\t\t<return type="{(NIL ~== item:return):map("$", "/")}"/>\n');
-    EVERY xmlfile:writes(item:comment:values, "<br/>\n");
-    xmlfile:write('\t</method>\n');
+	EVERY xmlfile:writes(item:comment:values, "<br/>\n");
+	xmlfile:write('\t</method>\n');
 );
 
 TO :write(item@AMethod) (
-    xmlfile:write('\t<function name="{item:symbol}"');
-    xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
-    xmlfile:write('>\n');
-    VAR params <- item:params;
-    VAR signature <- item:signature;
-    REP (WHILE signature:length > 0;
+	xmlfile:write('\t<function name="{item:symbol}"');
+	xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
+	xmlfile:write('>\n');
+	VAR params <- item:params;
+	VAR signature <- item:signature;
+	REP (WHILE signature:length > 0;
 	xmlfile:write('\t\t<parameter');
 	xmlfile:write(' name="{params:pop:name}"');
 	WHEN signature:pop IS "VAL" DO (
-	    xmlfile:write(' value="{signature:pop:map("$", "/")}"/>\n');
+		xmlfile:write(' value="{signature:pop:map("$", "/")}"/>\n');
 	) IS "TYP" DO (
-	    xmlfile:write(' type="{signature:pop:map("$", "/")}"/>\n');
+		xmlfile:write(' type="{signature:pop:map("$", "/")}"/>\n');
 	) IS "ANY", "SKP" DO (
-            xmlfile:write('/>\n');
-        );
-    );
+			xmlfile:write('/>\n');
+		);
+	);
 --    xmlfile:write('\t\t<return type="{(NIL ~== item:return):map("$", "/")}"/>\n');
-    EVERY xmlfile:writes(item:comment:values, "<br/>\n");
-    xmlfile:write('\t</function>\n');
+	EVERY xmlfile:writes(item:comment:values, "<br/>\n");
+	xmlfile:write('\t</function>\n');
 );
 
 
 TO :write(item@Function) (
-    xmlfile:write('\t<function name="{item:name}"');
-    xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
-    xmlfile:write('>\n');
-    VAR param; EVERY param <- item:params:values DO (
+	xmlfile:write('\t<function name="{item:name}"');
+	xmlfile:write(' type="{(NIL ~== item:return):map("$", "/")}"');
+	xmlfile:write('>\n');
+	VAR param; EVERY param <- item:params:values DO (
 	xmlfile:write('\t\t<parameter name="{param:name}"');
 	xmlfile:write(' type="{(NIL ~== param:type):map("$", "/")}"');
 	xmlfile:write(' value="{NIL ~== param:value}"');
 	xmlfile:write('/>\n');
-    );
+	);
 --    xmlfile:write('\t\t<return type="{(NIL ~== item:return):map("$", "/")}"/>\n');
-    EVERY xmlfile:writes(item:comment:values, "<br/>\n");
-    xmlfile:write("\t</function>\n");
+	EVERY xmlfile:writes(item:comment:values, "<br/>\n");
+	xmlfile:write("\t</function>\n");
 );
 
 TO :write(item@SubModule) (
@@ -133,8 +133,8 @@ TO :write(item@SubModule) (
 );
 
 Args:length = 0 => (
-    Out:write("usage: rdoc [options] module files...\n");
-    Exit(0);
+	Out:write("usage: rdoc [options] module files...\n");
+	Exit(0);
 );
 
 VAR type, file, args;
@@ -146,432 +146,481 @@ VAR asm <- "nasm";
 
 VAR i <- 1, option;
 REP (WHILE option <- Args[i];
-    option[1] = "-" => (
-        option[2] = "I" => (
-            includes:put(option[3, 0] | Args[i <- i + 1] | SEND "-I expects directory");
+	option[1] = "-" => (
+		option[2] = "I" => (
+			includes:put(option[3, 0] | Args[i <- i + 1] | SEND "-I expects directory");
 		) // option[2] = "L" => (
 			libdirs:put(option[3, 0] | Args[i <- i + 1] | SEND "-L expects directory");
-        ) // option[2] = "o" => (
-            xmlfilename <- option[3, 0] | Args[i <- i + 1] | SEND "-o expects a filename";
-        ) // option[2] = "a" => (
-        	asm <- option[3, 0] | SEND "-a expects an assembler name";
-        ) // option[2, 0] = "include" ⇒ (
-        	i <- i + 1;
-        ) // option[2] = "l" | "x" => (
-        	i <- i + 1;
-        );
-    ) // (
-        module <- option;
+		) // option[2] = "o" => (
+			xmlfilename <- option[3, 0] | Args[i <- i + 1] | SEND "-o expects a filename";
+		) // option[2] = "a" => (
+			asm <- option[3, 0] | SEND "-a expects an assembler name";
+		) // option[2, 0] = "include" ⇒ (
+			i <- i + 1;
+		) // option[2] = "l" | "x" => (
+			i <- i + 1;
+		);
+	) // (
+		module <- option;
 		i <- i + 1;
-        EXIT;
-    );
+		EXIT;
+	);
 	i <- i + 1;
 );
 
 VAR items <- [];
 
 EVERY file <- Args[i:to(Args:length)] DO (
-    EVERY type <- file:split(".");
-    WHEN type IS "c", "cpp" DO (
-        args <- ["gcc", "-DLINUX", "-DDOCUMENTING", "-E", file];
-        EVERY args:put("-I", includes:values);
-        --Out:writes("Processing c file ", args, "\n");
-        VAR gcc <- Process.Open("gcc", args);
-        VAR input <- File.Open(file, File.Flag.Read + File.Flag.Text);
-        VAR lineno <- 1;
-        VAR item, item2;
-        VAR oline, line, info;
-        VAR inputstack <- [], linenostack <- [];
-        REP (WHILE oline <- gcc:read;
-            WHEN 1 OF oline:split("(") IS "MODULE" DO (
-                line <- oline[8, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Module();
-                item:line <- info:pop@Integer.T;
-                item:path <- info;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "TYPE" DO (
-                line <- oline[6, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Type();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:parents <- info;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "CONSTANT" DO (
-                line <- oline[10, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Constant();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:type <- info:pop;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "GLOBAL" DO (
-                line <- oline[8, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Constant();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:type <- info:pop;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "METHOD" DO (
-                line <- oline[8, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Method();
-                item:line <- info:pop@Integer.T;
-                item:symbol <- Escape(info:pop[2,-1]);
-                item:signature <- info;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    line[3] = "@" => (
-                        info <- ALL line[4, 0]:split(" :=");
-                        item:params:put(Param(info[1], NIL, info[2] | NIL));
-                    ) // line[3] = ":" => (
-                        item:return <- line[4, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "GLOBAL_METHOD" DO (
-                line <- oline[15, 0]:split(")");
-                info <- ALL line:split(", ");
-                item2 <- Function();
-                item2:line <- info:pop@Integer.T;
-                item2:name <- info:pop;
-                item2:count <- info:pop@Integer.T;
-                item <- Method();
-                item:line <- item2:line;
-                item:symbol <- Escape(info:pop[2,-1]);
-                item:signature <- info;
-                item2:comment <- item:comment <- [];
-                item2:params <- item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    line[3] = "@" => (
-                        info <- ALL line[4, 0]:split(" :=");
-                        item:params:put(Param(info[1], NIL, info[2] | NIL));
-                    ) // line[3] = ":" => (
-                        item2:return <- item:return <- line[4, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-                items:put(item2);
-            ) IS "SET_METHOD" DO (
-                line <- oline[12, 0]:split(")");
-                info <- ALL line:split(", ");
-            ) IS "SYMBOL" DO (
-                line <- oline[8, 0]:split(")");
-                info <- ALL line:split(", ");
-            ) IS "GLOBAL_FUNCTION" DO (
-                line <- oline[17, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- Function();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:count <- info:pop@Integer.T;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    line[3] = "@" => (
-                        info <- ALL line[4, 0]:split(" :=");
-                        item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
-                    ) // line[3] = ":" => (
-                        item:return <- line[4, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "AMETHOD" DO (
-                line <- oline[9, 0]:split(")");
-                info <- ALL line:split(", ");
-                item <- AMethod();
-                item:line <- info:pop@Integer.T;
-                item:symbol <- info:pop;
-                item:signature <- info;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    line[3] = "@" => (
-                        info <- ALL line[4, 0]:split(" :=");
-                        item:params:put(Param(info[1], NIL, info[2] | NIL));
-                    ) // line[3] = ":" => (
-                        item:return <- line[4, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "SUBMODULE" DO (
-            	line <- oline[11, 0]:split(")");
-            	info <- ALL line:split(", ");
-            	item <- SubModule();
-            	item:line <- info:pop@Integer.T;
-            	item:name <- info:pop;
-            	item:subitems <- [];
-            	item:comment <- [];
-            	EVERY lineno:to(item:line) DO input:read;
-            	lineno <- item:line + 1;
-            	VAR subitem;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1, 3] = "//";
-                    line[3] = "@" => (
-                    	subitem <- Constant();
-                        info <- ALL line[4, 0]:split(" :=");
-                        subitem:line <- lineno;
-                        subitem:name <- info:pop;
-                        subitem:type <- info:pop;
-                        subitem:comment <- [];
-                        item:subitems:put(subitem);
-                    ) // (
-                    	((NIL ≢ subitem) | item):comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "PUSHFILE" DO (
-            	line <- oline[10, 0]:split(")");
-            	linenostack:put(lineno);
-            	inputstack:put(input);
-            	EVERY lineno <- file:find("/");
-            	input <- File.Open(file[1, lineno] + "/" + line[2, -1], File.Flag.Read + File.Flag.Text);
-            	lineno <- 1;
-            ) IS "POPFILE" DO (
-            	input:close;
-            	input <- inputstack:pop;
-            	lineno <- linenostack:pop;
-            );
-        );
-        input:close;
-        gcc:close;
-        gcc:wait;
-	    RECV msg DO Out:write('Warning: <{oline}> {msg}\n');
-    ) IS "asm" DO (
-        args <- [asm, "-DLINUX", "-DDOCUMENTING", "-e", file];
-        EVERY args:put("-I", includes:values);
-        --Out:writes("Processing asm file ", args, "\n");
-        VAR nasm <- Process.Open(asm, args);
-        VAR input <- File.Open(file, File.Flag.Read + File.Flag.Text);
-        VAR lineno <- 1;
-        VAR item;
-        VAR oline, line, info;
-        VAR inputstack <- [], linenostack <- [];
-        REP (WHILE oline <- nasm:read;
-            WHEN 1 OF oline:split(" ") IS "module" DO (
-                line <- oline[8, 0];
-                info <- ALL line:split(", ");
-                item <- Module();
-                item:line <- info:pop@Integer.T;
-                item:path <- info;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "ctype" DO (
-                line <- oline[7, 0];
-                info <- ALL line:split(", ");
-                item <- Type();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:parents <- info;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "cglobal" DO (
-            	line <- oline[9, 0];
-                info <- ALL line:split(", ");
-                item <- Constant();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:type <- info:pop;
-                item:comment <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    item:comment:put(line[3, 0]);
-                );
-                items:put(item);
-            ) IS "method" DO (
-                line <- oline[8, 0];
-                info <- ALL line:split(", ");
-                item <- Method();
-                item:line <- info:pop@Integer.T;
-                item:symbol <- Escape(info:pop[2,-1]);
-                item:signature <- info;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    line[2] = "@" => (
-                        info <- ALL line[3, 0]:split(" :=");
-                        item:params:put(Param(info[1], NIL, info[2] | NIL));
-                    ) // line[2] = ":" => (
-                        item:return <- line[3, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "_method" DO (
-                line <- oline[9, 0];
-                info <- ALL line:split(", ");
-            ) IS "symbol" DO (
-                line <- oline[8, 0];
-                info <- ALL line:split(", ");
-            ) IS "function" DO (
-                line <- oline[10, 0];
-                info <- ALL line:split(", ");
-                item <- Function();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:count <- info:pop@Integer.T;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    line[2] = "@" => (
-                        info <- ALL line[3, 0]:split(" :=");
-                        item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
-                    ) // line[2] = ":" => (
-                        item:return <- line[3, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "_function" DO (
-                line <- oline[11, 0];
-                info <- ALL line:split(", ");
-                item <- Function();
-                item:line <- info:pop@Integer.T;
-                item:name <- info:pop;
-                item:count <- info:pop@Integer.T;
-                item:comment <- [];
-                item:params <- [];
-                EVERY lineno:to(item:line) DO input:read;
-                lineno <- item:line + 1;
-                REP (lineno <- lineno + 1;
-                    WHILE (line <- input:read)[1] = ";";
-                    line[2] = "@" => (
-                        info <- ALL line[3, 0]:split(" :=");
-                        item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
-                    ) // line[2] = ":" => (
-                        item:return <- line[3, 0];
-                    ) // (
-                        item:comment:put(line[3, 0]);
-                    );
-                );
-                items:put(item);
-            ) IS "pushfile" DO (
-            	line <- oline[10, 0];
-            	linenostack:put(lineno);
-            	inputstack:put(input);
-            	EVERY lineno <- file:find("/");
-            	input <- File.Open(file[1, lineno] + "/" + line[2, -1], File.Flag.Read + File.Flag.Text);
-            	lineno <- 1;
-            ) IS "popfile" DO (
-            	input:close;
-            	input <- inputstack:pop;
-            	lineno <- linenostack:pop;
-            );
-        );
-        nasm:close;
-        nasm:wait;
-        input:close;
-	    RECV msg DO Out:write('Warning: <{oline}> {msg}\n');
+	EVERY type <- file:split(".");
+	WHEN type IS "c", "cpp" DO (
+		args <- ["gcc", "-DLINUX", "-DDOCUMENTING", "-E", file];
+		EVERY args:put("-I", includes:values);
+		--Out:writes("Processing c file ", args, "\n");
+		VAR gcc <- Process.Open("gcc", args);
+		VAR input <- File.Open(file, File.Flag.Read + File.Flag.Text);
+		VAR lineno <- 1;
+		VAR item, item2;
+		VAR oline, line, info;
+		VAR inputstack <- [], linenostack <- [];
+		REP (WHILE oline <- gcc:read;
+			WHEN 1 OF oline:split("(") IS "MODULE" DO (
+				line <- oline[8, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Module();
+				item:line <- info:pop@Integer.T;
+				item:path <- info;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "TYPE" DO (
+				line <- oline[6, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Type();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:parents <- info;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "CONSTANT" DO (
+				line <- oline[10, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Constant();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:type <- info:pop;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "GLOBAL" DO (
+				line <- oline[8, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Constant();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:type <- info:pop;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "METHOD" DO (
+				line <- oline[8, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Method();
+				item:line <- info:pop@Integer.T;
+				item:symbol <- Escape(info:pop[2,-1]);
+				item:signature <- info;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = "@" => (
+						info <- ALL line[4, 0]:split(" :=");
+						item:params:put(Param(info[1], NIL, info[2] | NIL));
+					) // line[3] = ":" => (
+						item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "GLOBAL_METHOD" DO (
+				line <- oline[15, 0]:split(")");
+				info <- ALL line:split(", ");
+				item2 <- Function();
+				item2:line <- info:pop@Integer.T;
+				item2:name <- info:pop;
+				item2:count <- info:pop@Integer.T;
+				item <- Method();
+				item:line <- item2:line;
+				item:symbol <- Escape(info:pop[2,-1]);
+				item:signature <- info;
+				item2:comment <- item:comment <- [];
+				item2:params <- item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = "@" => (
+						info <- ALL line[4, 0]:split(" :=");
+						item:params:put(Param(info[1], NIL, info[2] | NIL));
+					) // line[3] = ":" => (
+						item2:return <- item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+				items:put(item2);
+			) IS "SET_METHOD" DO (
+				line <- oline[12, 0]:split(")");
+				info <- ALL line:split(", ");
+			) IS "SYMBOL" DO (
+				line <- oline[8, 0]:split(")");
+				info <- ALL line:split(", ");
+			) IS "GLOBAL_FUNCTION" DO (
+				line <- oline[17, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- Function();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:count <- info:pop@Integer.T;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = "@" => (
+						info <- ALL line[4, 0]:split(" :=");
+						item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
+					) // line[3] = ":" => (
+						item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "AMETHOD" DO (
+				line <- oline[9, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- AMethod();
+				item:line <- info:pop@Integer.T;
+				item:symbol <- info:pop;
+				item:signature <- info;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = "@" => (
+						info <- ALL line[4, 0]:split(" :=");
+						item:params:put(Param(info[1], NIL, info[2] | NIL));
+					) // line[3] = ":" => (
+						item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "SUBMODULE" DO (
+				line <- oline[11, 0]:split(")");
+				info <- ALL line:split(", ");
+				item <- SubModule();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:subitems <- [];
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				VAR subitem;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1, 3] = "//";
+					line[3] = "@" => (
+						subitem <- Constant();
+						info <- ALL line[4, 0]:split(" :=");
+						subitem:line <- lineno;
+						subitem:name <- info:pop;
+						subitem:type <- info:pop;
+						subitem:comment <- [];
+						item:subitems:put(subitem);
+					) // (
+						((NIL ≢ subitem) | item):comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "PUSHFILE" DO (
+				line <- oline[10, 0]:split(")");
+				linenostack:put(lineno);
+				inputstack:put(input);
+				EVERY lineno <- file:find("/");
+				input <- File.Open(file[1, lineno] + "/" + line[2, -1], File.Flag.Read + File.Flag.Text);
+				lineno <- 1;
+			) IS "POPFILE" DO (
+				input:close;
+				input <- inputstack:pop;
+				lineno <- linenostack:pop;
+			);
+		);
+		input:close;
+		gcc:close;
+		gcc:wait;
+		RECV msg DO Out:write('Warning: <{oline}> {msg}\n');
+	) IS "asm" DO (
+		args <- [asm, "-DLINUX", "-DDOCUMENTING", "-e", file];
+		EVERY args:put("-I", includes:values);
+		--Out:writes("Processing asm file ", args, "\n");
+		VAR nasm <- Process.Open(asm, args);
+		VAR input <- File.Open(file, File.Flag.Read + File.Flag.Text);
+		VAR lineno <- 1;
+		VAR item;
+		VAR oline, line, info;
+		VAR inputstack <- [], linenostack <- [];
+		REP (WHILE oline <- nasm:read;
+			WHEN 1 OF oline:split(" ") IS "module" DO (
+				line <- oline[8, 0];
+				info <- ALL line:split(", ");
+				item <- Module();
+				item:line <- info:pop@Integer.T;
+				item:path <- info;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "ctype" DO (
+				line <- oline[7, 0];
+				info <- ALL line:split(", ");
+				item <- Type();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:parents <- info;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "cglobal" DO (
+				line <- oline[9, 0];
+				info <- ALL line:split(", ");
+				item <- Constant();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:type <- info:pop;
+				item:comment <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "method" DO (
+				line <- oline[8, 0];
+				info <- ALL line:split(", ");
+				item <- Method();
+				item:line <- info:pop@Integer.T;
+				item:symbol <- Escape(info:pop[2,-1]);
+				item:signature <- info;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[2] = "@" => (
+						info <- ALL line[3, 0]:split(" :=");
+						item:params:put(Param(info[1], NIL, info[2] | NIL));
+					) // line[2] = ":" => (
+						item:return <- line[3, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "_method" DO (
+				line <- oline[9, 0];
+				info <- ALL line:split(", ");
+			) IS "symbol" DO (
+				line <- oline[8, 0];
+				info <- ALL line:split(", ");
+			) IS "function" DO (
+				line <- oline[10, 0];
+				info <- ALL line:split(", ");
+				item <- Function();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:count <- info:pop@Integer.T;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[2] = "@" => (
+						info <- ALL line[3, 0]:split(" :=");
+						item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
+					) // line[2] = ":" => (
+						item:return <- line[3, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "_function" DO (
+				line <- oline[11, 0];
+				info <- ALL line:split(", ");
+				item <- Function();
+				item:line <- info:pop@Integer.T;
+				item:name <- info:pop;
+				item:count <- info:pop@Integer.T;
+				item:comment <- [];
+				item:params <- [];
+				EVERY lineno:to(item:line) DO input:read;
+				lineno <- item:line + 1;
+				REP (lineno <- lineno + 1;
+					WHILE (line <- input:read)[1] = ";";
+					line[2] = "@" => (
+						info <- ALL line[3, 0]:split(" :=");
+						item:params:put(Param(info[1], info[2] | NIL, info[3] | NIL));
+					) // line[2] = ":" => (
+						item:return <- line[3, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) IS "pushfile" DO (
+				line <- oline[10, 0];
+				linenostack:put(lineno);
+				inputstack:put(input);
+				EVERY lineno <- file:find("/");
+				input <- File.Open(file[1, lineno] + "/" + line[2, -1], File.Flag.Read + File.Flag.Text);
+				lineno <- 1;
+			) IS "popfile" DO (
+				input:close;
+				input <- inputstack:pop;
+				lineno <- linenostack:pop;
+			);
+		);
+		nasm:close;
+		nasm:wait;
+		input:close;
+		RECV msg DO Out:write('Warning: <{oline}> {msg}\n');
 	) IS "wrapl" DO (
-    ) DO (
-        SEND "unknown filetype";
-    );
-    RECV msg DO Out:write('{file}: warning: {msg}\n');
+		VAR wrapl <- File.Open(file, File.Flag.Read + File.Flag.Text);
+		VAR line, lineno <- 0;
+		REP (WHILE line <- wrapl:read;
+			lineno <- $ + 1;
+			
+		);
+		wrapl:close;
+	) DO (
+		SEND "unknown filetype";
+	);
+	RECV msg DO Out:write('{file}: warning: {msg}\n');
 );
 
 items:sort(<a, b> (
 	?a == Module => RET;
 	?b == Module => FAIL;
-    ?a == Type => RET;
-    ?b == Type => FAIL;
-    ?a == Constant => RET;
-    ?b == Constant => FAIL;
-    ?a == Method => RET;
-    ?b == Method => FAIL;
-    ?a == Function => RET;
-    ?b == Function => FAIL;
-    RET;
+	?a == Type => RET;
+	?b == Type => FAIL;
+	?a == Constant => RET;
+	?b == Constant => FAIL;
+	?a == Method => RET;
+	?b == Method => FAIL;
+	?a == Function => RET;
+	?b == Function => FAIL;
+	RET;
 ));
 
 VAR parts <- ALL xmlfilename:split("/");
 parts:pull;
 VAR path <- xmlfilename[1] = "/" => '/{parts:pop}' // parts:pop;
 REP (
-    FileSys.Exists(path) // FileSys.MakeDir(path, 511);
-    WHILE path <- '{path}/{parts:pop}';
+	FileSys.Exists(path) // FileSys.MakeDir(path, 511);
+	WHILE path <- '{path}/{parts:pop}';
 );
 
 
 xmlfilename ~== NIL => (
-    xmlfile <- File.Open(xmlfilename, File.Flag.Write + File.Flag.Text);
-    xmlfile:write('<?xml version="1.0" encoding="UTF-8"?>\n');
-    xmlfile:write('<module path="{module}">\n');
-    EVERY items:values:write;
-    xmlfile:write("</module>");
-    xmlfile:close;
+	xmlfile <- File.Open(xmlfilename, File.Flag.Write + File.Flag.Text);
+	xmlfile:write('<?xml version="1.0" encoding="UTF-8"?>\n');
+	xmlfile:write('<module path="{module}">\n');
+	EVERY items:values:write;
+	xmlfile:write("</module>");
+	xmlfile:close;
 );
 
 Program.Exit(0);

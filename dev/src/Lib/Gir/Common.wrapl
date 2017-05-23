@@ -94,6 +94,7 @@ TO :generate_c(function@FunctionT) (
     r:put('//:{rettype:rtype}');
     
     r:put('//  <external path="{API.GetFunc(function:cname)}"/>');
+	VAR i; EVERY i <- 1:to(n) DO r:put('\tCHECK_ARG_TYPE({i - 1}, {types[i]:rtype});');
 
 	--r:put('\tprintf("%s(%d): {function:name}\\n", __FILE__, __LINE__);');
 
@@ -169,7 +170,7 @@ TO :generate_c(field@FieldT) (
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;'
     ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
-      + (ALL "\t" + type:c_to_riva('param0->{field:cname}', "Result->Val", 'postcall0'):values) + [
+	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',
 	'};',
 	'',
@@ -179,7 +180,7 @@ TO :generate_c(field@FieldT) (
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;'
     ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
-      + (ALL "\t" + type:riva_to_c('Args[1].Val', 'param0->{field:cname}', 'postcall0'):values) + [
+	+ (ALL "\t" + type:riva_to_c('Args[1].Val', 'param0->{field:cname}', 'postcall0'):values) + [
 	'\tResult->Arg = Args[1];',
 	'\treturn SUCCESS;',
 	'};'
@@ -311,12 +312,15 @@ TO :generate_c(initializer@InitializerT) (
     --Out:write('function: {function:type} {function:name}()\n');
     VAR params <- initializer:params;
     VAR n <- params:size;
+	VAR types <- ALL Type.Lookup(params:values:type);
     VAR r <- [];
     r:put('GLOBAL_FUNCTION({initializer:name}, {n}) \{');
     VAR param; EVERY param <- params:values DO r:put('//@{param:name}:{Type.Lookup(param:type):rtype}');
     VAR rettype <- Type.Lookup(initializer:type);
     r:put('//:{rettype:rtype}');
     r:put('//  <external path="{API.GetFunc(initializer:cname)}"/>');
+	
+	VAR i; EVERY i <- 1:to(n) DO r:put('\tCHECK_ARG_TYPE({i - 1}, {types[i]:rtype});');
     r:put('\t{rettype:ctype} result = new({rettype:cname});');
     VAR argindex <- 0, paramindex <- 0, type;
     EVERY param <- params:values DO (
@@ -362,7 +366,7 @@ TO :generate_c(field@ArrayFieldT) (
 	'\t{object:ctype} param0;',
 	'\tint index = ((Std$Integer_smallt *)Args[1].Val)->Value;'
     ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
-      + (ALL "\t" + type:c_to_riva('param0->{field:cname}[index]', "Result->Val", 'postcall0'):values) + [
+	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}[index]', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',
 	'};'
     ];
@@ -412,6 +416,7 @@ TO :generate_rdef_file(type@Type.T, basedir) (
 	end
 EOI);
 	List:write('{basedir}/{type:namespace}/{type:name}.rdef\n');
+	type:namespace ~= "GObject" => file:write('require(\"Gir/GObject/Init\")\n');
 	type:name ~= "Init" => file:write('require(\"Gir/{type:namespace}/Init\")\n');
 	EVERY file:write('library(\"{libraries:keys}\")\n');
 	EVERY file:writes(type:generate_rdef:values, "\n");

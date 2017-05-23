@@ -57,6 +57,7 @@ static int get_errno() {
 };
 
 int main(int Argc, const char **Argv) {
+	setenv("G_SLICE", "always-malloc", 1);
 	preload_t *Preloads = 0;
 	libriva_config(get_conf_name(), &Preloads);
 

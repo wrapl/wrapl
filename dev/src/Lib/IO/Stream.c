@@ -213,24 +213,24 @@ void _free_buffer(IO$Stream_buffer * restrict Buffer) {
 	Buffer->Next = Buffers;
 	Buffers = Buffer;
 #ifdef WINDOWS
-    	LeaveCriticalSection(&BufferMutex);
+	LeaveCriticalSection(&BufferMutex);
 #else
-		pthread_mutex_unlock(&BufferMutex);
+	pthread_mutex_unlock(&BufferMutex);
 #endif
 };
 
 void _free_buffers(IO$Stream_buffer * restrict Head, IO$Stream_buffer * restrict Tail) {
 #ifdef WINDOWS
-    EnterCriticalSection(&BufferMutex);
+	EnterCriticalSection(&BufferMutex);
 #else
 	pthread_mutex_lock(&BufferMutex);
 #endif
 	Tail->Next = Buffers;
 	Buffers = Head;
 #ifdef WINDOWS
-    	LeaveCriticalSection(&BufferMutex);
+	LeaveCriticalSection(&BufferMutex);
 #else
-		pthread_mutex_unlock(&BufferMutex);
+	pthread_mutex_unlock(&BufferMutex);
 #endif
 };
 
