@@ -9,31 +9,31 @@ IMP .Type, .Docs, .API;
 IMP .Log USE Log, List;
 
 DEF PrefixLength!(namespace, cname) (
-    VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
-    ("A" <= namespace[-1] <= "Z") => n <- n + 1;
-    cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
-    RET n;
+	VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
+	("A" <= namespace[-1] <= "Z") => n <- n + 1;
+	cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
+	RET n;
 );
 
 DEF ConstructorName(type, cname) (
-    VAR name <- "";
-    VAR i <- type:ctor_prefix, n <- cname:length;
-    i == NIL => (
+	VAR name <- "";
+	VAR i <- type:ctor_prefix, n <- cname:length;
+	i == NIL => (
 		i <- type:ctor_prefix <- PrefixLength(type:namespace, type:cname);
-    );
-    cname[i] = "_" => (i <- i + 1);
-    name <- name + cname[i]:upper;
-    REP (
+	);
+	cname[i] = "_" => (i <- i + 1);
+	name <- name + cname[i]:upper;
+	REP (
 	i <- i + 1;
 	UNTIL i > n;
 	cname[i] = "_" => (
-	    i <- i + 1;
-	    name <- name + cname[i]:upper;
+		i <- i + 1;
+		name <- name + cname[i]:upper;
 	) // (
-	    name <- name + cname[i];
+		name <- name + cname[i];
 	);
-    );
-    RET name;
+	);
+	RET name;
 );
 
 DEF ItemT! <- <[] name>;
@@ -47,11 +47,11 @@ TO :generate_rlib(item@ItemT) [];
 
 DEF MemberT! <- <[ItemT] value, object>;
 DEF MemberNew!(name, value, object) (
-    VAR member <- MemberT();
-    member:name <- name;
-    member:value <- value;
-    member:object <- object;
-    RET member;
+	VAR member <- MemberT();
+	member:name <- name;
+	member:value <- value;
+	member:object <- object;
+	RET member;
 );
 
 TO :generate_c(member@MemberT) [member:object:generate_member(member:name, member:value)];
@@ -59,10 +59,10 @@ TO :generate_rdef(member@MemberT) ['export(\"__${member:name}\", \"{member:name}
 
 DEF ParamT! <- <[ItemT] type>;
 DEF ParamNew!(name, type) (
-    VAR param <- ParamT();
-    param:name <- name;
-    param:type <- type;
-    RET param;
+	VAR param <- ParamT();
+	param:name <- name;
+	param:type <- type;
+	RET param;
 );
 
 TO :headers(param@ParamT) Type.Lookup(param:type):headers;
@@ -71,105 +71,108 @@ TO :libraries(param@ParamT) Type.Lookup(param:type):libraries;
 DEF FunctionT! <- <[ItemT] cname, params, type>;
 DEF FunctionNew!(name, cname) (
 	DEF IdChars <- String.Upper + String.Lower + "_$";
-    VAR function <- FunctionT();
-    name[1] IN IdChars // name <- "_" + name;
-    function:name <- name;
-    function:cname <- cname;
-    function:params <- [];
-    RET function;
+	VAR function <- FunctionT();
+	name[1] IN IdChars // name <- "_" + name;
+	function:name <- name;
+	function:cname <- cname;
+	function:params <- [];
+	RET function;
 );
 
 TO :generate_c(function@FunctionT) (
-    --Out:write('function: {function:type} {function:name}()\n');
-    VAR params <- function:params;
-    VAR n <- params:size;
-    VAR types <- ALL Type.Lookup(params:values:type);
-    VAR r <- [];
-    VAR line;
-    VAR m <- 0;
-    EVERY m <- m + types:values:c_argcount;
-    r:put('GLOBAL_FUNCTION(__${function:name}, {m}) \{');
-    VAR i; EVERY i <- 1:to(n) DO r:put('//@{params[i]:name}:{types[i]:rtype}');
-    VAR rettype <- Type.Lookup(function:type);
-    r:put('//:{rettype:rtype}');
-    
-    r:put('//  <external path="{API.GetFunc(function:cname)}"/>');
-	VAR i; EVERY i <- 1:to(n) DO r:put('\tCHECK_ARG_TYPE({i - 1}, {types[i]:rtype});');
-
+	--Out:write('function: {function:type} {function:name}()\n');
+	VAR params <- function:params;
+	VAR n <- params:size;
+	VAR types <- ALL Type.Lookup(params:values:type);
+	VAR r <- [];
+	VAR line;
+	VAR m <- 0;
+	EVERY m <- m + types:values:c_argcount;
+	r:put('GLOBAL_FUNCTION(__${function:name}, {m}) \{');
+	VAR i; EVERY i <- 1:to(n) DO r:put('//@{params[i]:name}:{types[i]:rtype}');
+	VAR rettype <- Type.Lookup(function:type);
+	r:put('//:{rettype:rtype}');
+	r:put('//  <external path="{API.GetFunc(function:cname)}"/>');
+	
 	--r:put('\tprintf("%s(%d): {function:name}\\n", __FILE__, __LINE__);');
 
-    VAR argindex <- 0, paramindex <- 0, type;
-    EVERY type <-types:values DO (
+	VAR argindex <- 0, paramindex <- 0, type;
+	EVERY type <-types:values DO (
+		r:put('\tCHECK_ARG_TYPE({argindex}, {"Std$Object$T" ~= type:rtype});');
+		argindex <- argindex + type:c_argcount;
+	);
+	argindex <- 0;
+	EVERY type <- types:values DO (
 		--Out:write('param: {type:cname}\n');
 		EVERY r:put("\t" + type:c_precall(argindex, paramindex):values);
 		argindex <- argindex + type:c_argcount;
 		paramindex <- paramindex + 1;
-    );
-    line <- '\t{"void" ~= rettype:ctype} result = ' | "\t";
-    line <- line + function:cname + "(";
-    n > 0 => (
+	);
+	line <- '\t{"void" ~= rettype:ctype} result = ' | "\t";
+	line <- line + function:cname + "(";
+	n > 0 => (
 		line <- line + "param0";
 		EVERY line <- line + ', param{1:to(n - 1)}';
-    );
-    line <- line + ");";
-    --Out:write('line = {line}\n');
-    r:put(line);
-    argindex <- 0;
-    paramindex <- 0;
-    EVERY type <-types:values DO (
+	);
+	line <- line + ");";
+	--Out:write('line = {line}\n');
+	r:put(line);
+	argindex <- 0;
+	paramindex <- 0;
+	EVERY type <-types:values DO (
 		EVERY r:put("\t" + type:c_postcall(argindex, paramindex):values);
 		argindex <- argindex + type:c_argcount;
 		paramindex <- paramindex + 1;
-    );
-    "void" ~= rettype:ctype => EVERY r:put("\t" + rettype:c_return:values);
-    r:put("\treturn SUCCESS;");
-    r:put("};");
-    RET r;
+	);
+	"void" ~= rettype:ctype => EVERY r:put("\t" + rettype:c_return:values);
+	r:put("\treturn SUCCESS;");
+	r:put("};");
+	RET r;
 );
 
 TO :generate_rdef(function@FunctionT) (
-    --Out:write('function: {function:type} {function:name}()\n');
-    RET ['export(\"__${function:name}\", \"{function:name}\")'];
+	--Out:write('function: {function:type} {function:name}()\n');
+	RET ['export(\"__${function:name}\", \"{function:name}\")'];
 );
 
 TO :headers(function@FunctionT) (
-    VAR headers <- Type.Lookup(function:type):headers:copy;
-    EVERY headers:insert(function:params:values:headers:keys);
-    RET headers;
+	VAR headers <- Type.Lookup(function:type):headers:copy;
+	EVERY headers:insert(function:params:values:headers:keys);
+	RET headers;
 );
 TO :libraries(function@FunctionT) (
-    VAR libraries <- Type.Lookup(function:type):libraries:copy;
-    EVERY libraries:insert(function:params:values:libraries:keys);
-    RET libraries;
+	VAR libraries <- Type.Lookup(function:type):libraries:copy;
+	EVERY libraries:insert(function:params:values:libraries:keys);
+	RET libraries;
 );
 
 DEF FieldT! <- <[ItemT] cname, type, object>;
 DEF FieldNew!(name, cname, type, object) (
-    VAR field <- FieldT();
-    REP (
+	VAR field <- FieldT();
+	REP (
 		WHILE cname[1] = "*";
 		cname <- cname[2, 0];
 		type <- type + "*";
-    );
-    field:name <- name;
-    field:cname <- cname;
-    field:object <- object;
+	);
+	field:name <- name;
+	field:cname <- cname;
+	field:object <- object;
 	field:type <- type;
-    RET field;
+	RET field;
 );
 
 TO :headers(field@FieldT) Type.Lookup(field:type):headers + field:object:headers;
 TO :libraries(field@FieldT) Type.Lookup(field:type):libraries + field:object:libraries;
 
 TO :generate_c(field@FieldT) (
-    VAR type <- Type.Lookup(field:type);
-    VAR object <- field:object;
-    RET [
+	VAR type <- Type.Lookup(field:type);
+	VAR object <- field:object;
+	RET [
 	'METHOD(\"{field:name}\", TYP, T) \{',
 	'//@self',
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;'
-    ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
+	] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
 	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',
 	'};',
@@ -179,35 +182,35 @@ TO :generate_c(field@FieldT) (
 	'//@value',
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;'
-    ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
+	] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
 	+ (ALL "\t" + type:riva_to_c('Args[1].Val', 'param0->{field:cname}', 'postcall0'):values) + [
 	'\tResult->Arg = Args[1];',
 	'\treturn SUCCESS;',
 	'};'
-    ];
+	];
 );
 
 DEF MethodT! <- <[FunctionT] object>;
 DEF MethodNew!(name, cname, object) (
-    VAR method <- MethodT();
-    method:name <- name;
-    method:cname <- cname;
-    method:params <- [];
-    method:object <- object;
-    RET method;
+	VAR method <- MethodT();
+	method:name <- name;
+	method:cname <- cname;
+	method:params <- [];
+	method:object <- object;
+	RET method;
 );
 
 TO :headers(method@MethodT) (
-    VAR headers <- Type.Lookup(method:type):headers:copy;
-    EVERY headers:insert(method:object:headers:keys);
-    EVERY headers:insert(method:params:values:headers:keys);
-    RET headers;
+	VAR headers <- Type.Lookup(method:type):headers:copy;
+	EVERY headers:insert(method:object:headers:keys);
+	EVERY headers:insert(method:params:values:headers:keys);
+	RET headers;
 );
 TO :libraries(method@MethodT) (
-    VAR libraries <- Type.Lookup(method:type):libraries:copy;
-    EVERY libraries:insert(method:object:libraries:keys);
-    EVERY libraries:insert(method:params:values:libraries:keys);
-    RET libraries;
+	VAR libraries <- Type.Lookup(method:type):libraries:copy;
+	EVERY libraries:insert(method:object:libraries:keys);
+	EVERY libraries:insert(method:params:values:libraries:keys);
+	RET libraries;
 );
 
 TO :generate_c(method@MethodT) (
@@ -263,12 +266,12 @@ TO :generate_rdef(method@MethodT) [];
 
 DEF VirtualMethodT! <- <[MethodT]>;
 DEF VirtualMethodNew!(name, cname, object) (
-    VAR method <- VirtualMethodT();
-    method:name <- name;
-    method:cname <- cname;
-    method:params <- [];
-    method:object <- object;
-    RET method;
+	VAR method <- VirtualMethodT();
+	method:name <- name;
+	method:cname <- cname;
+	method:params <- [];
+	method:object <- object;
+	RET method;
 );
 
 TO :generate_c(method@VirtualMethodT) [
@@ -276,12 +279,12 @@ TO :generate_c(method@VirtualMethodT) [
 
 DEF CallbackT! <- <[FunctionT] object>;
 DEF CallbackNew!(name, cname, object) (
-    VAR callback <- CallbackT();
-    callback:name <- name;
-    callback:cname <- cname;
-    callback:params <- [];
-    callback:object <- object;
-    RET callback;
+	VAR callback <- CallbackT();
+	callback:name <- name;
+	callback:cname <- cname;
+	callback:params <- [];
+	callback:object <- object;
+	RET callback;
 );
 
 TO :generate_c(callback@CallbackT) [];
@@ -291,85 +294,90 @@ TO :libraries(callback@CallbackT) {};
 
 DEF ConstructorT! <- <[FunctionT]>;
 DEF ConstructorNew!(name, cname, type, rname) (
-    VAR constructor <- FunctionT();
-    constructor:name <- (NIL ~== rname) | ConstructorName(type, cname);
-    constructor:cname <- cname;
-    constructor:params <- [];
-    constructor:type <- type:desc;
-    RET constructor;
+	VAR constructor <- FunctionT();
+	constructor:name <- (NIL ~== rname) | ConstructorName(type, cname);
+	constructor:cname <- cname;
+	constructor:params <- [];
+	constructor:type <- type:desc;
+	RET constructor;
 );
 
 DEF InitializerT! <- <[FunctionT]>;
 DEF InitializerNew!(name, type) (
-    VAR initializer <- InitializerT();
-    initializer:name <- name;
-    initializer:params <- [];
-    initializer:type <- type:desc;
-    RET initializer;
+	VAR initializer <- InitializerT();
+	initializer:name <- name;
+	initializer:params <- [];
+	initializer:type <- type:desc;
+	RET initializer;
 );
 
 TO :generate_c(initializer@InitializerT) (
-    --Out:write('function: {function:type} {function:name}()\n');
-    VAR params <- initializer:params;
-    VAR n <- params:size;
+	--Out:write('function: {function:type} {function:name}()\n');
+	VAR params <- initializer:params;
+	VAR n <- params:size;
 	VAR types <- ALL Type.Lookup(params:values:type);
-    VAR r <- [];
-    r:put('GLOBAL_FUNCTION({initializer:name}, {n}) \{');
-    VAR param; EVERY param <- params:values DO r:put('//@{param:name}:{Type.Lookup(param:type):rtype}');
-    VAR rettype <- Type.Lookup(initializer:type);
-    r:put('//:{rettype:rtype}');
-    r:put('//  <external path="{API.GetFunc(initializer:cname)}"/>');
+	VAR r <- [];
+	r:put('GLOBAL_FUNCTION({initializer:name}, {n}) \{');
+	VAR param; EVERY param <- params:values DO r:put('//@{param:name}:{Type.Lookup(param:type):rtype}');
+	VAR rettype <- Type.Lookup(initializer:type);
+	r:put('//:{rettype:rtype}');
+	r:put('//  <external path="{API.GetFunc(initializer:cname)}"/>');
 	
-	VAR i; EVERY i <- 1:to(n) DO r:put('\tCHECK_ARG_TYPE({i - 1}, {types[i]:rtype});');
-    r:put('\t{rettype:ctype} result = new({rettype:cname});');
-    VAR argindex <- 0, paramindex <- 0, type;
-    EVERY param <- params:values DO (
-	type <- Type.Lookup(param:type);
-	EVERY r:put("\t" + type:riva_to_c('Args[{argindex}].Val', 'result->{param:name}', "precall0"):values);
-	argindex <- argindex + type:c_argcount;
-	paramindex <- paramindex + 1;
-    );
-    EVERY r:put("\t" + rettype:c_return:values);
-    r:put("\treturn SUCCESS;");
-    r:put("};");
-    RET r;
+	r:put('\t{rettype:ctype} result = new({rettype:cname});');
+	VAR argindex <- 0, paramindex <- 0, type;
+	EVERY param <- params:values DO (
+		type <- Type.Lookup(param:type);
+		r:put('\tCHECK_ARG_TYPE({argindex}, {"Std$Object$T" ~= type:rtype});');
+		argindex <- argindex + type:c_argcount;
+	);
+	argindex <- 0;
+	EVERY param <- params:values DO (
+		type <- Type.Lookup(param:type);
+		EVERY r:put("\t" + type:riva_to_c('Args[{argindex}].Val', 'result->{param:name}', "precall0"):values);
+		argindex <- argindex + type:c_argcount;
+		paramindex <- paramindex + 1;
+	);
+	EVERY r:put("\t" + rettype:c_return:values);
+	r:put("\treturn SUCCESS;");
+	r:put("};");
+	RET r;
 );
 
 TO :generate_rdef(initializer@InitializerT) (
-    --Out:write('function: {function:type} {function:name}()\n');
-    RET ['export(\"{initializer:name}\")'];
+	--Out:write('function: {function:type} {function:name}()\n');
+	RET ['export(\"{initializer:name}\")'];
 );
 
 DEF ArrayFieldT! <- <[FieldT] len>;
 DEF ArrayFieldNew!(name, cname, type, len, object) (
-    VAR field <- ArrayFieldT();
-    field:name <- name;
-    field:cname <- cname;
-    field:type <- type;
-    field:len <- len;
-    field:object <- object;
-    RET field;
+	VAR field <- ArrayFieldT();
+	field:name <- name;
+	field:cname <- cname;
+	field:type <- type;
+	field:len <- len;
+	field:object <- object;
+	RET field;
 );
 
 TO :headers(field@ArrayFieldT) Type.Lookup(field:type):headers + field:object:headers;
 TO :libraries(field@ArrayFieldT) Type.Lookup(field:type):libraries + field:object:libraries;
 
 TO :generate_c(field@ArrayFieldT) (
-    --Out:writes('field: {field:type} {field:name}\n');
-    VAR type <- Type.Lookup(field:type);
-    VAR object <- field:object;
-    RET [
+	--Out:writes('field: {field:type} {field:name}\n');
+	VAR type <- Type.Lookup(field:type);
+	VAR object <- field:object;
+	RET [
 	'METHOD(\"{field:name}\", TYP, T, TYP, Std$Integer$T) \{',
 	'//@self',
 	'//@index',
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;',
 	'\tint index = ((Std$Integer_smallt *)Args[1].Val)->Value;'
-    ] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
+	] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
 	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}[index]', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',
 	'};'
-    ];
+	];
 );
 
 DEF Targets! <- [];
@@ -427,10 +435,10 @@ EOI);
 );
 
 TO :generate_h_file(type@Type.T, basedir) (
-    VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.h', File.Flag.Write + File.Flag.Text);
+	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.h', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.h\n');
-    VAR define <- 'GIR_{type:namespace:map(String.Lower, String.Upper)}_{type:name:map(String.Lower, String.Upper)}_H';
-    file:write(
+	VAR define <- 'GIR_{type:namespace:map(String.Lower, String.Upper)}_{type:name:map(String.Lower, String.Upper)}_H';
+	file:write(
 '#ifndef {define}
 #define {define}
 
@@ -438,23 +446,23 @@ TO :generate_h_file(type@Type.T, basedir) (
 #include <Riva-Header.h>
 
 ');
-    EVERY file:writes(type:generate_h:values, "\n");
-    VAR item;
-    EVERY item <- type:items:values DO (
+	EVERY file:writes(type:generate_h:values, "\n");
+	VAR item;
+	EVERY item <- type:items:values DO (
 	--file:write("\n");
 	EVERY file:writes(item:generate_h:values, "\n");
-    );
-    file:write('
+	);
+	file:write('
 #undef RIVA_MODULE
-    
+	
 #endif');
-    file:close;
+	file:close;
 );
 
 TO :generate_rlib_file(type@Type.T, basedir) (
-    VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rlib', File.Flag.Write + File.Flag.Text);
+	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rlib', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.rlib\n');
-    file:write(
+	file:write(
 'module(\"Gir\", \"{type:namespace}\", \"{type:name}\")
 if WINDOWS then
 \tprefix(\"_Gir${type:namespace}${type:name}$\")
@@ -462,24 +470,24 @@ else
 \tprefix(\"Gir${type:namespace}${type:name}$\")
 end
 ');
-    EVERY file:writes(type:generate_rlib:values, "\n");
-    VAR item;
-    EVERY item <- type:items:values DO (
+	EVERY file:writes(type:generate_rlib:values, "\n");
+	VAR item;
+	EVERY item <- type:items:values DO (
 	--file:write("\n");
 	EVERY file:writes(item:generate_rlib:values, "\n");
-    );
-    file:close;
+	);
+	file:close;
 );
 
 TO :fixup(type@Type.T) (
 );
 
 TO :generate(type@Type.T, objdir, incdir, libdir) (
-    Log:writes('Generating Gir${type:namespace}${type:name}\n');
-    type:generate_c_file(objdir);
-    type:generate_rdef_file(objdir);
-    type:generate_h_file(incdir);
-    type:generate_rlib_file(libdir);
+	Log:writes('Generating Gir${type:namespace}${type:name}\n');
+	type:generate_c_file(objdir);
+	type:generate_rdef_file(objdir);
+	type:generate_h_file(incdir);
+	type:generate_rlib_file(libdir);
 );
 
 (VAR void <- Type.T();
@@ -490,195 +498,195 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 );
 
 (VAR ellipsis <- Type.T();
-    TO :rtype(=ellipsis) "Std$Object$T";
-    TO :ctype(=ellipsis) "char *";
-    TO :c_precall(=ellipsis, argindex, paramindex) [
+	TO :rtype(=ellipsis) "Std$Object$T";
+	TO :ctype(=ellipsis) "char *";
+	TO :c_precall(=ellipsis, argindex, paramindex) [
 	'char *param{paramindex} = 0;'
-    ];
-    Type.Define("ellipsis", ellipsis);
+	];
+	Type.Define("ellipsis", ellipsis);
 );
 
 (VAR varargs <- Type.T();
-    TO :headers(=varargs) {};
+	TO :headers(=varargs) {};
 	TO :libraries(=varargs) {};
 	TO :signature(=varargs) "ANY";
 	TO :ctype(=varargs) "va_list";
 
 	TO :c_precall(=varargs, argindex, paramindex)
 	['va_list param{paramindex} = Gir$GObject$Riva$varargs(Count - {argindex}, Args + {argindex});'];
-    Type.Define("varargs", varargs);
+	Type.Define("varargs", varargs);
 );
 
 (VAR out_size <- Type.T("out-size");
-    TO :ctype(=out_size) "gsize";
-    TO :rtype(=out_size) FAIL;
-    TO :c_argcount(=out_size) 0;
-    TO :c_precall(=out_size, argindex, paramindex) [
+	TO :ctype(=out_size) "gsize";
+	TO :rtype(=out_size) FAIL;
+	TO :c_argcount(=out_size) 0;
+	TO :c_precall(=out_size, argindex, paramindex) [
 	'gsize param{paramindex}_value, *param{paramindex} = &param{paramindex}_value;'
-    ];
-    Type.Define("out-size", out_size);
+	];
+	Type.Define("out-size", out_size);
 );
 
 (VAR time <- Type.T("time");
-    TO :headers(=time) {"Sys/Time.h"};
-    TO :libraries(=time) {"Sys/Time.rlib"};
-    TO :rtype(=time) "Sys$Time$T";
-    TO :ctype(=time) "time_t";
-    TO :riva_to_c(=time, in, out, tmp) ['{out} = ((Sys$Time$t *){in})->Value;'];
-    TO :c_to_riva(=time, in, out, tmp) ['{out} = Sys$Time$new({in});'];
-    Type.Define("time_t", time);
+	TO :headers(=time) {"Sys/Time.h"};
+	TO :libraries(=time) {"Sys/Time.rlib"};
+	TO :rtype(=time) "Sys$Time$T";
+	TO :ctype(=time) "time_t";
+	TO :riva_to_c(=time, in, out, tmp) ['{out} = ((Sys$Time$t *){in})->Value;'];
+	TO :c_to_riva(=time, in, out, tmp) ['{out} = Sys$Time$new({in});'];
+	Type.Define("time_t", time);
 );
 
 (VAR integer <- Type.T("byte");
-    TO :rtype(=integer) "Std$Integer$SmallT";
-    TO :ctype(=integer) "uint8_t";
-    TO :riva_to_c(=integer, in, out, tmp) ['{out} = Std$Integer$get_small({in});'];
-    TO :c_to_riva(=integer, in, out, tmp) ['{out} = Std$Integer$new_small({in});'];
-    Type.Define("guint8", integer);
-    Type.Define("gint8", integer);
+	TO :rtype(=integer) "Std$Integer$SmallT";
+	TO :ctype(=integer) "uint8_t";
+	TO :riva_to_c(=integer, in, out, tmp) ['{out} = Std$Integer$get_small({in});'];
+	TO :c_to_riva(=integer, in, out, tmp) ['{out} = Std$Integer$new_small({in});'];
+	Type.Define("guint8", integer);
+	Type.Define("gint8", integer);
 );
 
 (VAR integer <- Type.T("integer");
-    TO :rtype(=integer) "Std$Integer$SmallT";
-    TO :ctype(=integer) "int";
-    TO :riva_to_c(=integer, in, out, tmp) ['{out} = Std$Integer$get_small({in});'];
-    TO :c_to_riva(=integer, in, out, tmp) ['{out} = Std$Integer$new_small({in});'];
-    Type.Define("int", integer);
-    Type.Define("guint", integer);
-    Type.Define("gint", integer);
-    Type.Define("gushort", integer);
-    Type.Define("gshort", integer);
-    Type.Define("long", integer);
-    Type.Define("gulong", integer);
-    Type.Define("glong", integer);
-    Type.Define("guint16", integer);
-    Type.Define("guint32", integer);
-    Type.Define("gint16", integer);
-    Type.Define("gint32", integer);
-    Type.Define("gsize", integer);
-    Type.Define("gssize", integer);
-    Type.Define("size_t", integer);
-    Type.Define("unsigned short", integer);
-    Type.Define("unsigned int", integer);
-    Type.Define("unsigned long", integer);
-    Type.Define("dbus_uint32_t", integer);
-    Type.Define("dbus_int32_t", integer);
+	TO :rtype(=integer) "Std$Integer$SmallT";
+	TO :ctype(=integer) "int";
+	TO :riva_to_c(=integer, in, out, tmp) ['{out} = Std$Integer$get_small({in});'];
+	TO :c_to_riva(=integer, in, out, tmp) ['{out} = Std$Integer$new_small({in});'];
+	Type.Define("int", integer);
+	Type.Define("guint", integer);
+	Type.Define("gint", integer);
+	Type.Define("gushort", integer);
+	Type.Define("gshort", integer);
+	Type.Define("long", integer);
+	Type.Define("gulong", integer);
+	Type.Define("glong", integer);
+	Type.Define("guint16", integer);
+	Type.Define("guint32", integer);
+	Type.Define("gint16", integer);
+	Type.Define("gint32", integer);
+	Type.Define("gsize", integer);
+	Type.Define("gssize", integer);
+	Type.Define("size_t", integer);
+	Type.Define("unsigned short", integer);
+	Type.Define("unsigned int", integer);
+	Type.Define("unsigned long", integer);
+	Type.Define("dbus_uint32_t", integer);
+	Type.Define("dbus_int32_t", integer);
 );
 
 (VAR uint64 <- Type.T("uint64");
-    TO :rtype(=uint64) "Std$Integer$T";
-    TO :ctype(=uint64) "unsigned long long";
-    TO :riva_to_c(=uint64, in, out, tmp) ['{out} = Std$Integer$get_u64({in});'];
-    TO :c_to_riva(=uint64, in, out, tmp) ['{out} = Std$Integer$new_u64({in});'];
-    Type.Define("guint64", uint64);
+	TO :rtype(=uint64) "Std$Integer$T";
+	TO :ctype(=uint64) "unsigned long long";
+	TO :riva_to_c(=uint64, in, out, tmp) ['{out} = Std$Integer$get_u64({in});'];
+	TO :c_to_riva(=uint64, in, out, tmp) ['{out} = Std$Integer$new_u64({in});'];
+	Type.Define("guint64", uint64);
 );
 
 (VAR int64 <- Type.T("int64");
-    TO :rtype(=int64) "Std$Integer$T";
-    TO :ctype(=int64) "long long";
-    TO :riva_to_c(=int64, in, out, tmp) ['{out} = Std$Integer$get_s64({in});'];
-    TO :c_to_riva(=int64, in, out, tmp) ['{out} = Std$Integer$new_s64({in});'];
-    Type.Define("gint64", int64);
-    Type.Define("goffset", int64);
+	TO :rtype(=int64) "Std$Integer$T";
+	TO :ctype(=int64) "long long";
+	TO :riva_to_c(=int64, in, out, tmp) ['{out} = Std$Integer$get_s64({in});'];
+	TO :c_to_riva(=int64, in, out, tmp) ['{out} = Std$Integer$new_s64({in});'];
+	Type.Define("gint64", int64);
+	Type.Define("goffset", int64);
 );
 
 (VAR string <- Type.T("string");
-    TO :rtype(=string) "Std$String$T";
-    TO :ctype(=string) "char *";
-    TO :riva_to_c(=string, in, out, tmp) ['{out} = Std$String$flatten({in});'];
-    TO :c_to_riva(=string, in, out, tmp) ['{out} = Std$String$copy({in});'];
-    Type.Define("char*", string);
-    Type.Define("unsigned char*", string);
-    Type.Define("gchar*", string);
-    Type.Define("guchar*", string);
-    Type.Define("xmlChar*", string);
+	TO :rtype(=string) "Std$String$T";
+	TO :ctype(=string) "char *";
+	TO :riva_to_c(=string, in, out, tmp) ['{out} = Std$String$flatten({in});'];
+	TO :c_to_riva(=string, in, out, tmp) ['{out} = Std$String$copy({in});'];
+	Type.Define("char*", string);
+	Type.Define("unsigned char*", string);
+	Type.Define("gchar*", string);
+	Type.Define("guchar*", string);
+	Type.Define("xmlChar*", string);
 	Type.Define("gchar**", Type.Lookup("array-gchar*"));
 );
 
 (VAR real <- Type.T("real");
-    TO :rtype(=real) "Std$Real$T";
-    TO :ctype(=real) "double";
-    TO :riva_to_c(=real, in, out, tmp) ['{out} = Std$Real$get_value({in});'];
-    TO :c_to_riva(=real, in, out, tmp) ['{out} = Std$Real$new({in});'];
-    Type.Define("gdouble", real);
-    Type.Define("double", real);
-    Type.Define("gfloat", real);
-    Type.Define("float", real);
+	TO :rtype(=real) "Std$Real$T";
+	TO :ctype(=real) "double";
+	TO :riva_to_c(=real, in, out, tmp) ['{out} = Std$Real$get_value({in});'];
+	TO :c_to_riva(=real, in, out, tmp) ['{out} = Std$Real$new({in});'];
+	Type.Define("gdouble", real);
+	Type.Define("double", real);
+	Type.Define("gfloat", real);
+	Type.Define("float", real);
 );
 
 (VAR boolean <- Type.T("boolean");
-    TO :headers(=boolean) {'Std/Boolean.h'};
-    TO :rtype(=boolean) "Std$Symbol$T";
-    TO :ctype(=boolean) "gboolean";
-    TO :riva_to_c(=boolean, in, out, tmp) ['{out} = {in} == $true;'];
-    TO :c_to_riva(=boolean, in, out, tmp) ['{out} = {in} ? $true : $false;'];
-    Type.Define("gboolean", boolean);
+	TO :headers(=boolean) {'Std/Boolean.h'};
+	TO :rtype(=boolean) "Std$Symbol$T";
+	TO :ctype(=boolean) "gboolean";
+	TO :riva_to_c(=boolean, in, out, tmp) ['{out} = {in} == $true;'];
+	TO :c_to_riva(=boolean, in, out, tmp) ['{out} = {in} ? $true : $false;'];
+	Type.Define("gboolean", boolean);
 );
 
 (VAR char <- Type.T("char");
-    TO :rtype(=char) "Std$String$T";
-    TO :ctype(=char) "char";
-    TO :riva_to_c(=char, in, out, tmp) ['{out} = ((char *)((Std$String$t *){in})->Blocks[0].Chars.Value)[0];'];
-    TO :c_to_riva(=char, in, out, tmp) ['{out} = Std$String$new_char({in});'];
-    Type.Define("char", char);
-    Type.Define("unsigned char", char);
-    Type.Define("guchar", char);
-    Type.Define("gchar", char);
-    Type.Define("xmlChar", char);
+	TO :rtype(=char) "Std$String$T";
+	TO :ctype(=char) "char";
+	TO :riva_to_c(=char, in, out, tmp) ['{out} = ((char *)((Std$String$t *){in})->Blocks[0].Chars.Value)[0];'];
+	TO :c_to_riva(=char, in, out, tmp) ['{out} = Std$String$new_char({in});'];
+	Type.Define("char", char);
+	Type.Define("unsigned char", char);
+	Type.Define("guchar", char);
+	Type.Define("gchar", char);
+	Type.Define("xmlChar", char);
 );
 
 (VAR pointer <- Type.T("pointer");
-    TO :rtype(=pointer) "Std$Address$T";
-    TO :ctype(=pointer) "void *";
-    TO :riva_to_c(=pointer, in, out, tmp) ['{out} = Std$Address$get_value({in});'];
-    TO :c_to_riva(=pointer, in, out, tmp) ['{out} = Std$Address$new({in});'];
-    Type.Define("void*", pointer);
-    Type.Define("gpointer", pointer);
-    Type.Define("pointer", pointer);
-    Type.Define("gconstpointer", pointer);
+	TO :rtype(=pointer) "Std$Address$T";
+	TO :ctype(=pointer) "void *";
+	TO :riva_to_c(=pointer, in, out, tmp) ['{out} = Std$Address$get_value({in});'];
+	TO :c_to_riva(=pointer, in, out, tmp) ['{out} = Std$Address$new({in});'];
+	Type.Define("void*", pointer);
+	Type.Define("gpointer", pointer);
+	Type.Define("pointer", pointer);
+	Type.Define("gconstpointer", pointer);
 );
 
 (VAR any <- Type.T("any");
-    TO :rtype(=any) "Std$Object$T";
-    TO :ctype(=any) "Std$Object$t *";
-    TO :signature(=any) "SKP";
-    TO :riva_to_c(=any, in, out, tmp) ['{out} = {in};'];
-    TO :c_to_riva(=any, in, out, tmp) ['{out} = {in};'];
-    Type.Define("any", any);
+	TO :rtype(=any) "Std$Object$T";
+	TO :ctype(=any) "Std$Object$t *";
+	TO :signature(=any) "SKP";
+	TO :riva_to_c(=any, in, out, tmp) ['{out} = {in};'];
+	TO :c_to_riva(=any, in, out, tmp) ['{out} = {in};'];
+	Type.Define("any", any);
 );
 
 (VAR varargs <- Type.T("varargs");
-    TO :headers(=varargs) {};
-    TO :libraries(=varargs) {};
-    TO :rtype(=varargs) "Agg$List$T";
-    TO :ctype(=varargs) "va_list";
-    TO :riva_to_c(=varargs, in, out, tmp) ['{out} = Gir$GObject$Riva$valist({in});'];
-    Type.Define("va_list", varargs);
+	TO :headers(=varargs) {};
+	TO :libraries(=varargs) {};
+	TO :rtype(=varargs) "Agg$List$T";
+	TO :ctype(=varargs) "va_list";
+	TO :riva_to_c(=varargs, in, out, tmp) ['{out} = Gir$GObject$Riva$valist({in});'];
+	Type.Define("va_list", varargs);
 );
 
 (VAR type <- Type.T("type");
-    TO :headers(=type) {"Gir/GObject/Type.h"};
-    TO :libraries(=type) {"Gir/GObject/Type.rlib"};
-    TO :rtype(=type) "Gir$GObject$Type$T";
-    TO :ctype(=type) "GType";
-    TO :riva_to_c(=type, in, out, tmp) ['{out} = ((Gir$GObject$Type$t *){in})->Value;'];
-    TO :c_to_riva(=type, in, out, tmp) [
+	TO :headers(=type) {"Gir/GObject/Type.h"};
+	TO :libraries(=type) {"Gir/GObject/Type.rlib"};
+	TO :rtype(=type) "Gir$GObject$Type$T";
+	TO :ctype(=type) "GType";
+	TO :riva_to_c(=type, in, out, tmp) ['{out} = ((Gir$GObject$Type$t *){in})->Value;'];
+	TO :c_to_riva(=type, in, out, tmp) [
 	'Gir$GObject$Type$t *{tmp}_type = new(Gir$GObject$Type$t);',
 	'{tmp}_type->Type = Gir$GObject$Type$T;',
 	'{tmp}_type->Value = {in};',
 	'{out} = {tmp}_type;'
-    ];
-    Type.Define("GType", type);
-    Type.Define("GTkType", type);
+	];
+	Type.Define("GType", type);
+	Type.Define("GTkType", type);
 );
 
 (VAR closure <- Type.T("closure");
-    TO :headers(=closure) {"Gir/GObject/Closure.h"};
-    TO :libraries(=closure) {"Gir/GObject/Closure.rlib"};
-    TO :rtype(=closure) "Gir$GObject$Closure$T";
-    TO :ctype(=closure) "GClosure *";
-    TO :riva_to_c(=closure, in, out, tmp) ['{out} = Gir$GObject$Closure$from_val({in});'];
-    Type.Define("GClosure*", closure);
+	TO :headers(=closure) {"Gir/GObject/Closure.h"};
+	TO :libraries(=closure) {"Gir/GObject/Closure.rlib"};
+	TO :rtype(=closure) "Gir$GObject$Closure$T";
+	TO :ctype(=closure) "GClosure *";
+	TO :riva_to_c(=closure, in, out, tmp) ['{out} = Gir$GObject$Closure$from_val({in});'];
+	Type.Define("GClosure*", closure);
 );
 
 (VAR gvalue <- Type.T("GValue");
