@@ -287,6 +287,29 @@ int main(int Argc, const char **Argv) {
 		fprintf(stderr, "\e[31mError: %s\e[0m", lua_tostring(L, -1));
 		exit(1);
 	}
+
+	const char *TargetName = 0;
+	for (int I = 1; I < Argc; ++I) {
+		if (Argv[I][0] == '-') {
+			switch (Argv[I][1]) {
+			case 'D': {
+				char *Define = concat(Argv[I] + 2, 0);
+				char *Equals = strchr(Define, '=');
+				if (Equals) {
+					*Equals = 0;
+					lua_pushstring(L, Equals + 1);
+				} else {
+					lua_pushboolean(L, 1);
+				};
+				lua_setglobal(L, Define);
+				break;
+			};
+			};
+		} else {
+			TargetName = Argv[I];
+		};
+	};
+
 	vfs_init();
 	target_init();
 	context_init();
@@ -308,12 +331,22 @@ int main(int Argc, const char **Argv) {
 		context_symb_set("VERSION");
 		lua_pop(L, 1);
 		load_file(L, concat(RootPath, "/_build_", 0));
-		context_t *Context = context_find(match_prefix(Path, RootPath));
-		if (!Context) {
-			printf("\e[31mError: current directory is not in project\e[0m");
-			exit(1);
+		target_t *Target;
+		if (TargetName) {
+			Target = target_find(TargetName);
+			if (!Target) {
+				printf("\e[31mError: invalid target\e[0m");
+				exit(1);
+			}
+		} else {
+			context_t *Context = context_find(match_prefix(Path, RootPath));
+			if (!Context) {
+				printf("\e[31mError: current directory is not in project\e[0m");
+				exit(1);
+			}
+			Target = Context->Default;
 		}
-		target_update(Context->Default);
+		target_update(Target);
 	}
 	return 0;
 }

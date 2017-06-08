@@ -1225,6 +1225,138 @@ METHOD("insert", TYP, T, TYP, Std$Integer$SmallT, SKP) {
 	};
 };
 
+static void splice_nodes(_list *List, _node *Next, int Length, _node *Head, _node *Tail) {
+	Head->Prev = Next->Prev;
+	Next->Prev->Next = Head;
+	Tail->Next = Next;
+	Next->Prev = Tail;
+	List->Array = 0;
+	List->Index = 1;
+	List->Cache = List->Head;
+	List->Access = 4;
+	List->Length += Length;
+}
+
+METHOD("splice", TYP, T, TYP, Std$Integer$SmallT, TYP, T) {
+	_list *List = (_list *)Args[0].Val;
+	WRLOCK(List);
+	long Index = Std$Integer$get_small(Args[1].Val);
+	long Cache = List->Index;
+	long Length = List->Length;
+	if (Index <= 0) Index += Length + 1;
+	if ((Index < 1) || (Length + 1 < Index)) {UNLOCK(List); return FAILURE;};
+	_list *Source = (_list *)Args[2].Val;
+	WRLOCK(Source);
+	long SourceLength = Source->Length;
+	if (SourceLength == 0) {
+		UNLOCK(Source);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	}
+	_node *Head = Source->Head;
+	_node *Tail = Source->Tail;
+	Source->Head = Source->Tail = Source->Cache = 0;
+	Source->Index = Source->Lower = Source->Upper = 0;
+	Source->Array = 0;
+	Source->Length = 0;
+	Source->Access = 4;
+	UNLOCK(Source);
+	if (Index == 1) {
+		Tail->Next = List->Head;
+		List->Head->Prev = Tail;
+		List->Head = Head;
+		if (List->Array) {
+			List->Lower += Length;
+			List->Upper += Length;
+		}
+		List->Index = 1;
+		List->Cache = Head;
+		List->Access = 4;
+		List->Length += SourceLength;
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	}
+	if (Index == Length + 1) {
+		Head->Prev = List->Tail;
+		List->Tail->Next = Head;
+		List->Tail = Tail;
+		List->Index = 1;
+		List->Cache = Head;
+		List->Access = 4;
+		List->Length += SourceLength;
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+	if (Index == Length) {
+		splice_nodes(List, List->Tail, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+	switch (Index - Cache) {
+	case -1: {
+		splice_nodes(List, List->Cache->Prev, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+	case 0: {
+		splice_nodes(List, List->Cache, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+	case 1: {
+		splice_nodes(List, List->Cache->Next, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+	};
+	if (List->Array && (List->Lower <= Index) && (Index <= List->Upper)) {
+		_node *Node = List->Array[Index - List->Lower];
+		splice_nodes(List, Node, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else if (2 * Index < Cache) {
+		_node *Node = List->Head;
+		long Steps = Index - 1;
+		do Node = Node->Next; while (--Steps);
+		splice_nodes(List, Node, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else if (Index < Cache) {
+		_node *Node = List->Cache;
+		long Steps = Cache - Index;
+		do Node = Node->Prev; while (--Steps);
+		splice_nodes(List, Node, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else if (2 * Index < Cache + Length) {
+		_node *Node = List->Cache;
+		long Steps = Index - Cache;
+		do Node = Node->Next; while (--Steps);
+		splice_nodes(List, Node, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else {
+		_node *Node = List->Tail;
+		long Steps = Length - Index;
+		do Node = Node->Prev; while (--Steps);
+		splice_nodes(List, Node, SourceLength, Head, Tail);
+		UNLOCK(List);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+}
+
 /*
 METHOD("length", TYP, T) {
 //@list

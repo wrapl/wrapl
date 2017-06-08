@@ -1,5 +1,3 @@
-local lfs = require "lfs"
-
 RLINK = DEV_BIN/"rlink"
 RDOC = DEV_BIN/"rdoc"
 WRAPL_MODULES = meta("WraplModules")

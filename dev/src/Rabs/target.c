@@ -5,6 +5,7 @@
 #include "cache.h"
 #include <lauxlib.h>
 #include <libHX/map.h>
+#include <libHX/io.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -271,7 +272,7 @@ static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_
 	}
 	struct stat Stat[1];
 	if (stat(FileName, Stat)) {
-		printf("\e[31mWarning: rule failed to build: %s\e[0m\n", FileName);
+		//printf("\e[31mWarning: rule failed to build: %s\e[0m\n", FileName);
 		return 0;
 	}
 	if (!S_ISREG(Stat->st_mode)) {
@@ -391,6 +392,26 @@ int target_file_exists(lua_State *L) {
 		lua_pushboolean(L, 0);
 	}
 	return 1;
+}
+
+int target_file_copy(lua_State *L) {
+	target_file_t *Source = (target_file_t *)luaL_checkudata(L, 1, "target");
+	target_file_t *Dest = (target_file_t *)luaL_checkudata(L, 1, "target");
+	if (Dest->Class != FileClass) return luaL_error(L, "Error: target is not a file");
+	const char *SourcePath, *DestPath;
+	if (Source->Absolute) {
+		SourcePath = Source->Path;
+	} else {
+		SourcePath = vfs_resolve(CurrentContext->Mounts, concat(RootPath, "/", Source->Path, 0));
+	}
+	if (Dest->Absolute) {
+		DestPath = Dest->Path;
+	} else {
+		DestPath = vfs_resolve(CurrentContext->Mounts, concat(RootPath, "/", Dest->Path, 0));
+	}
+	int Error = HX_copy_file(SourcePath, DestPath, 0);
+	if (Error < 0) return luaL_error(L, strerror(-Error));
+	return 0;
 }
 
 int target_div(lua_State *L) {
@@ -627,6 +648,10 @@ static int target_index(lua_State *L) {
 		}
 		if (!strcmp(Method, "exists")) {
 			lua_pushcfunction(L, target_file_exists);
+			return 1;
+		}
+		if (!strcmp(Method, "copy")) {
+			lua_pushcfunction(L, target_file_copy);
 			return 1;
 		}
 	}
