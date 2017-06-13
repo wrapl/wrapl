@@ -1,5 +1,5 @@
-UDIS_VERSION = "1.7"
-local UDIS_DIR = file("udis86-" .. UDIS_VERSION)
+UDIS_VERSION = "1.7.2"
+UDIS_DIR = file("udis86-" .. UDIS_VERSION)
 
 file("libudis86.a"){UDIS_DIR}:build(function()
 	execute{"cd", UDIS_DIR, "&&",

@@ -450,37 +450,20 @@ invoke_return:
 	ret
 	
 invoke_message:
-	;TRAP TEST!!!
 	pop esi
-	
-	jmp [bstate(ebp).Handler]
-	
+	jmp [bstate(ebp).Handler]	
+
 invoke_backtrack:
-	;TRAP TEST!!!
-;backtrack:
 	pop esi
 backtrack:
-
 	mov eax, [trap(edi).State]
-	
-	;TRAP TEST!!!
 	test eax, eax
 	jz .failure
-	
 	mov esi, [Std$Function_state(eax).Chain]
 	mov [trap(edi).State], esi
-	
-	;TRAP TEST!!!
-	;push edi
-	;push dword [Std$Function_state(eax).Resume]
-	;call [Std$Function_state(eax).Run]
-	;pop esi
-	;pop edi
-	;jmp [return_table + 4 * eax]
 	push dword [Std$Function_state(eax).Resume]
 	jmp [Std$Function_state(eax).Run]
 	
-	;TRAP TEST!!!
 .failure:
 	jmp [trap(edi).Run]
 
@@ -761,3 +744,38 @@ ctype CodeT, Std$Function$T
 	mov ebp, [code(ecx).Frame]
 	xor edx, edx
 	jmp [code(ecx).Entry]
+
+
+extern debug_enter_impl
+cfunction debug_enter
+	mov [bstate(ebp).Val], ecx
+	mov [bstate(ebp).Ref], edx
+	push ebp
+	call debug_enter_impl
+	add esp, byte 4
+	mov edx, [bstate(ebp).Ref]
+	mov ecx, [bstate(ebp).Val]
+	ret
+
+extern debug_break_impl
+cfunction debug_break
+	mov [bstate(ebp).Val], ecx
+	mov [bstate(ebp).Ref], edx
+	push eax
+	push ebp
+	call debug_break_impl
+	add esp, byte 8
+	mov edx, [bstate(ebp).Ref]
+	mov ecx, [bstate(ebp).Val]
+	ret
+
+extern debug_exit_impl
+cfunction debug_exit
+	mov [bstate(ebp).Val], ecx
+	mov [bstate(ebp).Ref], edx
+	push ebp
+	call debug_exit_impl
+	add esp, byte 4
+	mov edx, [bstate(ebp).Ref]
+	mov ecx, [bstate(ebp).Val]
+	ret

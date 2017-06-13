@@ -1,6 +1,6 @@
 local libudis86 = file("../../../Rlink/libudis86.a")
 
-LDFLAGS = extend(LDFLAGS, "-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", libudis86)
+LDFLAGS = extend(LDFLAGS, "-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", libudis86, "libjansson.so")
 CFLAGS = extend(CFLAGS, "-x", "c++", "-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", libudis86:dir())
 
 local Files = {

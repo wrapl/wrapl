@@ -9,31 +9,20 @@
 struct dstate_t;
 struct debugger_t;
 struct debug_module_t;
+struct debug_function_t;
 
 struct debug_thread_t {
-	int StepIn;
+	debug_thread_t *Prev, *Next;
+	uint32_t Id;
+	uint32_t StepIn;
+	uint32_t RunTo;
 	dstate_t *StepOverInstance;
 	dstate_t *StepOutInstance;
-	debug_module_t *RunToModule;
-	int RunToLine;
-	debug_thread_t *Prev, *Next;
 	dstate_t *State;
 	pthread_cond_t Resume[1];
 	bool Paused;
+	uint32_t Enters, Exits;
 };
-
-struct debug_function_t {
-	debug_module_t *Module;
-	int LineNo;
-	int LocalsOffset;
-};
-
-debug_module_t *debug_module(const char *Name);
-void *debug_breakpoints(debug_module_t *Module, int LineNo);
-void debug_add_line(debug_module_t *Module, const char *Line);
-void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **Address);
-debug_function_t *debug_function(debug_module_t *Module, int LineNo);
-void debug_add_local(debug_function_t *Function, const char *Name, int Index);
 
 struct dstate_t {
 	void *Run;
@@ -48,13 +37,23 @@ struct dstate_t {
 	debug_thread_t *Thread;
 };
 
+debug_module_t *debug_module(const char *Name);
+void *debug_breakpoints(debug_function_t *Function, uint32_t LineNo);
+void debug_add_line(debug_module_t *Module, const char *Line);
+void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **Address);
+debug_function_t *debug_function(debug_module_t *Module, uint32_t LineNo);
+int debug_module_id(debug_function_t *Function);
+void debug_add_local(debug_function_t *Function, const char *Name, uint32_t Index);
+void debug_set_locals(debug_function_t *Function, uint32_t LocalsOffset, uint32_t NoOfLocals);
+void debug_enable(int Port);
+
 extern debugger_t *Debugger;
 
 extern "C" {
-	void debug_enable(int Port);
-	void debug_break(dstate_t *State, int LineNo);
-	void debug_enter(dstate_t *State);
-	void debug_exit(dstate_t *State);
+	
+	void debug_break_impl(dstate_t *State, uint32_t LineNo);
+	void debug_enter_impl(dstate_t *State);
+	void debug_exit_impl(dstate_t *State);
 }
 
 

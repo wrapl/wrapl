@@ -31,6 +31,11 @@ struct variadic_t {
 	Std$Function_argument Args[];
 };
 
+struct trap_t {
+	void *State;
+	void *Run;
+};
+
 operand_t Register[] = {{
 	0, operand_t::REGR
 }};
@@ -1556,7 +1561,7 @@ operand_t *label_t::assemble(const frame_t *Frame, const char *StrInfo, int IntI
 	if (DebugInfo) NoOfConsts += 1;
 	bool CanSuspend = false;
 	for (inst_t *Inst = Assembly.Next; Inst; Inst = Inst->Next) NoOfConsts += Inst->noof_consts();
-	if (/*DebugInfo ||*/ Riva$Config$get("Wrapl/Loader/AlwaysHeapFrame")) {
+	if (DebugInfo || Riva$Config$get("Wrapl/AlwaysHeapFrame")) {
 		CanSuspend = true;
 	} else {
 		for (inst_t *Inst = Assembly.Next; Inst; Inst = Inst->Next) CanSuspend |= Inst->can_suspend();
@@ -1587,10 +1592,10 @@ operand_t *label_t::assemble(const frame_t *Frame, const char *StrInfo, int IntI
 	Assembler->Variadic = Frame->Variadic;
 	Assembler->DebugInfo = DebugInfo;
 
-	if (DebugInfo) DebugInfo->LocalsOffset = Assembler->Locals;
+	if (DebugInfo) debug_set_locals(DebugInfo, Assembler->Locals, Frame->NoOfLocals);
 
 #ifdef ASSEMBLER_LISTING
-	if (Riva$Config$get("Wrapl/Loader/Disassemble")) {
+	if (Riva$Config$get("Wrapl/Disassemble")) {
 		printf("\n\nASSEMBLY\n");
 			for (inst_t *Inst = Assembly.Next; Inst; Inst = Inst->Next) Inst->list();
 		printf("END\n");
@@ -1640,15 +1645,41 @@ operand_t *label_t::assemble(const frame_t *Frame, const char *StrInfo, int IntI
 	dasm_encode(Assembler, Code);
 
 #ifdef ASSEMBLER_LISTING
-	if (Riva$Config$get("Wrapl/Loader/Disassemble")) {
+	if (Riva$Config$get("Wrapl/Disassemble")) {
 		ud_t UD;
 		ud_init(&UD);
 		ud_set_input_buffer(&UD, Code, Size);
 		ud_set_mode(&UD, 32);
 		ud_set_pc(&UD, (uint64_t)Code);
 		ud_set_syntax(&UD, UD_SYN_INTEL);
-		while (ud_disassemble(&UD)) printf("%8x: %s\n", (uint32_t)ud_insn_off(&UD), ud_insn_asm(&UD));
-	};
+		while (ud_disassemble(&UD)) {
+			if (ud_insn_mnemonic(&UD) == UD_Icall) {
+				ud_operand_t *Operand = ud_insn_opr(&UD, 0);
+				void *Address = ud_insn_off(&UD) + Operand->lval.udword + 5;
+				if (Address == &debug_exit) {
+					printf("%8x: call debug_exit\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &debug_break) {
+					printf("%8x: call debug_break\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &debug_enter) {
+					printf("%8x: call debug_enter\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &alloc_local) {
+					printf("%8x: call alloc_local\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &Riva$Memory$alloc) {
+					printf("%8x: call Riva$Memory$alloc\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &Std$Type$is) {
+					printf("%8x: call Std$Type$is\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &Agg$Table$new) {
+					printf("%8x: call Agg$Table$new\n", (uint32_t)ud_insn_off(&UD));
+				} else if (Address == &Agg$Table$insert) {
+					printf("%8x: call Agg$Table$insert\n", (uint32_t)ud_insn_off(&UD));
+				} else {
+					printf("%8x: %s\n", (uint32_t)ud_insn_off(&UD), ud_insn_asm(&UD));
+				}
+			} else {
+				printf("%8x: %s\n", (uint32_t)ud_insn_off(&UD), ud_insn_asm(&UD));
+			}
+		}
+	}
 #endif
 
 	if (Operand) {

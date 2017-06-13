@@ -733,7 +733,7 @@ static void bfd_section_debug(bfd_section_t *Section, FILE *File) {
 	fprintf(File, "%d: text section: %d[%s,%s] %s:%s[%x]", ((section_t *)Section)->Index, Section->Size, (Section->Flags & FLAG_GC) ? "GC" : "NOGC", (Section->Flags & FLAG_DELAY) ? "DELAY" : "NODELAY", Section->BfdInfo->FileName, ((section_t *)Section)->Name, Section->Sect->flags);
 
 #ifdef USE_UDIS
-	if (!(Section->Flags & FLAG_GC)) {
+	if (!(Section->Flags & FLAG_GC) && Section->Code) {
 		fprintf(File, "\n");
 		ud_t UD[1];
 		ud_init(UD);
