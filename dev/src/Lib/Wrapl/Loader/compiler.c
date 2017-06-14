@@ -1118,9 +1118,9 @@ operand_t *code_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 		label_t *Failure0 = new label_t;
 		label_t *Start1 = Compiler->push_trap(LineNo, Start0, Failure0);
 		Success0->load(LineNo, Body->compile(Compiler, Start1, Success0));
-		Success0->susp(LineNo);
+		Success0->susp(LineNo, true);
 		Compiler->back_trap(Success0);
-		Failure0->fail(LineNo);
+		Failure0->fail(LineNo, true);
 		Compiler->pop_trap();
 	Compiler->pop_expression();
 //#ifdef ASSEMBLER_LISTING
@@ -1269,7 +1269,7 @@ operand_t *ret_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Su
 operand_t *susp_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
 	label_t *Label0 = new label_t;
 	Label0->load(LineNo, Value->compile(Compiler, Start, Label0));
-	Label0->susp(LineNo);
+	Label0->susp(LineNo, false);
 	Label0->link(LineNo, Success);
 	return Register;
 };

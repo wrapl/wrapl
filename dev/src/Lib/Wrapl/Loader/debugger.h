@@ -38,7 +38,7 @@ struct dstate_t {
 };
 
 debug_module_t *debug_module(const char *Name);
-void *debug_breakpoints(debug_function_t *Function, uint32_t LineNo);
+uint8_t *debug_breakpoints(debug_function_t *Function, uint32_t LineNo);
 void debug_add_line(debug_module_t *Module, const char *Line);
 void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **Address);
 debug_function_t *debug_function(debug_module_t *Module, uint32_t LineNo);

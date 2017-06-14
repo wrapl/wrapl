@@ -80,7 +80,7 @@ struct link_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tlink %x\n", LineNo, Link->final());
+		printf("%4d: link %x\n", LineNo, Link->final());
 	};
 #endif
 	void add_source(load_inst_t *Load) {Link->add_source(Load);};
@@ -131,7 +131,7 @@ struct test_param_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\ttest_param [%s] %d -> %x\n", LineNo, Reference ? "REF" : "VAL", Index, Continue->final());
+		printf("%4d: test_param [%s] %d -> %x\n", LineNo, Reference ? "REF" : "VAL", Index, Continue->final());
 	};
 #endif
 	void append_links(label_t *Start) {
@@ -156,7 +156,7 @@ struct default_param_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tdefault_param [%s] %d\n", LineNo, Reference ? "REF" : "VAL", Index);
+		printf("%4d: default_param [%s] %d\n", LineNo, Reference ? "REF" : "VAL", Index);
 	};
 #endif
 	void add_source(load_inst_t *Load) {
@@ -180,7 +180,7 @@ struct local_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tlocal %d\n", LineNo, Index);
+		printf("%4d: local %d\n", LineNo, Index);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -200,7 +200,7 @@ struct store_local_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_local %d\n", LineNo, Index);
+		printf("%4d: store_local %d\n", LineNo, Index);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -229,12 +229,12 @@ struct init_trap_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Failure->IsPotentialBreakpoint = true;
+		if (Failure->LineNo != LineNo) Failure->IsPotentialBreakpoint = true;
 	};
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tzero %d <- %x\n", LineNo, Trap, Failure->final());
+		printf("%4d: zero %d <- %x\n", LineNo, Trap, Failure->final());
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -273,13 +273,13 @@ struct push_trap_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Failure->IsPotentialBreakpoint = true;
+		if (Failure->LineNo != LineNo) Failure->IsPotentialBreakpoint = true;
 	};
 	void add_source(load_inst_t *Load) {Next->add_source(Load);};
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tpush_trap %d <- [%d, %x]\n", LineNo, Trap, Temp, Failure);
+		printf("%4d: push_trap %d <- [%d, %x]\n", LineNo, Trap, Temp, Failure);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -309,13 +309,13 @@ struct store_trap_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Failure->IsPotentialBreakpoint = true;
+		if (Failure->LineNo != LineNo) Failure->IsPotentialBreakpoint = true;
 	};
 	void add_source(load_inst_t *Load) {Next->add_source(Load);};
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_trap [%d] <- %x\n", LineNo, Temp, Failure);
+		printf("%4d: store_trap [%d] <- %x\n", LineNo, Temp, Failure);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -339,7 +339,7 @@ struct resume_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tresume\n", LineNo);
+		printf("%4d: resume\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -416,7 +416,7 @@ void load_inst_t::list() {
 	static const char *Types[] = {
 		"_none", "_val", "_ref", "_both", "_arg"
 	};
-	printf("%d:\tload%s %s\n", LineNo, Types[Type], listop(Operand));
+	printf("%4d: load%s %s\n", LineNo, Types[Type], listop(Operand));
 };
 #endif
 
@@ -438,7 +438,7 @@ struct store_reg_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_reg %s\n", LineNo, listop(Operand));
+		printf("%4d: store_reg %s\n", LineNo, listop(Operand));
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -463,7 +463,7 @@ struct store_con_inst_t : load_inst_t {
 		static const char *Types[] = {
 			"_none", "_val", "_ref", "_both", "_arg"
 		};
-		printf("%d:\tstore_con%s %s <- %x\n", LineNo, Types[Type], listop(Operand), Value);
+		printf("%4d: store_con%s %s <- %x\n", LineNo, Types[Type], listop(Operand), Value);
 	};
 #endif
 	int noof_consts() {return 1;};
@@ -489,7 +489,7 @@ struct store_val_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_val %s\n", LineNo, listop(Operand));
+		printf("%4d: store_val %s\n", LineNo, listop(Operand));
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -512,7 +512,7 @@ struct store_ref_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_ref %s\n", LineNo, listop(Operand));
+		printf("%4d: store_ref %s\n", LineNo, listop(Operand));
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -530,7 +530,7 @@ struct flush_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tflush\n", LineNo);
+		printf("%4d: flush\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler) {};
@@ -552,7 +552,7 @@ struct store_arg_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_arg %d <- %s\n", LineNo, Index, listop(Operand));
+		printf("%4d: store_arg %d <- %s\n", LineNo, Index, listop(Operand));
 	};
 #endif
 	int noof_consts();
@@ -599,7 +599,7 @@ struct fixup_arg_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tfixup_arg %d <- %s\n", LineNo, Index, listop(Operand));
+		printf("%4d: fixup_arg %d <- %s\n", LineNo, Index, listop(Operand));
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -621,7 +621,7 @@ struct invoke_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tinvoke %d, %d, %d\n", LineNo, Trap, Args, Count);
+		printf("%4d: invoke %d, %d, %d\n", LineNo, Trap, Args, Count);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -646,7 +646,7 @@ struct back_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tback %d\n", LineNo, Trap);
+		printf("%4d: back %d\n", LineNo, Trap);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -662,10 +662,12 @@ void label_t::back(uint32_t LineNo, uint32_t Trap) {DEBUG
 };
 
 struct fail_inst_t : inst_t {
+	bool CodeBlock;
+
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tfail\n", LineNo);
+		printf("%4d: fail\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -673,9 +675,10 @@ struct fail_inst_t : inst_t {
 	insttype_t type() {return INSTTYPE_FAIL;};
 };
 
-void label_t::fail(uint32_t LineNo) {DEBUG
+void label_t::fail(uint32_t LineNo, bool CodeBlock) {DEBUG
 	fail_inst_t *Inst = new fail_inst_t;
 	Inst->LineNo = LineNo;
+	Inst->CodeBlock = CodeBlock;
 	Inst->IsPotentialBreakpoint = false;
 	append(Inst);
 };
@@ -687,7 +690,7 @@ struct ret_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tret\n", LineNo);
+		printf("%4d: ret\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -703,6 +706,8 @@ void label_t::ret(uint32_t LineNo) {DEBUG
 };
 
 struct susp_inst_t : inst_t {
+	bool CodeBlock;
+
 	void add_source(load_inst_t *Load) {
 		Load->load_both();
 		Next->add_source(Load);
@@ -710,7 +715,7 @@ struct susp_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tsusp\n", LineNo);
+		printf("%4d: susp\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -718,9 +723,10 @@ struct susp_inst_t : inst_t {
 	insttype_t type() {return INSTTYPE_SUSPEND;};
 };
 
-void label_t::susp(uint32_t LineNo) {DEBUG
+void label_t::susp(uint32_t LineNo, bool CodeBlock) {DEBUG
 	susp_inst_t *Inst = new susp_inst_t;
 	Inst->LineNo = LineNo;
+	Inst->CodeBlock = CodeBlock;
 	Inst->IsPotentialBreakpoint = false;
 	append(Inst);
 };
@@ -741,7 +747,7 @@ struct recv_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\trecv %x\n", LineNo, Handler ? Handler->final() : 0);
+		printf("%4d: recv %x\n", LineNo, Handler ? Handler->final() : 0);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -760,7 +766,7 @@ struct send_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tsend\n", LineNo);
+		printf("%4d: send\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -779,7 +785,7 @@ struct resend_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tresend\n", LineNo);
+		printf("%4d: resend\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -801,7 +807,7 @@ struct store_link_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_link %d, %x\n", LineNo, Temp, Target);
+		printf("%4d: store_link %d, %x\n", LineNo, Temp, Target);
 	};
 #endif
 	void append_links(label_t *Start) {
@@ -809,7 +815,7 @@ struct store_link_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Target->IsPotentialBreakpoint = true;
+		if (Target->LineNo != LineNo) Target->IsPotentialBreakpoint = true;
 	};
 	void encode(assembler_t *Assembler);
 };
@@ -829,7 +835,7 @@ struct jump_link_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tjump_link %d\n", LineNo, Temp);
+		printf("%4d: jump_link %d\n", LineNo, Temp);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -850,7 +856,7 @@ struct limit_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tlimit %d, %d\n", LineNo, Trap, Temp);
+		printf("%4d: limit %d, %d\n", LineNo, Trap, Temp);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -874,12 +880,12 @@ struct test_limit_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Target->IsPotentialBreakpoint = true;
+		if (Target->LineNo != LineNo) Target->IsPotentialBreakpoint = true;
 	};
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\ttest_limit %d, %x\n", LineNo, Temp, Target);
+		printf("%4d: test_limit %d, %x\n", LineNo, Temp, Target);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -900,7 +906,7 @@ struct skip_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tskip %d, %x\n", LineNo, Temp);
+		printf("%4d: skip %d, %x\n", LineNo, Temp);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -920,7 +926,7 @@ struct test_skip_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\ttest_skip %d, %d\n", LineNo, Temp, Trap);
+		printf("%4d: test_skip %d, %d\n", LineNo, Temp, Trap);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -944,7 +950,7 @@ struct comp_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Failure->IsPotentialBreakpoint = true;
+		if (Failure->LineNo != LineNo) Failure->IsPotentialBreakpoint = true;
 	};
 	void add_source(load_inst_t *Load) {
 		Load->load_val();
@@ -953,7 +959,7 @@ struct comp_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tcomp %s %s // %x\n", LineNo, Equal ? "==" : "~==", listop(Operand), Failure);
+		printf("%4d: comp %s %s // %x\n", LineNo, Equal ? "==" : "~==", listop(Operand), Failure);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -986,7 +992,7 @@ struct select_integer_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 void select_integer_inst_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
-	printf("%d:\tselect_integer\n", LineNo);
+	printf("%4d: select_integer\n", LineNo);
 	for (select_integer_case_t *Case = Cases; Case; Case = Case->Next) {
 		printf("\t\t%x .. %x => %x\n", Case->Min, Case->Max, Case->Body->final());
 	};
@@ -1032,7 +1038,7 @@ struct select_string_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 void select_string_inst_t::list() {DEBUG
 	if (IsPotentialBreakpoint) printf("*");
-	printf("%d:\tselect_string\n", LineNo);
+	printf("%4d: select_string\n", LineNo);
 	for (select_string_case_t *Case = Cases; Case; Case = Case->Next) {
 		printf("\t\t%.*s => %x\n", Case->Length, Case->Key, Case->Body->final());
 	};
@@ -1120,7 +1126,7 @@ struct select_real_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 void select_real_inst_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
-	printf("%d:\tselect_real\n", LineNo);
+	printf("%4d: select_real\n", LineNo);
 	for (select_real_case_t *Case = Cases; Case; Case = Case->Next) {
 		printf("\t\t%f .. %f => %x\n", Case->Min, Case->Max, Case->Body->final());
 	};
@@ -1176,7 +1182,7 @@ struct select_object_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 void select_object_inst_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
-	printf("%d:\tselect_object\n", LineNo);
+	printf("%4d: select_object\n", LineNo);
 	for (select_object_case_t *Case = Cases; Case; Case = Case->Next) {
 		printf("\t\t%x => %x\n", Case->Object, Case->Body->final());
 	};
@@ -1233,7 +1239,7 @@ struct select_type_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 void select_type_inst_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
-	printf("%d:\tselect_type\n", LineNo);
+	printf("%4d: select_type\n", LineNo);
 	for (select_type_case_t *Case = Cases; Case; Case = Case->Next) {
 		char *Module, *Import;
 		if (Riva$Module$lookup(Case->Type, &Module, &Import)) {
@@ -1285,7 +1291,7 @@ struct type_of_inst_t : load_inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\ttype_of\n", LineNo);
+		printf("%4d: type_of\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -1307,7 +1313,7 @@ struct value_of_inst_t : load_inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tvalue_of\n", LineNo);
+		printf("%4d: value_of\n", LineNo);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -1325,7 +1331,7 @@ struct new_list_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tnew_list %d\n", LineNo, Index);
+		printf("%4d: new_list %d\n", LineNo, Index);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -1344,7 +1350,7 @@ struct store_list_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_list %d\n", LineNo, Index);
+		printf("%4d: store_list %d\n", LineNo, Index);
 	};
 #endif
 	void add_source(load_inst_t *Load) {
@@ -1366,7 +1372,7 @@ struct new_table_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tnew_table %d\n", LineNo, Index);
+		printf("%4d: new_table %d\n", LineNo, Index);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -1385,7 +1391,7 @@ struct store_table_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tstore_table %d\n", LineNo, Index);
+		printf("%4d: store_table %d\n", LineNo, Index);
 	};
 #endif
 	void add_source(load_inst_t *Load) {
@@ -1407,7 +1413,7 @@ struct new_count_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tnew_count %d\n", LineNo, Index);
+		printf("%4d: new_count %d\n", LineNo, Index);
 	};
 #endif
 	void encode(assembler_t *Assembler);
@@ -1426,7 +1432,7 @@ struct inc_count_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tinc_count %d\n", LineNo, Index);
+		printf("%4d: inc_count %d\n", LineNo, Index);
 	};
 #endif
 	void add_source(load_inst_t *Load) {
@@ -1448,7 +1454,7 @@ struct load_code_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%d:\tload_code %x\n", LineNo, Code);
+		printf("%4d: load_code %x\n", LineNo, Code);
 	};
 #endif
 	void append_links(label_t *Start) {
@@ -1456,7 +1462,7 @@ struct load_code_inst_t : inst_t {
 	};
 	void find_breakpoints() {
 		if (Next->LineNo != LineNo) Next->IsPotentialBreakpoint = true;
-		Code->IsPotentialBreakpoint = true;
+		if (Code->LineNo != LineNo) Code->IsPotentialBreakpoint = true;
 	};
 	void encode(assembler_t *Assembler);
 };
@@ -1498,7 +1504,7 @@ void label_t::add_source(load_inst_t *Load) {DEBUG
 void label_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
 	//if (Referenced) {
-		printf("%d:%x:\n", LineNo, this);
+		printf("%4d: %08x:\n", LineNo, this);
 	//};
 };
 #endif

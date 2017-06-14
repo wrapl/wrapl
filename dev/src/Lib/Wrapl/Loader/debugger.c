@@ -40,7 +40,7 @@ struct debug_global_t {
 struct debug_module_t {
 	debug_module_t *Next;
 	uint32_t Id, NumBreakpointBuffers;
-	void **BreakpointBuffers;
+	uint8_t **BreakpointBuffers;
 	const char *Name;
 	debug_global_t *Globals;
 };
@@ -278,11 +278,36 @@ static json_t *debugger_command_get_variable(json_t *Args) {
 	return Variables;
 }
 
-static json_t *debugger_command_set_breakpoint(json_t *Args) {
+static uint8_t *debug_module_breakpoints(debug_module_t *Module, uint32_t LineNo) {
+	int Index = LineNo / BREAKPOINT_BUFFER_SIZE;
+	if (Index >= Module->NumBreakpointBuffers) {
+		uint8_t **BreakpointBuffers = (void **)Riva$Memory$alloc((Index + 1) * sizeof(void *));
+		for (int I = 0; I < Module->NumBreakpointBuffers; ++I) BreakpointBuffers[I] = Module->BreakpointBuffers[I];
+		Module->BreakpointBuffers = BreakpointBuffers;
+		Module->NumBreakpointBuffers = Index + 1;
+	}
+	if (Module->BreakpointBuffers[Index]) return Module->BreakpointBuffers[Index] + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
+	uint8_t *BreakpointBuffer = (uint8_t *)Riva$Memory$alloc_atomic(BREAKPOINT_BUFFER_SIZE / 8);
+	memset(BreakpointBuffer, 0, BREAKPOINT_BUFFER_SIZE / 8);
+	Module->BreakpointBuffers[Index] = BreakpointBuffer;
+	return BreakpointBuffer + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
+}
+
+static json_t *debugger_command_set_breakpoints(json_t *Args) {
 	debug_module_t *Module = debugger_get_module(Args);
 	if (!Module) return json_pack("{ss}", "error", "invalid module");
-	
-	return json_false();
+	json_t *Enable = json_object_get(Args, "enable");
+	json_t *Disable = json_object_get(Args, "disable");
+	if (!Enable || !Disable) return json_pack("{ss}", "error", "invalid arguments");
+	for (int I = 0; I < json_array_size(Enable); ++I) {
+		uint32_t LineNo = json_integer_value(json_array_get(Enable, I));
+		debug_module_breakpoints(Module, LineNo)[0] |= 1 << (LineNo % 8);
+	}
+	for (int I = 0; I < json_array_size(Disable); ++I) {
+		uint32_t LineNo = json_integer_value(json_array_get(Disable, I));
+		debug_module_breakpoints(Module, LineNo)[0] &= ~(1 << (LineNo % 8));
+	}
+	return json_true();
 }
 
 static void *debugger_thread_func(debugger_t *Debugger) {
@@ -326,20 +351,8 @@ debug_module_t *debug_module(const char *Name) {
 	return Module;
 }
 
-void *debug_breakpoints(debug_function_t *Function, uint32_t LineNo) {
-	debug_module_t *Module = Function->Module;
-	int Index = LineNo / BREAKPOINT_BUFFER_SIZE;
-	if (Index >= Module->NumBreakpointBuffers) {
-		void **BreakpointBuffers = (void **)Riva$Memory$alloc((Index + 1) * sizeof(void *));
-		for (int I = 0; I < Module->NumBreakpointBuffers; ++I) BreakpointBuffers[I] = Module->BreakpointBuffers[I];
-		Module->BreakpointBuffers = BreakpointBuffers;
-		Module->NumBreakpointBuffers = Index + 1;
-	}
-	if (Module->BreakpointBuffers[Index]) return Module->BreakpointBuffers[Index];
-	void *BreakpointBuffer = (void *)Riva$Memory$alloc_atomic(BREAKPOINT_BUFFER_SIZE / 8);
-	memset(BreakpointBuffer, 0, BREAKPOINT_BUFFER_SIZE / 8);
-	Module->BreakpointBuffers[Index] = BreakpointBuffer;
-	return BreakpointBuffer + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
+uint8_t *debug_breakpoints(debug_function_t *Function, uint32_t LineNo) {
+	return debug_module_breakpoints(Function->Module, LineNo);
 }
 
 void debug_add_line(debug_module_t *Module, const char *Line) {
@@ -465,8 +478,15 @@ void debug_exit_impl(dstate_t *State) {
 			Thread->Prev->Next = Thread->Next;
 			json_t *UpdateJson = json_pack("[is{si}]", 0, "thread_exit", "thread", Thread->Id);
 			json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
+			write(Debugger->Socket, "\n", strlen("\n"));
 		pthread_mutex_unlock(Debugger->Lock);
 	}
+}
+
+static void debug_shutdown() {
+	json_t *UpdateJson = json_pack("[is]", 0, "shutdown");
+	json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
+	write(Debugger->Socket, "\n", strlen("\n"));
 }
 
 void debug_enable(int Port) {
@@ -484,6 +504,7 @@ void debug_enable(int Port) {
 	stringtable_put(Debugger->Commands, "run_to", debugger_command_run_to);
 	stringtable_put(Debugger->Commands, "list_modules", debugger_command_list_modules);
 	stringtable_put(Debugger->Commands, "get_variable", debugger_command_get_variable);
+	stringtable_put(Debugger->Commands, "set_breakpoints", debugger_command_set_breakpoints);
 
 	if (Riva$Config$get("Wrapl/Debug/Client")) {
 		struct sockaddr_in Name;
@@ -518,4 +539,5 @@ void debug_enable(int Port) {
 	Debugger->Threads->Prev = Debugger->Threads->Next = Debugger->Threads;
 	pthread_t Thread;
 	pthread_create(&Thread, 0, debugger_thread_func, Debugger);
+	atexit(debug_shutdown);
 }

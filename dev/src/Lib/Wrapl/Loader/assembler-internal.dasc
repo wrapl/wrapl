@@ -189,10 +189,6 @@ void store_trap_inst_t::encode(assembler_t *Assembler) {
 
 void resume_inst_t::encode(assembler_t *Assembler) {
 	| add esp, 4
-	if (Assembler->DebugInfo) {
-		| mov DSTATE:ebp->Function, dword Assembler->DebugInfo
-		| call &debug_enter
-	}
 }
 
 void local_inst_t::encode(assembler_t *Assembler) {
@@ -730,7 +726,7 @@ void ret_inst_t::encode(assembler_t *Assembler) {
 }
 
 void susp_inst_t::encode(assembler_t *Assembler) {
-	if (Assembler->DebugInfo) {
+	if (!CodeBlock && Assembler->DebugInfo) {
 		| call &debug_exit
 	}
 	| mov BSTATE:ebx, ebp
@@ -741,10 +737,14 @@ void susp_inst_t::encode(assembler_t *Assembler) {
 	| pop ebp
 	| ret
 	| 1:
+	if (!CodeBlock && Assembler->DebugInfo) {
+		| mov DSTATE:ebp->Function, dword Assembler->DebugInfo
+		| call &debug_enter
+	}
 }
 
 void fail_inst_t::encode(assembler_t *Assembler) {
-	if (Assembler->DebugInfo) {
+	if (!CodeBlock && Assembler->DebugInfo) {
 		| call &debug_exit
 	}
 	| xor eax, eax
@@ -1221,7 +1221,7 @@ void load_code_inst_t::encode(assembler_t *Assembler) {
 void encode_potential_breakpoint(assembler_t *Assembler, uint32_t LineNo, uint32_t InstType) {
 	debug_function_t *DebugInfo = Assembler->DebugInfo;
 	uint32_t *ModuleId = debug_module_id(DebugInfo) << 16;
-	void *Breakpoints = debug_breakpoints(DebugInfo, ModuleId + LineNo);
+	void *Breakpoints = debug_breakpoints(DebugInfo, LineNo);
 	| test [Breakpoints], byte (1 << LineNo % 8)
 	| jnz >1
 	| mov eax, DSTATE:ebp->Thread

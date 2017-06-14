@@ -183,9 +183,9 @@ struct label_t : inst_t {
 	void fixup_arg(uint32_t LineNo, uint32_t Index, operand_t *Operand);
 	void invoke(uint32_t LineNo, uint32_t Trap, uint32_t Args, uint32_t Count, label_t *Fixup);
 	void back(uint32_t LineNo, uint32_t Trap);
-	void fail(uint32_t LineNo);
+	void fail(uint32_t LineNo, bool CodeBlock = false);
 	void ret(uint32_t LineNo);
-	void susp(uint32_t LineNo);
+	void susp(uint32_t LineNo, bool CodeBlock);
 	void recv(uint32_t LineNo, label_t *Handler);
 	void send(uint32_t LineNo);
 	void resend(uint32_t LineNo);
