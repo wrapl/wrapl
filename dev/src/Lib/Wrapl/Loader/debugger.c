@@ -141,7 +141,7 @@ static json_t *debugger_command_step_over(json_t *Args) {
 		Thread->StepIn = 0;
 		Thread->RunTo = 0;
 		Thread->StepOverInstance = Thread->State;
-		Thread->StepOutInstance = 0;
+		Thread->StepOutInstance = Thread->State;
 		Thread->Paused = false;
 		pthread_cond_signal(Thread->Resume);
 	}
@@ -319,6 +319,7 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 		json_t *Args;
 		json_t *ResultJson;
 		pthread_mutex_lock(Debugger->Lock);
+			//printf("Received: %s\n", json_dumps(CommandJson, JSON_INDENT(4)));
 			if (!json_unpack(CommandJson, "[iso]", &Index, &Command, &Args)) {
 				debugger_command_func *CommandFunc = (debugger_command_func *)stringtable_get(Debugger->Commands, Command);
 				if (CommandFunc) {
@@ -331,22 +332,47 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 			}
 			json_dumpfd(ResultJson, Debugger->Socket, JSON_COMPACT);
 			write(Debugger->Socket, "\n", strlen("\n"));
+			//printf("Reply: %s\n", json_dumps(ResultJson, JSON_INDENT(4)));
 		pthread_mutex_unlock(Debugger->Lock);
 	}
 	// For now, just kill the program once the debugger disconnects
 	exit(1);
 }
 
+static void debugger_update(json_t *UpdateJson) {
+	json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
+	write(Debugger->Socket, "\n", strlen("\n"));
+	//printf("Update: %s\n", json_dumps(UpdateJson, JSON_INDENT(4)));
+}
+
 debug_module_t *debug_module(const char *Name) {
+	debug_thread_t *Thread = pthread_getspecific(Debugger->ThreadKey);
+	if (!Thread) {
+		pthread_setspecific(Debugger->ThreadKey, Thread = new debug_thread_t());
+		Thread->Paused = false;
+		Thread->Enters = 0;
+		Thread->Exits = 0;
+		pthread_cond_init(Thread->Resume, 0);
+		pthread_mutex_lock(Debugger->Lock);
+			Thread->Id = ++Debugger->NextThreadId;
+			debug_thread_t *Prev = Debugger->Threads->Prev;
+			if (Prev->Next == Prev) Thread->StepIn = 1;
+			Prev->Next = Thread;
+			Thread->Prev = Prev;
+			Thread->Next = Debugger->Threads;
+			Debugger->Threads->Prev = Thread;
+			debugger_update(json_pack("[is{si}]", 0, "thread_enter", "thread", Thread->Id));
+		pthread_mutex_unlock(Debugger->Lock);
+	}
 	debug_module_t *Module = new(debug_module_t);
 	Module->Name = Name;
-	Module->Id = ++Debugger->NextModuleId;
 	pthread_mutex_lock(Debugger->Lock);
+		Module->Id = ++Debugger->NextModuleId;
 		Module->Next = Debugger->Modules;
 		Debugger->Modules = Module;
-		json_t *UpdateJson = json_pack("[is{siss}]", 0, "module_add", "module", Module->Id, "name", Name);
-		json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-		write(Debugger->Socket, "\n", strlen("\n"));
+		debugger_update(json_pack("[is{sisssi}]", 0, "module_add", "module", Module->Id, "name", Name, "thread", Thread->Id));
+		Thread->Paused = true;
+		do pthread_cond_wait(Thread->Resume, Debugger->Lock); while (Thread->Paused);
 	pthread_mutex_unlock(Debugger->Lock);
 	return Module;
 }
@@ -356,10 +382,8 @@ uint8_t *debug_breakpoints(debug_function_t *Function, uint32_t LineNo) {
 }
 
 void debug_add_line(debug_module_t *Module, const char *Line) {
-	json_t *UpdateJson = json_pack("[is{siss}]", 0, "line_add", "module", Module->Id, "line", Line);
 	pthread_mutex_lock(Debugger->Lock);
-		json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-		write(Debugger->Socket, "\n", strlen("\n"));
+		debugger_update(json_pack("[is{siss}]", 0, "line_add", "module", Module->Id, "line", Line));
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
@@ -370,10 +394,8 @@ void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **A
 	debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
-	json_t *UpdateJson = json_pack("[is{siss}]", 0, "global_add", "module", Module->Id, "name", Name);
 	pthread_mutex_lock(Debugger->Lock);
-		json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-		write(Debugger->Socket, "\n", strlen("\n"));
+		debugger_update(json_pack("[is{siss}]", 0, "global_add", "module", Module->Id, "name", Name));
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
@@ -420,16 +442,14 @@ void debug_break_impl(dstate_t *State, uint32_t LineNo) {
 			));
 			EnterState = EnterState->UpState;
 		}
-		json_t *UpdateJson = json_pack("[is{sisisisO}]", 0, "break",
+		debugger_update(json_pack("[is{sisisisO}]", 0, "break",
 			"thread", Thread->Id,
 			"exits", Thread->Exits,
 			"line", LineNo,
 			"enters", Enters
-		);
+		));
 		Thread->Exits = 0;
 		Thread->Enters = 0;
-		json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-		write(Debugger->Socket, "\n", strlen("\n"));
 		do pthread_cond_wait(Thread->Resume, Debugger->Lock); while (Thread->Paused);
 	pthread_mutex_unlock(Debugger->Lock);
 }
@@ -438,21 +458,19 @@ void debug_enter_impl(dstate_t *State) {
 	debug_thread_t *Thread = pthread_getspecific(Debugger->ThreadKey);
 	if (!Thread) {
 		pthread_setspecific(Debugger->ThreadKey, Thread = new debug_thread_t());
-		Thread->Id = ++Debugger->NextThreadId;
 		Thread->Paused = false;
 		Thread->Enters = 1;
 		Thread->Exits = 0;
 		pthread_cond_init(Thread->Resume, 0);
 		pthread_mutex_lock(Debugger->Lock);
+			Thread->Id = ++Debugger->NextThreadId;
 			debug_thread_t *Prev = Debugger->Threads->Prev;
 			if (Prev->Next == Prev) Thread->StepIn = 1;
 			Prev->Next = Thread;
 			Thread->Prev = Prev;
 			Thread->Next = Debugger->Threads;
 			Debugger->Threads->Prev = Thread;
-			json_t *UpdateJson = json_pack("[is{si}]", 0, "thread_enter", "thread", Thread->Id);
-			json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-			write(Debugger->Socket, "\n", strlen("\n"));
+			debugger_update(json_pack("[is{si}]", 0, "thread_enter", "thread", Thread->Id));
 		pthread_mutex_unlock(Debugger->Lock);
 	} else {
 		++Thread->Enters;
@@ -484,9 +502,7 @@ void debug_exit_impl(dstate_t *State) {
 }
 
 static void debug_shutdown() {
-	json_t *UpdateJson = json_pack("[is]", 0, "shutdown");
-	json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-	write(Debugger->Socket, "\n", strlen("\n"));
+	debugger_update(json_pack("[is]", 0, "shutdown"));
 }
 
 void debug_enable(int Port) {

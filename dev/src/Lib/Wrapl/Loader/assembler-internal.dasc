@@ -1227,12 +1227,12 @@ void encode_potential_breakpoint(assembler_t *Assembler, uint32_t LineNo, uint32
 	| mov eax, DSTATE:ebp->Thread
 	| cmp byte THREAD:eax->StepIn, 0
 	| jne >1
-	| cmp ebp, THREAD:eax->StepOverInstance
-	| je >1
 	if (InstType != INSTTYPE_DEFAULT) {
 		| cmp ebp, THREAD:eax->StepOutInstance
 		| je >1
 	}
+	| cmp ebp, THREAD:eax->StepOverInstance
+	| je >1
 	| cmp dword THREAD:eax->RunTo, dword ModuleId + LineNo
 	| jne >3
 	| 1:
