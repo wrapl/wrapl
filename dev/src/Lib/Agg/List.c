@@ -768,6 +768,51 @@ METHOD("[]", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
+METHOD("separate", TYP, T, TYP, Std$Function$T) {
+	_list *List1 = (_list *)Args[0].Val;
+	Std$Object$t *Separator = Args[1].Val;
+	WRLOCK(List1);
+	_list *List2 = new(_list);
+	List2->Type = T;
+	_node **Slot1 = &List1->Head;
+	_node **Slot2 = &List2->Head;
+	_node *Prev1 = 0;
+	_node *Prev2 = 0;
+	List1->Index = 1;
+	List1->Cache = List1->Head;
+	List1->Array = 0;
+	for (_node *Node = List1->Head; Node; Node = Node->Next) {
+		switch (Std$Function$call(Separator, 1, Result, Node->Value, 0)) {
+		case SUSPEND: case SUCCESS:
+			Node->Prev = Prev2;
+			Slot2[0] = Node;
+			Slot2 = &Node->Next;
+			--List1->Length;
+			++List2->Length;
+			Prev2 = Node;
+			break;
+		case FAILURE:
+			Node->Prev = Prev1;
+			Slot1[0] = Node;
+			Slot1 = &Node->Next;
+			Prev1 = Node;
+			break;
+		case MESSAGE:
+			Node->Prev = Prev1;
+			Slot1[0] = Node;
+			UNLOCK(List1);
+			return MESSAGE;
+		}
+	}
+	List2->Tail = Prev2;
+	if (Prev2) Prev2->Next = 0; else List2->Head = 0;
+	List1->Tail = Prev1;
+	if (Prev1) Prev1->Next = 0; else List1->Head = 0;
+	UNLOCK(List1);
+	Result->Val = List2;
+	return SUCCESS;
+};
+
 METHOD("split", TYP, T, TYP, Std$Integer$SmallT) {
 //@list
 //@from

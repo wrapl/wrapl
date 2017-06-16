@@ -5,7 +5,7 @@ local LINENOISE_SOURCE = file("linenoise.c")
 local LINENOISE_HEADER = file("linenoise.h")
 
 LINENOISE_SOURCE:build(function()
-	execute{"mkdir -p", LINENOISE_DIR}
+	mkdir(LINENOISE_DIR)
 	execute{"cd", LINENOISE_DIR, "&&",
 		"wget --user-agent=\"Firefox/3.6.12\" -nv", LINENOISE_URL, "-O- | tar xvzP --strip-components=1"
 	}

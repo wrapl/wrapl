@@ -466,13 +466,13 @@ void debug_exit_impl(dstate_t *State) {
 	debug_thread_t *Thread = State->Thread;
 	dstate_t *UpState = State->UpState;
 	Thread->State = UpState;
-	if (UpState) {
+	//if (UpState) {
 		if (Thread->Enters > 0) {
 			--Thread->Enters;
 		} else {
 			++Thread->Exits;
 		}
-	} else {
+	/*} else {
 		pthread_mutex_lock(Debugger->Lock);
 			Thread->Next->Prev = Thread->Prev;
 			Thread->Prev->Next = Thread->Next;
@@ -480,7 +480,7 @@ void debug_exit_impl(dstate_t *State) {
 			json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
 			write(Debugger->Socket, "\n", strlen("\n"));
 		pthread_mutex_unlock(Debugger->Lock);
-	}
+	}*/
 }
 
 static void debug_shutdown() {

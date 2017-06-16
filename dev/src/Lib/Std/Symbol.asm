@@ -19,6 +19,11 @@ struct valueentry
 	.Next:	resd 1
 endstruct
 
+%define MATCH_VALUE 20
+%define MATCH_TYPE 16
+%define MATCH_SUBTYPE 12
+%define MATCH_ANY 5
+
 %macro _proceed_ 1
 %define _arg(N) __arg__(ebp - 8 * N)
 %define _bestscore ebp + 4
@@ -44,7 +49,7 @@ proceed %+ %1:;(index, score, table)
 	ja %%searchloop0
 	mov eax, [valueentry(edx + sizeof(valueentry) * eax).Next]
 	mov ebx, [esp + 8]
-	add ebx, byte 20
+	add ebx, byte MATCH_VALUE
 	mov edi, [Std$Symbol_t(eax).Function]
 	test edi, edi
 %if %1 = 1
@@ -92,7 +97,7 @@ proceed %+ %1:;(index, score, table)
 	ja %%searchloop1
 	mov eax, [typeentry(edx + sizeof(typeentry) * eax).Next]
 	mov ebx, [esp + 8]
-	add ebx, byte 16
+	add ebx, byte MATCH_TYPE
 	mov ecx, [Std$Symbol_t(eax).Function]
 %if %1 = 1
 	jecxz %%continue1
@@ -142,7 +147,7 @@ proceed %+ %1:;(index, score, table)
 	ja %%searchloop2
 	mov eax, [typeentry(edx + sizeof(typeentry) * eax).Next]
 	mov ebx, [esp + 8]
-	add ebx, byte 8
+	add ebx, byte MATCH_SUBTYPE
 	mov ecx, [Std$Symbol_t(eax).Function]
 %if %1 = 1
 	jecxz %%continue1
@@ -175,7 +180,7 @@ proceed %+ %1:;(index, score, table)
 	test eax, eax
 	jz %%continue3
 	mov ebx, [esp + 4]
-	add ebx, byte 2
+	add ebx, byte MATCH_ANY
 	mov ecx, [Std$Symbol_t(eax).Function]
 	jecxz %%nofunction3
 	cmp ebx, [_bestscore]

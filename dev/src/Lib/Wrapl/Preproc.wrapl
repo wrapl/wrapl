@@ -8,10 +8,10 @@ IMP Agg USE Table, List;
 
 IMP IO.Terminal USE Out;
 
-DEF SourceT ← <[Stream.ReaderT] buffer, in>;
+DEF SourceT <- <[Stream.ReaderT] buffer, in>;
 TO :readi(src@SourceT, n@Integer.SmallT, t@String.T) src:buffer:pop | src:in:readi(n, t);
 
-DEF T! ← <[]
+DEF T! <- <[]
 	buffer
 	session
 	source
@@ -24,35 +24,35 @@ DEF T! ← <[]
 TO :include(@T, @Stream.ReaderT) IS <t, in, strip> (
 	VAR escape IS t:escape;
 	VAR out IS t:out;
-	VAR buffer ← t:buffer;
-	VAR session ← t:session;
-	VAR oldin ← t:source:in;
-	t:source:in ← in;
+	VAR buffer <- t:buffer;
+	VAR session <- t:session;
+	VAR oldin <- t:source:in;
+	t:source:in <- in;
 	VAR line, pos;
-	REP (WHILE line ← in:readi(0, "\n");
-		pos ← 1;
-	    REP (WHILE pos ← line:find(escape, pos);
+	REP (WHILE line <- in:readi(0, "\n");
+		pos <- 1;
+	    REP (WHILE pos <- line:find(escape, pos);
 			line[pos + 1] = ";" ⇒ (
-				line ← line[1, pos + 1] + (line[pos + 2, 0] | "");
-				pos ← pos + 1;
-			) ↷ (
+				line <- line[1, pos + 1] + (line[pos + 2, 0] | "");
+				pos <- pos + 1;
+			) // (
 				out:write(line[1, pos]);
 				buffer:put(line[pos + 1, 0]);
 				session:eval_line(line);
-				pos ← 1;
+				pos <- 1;
 			);
 		);
-		strip ≡ :strip ⇒ line = "\n" ⇒ line ← "";
+		strip == :strip ⇒ line = "\n" ⇒ line <- "";
 	    out:write(line);
 	);
-	t:source:in ← oldin;
+	t:source:in <- oldin;
 );
 
 TO :include(@T, @String.T) IS <t, filename, strip> (
 	Out:write('including <{filename}> -> ');
-	VAR path ← ((t:includes:values + filename) \ FileSys.Exists($)) | SEND 'Error: file "{filename}" not found.\n';
+	VAR path <- ((t:includes:values + filename) \ FileSys.Exists($)) | SEND 'Error: file "{filename}" not found.\n';
 	Out:write('<{path}>\n');
-	VAR file ← File.Open(path, File.Flag.Read + File.Flag.Text);
+	VAR file <- File.Open(path, File.Flag.Read + File.Flag.Text);
 	t:include(file, strip);
 	file:close;
 );
@@ -61,21 +61,21 @@ TO :var(t@T, name@String.T, var+) t:session:var(name, var);
 TO :def(t@T, name@String.T, val) t:session:def(name, val); 
 
 DEF New!(out, includes, default_strip) (
-	VAR t ← T();
-	t:includes ← includes;
-	t:out ← out;
-	t:escape ← "\\";
-	VAR stack ← t:stack ← [out];
-	VAR source ← t:source ← SourceT();
-	t:buffer ← source:buffer ← [];
-	VAR session ← t:session ← Loader.SessionNew(source);
+	VAR t <- T();
+	t:includes <- includes;
+	t:out <- out;
+	t:escape <- "\\";
+	VAR stack <- t:stack <- [out];
+	VAR source <- t:source <- SourceT();
+	t:buffer <- source:buffer <- [];
+	VAR session <- t:session <- Loader.SessionNew(source);
 	VAR outv IS t:out;
 	(NIL == default_strip) <- :false;
 
 	session:var("out", outv);
 	session:def("stack", stack);
-	session:def("push", <b> stack:push(outv ← (NIL ≢ b) | Buffer.New()));
-	session:def("pop", <> stack:pop \ (outv ← stack[1]));
+	session:def("push", <b> stack:push(outv <- (NIL ≢ b) | Buffer.New()));
+	session:def("pop", <> stack:pop \ (outv <- stack[1]));
 	session:def("begin", :?);
 	session:def("end", :?);
 	session:def("buffer", Buffer.New);
@@ -84,7 +84,7 @@ DEF New!(out, includes, default_strip) (
 	session:def("write", <text> outv:write(text));
 	session:var("escape", t:escape);
 	session:def("do", <text> (
-		VAR buffer ← Buffer.New();
+		VAR buffer <- Buffer.New();
 		buffer:write(text);
 		t:include(buffer, default_strip);
 	));
