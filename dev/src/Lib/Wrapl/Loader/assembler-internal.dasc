@@ -771,7 +771,8 @@ void send_inst_t::encode(assembler_t *Assembler) {
 
 void resend_inst_t::encode(assembler_t *Assembler) {
 	if (Assembler->DebugInfo) {
-		| call &debug_exit
+		| mov eax, LineNo
+		| call &debug_break
 		| mov eax, 2
 	}
 	if (!Assembler->CanSuspend) {

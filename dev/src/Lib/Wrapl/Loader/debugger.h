@@ -45,7 +45,7 @@ debug_function_t *debug_function(debug_module_t *Module, uint32_t LineNo);
 int debug_module_id(debug_function_t *Function);
 void debug_add_local(debug_function_t *Function, const char *Name, uint32_t Index);
 void debug_set_locals(debug_function_t *Function, uint32_t LocalsOffset, uint32_t NoOfLocals);
-void debug_enable(int Port);
+void debug_enable(const char *SocketPath, bool ClientMode);
 
 extern debugger_t *Debugger;
 

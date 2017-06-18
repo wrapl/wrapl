@@ -1,5 +1,6 @@
 #include <Riva/Memory.h>
 #include <Riva/Config.h>
+#include <Riva/Module.h>
 #include <Agg/Table.h>
 #include <Agg/List.h>
 #include <IO/Decoder.h>
@@ -10,7 +11,7 @@
 #include <unistd.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/un.h>
 #include <stdio.h>
 #include <jansson.h>
 #include "debugger.h"
@@ -29,6 +30,7 @@ struct debugger_t {
 	stringtable_t Commands;
 	int Socket;
 	uint32_t NextThreadId, NextModuleId;
+	const char *SocketPath;
 };
 
 struct debug_global_t {
@@ -170,6 +172,17 @@ static json_t *debugger_command_list_modules(json_t *Command) {
 	return json_true();
 }
 
+static json_t *debugger_command_list_threads(json_t *Command) {
+	json_t *Threads = json_array();
+	for (debug_thread_t *Thread = Debugger->Threads->Next; Thread != Debugger->Threads; Thread = Thread->Next) {
+		json_array_append(Threads, json_pack("{siss}",
+			"id", Thread->Id,
+			"state", Thread->Paused ? "paused" : "running"
+		));
+	}
+	return Threads;
+};
+
 static void debugger_append_variable(json_t *Variables, const char *Name, Std$Object$t *Value) {
 	Std$Type$t *Type = Value->Type;
 	if (Value == Std$Object$Nil) {
@@ -196,6 +209,12 @@ static void debugger_append_variable(json_t *Variables, const char *Name, Std$Ob
 			"type", "string",
 			"value", Std$String$flatten(Value)
 		));
+	} else if (Type == Std$Symbol$T) {
+		json_array_append(Variables, json_pack("{ssssss}",
+			"name", Name,
+			"type", "symbol",
+			"value", Std$String$flatten((Std$Object$t *)Std$Symbol$get_name(Value))
+		));
 	} else if (Type == Agg$Table$T) {
 		json_array_append(Variables, json_pack("{sssssfsi}",
 			"name", Name,
@@ -211,10 +230,23 @@ static void debugger_append_variable(json_t *Variables, const char *Name, Std$Ob
 			"size", Agg$List$length(Value)
 		));
 	} else {
+		const char *Description, *ModuleName, *SymbolName;
+		if (!Riva$Module$lookup(Value->Type, &ModuleName, &SymbolName)) {
+			Description = "object";
+		} else {
+			const char *ShortName = strrchr(ModuleName, '/');
+			if (ShortName) {
+				++ShortName;
+			} else {
+				ShortName = ModuleName;
+			}
+			asprintf(&Description, "%s.%s", ShortName, SymbolName);
+		}
 		const Std$Array$t *Fields = Value->Type->Fields;
-		json_array_append(Variables, json_pack("{sssssfsi}",
+		json_array_append(Variables, json_pack("{sssssssfsi}",
 			"name", Name,
 			"type", "object",
+			"value", Description,
 			"ref", (double)(size_t)Value,
 			"size", Fields->Length.Value
 		));
@@ -484,12 +516,14 @@ void debug_exit_impl(dstate_t *State) {
 	debug_thread_t *Thread = State->Thread;
 	dstate_t *UpState = State->UpState;
 	Thread->State = UpState;
-	//if (UpState) {
-		if (Thread->Enters > 0) {
-			--Thread->Enters;
-		} else {
-			++Thread->Exits;
-		}
+	if (Thread->Enters > 0) {
+		--Thread->Enters;
+	} else {
+		++Thread->Exits;
+	}
+	if (State == Thread->StepOverInstance || State == Thread->StepOutInstance) {
+		Thread->StepIn = 1;
+	}
 	/*} else {
 		pthread_mutex_lock(Debugger->Lock);
 			Thread->Next->Prev = Thread->Prev;
@@ -502,15 +536,12 @@ void debug_exit_impl(dstate_t *State) {
 }
 
 static void debug_shutdown() {
+	if (Debugger->SocketPath) unlink(Debugger->SocketPath);
 	debugger_update(json_pack("[is]", 0, "shutdown"));
 }
 
-void debug_enable(int Port) {
-	int Socket = socket(PF_INET, SOCK_STREAM, 0);
-	setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
-#ifdef SO_REUSEPORT
-	setsockopt(Socket, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int));
-#endif
+void debug_enable(const char *SocketPath, bool ClientMode) {
+	int Socket = socket(PF_UNIX, SOCK_STREAM, 0);
 	Debugger = new debugger_t();
 	stringtable_put(Debugger->Commands, "pause", debugger_command_pause);
 	stringtable_put(Debugger->Commands, "continue", debugger_command_continue);
@@ -519,33 +550,29 @@ void debug_enable(int Port) {
 	stringtable_put(Debugger->Commands, "step_over", debugger_command_step_over);
 	stringtable_put(Debugger->Commands, "run_to", debugger_command_run_to);
 	stringtable_put(Debugger->Commands, "list_modules", debugger_command_list_modules);
+	stringtable_put(Debugger->Commands, "list_threads", debugger_command_list_threads);
 	stringtable_put(Debugger->Commands, "get_variable", debugger_command_get_variable);
 	stringtable_put(Debugger->Commands, "set_breakpoints", debugger_command_set_breakpoints);
-
-	if (Riva$Config$get("Wrapl/Debug/Client")) {
-		struct sockaddr_in Name;
-		Name.sin_family = AF_INET;
-		Name.sin_port = htons(Port);
-		Name.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		if (connect(Socket, (sockaddr *)&Name, sizeof(Name))) {
-			printf("Error connecting debugger socket to port %d\n", Port);
+	struct sockaddr_un Name;
+	Name.sun_family = AF_LOCAL;
+	strcpy(Name.sun_path, SocketPath);
+	if (ClientMode) {
+		if (connect(Socket, (sockaddr *)&Name, SUN_LEN(&Name))) {
+			printf("Error connecting debugger socket to %s\n", SocketPath);
 			exit(1);
 		}
 		Debugger->Socket = Socket;
-		printf("Connected debugger socket to port %d\n", Port);
+		printf("Connected debugger socket to %s\n", SocketPath);
 	} else {
-		struct sockaddr_in Name;
-		Name.sin_family = AF_INET;
-		Name.sin_port = htons(Port);
-		Name.sin_addr.s_addr = htonl(INADDR_ANY);
-		if (bind(Socket, (sockaddr *)&Name, sizeof(Name))) {
-			printf("Error binding debugger socket on port %d\n", Port);
+		Debugger->SocketPath = SocketPath;
+		if (bind(Socket, (sockaddr *)&Name, SUN_LEN(&Name))) {
+			printf("Error binding debugger socket on %s\n", SocketPath);
 			exit(1);
 		}
 		listen(Socket, 1);
 		struct sockaddr Addr;
 		socklen_t Length = sizeof(Addr);
-		printf("Started debugger socket on port %d\n", Port);
+		printf("Started debugger socket on %s\n", SocketPath);
 		Debugger->Socket = accept(Socket, &Addr, &Length);
 		printf("Debugger connected\n");
 	}

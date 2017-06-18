@@ -24,7 +24,7 @@ CONSTANT(Message, Sys$Module$T) {
 	Sys$Module$export(Module, "ExternError", 0, (void *)ExternErrorMessageT);
 	Sys$Module$export(Module, "ScopeErrorT", 0, (void *)ScopeErrorMessageT);
 	return (Std$Object_t *)Module;
-};
+}
 
 #if defined(WINDOWS) && !defined(CYGWIN)
 
@@ -33,7 +33,7 @@ static const char *wrapl_find(const char *Base) {
 	strcpy(stpcpy(Buffer, Base), ".wrapl");
 	if (GetFileAttributes(Buffer) == INVALID_FILE_ATTRIBUTES) return 0;
 	return Riva$Memory$strdup(Buffer);
-};
+}
 
 #else
 
@@ -45,7 +45,7 @@ static const char *wrapl_find(const char *Base) {
 	strcpy(stpcpy(Buffer, Base), ".wrapl");
 	if (stat(Buffer, Stat)) return 0;
 	return Riva$Memory$strdup(Buffer);
-};
+}
 
 #endif
 
@@ -60,7 +60,7 @@ static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 		printf("%s(%d): %s\n", Path, Scanner->Error.LineNo, Scanner->Error.Message);
 		if (!Riva$Config$get("Wrapl/Loader/ContinueOnError")) exit(1);
 		return 0;
-	};
+	}
 	module_expr_t *Expr;
 	if (Debugger) Scanner->DebugInfo = debug_module(Path);
 	if (Scanner->parse(tkHASH) || Scanner->parse(tkAT)) {
@@ -74,7 +74,7 @@ static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 	} else {
 		Expr = accept_module(Scanner, Provider);
 		IO$Stream$close(Source, IO$Stream$CLOSE_READ);
-	};
+	}
 #ifdef PARSER_LISTING
 	Expr->print(0);
 #endif
@@ -86,10 +86,10 @@ static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 		for (int I = 0; I < Compiler->Error.Count; ++I) printf("\t%s\n", Compiler->Error.Stack[I]);
 		if (!Riva$Config$get("Wrapl/Loader/ContinueOnError")) exit(1);
 		return 0;
-	};
+	}
 	Expr->compile(Compiler);
 	return 1;
-};
+}
 
 TYPE(ErrorMessageT);
 // The type of error messages sent by the compiler.
@@ -114,7 +114,7 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 		Error->Message = "Error: error opening file";
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	scanner_t *Scanner = new scanner_t(Source);
 	if (setjmp(Scanner->Error.Handler)) {
 		IO$Stream$close(Source, IO$Stream$CLOSE_READ);
@@ -124,7 +124,7 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 		Error->Message = Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	if (Debugger) Scanner->DebugInfo = debug_module(Path);
 	if (Scanner->parse(tkHASH) || Scanner->parse(tkAT)) Scanner->flush();
 	module_expr_t *Expr = accept_module(Scanner, Riva$Module$get_default_provider(Module));
@@ -142,11 +142,11 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 		Error->Message = Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	Expr->compile(Compiler);
 	Result->Val = (Std$Object_t *)Module;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(LoadExpr, 1) {
 //@filename:Std$String$T
@@ -161,7 +161,7 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Error->Message = "Error: error opening file";
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	scanner_t *Scanner = new scanner_t(Source);
 	if (setjmp(Scanner->Error.Handler)) {
 		IO$Stream$close(Source, IO$Stream$CLOSE_READ);
@@ -171,7 +171,7 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Error->Message = Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	expr_t *Expr = accept_expr(Scanner);
 	IO$Stream$close(Source, IO$Stream$CLOSE_READ);
 	Scanner = 0;
@@ -183,9 +183,9 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Error->Message = Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Expr->evaluate(Compiler, Result);
-};
+}
 
 GLOBAL_FUNCTION(ReadExpr, 1) {
 //@source:IO$Stream$T
@@ -200,7 +200,7 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 		Error->Message = Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	expr_t *Expr = accept_expr(Scanner);
 	Scanner = 0;
 	compiler_t *Compiler = new compiler_t("reader");
@@ -211,9 +211,9 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 		Error->Message = Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Expr->evaluate(Compiler, Result);
-};
+}
 
 struct session_t {
 	const Std$Type_t *Type;
@@ -229,7 +229,7 @@ METHOD("@", TYP, ErrorMessageT, VAL, Std$String$T) {
 	char *Buffer;
 	Result->Val = (Std$Object_t *)Std$String$new_length(Buffer, asprintf(&Buffer, "(%d): %s", Error->LineNo, Error->Message));
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(SessionNew, 1) {
 //@src : IO$Stream$ReaderT
@@ -244,11 +244,11 @@ GLOBAL_FUNCTION(SessionNew, 1) {
 		Session->Compiler = new compiler_t("console", Existing->Compiler->Global);
 	} else {
 		Session->Compiler = new compiler_t("console");
-	};
+	}
 	Session->Compiler->DebugInfo = Session->Scanner->DebugInfo;
 	Result->Val = (Std$Object_t *)Session;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(SessionEval, 1) {
 //@session:SessionT
@@ -263,7 +263,7 @@ GLOBAL_FUNCTION(SessionEval, 1) {
 		Error->Message = Session->Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	command_expr_t *Command = accept_command(Session->Scanner);
 #ifdef PARSER_LISTING
 	Command->print(0);
@@ -276,9 +276,9 @@ GLOBAL_FUNCTION(SessionEval, 1) {
 		Error->Message = Session->Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Command->compile(Session->Compiler, Result);
-};
+}
 
 GLOBAL_FUNCTION(SessionLine, 1) {
 //@session : SessionT
@@ -288,7 +288,7 @@ GLOBAL_FUNCTION(SessionLine, 1) {
 	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
 	Session->Scanner->NextChar = "";
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(SessionDef, 3) {
 //@session:SessionT
@@ -301,7 +301,7 @@ GLOBAL_FUNCTION(SessionDef, 3) {
 	Operand->Value = Args[2].Val;
 	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(SessionVar, 3) {
 //@session:SessionT
@@ -314,20 +314,20 @@ GLOBAL_FUNCTION(SessionVar, 3) {
 	Operand->Address = Args[2].Ref;
 	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
 	return SUCCESS;
-};
+}
 
 #ifndef DOCUMENTING
 GLOBAL_FUNCTION(SetMissingIDFunc, 2) {
 	session_t *Session = (session_t *)Args[0].Val;
 	Session->Compiler->MissingIDFunc = Args[1].Val;
 	return SUCCESS;
-};
+}
 
 METHOD("set_missing_id_func", TYP, SessionT, ANY) {
 	session_t *Session = (session_t *)Args[0].Val;
 	Session->Compiler->MissingIDFunc = Args[1].Val;
 	return SUCCESS;
-};
+}
 #endif
 
 METHOD("eval", TYP, SessionT) {
@@ -343,7 +343,7 @@ METHOD("eval", TYP, SessionT) {
 		Error->Message = Session->Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	command_expr_t *Command = accept_command(Session->Scanner);
 #ifdef PARSER_LISTING
 	Command->print(0);
@@ -356,9 +356,9 @@ METHOD("eval", TYP, SessionT) {
 		Error->Message = Session->Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Command->compile(Session->Compiler, Result);
-};
+}
 
 METHOD("eval_line", TYP, SessionT, ANY) {
 //@session
@@ -373,7 +373,7 @@ METHOD("eval_line", TYP, SessionT, ANY) {
 		Error->Message = Session->Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	command_expr_t *Command = accept_command(Session->Scanner);
 #ifdef PARSER_LISTING
 	Command->print(0);
@@ -388,9 +388,9 @@ METHOD("eval_line", TYP, SessionT, ANY) {
 		Error->Message = Session->Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Command->compile(Session->Compiler, Result);
-};
+}
 
 METHOD("expr", TYP, SessionT) {
 //@session
@@ -405,7 +405,7 @@ METHOD("expr", TYP, SessionT) {
 		Error->Message = Session->Scanner->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	expr_t *Expr = accept_expr(Session->Scanner);
 	//Session->Scanner->accept(tkRBRACE);
 #ifdef PARSER_LISTING
@@ -419,9 +419,9 @@ METHOD("expr", TYP, SessionT) {
 		Error->Message = Session->Compiler->Error.Message;
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
-	};
+	}
 	return Expr->evaluate(Session->Compiler, Result);
-};
+}
 
 METHOD("line", TYP, SessionT) {
 //@session
@@ -431,7 +431,7 @@ METHOD("line", TYP, SessionT) {
 	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
 	Session->Scanner->NextChar = "";
 	return SUCCESS;
-};
+}
 
 METHOD("def", TYP, SessionT, TYP, Std$String$T, ANY) {
 //@session
@@ -445,7 +445,7 @@ METHOD("def", TYP, SessionT, TYP, Std$String$T, ANY) {
 	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
 	Result->Arg = Args[0];
 	return SUCCESS;
-};
+}
 
 METHOD("var", TYP, SessionT, TYP, Std$String$T, ANY) {
 //@session
@@ -459,7 +459,7 @@ METHOD("var", TYP, SessionT, TYP, Std$String$T, ANY) {
 	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
 	Result->Arg = Args[0];
 	return SUCCESS;
-};
+}
 
 METHOD("get", TYP, SessionT, TYP, Std$String$T) {
 //@session
@@ -476,8 +476,8 @@ METHOD("get", TYP, SessionT, TYP, Std$String$T) {
 		return SUCCESS;
 	} else {
 		return FAILURE;
-	};
-};
+	}
+}
 
 extern Std$Type_t ScopeT[];
 
@@ -493,15 +493,15 @@ METHOD("add", TYP, SessionT, TYP, ScopeT) {
 	Last->Up = Scope;
 	Result->Arg = Args[0];
 	return SUCCESS;
-};
+}
 
 INITIAL() {
 	Riva$Module$add_loader("Wrapl", 90, wrapl_find, wrapl_load);
 	detect_cpu_features();
-	char *Debug = Riva$Config$get("Wrapl/Debug");
-	if (Debug) {
-		int Port = 12298;
-		if (Debug[0]) Port = atoi(Debug);
-		debug_enable(Port);
+	const char *SocketPath;
+	if (SocketPath = Riva$Config$get("Wrapl/Debug/Server")) {
+		debug_enable(SocketPath, false);
+	} else if (SocketPath = Riva$Config$get("Wrapl/Debug/Client")) {
+		debug_enable(SocketPath, true);
 	}
-};
+}
