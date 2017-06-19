@@ -299,7 +299,9 @@ GLOBAL_FUNCTION(SessionDef, 3) {
 	operand_t *Operand = new operand_t;
 	Operand->Type = operand_t::CNST;
 	Operand->Value = Args[2].Val;
-	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
+	const char *Name = Std$String$flatten(Args[1].Val);
+	Session->Compiler->declare(Name, Operand);
+	if (Debugger) debug_add_global(Session->Compiler->DebugInfo, Name, &Operand->Value);
 	return SUCCESS;
 }
 
@@ -312,7 +314,9 @@ GLOBAL_FUNCTION(SessionVar, 3) {
 	operand_t *Operand = new operand_t;
 	Operand->Type = operand_t::GVAR;
 	Operand->Address = Args[2].Ref;
-	Session->Compiler->declare(Std$String$flatten(Args[1].Val), Operand);
+	const char *Name = Std$String$flatten(Args[1].Val);
+	Session->Compiler->declare(Name, Operand);
+	if (Debugger) debug_add_global(Session->Compiler->DebugInfo, Name, Operand->Address);
 	return SUCCESS;
 }
 

@@ -474,7 +474,7 @@ void debug_break_impl(dstate_t *State, uint32_t LineNo) {
 			));
 			EnterState = EnterState->UpState;
 		}
-		debugger_update(json_pack("[is{sisisisO}]", 0, "break",
+		debugger_update(json_pack("[is{sisisisOss}]", 0, "break",
 			"thread", Thread->Id,
 			"exits", Thread->Exits,
 			"line", LineNo,

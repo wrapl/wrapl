@@ -40,7 +40,7 @@ compiler_t::function_t::function_t(int LineNo) {DEBUG
 	Loop->Expression->Temps = new bitset_t();
 	Frame.NoOfScopes = 1;
 	Frame.Resend = new label_t;
-	Frame.Resend->resend(0);
+	Frame.Resend->resend(LineNo);
 };
 
 operand_t *compiler_t::new_parameter(bool Indirect, bool Variadic, bool Default) {DEBUG
