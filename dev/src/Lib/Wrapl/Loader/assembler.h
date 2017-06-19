@@ -215,8 +215,4 @@ struct label_t : inst_t {
 	void encode(assembler_t *Assembler);
 };
 
-typedef struct debug_module_t {
-
-} debug_module_t;
-
 #endif

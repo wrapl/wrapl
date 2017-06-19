@@ -190,7 +190,7 @@ void compiler_t::push_function(int LineNo) {DEBUG
 	Function->Up = this->Function;
 	this->Function = Function;
 	push_scope(compiler_t::scope_t::SC_LOCAL);
-	if (Debugger) Function->DebugInfo = debug_function(DebugInfo, LineNo);
+	if (DebugInfo) Function->DebugInfo = debug_function(DebugInfo, LineNo);
 };
 
 frame_t *compiler_t::pop_function() {DEBUG
@@ -260,7 +260,7 @@ void compiler_t::pop_scope() {DEBUG
 
 void compiler_t::declare(const char *Name, operand_t *Operand) {DEBUG
 	stringtable_put(Scope->NameTable, Name, Operand);
-	if (Debugger) {
+	if (DebugInfo) {
 		if (Operand->Type == operand_t::LREF || Operand->Type == operand_t::LVAR) {
 			debug_add_local(Function->DebugInfo, Name, Operand->Index);
 		} else if (Operand->Type == operand_t::GVAR) {

@@ -6,6 +6,7 @@
 
 #include "assembler.h"
 #include "bitset.h"
+#include "debugger.h"
 #include "integertable.h"
 #include "stringtable.h"
 

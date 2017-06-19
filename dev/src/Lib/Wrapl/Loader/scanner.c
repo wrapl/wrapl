@@ -120,7 +120,7 @@ const char *scanner_t::readl(void) {
 	if (Line == (const char *)0xFFFFFFFF) {
 		raise_error(Token.LineNo, SourceErrorMessageT, "Error: error reading source");
 	};
-	if (Debugger) debug_add_line(DebugInfo, Line);
+	if (DebugInfo) debug_add_line(DebugInfo, Line);
 	return Line;
 };
 
