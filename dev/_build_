@@ -4,9 +4,11 @@ DEV_BIN = file("bin")
 DEV_INC = file("inc")
 DEV_LIB = file("lib")
 
-GEN_INC = file("gen/inc")
-GEN_LIB = file("gen/lib")
-GEN_DOC = file("gen/doc")
+GEN_DIR = file("gen")
+
+GEN_INC = GEN_DIR/"inc"
+GEN_LIB = GEN_DIR/"lib"
+GEN_DOC = GEN_DIR/"doc"
 
 mkdir(GEN_INC)
 mkdir(GEN_INC/"gcc")
