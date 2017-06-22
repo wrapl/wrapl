@@ -262,10 +262,16 @@ void compiler_t::declare(const char *Name, operand_t *Operand) {DEBUG
 	stringtable_put(Scope->NameTable, Name, Operand);
 	if (DebugInfo) {
 		if (Operand->Type == operand_t::LREF || Operand->Type == operand_t::LVAR) {
-			debug_add_local(Function->DebugInfo, Name, Operand->Index);
+			debug_add_local_variable(Function->DebugInfo, Name, Operand->Index);
 		} else if (Operand->Type == operand_t::GVAR) {
-			debug_add_global(DebugInfo, Name, Operand->Address);
-		};
+			debug_add_global_variable(DebugInfo, Name, Operand->Address);
+		} else if (Operand->Type == operand_t::CNST) {
+			if (Scope->Type == scope_t::SC_LOCAL) {
+				debug_add_local_constant(Function->DebugInfo, Name, Operand->Value);
+			} else {
+				debug_add_global_constant(DebugInfo, Name, Operand->Value);
+			}
+		}
 	};
 };
 

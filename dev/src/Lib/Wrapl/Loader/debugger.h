@@ -40,10 +40,12 @@ struct dstate_t {
 debug_module_t *debug_module(const char *Name);
 uint8_t *debug_breakpoints(debug_function_t *Function, uint32_t LineNo);
 void debug_add_line(debug_module_t *Module, const char *Line);
-void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **Address);
+void debug_add_global_variable(debug_module_t *Module, const char *Name, Std$Object$t **Address);
+void debug_add_global_constant(debug_module_t *Module, const char *Name, Std$Object$t *Value);
 debug_function_t *debug_function(debug_module_t *Module, uint32_t LineNo);
 int debug_module_id(debug_function_t *Function);
-void debug_add_local(debug_function_t *Function, const char *Name, uint32_t Index);
+void debug_add_local_variable(debug_function_t *Function, const char *Name, uint32_t Index);
+void debug_add_local_constant(debug_function_t *Function, const char *Name, Std$Object$t *Value);
 void debug_set_locals(debug_function_t *Function, uint32_t LocalsOffset, uint32_t NoOfLocals);
 void debug_enable(const char *SocketPath, bool ClientMode);
 

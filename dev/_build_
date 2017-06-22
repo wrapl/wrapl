@@ -4,6 +4,15 @@ DEV_BIN = file("bin")
 DEV_INC = file("inc")
 DEV_LIB = file("lib")
 
+GEN_INC = file("gen/inc")
+GEN_LIB = file("gen/lib")
+GEN_DOC = file("gen/doc")
+
+mkdir(GEN_INC)
+mkdir(GEN_INC/"gcc")
+mkdir(GEN_LIB)
+mkdir(GEN_DOC)
+
 RIVA = OUT_BIN/"riva"
 
 vmount("obj", "src")

@@ -54,6 +54,7 @@ TYPED_INSTANCE(const char *, IO$Stream$readi, T, debugger_t *Debugger, int Lengt
 struct debug_global_t {
 	debug_global_t *Next;
 	Std$Object$t **Address;
+	Std$Object$t *Value;
 	const char *Name;
 };
 
@@ -68,6 +69,7 @@ struct debug_module_t {
 struct debug_local_t {
 	debug_local_t *Next;
 	uint32_t Index;
+	Std$Object$t *Value;
 	const char *Name;
 };
 
@@ -268,11 +270,15 @@ static json_t *debugger_command_get_variable(json_t *Args) {
 		debug_function_t *Function = State->Function;
 		Std$Object$t ***Locals = (void *)State + Function->LocalsOffset;
 		for (debug_local_t *Local = State->Function->Locals; Local; Local = Local->Next) {
-			Std$Object$t **Ref = Locals[Local->Index];
-			if (Ref) {
-				debugger_append_variable(Variables, Local->Name, *Ref);
+			if (Local->Value) {
+				debugger_append_variable(Variables, Local->Name, Local->Value);
 			} else {
-				json_array_append(Variables, json_pack("{ssss}", "name", Local->Name, "type", "none"));
+				Std$Object$t **Ref = Locals[Local->Index];
+				if (Ref) {
+					debugger_append_variable(Variables, Local->Name, *Ref);
+				} else {
+					json_array_append(Variables, json_pack("{ssss}", "name", Local->Name, "type", "none"));
+				}
 			}
 		}
 		return Variables;
@@ -281,11 +287,15 @@ static json_t *debugger_command_get_variable(json_t *Args) {
 		debug_module_t *Module = debugger_get_module(Args);
 		if (!Module) return json_pack("{ss}", "error", "invalid module");
 		for (debug_global_t *Global = Module->Globals; Global; Global = Global->Next) {
-			Std$Object$t *Value = Global->Address[0];
-			if (Value) {
-				debugger_append_variable(Variables, Global->Name, Value);
+			if (Global->Value) {
+				debugger_append_variable(Variables, Global->Name, Global->Value);
 			} else {
-				json_array_append(Variables, json_pack("{ssss}", "name", Global->Name, "type", "none"));
+				Std$Object$t *Value = Global->Address[0];
+				if (Value) {
+					debugger_append_variable(Variables, Global->Name, Value);
+				} else {
+					json_array_append(Variables, json_pack("{ssss}", "name", Global->Name, "type", "none"));
+				}
 			}
 		}
 		return Variables;
@@ -349,6 +359,10 @@ LOCAL_FUNCTION(DebuggerIDFunc) {
 	Std$Object$t ***Locals = (void *)Debugger->EvaluateState + Function->LocalsOffset;
 	for (debug_local_t *Local = Function->Locals; Local; Local = Local->Next) {
 		if (!strcmp(Local->Name, Name)) {
+			if (Local->Value) {
+				Result->Val = Local->Value;
+				return SUCCESS;
+			}
 			Std$Object$t **Ref = Locals[Local->Index];
 			if (Ref) {
 				Result->Val = Ref[0];
@@ -359,6 +373,10 @@ LOCAL_FUNCTION(DebuggerIDFunc) {
 	debug_module_t *Module = Function->Module;
 	for (debug_global_t *Global = Module->Globals; Global; Global = Global->Next) {
 		if (!strcmp(Global->Name, Name)) {
+			if (Global->Value) {
+				Result->Val = Global->Value;
+				return SUCCESS;
+			}
 			Result->Val = Global->Address[0];
 			return SUCCESS;
 		}
@@ -480,10 +498,22 @@ void debug_add_line(debug_module_t *Module, const char *Line) {
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-void debug_add_global(debug_module_t *Module, const char *Name, Std$Object$t **Address) {
+void debug_add_global_variable(debug_module_t *Module, const char *Name, Std$Object$t **Address) {
 	debug_global_t *Global = new(debug_global_t);
 	Global->Name = Name;
 	Global->Address = Address;
+	debug_global_t **Slot = &Module->Globals;
+	while (*Slot) Slot = &Slot[0]->Next;
+	*Slot = Global;
+	pthread_mutex_lock(Debugger->Lock);
+		debugger_update(json_pack("[is{siss}]", 0, "global_add", "module", Module->Id, "name", Name));
+	pthread_mutex_unlock(Debugger->Lock);
+}
+
+void debug_add_global_constant(debug_module_t *Module, const char *Name, Std$Object$t *Value) {
+	debug_global_t *Global = new(debug_global_t);
+	Global->Name = Name;
+	Global->Value = Value;
 	debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
@@ -503,7 +533,25 @@ int debug_module_id(debug_function_t *Function) {
 	return Function->Module->Id;
 }
 
-void debug_add_local(debug_function_t *Function, const char *Name, uint32_t Index) {
+void debug_add_local_variable(debug_function_t *Function, const char *Name, uint32_t Index) {
+	debug_local_t *Local = new(debug_local_t);
+	Local->Name = Name;
+	Local->Index = Index;
+	debug_local_t **Slot = &Function->Locals;
+	while (*Slot) Slot = &Slot[0]->Next;
+	*Slot = Local;
+}
+
+void debug_add_local_constant(debug_function_t *Function, const char *Name, Std$Object$t *Value) {
+	debug_local_t *Local = new(debug_local_t);
+	Local->Name = Name;
+	Local->Value = Value;
+	debug_local_t **Slot = &Function->Locals;
+	while (*Slot) Slot = &Slot[0]->Next;
+	*Slot = Local;
+}
+
+void debug_add_local_constant(debug_function_t *Function, const char *Name, uint32_t Index) {
 	debug_local_t *Local = new(debug_local_t);
 	Local->Name = Name;
 	Local->Index = Index;
@@ -642,7 +690,6 @@ void debug_enable(const char *SocketPath, bool ClientMode) {
 		Debugger->Socket = accept(Socket, &Addr, &Length);
 		printf("Debugger connected\n");
 	}
-	Std$Object$t *Stream = IO$Posix$new(IO$Socket$T, Debugger->Socket);
 	pthread_key_create(&Debugger->ThreadKey, 0);
 	pthread_mutex_init(Debugger->Lock, 0);
 	Debugger->Threads->Prev = Debugger->Threads->Next = Debugger->Threads;

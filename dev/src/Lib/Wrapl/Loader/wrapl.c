@@ -301,7 +301,7 @@ GLOBAL_FUNCTION(SessionDef, 3) {
 	Operand->Value = Args[2].Val;
 	const char *Name = Std$String$flatten(Args[1].Val);
 	Session->Compiler->declare(Name, Operand);
-	if (Debugger) debug_add_global(Session->Compiler->DebugInfo, Name, &Operand->Value);
+	if (Debugger) debug_add_global_constant(Session->Compiler->DebugInfo, Name, Operand->Value);
 	return SUCCESS;
 }
 
@@ -316,7 +316,7 @@ GLOBAL_FUNCTION(SessionVar, 3) {
 	Operand->Address = Args[2].Ref;
 	const char *Name = Std$String$flatten(Args[1].Val);
 	Session->Compiler->declare(Name, Operand);
-	if (Debugger) debug_add_global(Session->Compiler->DebugInfo, Name, Operand->Address);
+	if (Debugger) debug_add_global_variable(Session->Compiler->DebugInfo, Name, Operand->Address);
 	return SUCCESS;
 }
 
