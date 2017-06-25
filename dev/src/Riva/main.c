@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdio.h>
-#include <gc/gc.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "gc/gc.h"
 
 #ifdef WINDOWS
 #include <windows.h>

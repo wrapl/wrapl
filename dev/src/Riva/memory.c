@@ -1,7 +1,7 @@
 #include "libriva.h"
-#include <gc/gc_typed.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "gc/gc_typed.h"
 
 //#define SUPER_GC_DEBUG
 
