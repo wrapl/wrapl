@@ -36,66 +36,66 @@ void target_depends_add(target_t *Target, target_t *Depend) {
 	}
 }
 
-static int target_function_hash(lua_State *L, const void *P, size_t Size, struct sha256_ctx *Ctx) {
-	sha256_update(Ctx, Size, P);
+static int target_function_hash(lua_State *L, const void *P, size_t Size, SHA256_CTX *Ctx) {
+	sha256_update(Ctx, P, Size);
 	return 0;
 }
 
-static void target_value_hash(int8_t Hash[SHA256_DIGEST_SIZE]) {
+static void target_value_hash(int8_t Hash[SHA256_BLOCK_SIZE]) {
 	switch (lua_type(L, -1)) {
 	case LUA_TNIL: {
-		memset(Hash, 0, SHA256_DIGEST_SIZE);
+		memset(Hash, 0, SHA256_BLOCK_SIZE);
 		return;
 	}
 	case LUA_TNUMBER: {
-		memset(Hash, 0, SHA256_DIGEST_SIZE);
+		memset(Hash, 0, SHA256_BLOCK_SIZE);
 		*(lua_Number *)Hash = lua_tonumber(L, -1);
-		Hash[SHA256_DIGEST_SIZE - 1] = LUA_TNUMBER;
+		Hash[SHA256_BLOCK_SIZE - 1] = LUA_TNUMBER;
 		return;
 	}
 	case LUA_TBOOLEAN: {
 		*(int *)Hash = lua_toboolean(L, -1);
-		memset(Hash, 0, SHA256_DIGEST_SIZE);
-		Hash[SHA256_DIGEST_SIZE - 1] = LUA_TBOOLEAN;
+		memset(Hash, 0, SHA256_BLOCK_SIZE);
+		Hash[SHA256_BLOCK_SIZE - 1] = LUA_TBOOLEAN;
 		return;
 	}
 	case LUA_TSTRING: {
 		size_t Len;
 		const char *String = lua_tolstring(L, -1, &Len);
-		struct sha256_ctx Ctx[1];
+		SHA256_CTX Ctx[1];
 		sha256_init(Ctx);
-		sha256_update(Ctx, Len, String);
-		sha256_digest(Ctx, SHA256_DIGEST_SIZE, Hash);
+		sha256_update(Ctx, String, Len);
+		sha256_final(Ctx, Hash);
 		return;
 	}
 	case LUA_TTABLE: {
-		struct sha256_ctx Ctx[1];
+		SHA256_CTX Ctx[1];
 		sha256_init(Ctx);
 		lua_pushnil(L);
 		while (lua_next(L, -2)) {
-			int8_t ChildHash[SHA256_DIGEST_SIZE];
+			int8_t ChildHash[SHA256_BLOCK_SIZE];
 			target_value_hash(ChildHash);
-			sha256_update(Ctx, SHA256_DIGEST_SIZE, ChildHash);
+			sha256_update(Ctx, ChildHash, SHA256_BLOCK_SIZE);
 			lua_pop(L, 1);
 			target_value_hash(ChildHash);
-			sha256_update(Ctx, SHA256_DIGEST_SIZE, ChildHash);
+			sha256_update(Ctx, ChildHash, SHA256_BLOCK_SIZE);
 		}
-		sha256_digest(Ctx, SHA256_DIGEST_SIZE, Hash);
+		sha256_final(Ctx, Hash);
 		return;
 	}
 	case LUA_TFUNCTION: {
-		struct sha256_ctx Ctx[1];
+		SHA256_CTX Ctx[1];
 		sha256_init(Ctx);
 		lua_dump(L, (void *)target_function_hash, Ctx, 1);
-		sha256_digest(Ctx, SHA256_DIGEST_SIZE, Hash);
+		sha256_final(Ctx, Hash);
 		return;
 	}
 	}
 	target_t *Target = luaL_checkudata(L, -1, "target");
-	struct sha256_ctx Ctx[1];
+	SHA256_CTX Ctx[1];
 	sha256_init(Ctx);
-	sha256_update(Ctx, strlen(Target->Id), Target->Id);
-	sha256_digest(Ctx, SHA256_DIGEST_SIZE, Hash);
+	sha256_update(Ctx, Target->Id, strlen(Target->Id));
+	sha256_final(Ctx, Hash);
 	return;
 }
 
@@ -124,18 +124,18 @@ void target_update(target_t *Target) {
 		//printf("\e[32m[%d/%d] \e[33mtarget_update(%s)\e[0m\n", BuiltTargets, TargetCache->items, Target->Id);
 		int DependsLastUpdated = 0;
 		HXmap_qfe(Target->Depends, (void *)depends_update_fn, &DependsLastUpdated);
-		int8_t Previous[SHA256_DIGEST_SIZE];
+		int8_t Previous[SHA256_BLOCK_SIZE];
 		int LastUpdated, LastChecked;
 		time_t FileTime;
 		if (Target->Build) {	
-			int8_t BuildHash[SHA256_DIGEST_SIZE];
+			int8_t BuildHash[SHA256_BLOCK_SIZE];
 			lua_rawgeti(L, LUA_REGISTRYINDEX, Target->Build);
 			target_value_hash(BuildHash);
 			lua_pop(L, 1);
 			struct HXmap *PreviousDetectedDepends = cache_depends_get(Target->Id);
 			const char *BuildId = concat(Target->Id, "::build", 0);
 			cache_hash_get(BuildId, &LastUpdated, &LastChecked, &FileTime, Previous);
-			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_DIGEST_SIZE)) {
+			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_BLOCK_SIZE)) {
 				cache_hash_set(BuildId, 0, BuildHash);
 				DependsLastUpdated = CurrentVersion;
 				printf("\t\e[35m<build function>\e[0m\n");
@@ -174,11 +174,11 @@ void target_update(target_t *Target) {
 			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);	
 		}
 		FileTime = Target->Class->hash(Target, FileTime, Previous);
-		if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_DIGEST_SIZE)) {
+		if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_BLOCK_SIZE)) {
 			/*printf("hash_changed(%s)\n\t", Target->Id);
-			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
+			for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
 			printf("\n\t");
-			for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) printf(" %02x", Target->Hash[I] & 0xFF);
+			for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) printf(" %02x", Target->Hash[I] & 0xFF);
 			printf("\n");*/
 			Target->LastUpdated = CurrentVersion;
 			cache_hash_set(Target->Id, FileTime, Target->Hash);
@@ -263,7 +263,7 @@ static void target_file_tostring(target_file_t *Target, luaL_Buffer *Buffer) {
 	}
 }
 
-static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
+static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_t PreviousHash[SHA256_BLOCK_SIZE]) {
 	const char *FileName;
 	if (Target->Absolute) {
 		FileName = Target->Path;
@@ -276,12 +276,12 @@ static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_
 		return 0;
 	}
 	if (!S_ISREG(Stat->st_mode)) {
-		memset(Target->Hash, -1, SHA256_DIGEST_SIZE);
+		memset(Target->Hash, -1, SHA256_BLOCK_SIZE);
 	} else if (Stat->st_mtime == PreviousTime) {
-		memcpy(Target->Hash, PreviousHash, SHA256_DIGEST_SIZE);
+		memcpy(Target->Hash, PreviousHash, SHA256_BLOCK_SIZE);
 	} else {
 		int File = open(FileName, 0, O_RDONLY);
-		struct sha256_ctx Ctx[1];
+		SHA256_CTX Ctx[1];
 		uint8_t Buffer[8192];
 		sha256_init(Ctx);
 		for (;;) {
@@ -291,10 +291,10 @@ static time_t target_file_hash(target_file_t *Target, time_t PreviousTime, int8_
 				printf("\e[31mError: read error: %s\e[0m\n", FileName);
 				exit(1);
 			}
-			sha256_update(Ctx, Count, Buffer);
+			sha256_update(Ctx, Buffer, Count);
 		}
 		close(File);
-		sha256_digest(Ctx, SHA256_DIGEST_SIZE, Target->Hash);
+		sha256_final(Ctx, Target->Hash);
 	}
 	return Stat->st_mtime;
 }
@@ -452,8 +452,8 @@ static void target_meta_tostring(target_meta_t *Target, luaL_Buffer *Buffer) {
 	luaL_addstring(Buffer, Target->Name);
 }
 
-static time_t target_meta_hash(target_meta_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
-	memset(Target->Hash, -1, SHA256_DIGEST_SIZE);
+static time_t target_meta_hash(target_meta_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_BLOCK_SIZE]) {
+	memset(Target->Hash, -1, SHA256_BLOCK_SIZE);
 	return 0;
 }
 
@@ -525,16 +525,16 @@ struct target_scan_t {
 static void target_scan_tostring(target_scan_t *Target, luaL_Buffer *Buffer) {
 }
 
-bool scan_depends_hash(const struct HXmap_node *Node, int8_t Hash[SHA256_DIGEST_SIZE]) {
+bool scan_depends_hash(const struct HXmap_node *Node, int8_t Hash[SHA256_BLOCK_SIZE]) {
 	target_t *Depends = (target_t *)Node->key;
 	target_update(Depends);
-	for (int I = 0; I < SHA256_DIGEST_SIZE; ++I) Hash[I] ^= Depends->Hash[I];
+	for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) Hash[I] ^= Depends->Hash[I];
 	return true;
 }
 
-static time_t target_scan_hash(target_scan_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
+static time_t target_scan_hash(target_scan_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_BLOCK_SIZE]) {
 	struct HXmap *Scans = cache_scan_get(Target->Id);
-	memset(Target->Hash, 0, SHA256_DIGEST_SIZE);
+	memset(Target->Hash, 0, SHA256_BLOCK_SIZE);
 	if (Scans) HXmap_qfe(Scans, (void *)scan_depends_hash, Target->Hash);
 	return 0;
 }
@@ -596,7 +596,7 @@ struct target_symb_t {
 static void target_symb_tostring(target_symb_t *Target, luaL_Buffer *Buffer) {
 }
 
-static time_t target_symb_hash(target_symb_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_DIGEST_SIZE]) {
+static time_t target_symb_hash(target_symb_t *Target, time_t *PreviousTime, int8_t PreviousHash[SHA256_BLOCK_SIZE]) {
 	context_t *Context = context_find(Target->Path);
 	context_symb_get(Context, Target->Name);
 	target_value_hash(Target->Hash);

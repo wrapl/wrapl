@@ -131,16 +131,16 @@ void cache_close() {
 }
 
 
-void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, time_t *FileTime, uint8_t Digest[SHA256_DIGEST_SIZE]) {
+void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, time_t *FileTime, BYTE Digest[SHA256_BLOCK_SIZE]) {
 	sqlite3_bind_text(HashGetStatement, 1, Id, -1, SQLITE_STATIC);
 	int Version = 0;
 	if (sqlite3_step(HashGetStatement) == SQLITE_ROW) {
-		memcpy(Digest, sqlite3_column_blob(HashGetStatement, 0), SHA256_DIGEST_SIZE);
+		memcpy(Digest, sqlite3_column_blob(HashGetStatement, 0), SHA256_BLOCK_SIZE);
 		*LastUpdated = sqlite3_column_int(HashGetStatement, 1);
 		*LastChecked = sqlite3_column_int(HashGetStatement, 2);
 		*FileTime = sqlite3_column_int(HashGetStatement, 3);
 	} else {
-		memset(Digest, 0, SHA256_DIGEST_SIZE);
+		memset(Digest, 0, SHA256_BLOCK_SIZE);
 		*LastUpdated = 0;
 		*LastChecked = 0;
 		*FileTime = 0;
@@ -148,9 +148,9 @@ void cache_hash_get(const char *Id, int *LastUpdated, int *LastChecked, time_t *
 	sqlite3_reset(HashGetStatement);
 }
 
-void cache_hash_set(const char *Id, time_t FileTime, uint8_t Digest[SHA256_DIGEST_SIZE]) {
+void cache_hash_set(const char *Id, time_t FileTime, BYTE Digest[SHA256_BLOCK_SIZE]) {
 	sqlite3_bind_text(HashSetStatement, 1, Id, -1, SQLITE_STATIC);
-	sqlite3_bind_blob(HashSetStatement, 2, Digest, SHA256_DIGEST_SIZE, SQLITE_STATIC);
+	sqlite3_bind_blob(HashSetStatement, 2, Digest, SHA256_BLOCK_SIZE, SQLITE_STATIC);
 	sqlite3_bind_int(HashSetStatement, 3, CurrentVersion);
 	sqlite3_bind_int(HashSetStatement, 4, CurrentVersion);
 	sqlite3_bind_int(HashSetStatement, 5, FileTime);
