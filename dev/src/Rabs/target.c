@@ -138,7 +138,7 @@ void target_update(target_t *Target) {
 			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_BLOCK_SIZE)) {
 				cache_hash_set(BuildId, 0, BuildHash);
 				DependsLastUpdated = CurrentVersion;
-				printf("\t\e[35m<build function>\e[0m\n");
+				printf("\t\e[35m<build function updated>\e[0m\n");
 			} else if (PreviousDetectedDepends) {
 				HXmap_qfe(PreviousDetectedDepends, (void *)depends_update_fn, &DependsLastUpdated);
 			}
@@ -175,11 +175,6 @@ void target_update(target_t *Target) {
 		}
 		FileTime = Target->Class->hash(Target, FileTime, Previous);
 		if (!LastUpdated || memcmp(Previous, Target->Hash, SHA256_BLOCK_SIZE)) {
-			/*printf("hash_changed(%s)\n\t", Target->Id);
-			for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) printf(" %02x", Previous[I] & 0xFF);
-			printf("\n\t");
-			for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) printf(" %02x", Target->Hash[I] & 0xFF);
-			printf("\n");*/
 			Target->LastUpdated = CurrentVersion;
 			cache_hash_set(Target->Id, FileTime, Target->Hash);
 		} else {
@@ -189,6 +184,51 @@ void target_update(target_t *Target) {
 	}
 	if (Top != lua_gettop(L)) {
 		printf("Warning: building %s changed the lua stack from %d to %d\n", Target->Id, Top, lua_gettop(L));
+	}
+}
+
+bool depends_query_fn(const struct HXmap_node *Node, int *DependsLastUpdated) {
+	target_t *Depends = (target_t *)Node->key;
+	target_query(Depends);
+	if (Depends->LastUpdated > *DependsLastUpdated) *DependsLastUpdated = Depends->LastUpdated;
+	return true;
+}
+
+void target_query(target_t *Target) {
+	if (Target->LastUpdated == -1) return;
+	if (Target->LastUpdated == 0) {
+		Target->LastUpdated = -1;
+		printf("Target: %s\n", Target->Id);
+		int DependsLastUpdated = 0;
+		HXmap_qfe(Target->Depends, (void *)depends_query_fn, &DependsLastUpdated);
+		int8_t Previous[SHA256_BLOCK_SIZE];
+		int LastUpdated, LastChecked;
+		time_t FileTime;
+		if (Target->Build) {	
+			int8_t BuildHash[SHA256_BLOCK_SIZE];
+			lua_rawgeti(L, LUA_REGISTRYINDEX, Target->Build);
+			target_value_hash(BuildHash);
+			lua_pop(L, 1);
+			struct HXmap *PreviousDetectedDepends = cache_depends_get(Target->Id);
+			const char *BuildId = concat(Target->Id, "::build", 0);
+			cache_hash_get(BuildId, &LastUpdated, &LastChecked, &FileTime, Previous);
+			if (!LastUpdated || memcmp(Previous, BuildHash, SHA256_BLOCK_SIZE)) {
+				DependsLastUpdated = CurrentVersion;
+				printf("\t\e[35m<build function updated>\e[0m\n");
+			} else if (PreviousDetectedDepends) {
+				HXmap_qfe(PreviousDetectedDepends, (void *)depends_query_fn, &DependsLastUpdated);
+			}
+			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);
+			if ((DependsLastUpdated > LastChecked) || Target->Class->missing(Target)) {
+				printf("\e[33mtarget_build(%s) Depends = %d, Last Updated = %d\e[0m\n", Target->Id, DependsLastUpdated, LastChecked);
+				HXmap_qfe(Target->Depends, (void *)depends_print_fn, &DependsLastUpdated);
+				if (PreviousDetectedDepends) {
+					HXmap_qfe(PreviousDetectedDepends, (void *)depends_print_fn, &DependsLastUpdated);
+				}
+			}
+		} else {
+			cache_hash_get(Target->Id, &LastUpdated, &LastChecked, &FileTime, Previous);	
+		}
 	}
 }
 
@@ -678,6 +718,20 @@ target_t *target_find(const char *Id) {
 		return (target_t *)Target;
 	}
 	return 0;
+}
+
+target_t *target_get(const char *Id) {
+	return (target_t *)HXmap_get(TargetCache, Id);
+}
+
+bool target_print_fn(const struct HXmap_node *Node, void *Data) {
+	target_t *Target = (target_t *)Node->data;
+	printf("%s\n", Target->Id);
+	return true;
+}
+
+void target_list() {
+	HXmap_qfe(TargetCache, target_print_fn, 0);
 }
 
 static const luaL_Reg TargetMethods[] = {

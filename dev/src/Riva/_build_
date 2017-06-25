@@ -10,7 +10,6 @@ CFG_OPTS = {
 	"--enable-redirect-malloc",
 	"--enable-shared=false",
 	"--enable-static=true",
-	"--enable-threads=posix",
 	"--enable-parallel-mark",
 	"--disable-gcj-support",
 	"--prefix=/tmp",

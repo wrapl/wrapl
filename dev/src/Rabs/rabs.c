@@ -290,6 +290,8 @@ int main(int Argc, const char **Argv) {
 	}
 
 	const char *TargetName = 0;
+	int QueryOnly = 0;
+	int ListTargets = 0;
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -305,6 +307,14 @@ int main(int Argc, const char **Argv) {
 				lua_setglobal(L, Define);
 				break;
 			};
+			case 'q': {
+				QueryOnly = 1;
+				break;
+			}
+			case 'l': {
+				ListTargets = 1;
+				break;
+			}
 			};
 		} else {
 			TargetName = Argv[I];
@@ -339,9 +349,9 @@ int main(int Argc, const char **Argv) {
 		load_file(L, concat(RootPath, "/_build_", 0));
 		target_t *Target;
 		if (TargetName) {
-			Target = target_find(TargetName);
+			Target = target_get(TargetName);
 			if (!Target) {
-				printf("\e[31mError: invalid target\e[0m");
+				printf("\e[31mError: invalid target %s\e[0m", TargetName);
 				exit(1);
 			}
 		} else {
@@ -352,7 +362,13 @@ int main(int Argc, const char **Argv) {
 			}
 			Target = Context->Default;
 		}
-		target_update(Target);
+		if (ListTargets) {
+			target_list();
+		} else if (QueryOnly) {
+			target_query(Target);
+		} else {
+			target_update(Target);
+		}
 	}
 	return 0;
 }
