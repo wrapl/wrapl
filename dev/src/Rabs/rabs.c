@@ -323,7 +323,7 @@ int main(int Argc, const char **Argv) {
 #ifdef LINUX
 	const char *Path = get_current_dir_name();
 #else
-	const char *Path = (const char *)GC_malloc_atomic(1024);
+	char *Path = (char *)GC_malloc_atomic(1024);
 	getcwd(Path, 1024);
 #endif
 	RootPath = find_root(Path);

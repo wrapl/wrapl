@@ -13,8 +13,8 @@ sources = \
 	lfs.c \
 	sha256.c
 
-CFLAGS = -I. -g -O3
-LDFLAGS = -llua -lm -lgc -lsqlite3 -lHX -g
+CFLAGS += -I. -g -O3
+LDFLAGS += -llua -lm -lgc -lsqlite3 -lHX -g
 
 ../../bin/rabs: $(sources) *.h builtins.lua
 	gcc $(CFLAGS) $(sources) $(LDFLAGS) -o $@

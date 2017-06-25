@@ -3,8 +3,8 @@
 
 #include <lua.h>
 #include <lauxlib.h>
-#include <nettle/sha2.h>
 #include <time.h>
+#include "sha256.h"
 
 typedef struct target_t target_t;
 typedef struct target_class_t target_class_t;
@@ -12,7 +12,7 @@ typedef struct target_class_t target_class_t;
 struct target_class_t {
 	size_t Size;
 	void (*tostring)(target_t *Target, luaL_Buffer *Buffer);
-	time_t (*hash)(target_t *Target, time_t FileTime, int8_t Hash[SHA256_DIGEST_SIZE]);
+	time_t (*hash)(target_t *Target, time_t FileTime, int8_t Hash[SHA256_BLOCK_SIZE]);
 	int (*missing)(target_t *Target);
 };
 
@@ -22,7 +22,7 @@ struct target_class_t {
 	struct context_t *BuildContext; \
 	const char *Id; \
 	struct HXmap *Depends; \
-	int8_t Hash[SHA256_DIGEST_SIZE];
+	int8_t Hash[SHA256_BLOCK_SIZE];
 
 struct target_t {
 	TARGET_FIELDS
