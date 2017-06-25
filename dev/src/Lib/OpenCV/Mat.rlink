@@ -1,0 +1,6 @@
+include("Std.rlib")
+include("Riva.rlib")
+include("OpenCV/Type.rlink")
+include("libopencv_core.so")
+
+export("New")

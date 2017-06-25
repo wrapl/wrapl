@@ -1,4 +1,5 @@
 UDIS_VERSION = "1.7.2"
+UDIS_URL = "http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-"  .. UDIS_VERSION .. ".tar.gz"
 UDIS_DIR = file("udis86-" .. UDIS_VERSION)
 
 file("libudis86.a"){UDIS_DIR}:build(function()
@@ -7,7 +8,6 @@ file("libudis86.a"){UDIS_DIR}:build(function()
 		"--prefix=" .. file(""),
 		"--includedir=" .. file(""),
 		"--libdir=" .. file(""),
-		"CFLAGS=\"" .. stringify(CFLAGS) .. "\"",
 		"--without-man-pages"
 	}
 	execute{"cd", UDIS_DIR, "&&",
@@ -22,10 +22,29 @@ file("libudis86.a"){UDIS_DIR}:build(function()
 end)
 
 UDIS_DIR:build(function()
-	execute("wget -nv http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-"  .. UDIS_VERSION .. ".tar.gz -O- | tar xvzP")
+	execute{"wget -nv", UDIS_URL, "-O- | tar xvzP"}
 end)
 
-LDFLAGS = extend(LDFLAGS, "-L.", "-lz", "-llua5.1", "-lbfd", "-lHX", "-ldl", "-g")
+LDFLAGS = extend(LDFLAGS, "-L.", "-lz", "-llua", "-lHX", "-ldl", "-g")
 CFLAGS = extend(CFLAGS, "-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION")
 
-c_program(RLINK, {file("rlink.o")}, {file("libudis86.a")})
+if PLATFORM == "Linux" then
+	LDFLAGS = extend(LDFLAGS, "-lbfd")
+	c_program(RLINK, {file("rlink.o")}, {file("libudis86.a")})
+elseif PLATFORM == "Darwin" then
+	BINUTILS_VERSION = "2.28"
+	BINUTILS_URL = "https://ftp.gnu.org/gnu/binutils/binutils-" .. BINUTILS_VERSION .. ".tar.gz"
+	BINUTILS_DIR = file("binutils-" .. BINUTILS_VERSION)
+	file("libbfd.a"){BINUTILS_DIR}:build(function()
+		execute{"cd", BINUTILS_DIR, "&&",
+			"./configure --build=i386-apple-darwin16.6.0",
+			"--prefix=" .. file(""),
+			"--without-man-pages"
+		}
+	end)
+	BINUTILS_DIR:build(function()
+		execute{"wget - nv", BINUTILS_URL, "-O- | tar xvzP"}
+	end)
+	c_program(RLINK, {file("rlink.o")}, {file("libudis86.a"), file("libbfd.a")})
+end
+

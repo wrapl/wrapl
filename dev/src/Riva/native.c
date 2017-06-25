@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 
 #ifdef WINDOWS
 #include <windows.h>
@@ -134,6 +133,7 @@ void native_init(void) {
 #include <gc/gc.h>
 #include <sys/stat.h>
 #include <glob.h>
+#include <malloc.h>
 
 static int native_import(void *Handle, const char *Symbol, int *IsRef, void **Data) {
 	void *Address = dlsym(Handle, Symbol);

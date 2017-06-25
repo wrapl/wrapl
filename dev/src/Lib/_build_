@@ -3,8 +3,6 @@ CFLAGS = extend(CFLAGS, "-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sect
 CXXFLAGS = extend(CXXFLAGS, "-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w")
 LDFLAGS = extend(LDFLAGS, "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/i386-linux-gnu/", "-L/usr/lib/")
 
---CFLAGS = extend(CFLAGS, "-std=gnu99")
-
 function rlink_includes(Source)
 	local Files = {}
 	local Lines = shell(RLINK, "-M", LDFLAGS, Source, "-v0")
@@ -128,8 +126,6 @@ subdir("Agg")
 subdir("Alg")
 subdir("Wrapl")
 subdir("Web")
-subdir("Gir")
-subdir("Snd")
 subdir("Json")
 subdir("Xml")
 subdir("Csv")
@@ -139,4 +135,8 @@ subdir("Boost")
 subdir("Stat")
 subdir("Html")
 subdir("OpenCV")
---subdir("Tst")
+
+if PLATFORM == "Linux" then
+	subdir("Gir")
+	subdir("Snd")
+end

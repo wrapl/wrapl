@@ -1,6 +1,0 @@
-CFLAGS += $(shell pkg-config --cflags libxml-2.0) -include $(file libxml.h)
-LDFLAGS += $(shell pkg-config --libs-only-l libxml-2.0)
-
-if $(file-exists $(GTK_AUTOGEN))
-	foreach(FILE, $(rootname $(basename $(glob *.c))))
-		RivaModule(Gtk/Xml/$(FILE), $(FILE))

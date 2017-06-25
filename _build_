@@ -1,5 +1,22 @@
 -- ROOT --
 
+if not PLATFORM then
+	PLATFORM = shell("uname"):gsub("^%s*(.-)%s*$", "%1")
+end
+
+if not OS then
+	if PLATFORM == "Linux" then
+		for Line in io.lines("/etc/os-release") do
+			local Key, Value = string.match(Line, "(%w+)=(%w+).*")
+			if Key == "ID" then
+				OS = Value
+			end
+		end
+	end
+end
+
+print(PLATFORM, OS)
+
 OUT_BIN = file("bin")
 OUT_LIB = file("lib")
 OUT_DOC = file("doc")

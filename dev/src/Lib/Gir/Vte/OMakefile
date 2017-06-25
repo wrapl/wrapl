@@ -1,9 +1,0 @@
-CFLAGS += $(shell pkg-config --cflags vte-2.91 gtk+-3.0) \
-	-include vte/vte.h \
-	-include gdk/gdk.h 
-LDFLAGS += $(shell pkg-config --libs-only-l vte-2.91)
-
-if $(file-exists $(GIR_AUTOGEN))
-	foreach(FILE, $(rootname $(basename $(glob *.c))))
-		RivaModule(Gir/Vte/$(FILE), $(FILE))
-

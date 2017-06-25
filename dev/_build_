@@ -1,5 +1,3 @@
-local lfs = require "lfs"
-
 DEV_BIN = file("bin")
 DEV_INC = file("inc")
 DEV_LIB = file("lib")

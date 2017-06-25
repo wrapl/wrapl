@@ -2,11 +2,21 @@ RLINK = DEV_BIN/"rlink"
 RDOC = DEV_BIN/"rdoc"
 WRAPL_MODULES = meta("WraplModules")
 
-CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
-CXXFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations", "-DLINUX"}
-ASFLAGS = {"-DCMOVSUPPORT", "-Ov", "-w-all", "-DLINUX", "-felf"}
+CFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"}
+CXXFLAGS = {"-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"}
+ASFLAGS = {"-DCMOVSUPPORT", "-Ov", "-w-all"}
 GOFLAGS = {}
 LDFLAGS = {}
+
+if PLATFORM == "Linux" then
+	CFLAGS = extend(CFLAGS, "-DLINUX")
+	CXXFLAGS = extend(CXXFLAGS, "-DLINUX")
+	ASFLAGS = extend(ASFLAGS, "-DLINUX", "-felf")
+elseif PLATFORM == "Darwin" then
+	CFLAGS = extend(CFLAGS, "-DMACOSX")
+	CXXFLAGS = extend(CXXFLAGS, "-DMACOSX")
+	ASFLAGS = extend(ASFLAGS, "-DMACOSX")
+end
 
 function c_includes(Source)
 	local Files = {}

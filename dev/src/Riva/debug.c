@@ -36,7 +36,7 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 	return 0;
 };
 
-#ifdef LINUX
+#ifdef LINUX || MACOSX
 int stack_trace(void **Stack, char **Buffer, int BufferSize) {
 	//printf("Stack = %x, Buffer = %x, BufferSize = %d\n", Stack, Buffer, BufferSize);
 	int Count = 0;

@@ -1,6 +1,0 @@
-CFLAGS += $(shell pkg-config --cflags atk) -include atk/atk.h -include atk/atkobject.h -include atk/atkrange.h
-LDFLAGS += $(shell pkg-config --libs-only-l atk)
-
-if $(file-exists $(GIR_AUTOGEN))
-	foreach(FILE, $(rootname $(basename $(glob *.c))))
-		RivaModule(Gir/Atk/$(FILE), $(FILE))

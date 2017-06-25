@@ -2,6 +2,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <lfs.h>
 #include <gc/gc.h>
 #include <string.h>
 #include <unistd.h>
@@ -174,10 +175,10 @@ int shell(lua_State *L) {
 	luaL_Buffer Output[1];
 	luaL_buffinit(L, Output);
 	while (!feof(File)) {
-		size_t Count = fread(Buffer, 1, 8192, File);
+		ssize_t Count = fread(Buffer, 1, 8192, File);
 		luaL_addlstring(Output, Buffer, Count);
 	}
-	fclose(File);
+	pclose(File);
 	luaL_pushresult(Output);
 	clock_t End = clock();
 	printf("\t\e[34m%f seconds.\e[0m\n", ((double)(End - Start)) / CLOCKS_PER_SEC);
@@ -218,8 +219,7 @@ int rabs_newindex(lua_State *L) {
 	return 0;
 }
 
-static const char *find_root() {
-	const char *Path = get_current_dir_name();
+static const char *find_root(const char *Path) {
 	char *FileName = (char *)GC_malloc(strlen(Path) + strlen("/_build_") + 1);
 	char *End = stpcpy(FileName, Path);
 	strcpy(End, "/_build_");
@@ -279,6 +279,7 @@ extern char LuaBuiltins[];
 int main(int Argc, const char **Argv) {
 	L = lua_newstate(lua_alloc, 0);
 	luaL_openlibs(L);
+	luaopen_lfs(L);
 	if (luaL_loadstring(L, LuaBuiltins) != LUA_OK) {
 		fprintf(stderr, "\e[31mError: %s\e[0m", lua_tostring(L, -1));
 		exit(1);
@@ -319,8 +320,13 @@ int main(int Argc, const char **Argv) {
 	luaL_setfuncs(L, RabsMethods, 0);
 	lua_setmetatable(L, -2);
 	RabsEnv = luaL_ref(L, LUA_REGISTRYINDEX);
+#ifdef LINUX
 	const char *Path = get_current_dir_name();
-	RootPath = find_root();
+#else
+	const char *Path = (const char *)GC_malloc_atomic(1024);
+	getcwd(Path, 1024);
+#endif
+	RootPath = find_root(Path);
 	if (!RootPath) {
 		puts("\e[31mError: could not find project root\e[0m");
 	} else {

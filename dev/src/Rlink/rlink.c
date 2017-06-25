@@ -6,17 +6,11 @@
 #include <fcntl.h>
 #include <zlib.h>
 #include <sys/stat.h>
+#include <lua.h>
+#include <lauxlib.h>
 
 #ifdef USE_UDIS
 #include <udis86.h>
-#endif
-
-#ifdef LINUX
-#include <lua5.1/lua.h>
-#include <lua5.1/lauxlib.h>
-#else
-#include <lua.h>
-#include <lauxlib.h>
 #endif
 
 #define RIVA_VERSION 3

@@ -1,8 +1,0 @@
-CFLAGS += $(shell pkg-config --cflags gtk+-3.0) -include gdk/gdk.h -include gdk-pixbuf/gdk-pixbuf.h -include gdk-pixbuf/gdk-pixdata.h
-LDFLAGS += $(shell pkg-config --libs-only-l gtk+-3.0)
-
-if $(file-exists $(GIR_AUTOGEN))
-	foreach(FILE, $(rootname $(basename $(glob *.c))))
-		RivaModule(Gir/Gdk/$(FILE), $(FILE))
-
-RivaModule(Gir/Gdk/Init, Init)

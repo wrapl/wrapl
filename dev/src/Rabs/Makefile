@@ -9,10 +9,11 @@ sources = \
 	target.c \
 	util.c \
 	vfs.c \
-	builtins.s
+	builtins.s \
+	lfs.c
 
-CFLAGS = `pkg-config --cflags lua53` -I. -g -O3
-LDFLAGS = `pkg-config --libs lua53` -lm -lgc -lsqlite3 -lnettle -lHX -g
+CFLAGS = -I. -g -O3
+LDFLAGS = -llua -lm -lgc -lsqlite3 -lnettle -lHX -g
 
 ../../bin/rabs: $(sources) *.h builtins.lua
 	gcc $(CFLAGS) $(sources) $(LDFLAGS) -o $@
