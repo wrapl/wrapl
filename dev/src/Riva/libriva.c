@@ -72,8 +72,7 @@ void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook)(void) = memory_init_hook
 */
 #endif
 
-/*
-#ifndef REDIRECT_MALLOC
+#ifdef MACOSX
 void *malloc(size_t Size) {
 	printf("Calling GC_malloc!\n");
 	return GC_malloc(Size);
@@ -91,7 +90,6 @@ void *realloc(void *Ptr, size_t Size) {
 	return GC_realloc(Ptr, Size);
 };
 #endif
-*/
 
 size_t malloc_usable_size(void *Ptr) {
 	return GC_size(Ptr);
