@@ -1,0 +1,8 @@
+module("OpenCV", "Type")
+if WINDOWS then
+	prefix("_OpenCV$Type$")
+else
+	prefix("OpenCV$Type$")
+end
+import("T")
+import("_8U")
