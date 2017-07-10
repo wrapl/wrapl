@@ -32,18 +32,14 @@ ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter
 ml_value_t *ml_error(const char *Error, const char *Format, ...);
 ml_value_t *ml_reference(ml_value_t **Address);
 
-struct ml_type_t {
-	const ml_type_t *Parent;
-	long (*hash)(ml_t *, ml_value_t *);
-	ml_value_t *(*call)(ml_t *, ml_value_t *, int, ml_value_t **);
-	ml_value_t *(*index)(ml_t *, ml_value_t *, int, ml_value_t **);
-	ml_value_t *(*deref)(ml_t *ML, ml_value_t *);
-	ml_value_t *(*assign)(ml_t *ML, ml_value_t *, ml_value_t *);
-	ml_value_t *(*next)(ml_t *ML, ml_value_t *);
-	long (*to_long)(ml_t *ML, ml_value_t *);
-	double (*to_double)(ml_t *ML, ml_value_t *);
-	const char *(*to_string)(ml_t *ML, ml_value_t *);
-};
+long ml_to_long(ml_t *ML, ml_value_t *Value);
+double ml_to_double(ml_t *ML, ml_value_t *Value);
+const char *ml_to_string(ml_t *ML, ml_value_t *Value);
+
+int ml_is_integer(ml_value_t *Value);
+int ml_is_real(ml_value_t *Value);
+int ml_is_string(ml_value_t *Value);
+int ml_is_error(ml_value_t *Value);
 
 struct ml_value_t {
 	const ml_type_t *Type;
