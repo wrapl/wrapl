@@ -1,0 +1,43 @@
+GMP_VERSION := "6.0.0"
+GMP_DIR := file('gmp-{GMP_VERSION}')
+
+file("libgmp.a")[GMP_DIR] => fun()
+	execute("cd", GMP_DIR, "&&",
+		"./configure --disable-shared --enable-static",
+		'--prefix={file("")}',
+		'--libdir={file("")}',
+		"ABI=32",
+		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		"--without-man-pages"
+	)
+	execute("cd", GMP_DIR, "&&",
+		"make clean"
+	)
+	execute("cd", GMP_DIR, "&&",
+		"make"
+	)
+	execute("cd", GMP_DIR, "&&",
+		"make install"
+	)
+end
+
+GMP_DIR => fun()
+	execute('wget -nv https://gmplib.org/download/gmp/gmp-{GMP_VERSION}.tar.bz2 -O- | tar xvjP')
+end
+
+file("Gmp.o")[file("libgmp.a")]
+
+scope("gmp", fun()
+	LDFLAGS := old + ["Riva/Memory.rlib", "-d", "-xlibgmp.a", "-XGmp.exports"]
+	WRAPL_MODULES[riva_module("Gmp", [file("Gmp.o")])]
+end)
+
+scope("libc", fun()
+	GCC_HOST := shell("gcc -dumpmachine")[1, -1]
+	GCC_VERSION := shell("gcc -dumpversion")[1, -1]
+	LDFLAGS := old + ['-L/usr/lib/gcc/{GCC_HOST}/{GCC_VERSION}/', "-Z -d",
+		"-xlibgcc.a", "-xlibgcc_eh.a", "-xlibc_nonshared.a", "-xlibstdc++.a",
+		"-xlibsupc++.a", "-xlibpthread.a", "libpthread.rlib", "-XGcc.exports"
+	]
+	riva_module("Gcc", [file("Gcc.o")])
+end)

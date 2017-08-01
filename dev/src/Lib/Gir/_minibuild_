@@ -1,0 +1,76 @@
+var MAPGEN := file("Mapgen.riva")
+var AUTOGEN := file("Autogen.log")
+var API_XML := file("api.xml")
+
+riva_program(MAPGEN, [file("Mapgen.o")])
+
+file("TypeMap.c")[RIVA, AUTOGEN, MAPGEN] => fun()
+	execute(RIVA, "-L. Mapgen")
+end
+
+file("TypeMap.o")[file("TypeMap.c")]
+
+riva_module("Gir/TypeMap", [file("TypeMap.o")])
+
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
+
+API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")] => fun()
+	execute(RIVA, "-L", file("Convert.wrapl"):dir(:true)/"", "Convert", file("api.gir_list"), "api.xml")
+end
+
+AUTOGEN_SOURCES := []
+
+for FileName in shell('ls {file("Main.wrapl"):dir(:true)}') / "\n" do
+	if FileName[-6, 0] = ".wrapl" then
+		AUTOGEN_SOURCES:put(file(FileName))
+	end
+end
+
+AUTOGEN[RIVA, AUTOGEN_SOURCES, API_XML] => fun()
+	execute(RIVA, "-L", file("Main.wrapl"):dir(:true)/"", "--", file(""), GEN_INC, GEN_LIB)
+end
+
+detect_modules := fun(Path)
+	mkdir(OUT_LIB/Path)
+	var DetectedModules := AUTOGEN:scan(Path, fun()
+		var _ := VERSION
+		var Modules := []
+		for FileName in shell('ls {file("")}') / "\n" do
+			if FileName[-2, 0] = ".c" then
+				var Source := file(FileName)
+				var Scan := Source:scan("INCLUDES", c_includes)
+				var  Object := Source % "o"
+				Object[Source, Scan, TYPEMAP] => c_compile
+				var Script := Source % "rdef"
+				var Name := '{Path}/{FileName[1, -2]}'
+				var Module := OUT_LIB/Name % "riva"
+				var Doc := GEN_DOC/Name % "xml"
+				Module[RLINK, Script, Object] => fun(Module)
+					execute(RLINK, LDFLAGS, "-o", Module, Object, Script, "-v0", "-?", Script % "lst")
+				end
+				Doc[RDOC, RIVA, Source] => fun(Doc)
+					execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, Name, Source)
+				end
+				Modules:put(Module)
+				Modules:put(Doc)
+			end
+		end
+		return Modules
+	end)
+	DEFAULT[DetectedModules]
+end
+
+subdir("GObject")
+subdir("Gio")
+subdir("GLib")
+subdir("Gdk")
+subdir("GdkPixbuf")
+subdir("Gtk")
+subdir("GtkSource")
+subdir("Pango")
+subdir("PangoCairo")
+subdir("Cairo")
+subdir("Gda")
+subdir("Soup")
+subdir("GooCanvas")
+--subdir("Lasem")

@@ -1,0 +1,50 @@
+UDIS_VERSION := "1.7.2"
+UDIS_URL := 'http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-{UDIS_VERSION}.tar.gz'
+UDIS_DIR := file('udis86-{UDIS_VERSION}')
+
+file("libudis86.a")[UDIS_DIR] => fun()
+	execute("cd", UDIS_DIR, "&&",
+		"./configure --disable-shared --enable-static",
+		'--prefix={file("")}',
+		'--includedir={file("")}',
+		'--libdir={file("")}',
+		"--without-man-pages"
+	)
+	execute("cd", UDIS_DIR, "&&",
+		"make mostlyclean"
+	)
+	execute("cd", UDIS_DIR, "&&",
+		"make TARGET_LIBS=\"static\""
+	)
+	execute("cd", UDIS_DIR, "&&",
+		"make install"
+	)
+end
+
+UDIS_DIR => fun()
+	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
+end
+
+LDFLAGS := old + ["-L.", "-lz", "-llua", "-lHX", "-ldl", "-g"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
+
+if PLATFORM = "Linux" then
+	LDFLAGS := old + ["-lbfd"]
+	c_program(RLINK, [file("rlink.o")], [file("libudis86.a")])
+elseif PLATFORM = "Darwin" then
+	BINUTILS_VERSION := "2.28"
+	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
+	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
+	file("libbfd.a")[BINUTILS_DIR] => fun()
+		execute("cd", BINUTILS_DIR, "&&",
+			"./configure --build=i386-apple-darwin16.6.0",
+			'--prefix={file("")}',
+			"--without-man-pages"
+		)
+	end
+	BINUTILS_DIR => fun()
+		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
+	end
+	c_program(RLINK, [file("rlink.o")], [file("libudis86.a"), file("libbfd.a")])
+end
+
