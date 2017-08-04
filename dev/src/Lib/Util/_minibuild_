@@ -1,0 +1,13 @@
+CFLAGS := old + ["-std=gnu99"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", file("Tre.rlib")]
+RDOCFLAGS := old + ["-I", file("")]
+
+WRAPL_MODULES[riva_module("Util/TypedFunction", [file("TypedFunction.o")])]
+riva_module("Util/Base64", [file("Base64.o")])
+wrapl_module("Util/Archive")
+wrapl_module("Util/Persist")
+wrapl_module("Util/Pattern")
+
+subdir("Tecla")
+subdir("Editline")
+subdir("Linenoise")

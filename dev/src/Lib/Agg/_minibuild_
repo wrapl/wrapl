@@ -1,0 +1,54 @@
+IGRAPH_VERSION := "0.7.1"
+IGRAPH_DIR := file('igraph-{IGRAPH_VERSION}')
+
+CFLAGS := old + ["-std=gnu99", "-Iinclude"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Agg.rlib"]
+RDOCFLAGS := old + ["-I", BUILDDIR]
+
+IGRAPH_DIR => fun()
+	execute('wget -nv http://igraph.org/nightly/get/c/igraph-{IGRAPH_VERSION}.tar.gz -O- | tar xvzP')
+end
+
+file("libigraph.a")[IGRAPH_DIR] => fun()
+	execute("cd", IGRAPH_DIR, "&&",
+		"./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		'--libdir={BUILDDIR}',
+		'CFLAGS=\"{CFLAGS} -O2\"',
+		'CXXFLAGS=\"{CXXFLAGS} -O2\"',
+		"--without-man-pages"
+	)
+	execute("cd", IGRAPH_DIR, "&&",
+		"make mostlyclean"
+	)
+	execute("cd", IGRAPH_DIR, "&&",
+		"make TARGET_LIBS=\"static\""
+	)
+	execute("cd", IGRAPH_DIR, "&&",
+		"make install"
+	)
+end
+
+file("Graph.o")[file("libigraph.a")]
+
+WRAPL_MODULES[
+	riva_module("Agg/List", [file("List.o"), file("List2.o")]),
+	riva_module("Agg/Table", [file("Table.o"), file("Table2.o")]),
+	riva_module("Agg/IntegerTable", [file("IntegerTable.o")]),
+	riva_module("Agg/StringTable", [file("StringTable.o")]),
+	riva_module("Agg/TypeTable", [file("TypeTable.o")]),
+	riva_module("Agg/ObjectTable", [file("ObjectTable.o")]),
+	riva_module("Agg/Buffer", [file("Buffer.o"), file("Buffer2.o")]),
+	riva_module("Agg/Methods", [file("Methods.o")])
+]
+
+riva_module("Agg/Grid", [file("Grid.o")])
+--riva_module("Agg/Graph", {file("Graph.o"), file("../dso_handle.o")})
+
+scope("threaded", fun()
+	LDFLAGS := old + ["libpthread.rlib"]
+	ASFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
+	CFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
+	riva_module("Agg/ThrList", [file("ThrList.o")])
+	riva_module("Agg/ThrTable", [file("ThrTable.o"), file("ThrTable2.o")])
+end)

@@ -1,0 +1,155 @@
+RLINK := DEV_BIN/"rlink"
+RDOC := DEV_BIN/"rdoc"
+WRAPL_MODULES := meta("WraplModules")
+
+CFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
+CXXFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
+ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
+GOFLAGS := []
+LDFLAGS := []
+
+if PLATFORM = "Linux" then
+	CFLAGS := old + ["-DLINUX"]
+	CXXFLAGS := old + ["-DLINUX"]
+	ASFLAGS := old + [ASFLAGS, "-DLINUX", "-felf"]
+elseif PLATFORM = "Darwin" then
+	CFLAGS := old + ["-DMACOSX"]
+	CXXFLAGS := old + ["-DMACOSX"]
+	ASFLAGS := old["-DMACOSX"]
+end
+
+c_includes := fun(Source)
+	var Files := []
+	var Lines := shell("gcc", CFLAGS, "-I", Source:dir, "-M", "-MG", Source)
+	var Start, File := ""
+	var I := for J := 1 .. Lines:length do
+		if Lines[J, J + 2] = ": " then
+			exit J + 2
+		end
+	end
+	loop while I <= Lines:length
+		var Char := Lines[I]
+		if Char <= " " then
+			if File != "" then
+				Files:put(file(File))
+				File := ""
+			end
+		elseif Char = "\\" then
+			I := old + 1
+			Char := Lines[I]
+			if Char = " " then
+				File := '{old} '
+			end
+		else
+			File := '{old}{Char}'
+		end
+		I := old + 1
+	end
+	return Files
+end
+
+c_compile := fun(Object)
+	var Source := Object % "c"
+	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dir, Source)
+end
+
+cpp_includes := fun(Source)
+	var Files := []
+	var Lines := shell("gcc", CXXFLAGS, "-I", Source:dir, "-M -MG", Source)
+	var Start, File := ""
+	var I := for J := 1 .. Lines:length do
+		if Lines[J, J + 2] = ": " then
+			exit J + 2
+		end
+	end
+	loop while I <= Lines:length
+		var Char := Lines[I]
+		if Char <= " " then
+			if File != "" then
+				Files:put(file(File))
+				File := ""
+			end
+		elseif Char = "\\" then
+			I := old + 1
+			Char := Lines[I]
+			if Char = " " then
+				File := '{old} '
+			end
+		else
+			File := '{old}{Char}'
+		end
+		I := old + 1
+	end
+	return Files
+end
+
+cpp_compile := fun(Object)
+	var Source := Object % "cpp"
+	execute('gcc -c', CXXFLAGS, '-o', Object, '-I', Source:dir, Source)
+end
+
+asm_includes := fun(Source)
+	var Files := []
+	var Lines := shell("nasm", ASFLAGS, "-I", Source:dir, "-M", Source)
+	var Start, File := ""
+	var I := for J := 1 .. Lines:length do
+		if Lines[J, J + 2] = ": " then
+			exit J + 2
+		end
+	end
+	loop while I <= Lines:length
+		var Char := Lines[I]
+		if Char <= " " then
+			if File != "" then
+				Files:put(file(File))
+				File := ""
+			end
+		elseif Char = "\\" then
+			I := old + 1
+			Char := Lines[I]
+			if Char = " " then
+				File := '{old} '
+			end
+		else
+			File := '{old}{Char}'
+		end
+		I := old + 1
+	end
+	return Files
+end
+
+asm_compile := fun(Object)
+	var Source := Object % "asm"
+	execute('nasm', ASFLAGS, '-o', Object, '-I', Source:dir, Source)
+end
+
+SourceTypes := {
+	"c" is [c_includes, c_compile],
+	"cpp" is [cpp_includes, cpp_compile],
+	"asm" is [asm_includes, asm_compile]
+}
+
+c_program := fun(Executable, Objects, Libraries)
+	Objects := Objects or []
+	Libraries := Libraries or []
+	var Sources := []
+	for Object in Objects do
+		for Functions, Extension in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				Sources:put(Source)
+				var Scan := Source:scan("INCLUDES", Functions[1])
+				Object[Source, Scan] => Functions[2]
+				exit
+			end
+		end
+	end
+	Executable[Objects, Libraries] => fun(Executable)
+		execute('gcc', '-o', Executable, Objects, Libraries, LDFLAGS)
+	end
+	DEFAULT[Executable]
+end
+
+subdir("Rlink")
+subdir("Riva")
+subdir("Lib")

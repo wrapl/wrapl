@@ -15,7 +15,7 @@ riva_module("Gir/TypeMap", [file("TypeMap.o")])
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
 
 API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")] => fun()
-	execute(RIVA, "-L", file("Convert.wrapl"):dir(:true)/"", "Convert", file("api.gir_list"), "api.xml")
+	execute(RIVA, "-L", file("Convert.wrapl"):dir(:true), "Convert", file("api.gir_list"), "api.xml")
 end
 
 AUTOGEN_SOURCES := []
@@ -27,7 +27,7 @@ for FileName in shell('ls {file("Main.wrapl"):dir(:true)}') / "\n" do
 end
 
 AUTOGEN[RIVA, AUTOGEN_SOURCES, API_XML] => fun()
-	execute(RIVA, "-L", file("Main.wrapl"):dir(:true)/"", "--", file(""), GEN_INC, GEN_LIB)
+	execute(RIVA, "-L", file("Main.wrapl"):dir(:true), "--", BUILDDIR, GEN_INC, GEN_LIB)
 end
 
 detect_modules := fun(Path)
@@ -35,7 +35,7 @@ detect_modules := fun(Path)
 	var DetectedModules := AUTOGEN:scan(Path, fun()
 		var _ := VERSION
 		var Modules := []
-		for FileName in shell('ls {file("")}') / "\n" do
+		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
 				var Source := file(FileName)
 				var Scan := Source:scan("INCLUDES", c_includes)

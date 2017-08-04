@@ -1,0 +1,18 @@
+LINENOISE_VERSION := "1.0"
+LINENOISE_URL := 'https://github.com/antirez/linenoise/archive/{LINENOISE_VERSION}.tar.gz'
+local LINENOISE_DIR := file("linenoise")
+local LINENOISE_SOURCE := file("linenoise.c")
+local LINENOISE_HEADER := file("linenoise.h")
+
+LINENOISE_SOURCE => fun()
+	mkdir(LINENOISE_DIR)
+	execute("cd", LINENOISE_DIR, "&&",
+		"wget --user-agent=\"Firefox/3.6.12\" -nv", LINENOISE_URL, "-O- | tar xvzP --strip-components=1"
+	)
+	execute("cp", LINENOISE_DIR/"linenoise.c", ".")
+	execute("cp", LINENOISE_DIR/"linenoise.h", ".")
+end
+
+file("linenoise.o")[LINENOISE_SOURCE]
+file("Linenoise.o")[file("linenoise.o")]
+riva_module("Util/Linenoise", [file("Linenoise.o"), file("linenoise.o")])

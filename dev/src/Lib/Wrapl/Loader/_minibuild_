@@ -1,0 +1,63 @@
+JANSSON_VERSION := "2.10"
+JANSSON_URL := 'https://github.com/akheron/jansson/archive/v{JANSSON_VERSION}.tar.gz'
+JANSSON_DIR := file("libjansson")
+JANSSON_LIB := file("libjansson.a")
+
+var libudis86 := file("../../../Rlink/libudis86.a")
+
+JANSSON_LIB => fun()
+	mkdir(JANSSON_DIR)
+	execute("cd", JANSSON_DIR, "&&",
+		"wget -nv", JANSSON_URL, "-O- | tar xvzP --strip-components=1"
+	)
+	execute("cd", JANSSON_DIR, "&&", "autoreconf -fi")
+	execute("cd", JANSSON_DIR, "&&",
+		"./configure --disable-shared --enable-static",
+		'--prefix={file("")}',
+		'--libdir={file("")}',
+		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		"--without-man-pages"
+	)
+	execute("cd", JANSSON_DIR, "&&", "make")
+	execute("cd", JANSSON_DIR, "&&", "make install")
+end
+
+LDFLAGS := old + ["-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", libudis86, JANSSON_LIB]
+CFLAGS := old + ["-x", "c++", "-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", libudis86:dir, "-I", file("include")]
+
+var Files := [
+	file("assembler.o"),
+	file("bitset.o"),
+	file("compiler.o"),
+	file("debugger.o"),
+	file("dso_handle.o"),
+	file("integertable.o"),
+	file("missing.o"),
+	file("parser.o"),
+	file("scanner.o"),
+	file("stringtable.o"),
+	file("system.o"),
+	file("wrapl.o")
+]
+
+file("assembler.o")[libudis86, file("assembler-internal.c")]
+
+file("assembler-internal.c")[file("assembler-internal.dasc")] => fun(Target)
+	execute("lua", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", Target)
+end
+
+--file("scanner.o"){file("keywords.c")}
+
+file("debugger.o")[JANSSON_LIB]
+
+file("keywords.c")[file("keywords.lst")] => fun(Target)
+	execute("gperf", "-S3", "-LC++", "-C", "-t", "-KName", "-Zkeyword", "-Hhash", "-Nlookup", file("keywords.lst"), ">", Target)
+end
+
+file("system.o")[file("build")]
+
+file("build") => fun(Target)
+	execute("svnversion", "-n", "../../../..", ">", Target)
+end
+
+WRAPL_MODULES[riva_module("Wrapl/Loader", Files)]

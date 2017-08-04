@@ -1,0 +1,125 @@
+ASFLAGS := old + ["-I", DEV_INC/"nasm/"]
+CFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
+CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
+LDFLAGS := old + ["-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/i386-linux-gnu/", "-L/usr/lib/"]
+RDOCFLAGS := []
+
+rlink_includes := fun(Source)
+	var Files := []
+	var Lines := shell(RLINK, "-M", LDFLAGS, Source, "-v0")
+	for Line in Lines / "\n" do
+		if Line[1] = "\t" then
+			Files:put(file(Line[2, 0]))
+		end
+	end
+	return Files
+end
+
+riva_module := fun(Name, Objects, Libraries, AutoExport)
+	Libraries := Libraries or []
+	var Module := OUT_LIB/Name % "riva"
+	var Doc := GEN_DOC/Name % "xml"
+	mkdir(Module:dir)
+	mkdir(Doc:dir)
+	var Sources := []
+	for Object in Objects do
+		for Functions, Extension in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				Sources:put(Source)
+				var Scan := Source:scan("INCLUDES", Functions[1])
+				Object[Source, Scan] => Functions[2]
+				exit
+			end
+		end
+	end
+	var Script := (file(Module:basename) % "rlink"):exists or (file(Module:basename) % "rdef"):exists
+	var ScriptIncludes := Script:scan("INCLUDES", rlink_includes)
+	if AutoExport then
+		var ImportFile := GEN_LIB/Name % "rlink"
+		mkdir(ImportFile:dir)
+		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module)
+			execute(RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst", "-X", ImportFile, "-N", Name)
+		end
+		ImportFile{Module}
+	else
+		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module)
+			--print('-L{Objects}\n')
+			print('-L{Script:dir(:true)}\n')
+			print('-L{Module}\n')
+			print('-L{Objects}\n')
+			print('-L{Script:dir(:true)}\n')
+			execute(RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst")
+		end
+	end
+	Doc[RDOC, RIVA, WRAPL_MODULES, Sources] => fun(Doc)
+		execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Sources)
+	end
+	DEFAULT[Module, Doc]
+	return Module
+end
+
+riva_module_auto := fun(Name, Objects, Libraries)
+	return riva_module(Name, Objects, Libraries, :true)
+end
+
+wrapl_module := fun(Name)
+	var Module := OUT_LIB/Name % "wrapl"
+	var Doc := GEN_DOC/Name % "xml"
+	mkdir(Module:dir)
+	var Source := file(Module:basename)
+	Module[Source] => fun(Module)
+		Source:copy(Module)
+	end
+	Doc[RDOC, RIVA, WRAPL_MODULES, Sources] => fun(Doc)
+		execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Source)
+	end
+	DEFAULT[Module, Doc]
+	return Module
+end
+
+riva_program := fun(Executable, Objects, Libraries)
+	for Object in Objects do
+		for Functions, Extension in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				var Scan := Source:scan("INCLUDES", Functions[1])
+				Object[Source, Scan] => Functions[2]
+				exit
+			end
+		end
+	end
+	var Script := (file(Executable:basename) % "rlink"):exists or (file(Executable:basename) % "rdef"):exists
+	var ScriptIncludes := Script and Script:scan("INCLUDES", rlink_includes)
+	Executable[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Executable)
+		execute(RLINK, LDFLAGS, "-o", Executable, Objects, Libraries, Script, "-v0", "-?", Executable % "lst")
+	end
+end
+
+pkg_config := fun(Options)
+	return shell("pkg-config", Options)[1, -1]
+end
+
+subdir("Lib")
+subdir("Std")
+subdir("Sys")
+subdir("IO")
+subdir("Util")
+subdir("Agg")
+subdir("Alg")
+subdir("Wrapl")
+--subdir("Web")
+--subdir("Json")
+subdir("Xml")
+--subdir("Csv")
+--subdir("DB")
+subdir("Math")
+--subdir("Boost")
+subdir("Stat")
+--subdir("Html")
+--subdir("OpenCV")
+
+if PLATFORM = "Linux" then
+	subdir("Gir")
+	--subdir("Snd")
+end
