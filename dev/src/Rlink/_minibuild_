@@ -2,7 +2,7 @@ UDIS_VERSION := "1.7.2"
 UDIS_URL := 'http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-{UDIS_VERSION}.tar.gz'
 UDIS_DIR := file('udis86-{UDIS_VERSION}')
 
-file("libudis86.a")[UDIS_DIR] => fun()
+file("libudis86.a")[UDIS_DIR] => fun() do
 	execute("cd", UDIS_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
@@ -21,7 +21,7 @@ file("libudis86.a")[UDIS_DIR] => fun()
 	)
 end
 
-UDIS_DIR => fun()
+UDIS_DIR => fun() do
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 end
 
@@ -35,14 +35,14 @@ elseif PLATFORM = "Darwin" then
 	BINUTILS_VERSION := "2.28"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
 	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
-	file("libbfd.a")[BINUTILS_DIR] => fun()
+	file("libbfd.a")[BINUTILS_DIR] => fun() do
 		execute("cd", BINUTILS_DIR, "&&",
 			"./configure --build=i386-apple-darwin16.6.0",
 			'--prefix={file("")}',
 			"--without-man-pages"
 		)
 	end
-	BINUTILS_DIR => fun()
+	BINUTILS_DIR => fun() do
 		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
 	end
 	c_program(RLINK, [file("rlink.o")], [file("libudis86.a"), file("libbfd.a")])

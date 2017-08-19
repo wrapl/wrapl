@@ -4,7 +4,7 @@ var API_XML := file("api.xml")
 
 riva_program(MAPGEN, [file("Mapgen.o")])
 
-file("TypeMap.c")[RIVA, AUTOGEN, MAPGEN] => fun()
+file("TypeMap.c")[RIVA, AUTOGEN, MAPGEN] => fun() do
 	execute(RIVA, "-L. Mapgen")
 end
 
@@ -14,7 +14,7 @@ riva_module("Gir/TypeMap", [file("TypeMap.o")])
 
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
 
-API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")] => fun()
+API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")] => fun() do
 	execute(RIVA, "-L", file("Convert.wrapl"):dir(:true), "Convert", file("api.gir_list"), "api.xml")
 end
 
@@ -26,13 +26,13 @@ for FileName in shell('ls {file("Main.wrapl"):dir(:true)}') / "\n" do
 	end
 end
 
-AUTOGEN[RIVA, AUTOGEN_SOURCES, API_XML] => fun()
+AUTOGEN[RIVA, AUTOGEN_SOURCES, API_XML] => fun() do
 	execute(RIVA, "-L", file("Main.wrapl"):dir(:true), "--", BUILDDIR, GEN_INC, GEN_LIB)
 end
 
-detect_modules := fun(Path)
+detect_modules := fun(Path) do
 	mkdir(OUT_LIB/Path)
-	var DetectedModules := AUTOGEN:scan(Path, fun()
+	var DetectedModules := AUTOGEN:scan(Path, fun() do
 		var _ := VERSION
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
@@ -45,10 +45,10 @@ detect_modules := fun(Path)
 				var Name := '{Path}/{FileName[1, -2]}'
 				var Module := OUT_LIB/Name % "riva"
 				var Doc := GEN_DOC/Name % "xml"
-				Module[RLINK, Script, Object] => fun(Module)
+				Module[RLINK, Script, Object] => fun(Module) do
 					execute(RLINK, LDFLAGS, "-o", Module, Object, Script, "-v0", "-?", Script % "lst")
 				end
-				Doc[RDOC, RIVA, Source] => fun(Doc)
+				Doc[RDOC, RIVA, Source] => fun(Doc) do
 					execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, Name, Source)
 				end
 				Modules:put(Module)

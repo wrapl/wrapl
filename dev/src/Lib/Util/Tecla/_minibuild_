@@ -1,11 +1,11 @@
 TECLA_VERSION := "1.6.1"
 local TECLA_DIR := file("libtecla")
 
-file("libtecla.a")[TECLA_DIR] => fun()
+file("libtecla.a")[TECLA_DIR] => fun() do
 	execute("cd", TECLA_DIR, "&&",
 		"./configure --disable-shared --enable-static",
-		"--prefix=" .. file(""),
-		"--libdir=" .. file(""),
+		'--prefix={BUILDDIR}',
+		'--libdir={BUILDDIR}',
 		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
 		"--without-man-pages"
 	)
@@ -20,7 +20,7 @@ file("libtecla.a")[TECLA_DIR] => fun()
 	)
 end
 
-TECLA_DIR => fun()
+TECLA_DIR => fun() do
 	execute('wget -nv http://www.astro.caltech.edu/~mcs/tecla/libtecla-{TECLA_VERSION}.tar.gz -O- | tar xvzP')
 	execute("cd", TECLA_DIR, "&&",
 		"sed -e s/-fpic//g configure > configure.new &&",
@@ -29,7 +29,7 @@ TECLA_DIR => fun()
 	)
 end
 
-scope("tecla", fun()
+scope("tecla", fun() do
 	CFLAGS := old + ["-I", file("include")]
 	LDFLAGS := old + ["Riva/Memory.rlib"]
 	file("Tecla.o")[file("libtecla.a")]

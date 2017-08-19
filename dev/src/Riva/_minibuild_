@@ -24,7 +24,7 @@ end
 CFLAGS := old + ["-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}']
 LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lconfuse", "-lz", "-Wl,-E"]
 
-GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun()
+GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun() do
 	execute("cd", GC_DIR, "&&",
 		"./configure", CFG_OPTS, 'CFLAGS=\"{CFLAGS}\"'
 	)
@@ -32,11 +32,11 @@ GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun()
 	execute("cd", GC_DIR, "&&", "make install")
 end
 
-GC_DIR => fun()
+GC_DIR => fun() do
 	execute('wget -nv http://hboehm.info/gc/gc_source/gc-{GC_VERSION}.tar.gz -O- | tar xvzP')
 end
 
-ATOMIC_OPS_DIR[GC_DIR] => fun()
+ATOMIC_OPS_DIR[GC_DIR] => fun() do
 	execute("mkdir", "-p", ATOMIC_OPS_DIR)
 	execute("cd", ATOMIC_OPS_DIR, "&&",
 		'wget -nv http://hboehm.info/gc/gc_source/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
@@ -71,7 +71,7 @@ end
 
 RIVA_CONF := OUT_BIN/"riva.conf"
 
-RIVA_CONF => fun(FileName)
+RIVA_CONF => fun(FileName) do
 	var File := open(FileName:string, "w")
 	File:write(
 'library = \{

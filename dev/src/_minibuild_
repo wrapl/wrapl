@@ -18,7 +18,7 @@ elseif PLATFORM = "Darwin" then
 	ASFLAGS := old["-DMACOSX"]
 end
 
-c_includes := fun(Source)
+c_includes := fun(Source) do
 	var Files := []
 	var Lines := shell("gcc", CFLAGS, "-I", Source:dir, "-M", "-MG", Source)
 	var Start, File := ""
@@ -48,12 +48,12 @@ c_includes := fun(Source)
 	return Files
 end
 
-c_compile := fun(Object)
+c_compile := fun(Object) do
 	var Source := Object % "c"
 	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dir, Source)
 end
 
-cpp_includes := fun(Source)
+cpp_includes := fun(Source) do
 	var Files := []
 	var Lines := shell("gcc", CXXFLAGS, "-I", Source:dir, "-M -MG", Source)
 	var Start, File := ""
@@ -83,12 +83,12 @@ cpp_includes := fun(Source)
 	return Files
 end
 
-cpp_compile := fun(Object)
+cpp_compile := fun(Object) do
 	var Source := Object % "cpp"
 	execute('gcc -c', CXXFLAGS, '-o', Object, '-I', Source:dir, Source)
 end
 
-asm_includes := fun(Source)
+asm_includes := fun(Source) do
 	var Files := []
 	var Lines := shell("nasm", ASFLAGS, "-I", Source:dir, "-M", Source)
 	var Start, File := ""
@@ -118,7 +118,7 @@ asm_includes := fun(Source)
 	return Files
 end
 
-asm_compile := fun(Object)
+asm_compile := fun(Object) do
 	var Source := Object % "asm"
 	execute('nasm', ASFLAGS, '-o', Object, '-I', Source:dir, Source)
 end
@@ -129,7 +129,7 @@ SourceTypes := {
 	"asm" is [asm_includes, asm_compile]
 }
 
-c_program := fun(Executable, Objects, Libraries)
+c_program := fun(Executable, Objects, Libraries) do
 	Objects := Objects or []
 	Libraries := Libraries or []
 	var Sources := []
@@ -144,7 +144,7 @@ c_program := fun(Executable, Objects, Libraries)
 			end
 		end
 	end
-	Executable[Objects, Libraries] => fun(Executable)
+	Executable[Objects, Libraries] => fun(Executable) do
 		execute('gcc', '-o', Executable, Objects, Libraries, LDFLAGS)
 	end
 	DEFAULT[Executable]

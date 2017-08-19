@@ -1,7 +1,7 @@
 GMP_VERSION := "6.0.0"
 GMP_DIR := file('gmp-{GMP_VERSION}')
 
-file("libgmp.a")[GMP_DIR] => fun()
+file("libgmp.a")[GMP_DIR] => fun() do
 	execute("cd", GMP_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
@@ -21,18 +21,18 @@ file("libgmp.a")[GMP_DIR] => fun()
 	)
 end
 
-GMP_DIR => fun()
+GMP_DIR => fun() do
 	execute('wget -nv https://gmplib.org/download/gmp/gmp-{GMP_VERSION}.tar.bz2 -O- | tar xvjP')
 end
 
 file("Gmp.o")[file("libgmp.a")]
 
-scope("gmp", fun()
+scope("gmp", fun() do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", "-xlibgmp.a", "-XGmp.exports"]
 	WRAPL_MODULES[riva_module("Gmp", [file("Gmp.o")])]
 end)
 
-scope("libc", fun()
+scope("libc", fun() do
 	GCC_HOST := shell("gcc -dumpmachine")[1, -1]
 	GCC_VERSION := shell("gcc -dumpversion")[1, -1]
 	LDFLAGS := old + ['-L/usr/lib/gcc/{GCC_HOST}/{GCC_VERSION}/', "-Z -d",

@@ -503,9 +503,9 @@ INITIAL() {
 	Riva$Module$add_loader("Wrapl", 90, wrapl_find, wrapl_load);
 	detect_cpu_features();
 	const char *SocketPath;
-	if (SocketPath = Riva$Config$get("Wrapl/Debug/Server")) {
+	if ((SocketPath = Riva$Config$get("Wrapl/Debug/Server"))) {
 		debug_enable(SocketPath, false);
-	} else if (SocketPath = Riva$Config$get("Wrapl/Debug/Client")) {
+	} else if ((SocketPath = Riva$Config$get("Wrapl/Debug/Client"))) {
 		debug_enable(SocketPath, true);
 	}
 }

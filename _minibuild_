@@ -19,8 +19,15 @@ end
 
 print(PLATFORM, " ", OS)
 
-OUT_BIN := file("bin")
-OUT_LIB := file("lib")
+if CROSS_BUILD then
+	BUILD_DIR := file(CROSS_BUILD)
+	OUT_BIN := BUILD_DIR/"bin"
+	OUT_LIB := BUILD_DIR/"lib"
+else
+	OUT_BIN := file("bin")
+	OUT_LIB := file("lib")
+end
+
 OUT_DOC := file("doc")
 OUT_WEB := file("web")
 

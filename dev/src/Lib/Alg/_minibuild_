@@ -5,11 +5,11 @@ CFLAGS := old + ["-std=gnu99", "-Iinclude"]
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib"]
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
-UUID_DIR => fun()
+UUID_DIR => fun() do
 	execute('wget -nv http://sourceforge.net/projects/libuuid/files/libuuid-{UUID_VERSION}.tar.gz/download -O- | tar xvzP')
 end
 
-file("libuuid.a")[UUID_DIR] => fun()
+file("libuuid.a")[UUID_DIR] => fun() do
 	execute("cd", UUID_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',

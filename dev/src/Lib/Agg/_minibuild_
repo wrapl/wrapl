@@ -5,11 +5,11 @@ CFLAGS := old + ["-std=gnu99", "-Iinclude"]
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Agg.rlib"]
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
-IGRAPH_DIR => fun()
+IGRAPH_DIR => fun() do
 	execute('wget -nv http://igraph.org/nightly/get/c/igraph-{IGRAPH_VERSION}.tar.gz -O- | tar xvzP')
 end
 
-file("libigraph.a")[IGRAPH_DIR] => fun()
+file("libigraph.a")[IGRAPH_DIR] => fun() do
 	execute("cd", IGRAPH_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
@@ -45,7 +45,7 @@ WRAPL_MODULES[
 riva_module("Agg/Grid", [file("Grid.o")])
 --riva_module("Agg/Graph", {file("Graph.o"), file("../dso_handle.o")})
 
-scope("threaded", fun()
+scope("threaded", fun() do
 	LDFLAGS := old + ["libpthread.rlib"]
 	ASFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
 	CFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
