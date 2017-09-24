@@ -111,7 +111,7 @@ subdir("Csv")
 subdir("Math")
 --subdir("Boost")
 subdir("Stat")
---subdir("Html")
+subdir("Html")
 --subdir("OpenCV")
 
 if PLATFORM = "Linux" then
