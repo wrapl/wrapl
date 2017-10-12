@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Raja Mukherji
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="wrapl" _name="Wrapl" version="2.0" _section="Sources">
+  <metadata>
+    <property name="mimetypes">text/x-wrapl</property>
+    <property name="globs">*.wrapl</property>
+    <property name="line-comment-start">--</property>
+    <property name="block-comment-start">-=</property>
+    <property name="block-comment-end">=-</property>
+  </metadata>
+  <styles>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+    <style id="error" _name="Error" map-to="def:error"/>
+    <style id="symbol" _name="Symbol" map-to="def:builtin"/>
+    <style id="escape" _name="Escaped Character" map-to="def:special-char"/>
+    <style id="string" _name="String" map-to="def:string"/>
+    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+    <style id="operator" _name="Operator" map-to="def:operator"/>
+    <style id="floating-point" _name="Floating point number" map-to="def:floating-point"/>
+    <style id="decimal" _name="Decimal number" map-to="def:decimal"/>
+    <style id="based" _name="Based number" map-to="def:base-n-integer"/>
+  </styles>
+  <definitions>
+<!--
+    <context id="bash-line-comment" style-ref="comment" end-at-line-end="true" extend-parent="false">
+      <start>#</start>
+      <include>
+        <context ref="def:in-line-comment"/>
+      </include>
+    </context>
+-->
+    <context id="comment">
+      <include>
+        <context end-at-line-end="true" style-ref="comment">
+          <start>--</start>
+        </context>
+        <context style-ref="comment">
+          <start>-=</start>
+          <end>=-</end>
+        </context>
+      </include>
+    </context>
+    <context id="escape" style-ref="escape">
+      <match>\\((\\|"|'|n|t|\$|r|\{)|[0-7]{1,3}|x[0-9a-fA-F]{1,2})</match>
+    </context>
+    <context id="symbol">
+      <include>
+        <context style-ref="symbol">
+          <match>\:[a-zA-Z_][a-zA-Z0-9_]*</match>
+        </context>
+        <context style-ref="symbol">
+          <start>:"</start>
+          <end>"</end>
+          <include>
+            <context ref="escape"/>
+          </include>
+        </context>
+      </include>
+    </context>
+    <context id="complex-string" style-ref="string">
+      <start>'</start>
+      <end>'</end>
+      <include>
+        <context ref="escape"/>
+        <context id="string-expr" style-ref="def:type">
+          <start>{</start>
+          <end>}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="operator"/>
+            <context sub-pattern="0" where="end" style-ref="operator"/>
+            <context ref="wrapl"/>
+          </include>
+        </context>
+      </include>
+    </context>
+    <context id="simple-string" style-ref="string" end-at-line-end="true">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="escape"/>
+      </include>
+    </context>
+    <context id="block-string" style-ref="string" extend-parent="true">
+      <start>(&gt;&gt;)(.*)$</start>
+      <end>^\s*(\%{2@start})</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="operator"/>
+        <context sub-pattern="0" where="end" style-ref="operator"/>
+      </include>
+    </context>
+    <context id="keywords" style-ref="keyword">
+      <keyword>VAR</keyword>
+      <keyword>DEF</keyword>
+      <keyword>REP</keyword>
+      <keyword>EXIT</keyword>
+      <keyword>STEP</keyword>
+      <keyword>YIELD</keyword>
+      <keyword>WHILE</keyword>
+      <keyword>UNTIL</keyword>
+      <keyword>ALL</keyword>
+      <keyword>EVERY</keyword>
+      <keyword>DO</keyword>
+      <keyword>IS</keyword>
+      <keyword>RET</keyword>
+      <keyword>SUSP</keyword>
+      <keyword>NIL</keyword>
+      <keyword>BACK</keyword>
+      <keyword>FAIL</keyword>
+      <keyword>IMP</keyword>
+      <keyword>USE</keyword>
+      <keyword>AS</keyword>
+      <keyword>IN</keyword>
+      <keyword>OF</keyword>
+      <keyword>MOD</keyword>
+      <keyword>TO</keyword>
+      <keyword>METH</keyword>
+      <keyword>RECV</keyword>
+      <keyword>SEND</keyword>
+      <keyword>NOT</keyword>
+      <keyword>WHEN</keyword>
+      <keyword>END</keyword>
+      <keyword>SKIP</keyword>
+      <keyword>WITH</keyword>
+      <keyword>MIN</keyword>
+      <keyword>MAX</keyword>
+      <keyword>PAR</keyword>
+      <keyword>SEQ</keyword>
+      <keyword>INT</keyword>
+      <keyword>SUM</keyword>
+      <keyword>PROD</keyword>
+      <keyword>COUNT</keyword>
+      <keyword>MUST</keyword>
+      <keyword>UNIQ</keyword>
+    </context>
+    <context id="keywords2" style-ref="keyword">
+      <match>[∑∏∅]</match>
+    </context>
+    <context id="operators" style-ref="operator" extend-parent="false">
+      <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{},⩽⩾≠≡←⇒⇏∈∉∥≢≤≥↷…→]</match>
+    </context>
+    <context id="block">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="operator"/>
+        <context sub-pattern="0" where="end" style-ref="operator"/>
+        <context ref="wrapl"/>
+      </include>
+    </context>
+    <context id="float" style-ref="floating-point">
+      <match extended="true">
+        (?&lt;![\w\.])
+        ([0-9]+[Ee][+-]?[0-9]+ |
+         ([0-9]*\.[0-9]+ | [0-9]+\.[0-9]*)([Ee][+-]?[0-9]+)?)
+        (?![\w\.])
+      </match>
+    </context>
+    <context id="decimal-number" style-ref="decimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]?([1-9][0-9]*|0)
+        (?![\w\.])
+      </match>
+    </context>
+    <context id="based-number" style-ref="based">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]?[0-9]+_[0-9a-zA-Z]+
+        (?![\w\.])
+      </match>
+    </context>
+    <context id="wrapl">
+      <include>
+<!--        
+	<context ref="bash-line-comment"/>
+-->
+        <context ref="block"/>
+        <context ref="comment"/>
+        <context ref="simple-string"/>
+        <context ref="complex-string"/>
+        <context ref="block-string"/>
+        <context ref="symbol"/>
+        <context ref="keywords"/>
+        <context ref="keywords2"/>
+        <context ref="operators"/>
+        <context ref="float"/>
+        <context ref="decimal-number"/>
+        <context ref="based-number"/>
+      </include>
+    </context>
+  </definitions>
+</language>

@@ -1,0 +1,7 @@
+module("OpenCV", "Mat")
+if WINDOWS then
+	prefix("_OpenCV$Mat$")
+else
+	prefix("OpenCV$Mat$")
+end
+import("T")

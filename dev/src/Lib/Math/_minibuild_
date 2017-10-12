@@ -1,0 +1,13 @@
+CFLAGS := old + ["-std=gnu99"]
+LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Gmp.rlib"]
+RDOCFLAGS := old + ["-I", BUILDDIR]
+
+riva_module("Math/Matrix", [file("Matrix.o")])
+riva_module("Math/Methods", [file("Methods.o")])
+riva_module("Math/Constant", [file("Constant.o")])
+riva_module("Math/Polynomial", [file("Polynomial.o")])
+riva_module("Math/Vector", [file("Vector.o")])
+riva_module("Math/Complex", [file("Complex.o")])
+riva_module("Math/Random", [file("Random.o")])
+--riva_module("Math/Special", [file("Special.o")])
+--riva_module("Math/Graphviz", [file("Graphviz.o")])

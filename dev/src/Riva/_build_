@@ -1,15 +1,15 @@
 GC_VERSION = "7.6.0"
+GC_DIR = file("gc-" .. GC_VERSION)
+GC_LIB = file("libgc.a")
+
 ATOMIC_OPS_VERSION = "7.4.4"
-local GC_DIR = file("gc-" .. GC_VERSION)
-local ATOMIC_OPS_DIR = GC_DIR/"libatomic_ops"
+ATOMIC_OPS_DIR = GC_DIR/"libatomic_ops"
 
 CFG_OPTS = {
 	"--enable-munmap=4",
 	"--enable-large-config",
-	"--enable-redirect-malloc",
 	"--enable-shared=false",
 	"--enable-static=true",
-	"--enable-threads=posix",
 	"--enable-parallel-mark",
 	"--disable-gcj-support",
 	"--prefix=/tmp",
@@ -17,19 +17,19 @@ CFG_OPTS = {
 	"--libdir=" .. file("")
 }
 
-CFLAGS = extend(CFLAGS, "-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2")
+if PLATFORM == "Linux" then
+	CFG_OPTS = extend(CFG_OPTS, "--enable-redirect-malloc")
+end
+
+CFLAGS = extend(CFLAGS, "-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", "-I" .. file(""))
 LDFLAGS = extend(LDFLAGS, "-m32", "-pthread", "-ldl", "-lconfuse", "-lz", "-Wl,-E")
 
-file("libgc.a"){GC_DIR, ATOMIC_OPS_DIR}:build(function()
+GC_LIB{GC_DIR, ATOMIC_OPS_DIR}:build(function()
 	execute{"cd", GC_DIR, "&&",
 		"./configure", CFG_OPTS, "CFLAGS=\"" .. stringify(CFLAGS) .. "\""
 	}
-	execute{"cd", GC_DIR, "&&",
-		"make"
-	}
-	execute{"cd", GC_DIR, "&&",
-		"make install"
-	}
+	execute{"cd", GC_DIR, "&&", "make"}
+	execute{"cd", GC_DIR, "&&", "make install"}
 end)
 
 GC_DIR:build(function()
@@ -65,6 +65,10 @@ RIVA_FILES = {
 	file("util.o")
 }
 
+for _, File in ipairs(RIVA_FILES) do
+	File{GC_LIB}
+end
+
 RIVA_CONF = OUT_BIN/"riva.conf"
 
 RIVA_CONF:build(function(FileName)
@@ -93,4 +97,4 @@ end)
 
 WRAPL_MODULES{RIVA_CONF}
 
-c_program(RIVA, RIVA_FILES, {file("libgc.a")})
+c_program(RIVA, RIVA_FILES, {GC_LIB})

@@ -39,8 +39,11 @@ target_t *target_symb_new(const char *Name);
 int target_tostring(lua_State *L);
 void target_depends_add(target_t *Target, target_t *Depend);
 void target_update(target_t *Target);
+void target_query(target_t *Target);
 void target_depends_auto(target_t *Depend);
 target_t *target_find(const char *Id);
+target_t *target_get(const char *Id);
 void target_push(target_t *Target);
+void target_list();
 
 #endif

@@ -69,33 +69,33 @@ GLOBAL_FUNCTION(Open, 1) {
 		Result->Val = IO$Stream$Message$from_errno(ForkMessageT);
 		return MESSAGE;
 	};
+	int NoOfArgs;
+	if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
+		NoOfArgs = ((Agg$List_t *)Args[1].Val)->Length + 1;
+	} else {
+		NoOfArgs = Count + 1;
+	};
+	const char *Prog = Std$String$flatten(Args[0].Val);
+	const char *Argv[NoOfArgs];
+	if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
+		Agg$List_t *List = Args[1].Val;
+		char **Arg = Argv;
+		for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) *(Arg++) = Std$String$flatten(Node->Value);
+		*Arg = 0;
+	} else {
+		char **Arg = Argv;
+		*(Arg++) = Prog;
+		for (int I = 1; I < Count; ++I) {
+			CHECK_EXACT_ARG_TYPE(I, Std$String$T);
+			*(Arg++) = Std$String$flatten(Args[I].Val);
+		};
+		*Arg = 0;
+	};
 	if (Pid == 0) {
 		close(Pair[1]);
 		dup2(Pair[0], STDIN_FILENO);
 		dup2(Pair[0], STDOUT_FILENO);
 		dup2(Pair[0], STDERR_FILENO);
-		int NoOfArgs;
-		if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
-			NoOfArgs = ((Agg$List_t *)Args[1].Val)->Length + 1;
-		} else {
-			NoOfArgs = Count + 1;
-		};
-		const char *Prog = Std$String$flatten(Args[0].Val);
-		const char *Argv[NoOfArgs];
-		if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
-			Agg$List_t *List = Args[1].Val;
-			char **Arg = Argv;
-			for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) *(Arg++) = Std$String$flatten(Node->Value);
-			*Arg = 0;
-		} else {
-			char **Arg = Argv;
-			*(Arg++) = Prog;
-			for (int I = 1; I < Count; ++I) {
-				CHECK_EXACT_ARG_TYPE(I, Std$String$T);
-				*(Arg++) = Std$String$flatten(Args[I].Val);
-			};
-			*Arg = 0;
-		};
 		if (execvp(Prog, Argv) == -1) {
 			write(Pair[0], "command not found", 17);
 			close(Pair[0]);

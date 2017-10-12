@@ -1,0 +1,22 @@
+YAJL_VERSION := "2.1.0"
+YAJL_DIR := file('libyajl-{YAJL_VERSION}')
+YAJL_URL := 'http://github.com/lloyd/yajl/tarball/{YAJL_VERSION}'
+
+YAJL_DIR => fun() do
+	execute("mkdir", "-p", YAJL_DIR)
+	execute("cd", YAJL_DIR, "&&", 'wget -nv {YAJL_URL} -O- | tar xvzP --strip-components=1')
+end
+
+file("lib/libyajl_s.a")[YAJL_DIR] => fun() do
+	execute("cd", YAJL_DIR, "&&",
+		"./configure", "-p", file("")
+	)
+	execute("cd", YAJL_DIR, "&&", "make TARGET_LIBS=\"static\"")
+	execute("cd", YAJL_DIR, "&&", "make install")
+end
+
+CFLAGS := old + ["-I", file("include")]
+
+file("Parser.o")[file("lib/libyajl_s.a")]
+riva_module("Json/Parser", [file("Parser.o")])
+wrapl_module("Json")

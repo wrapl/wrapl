@@ -1,0 +1,23 @@
+DEV_BIN := file("bin")
+DEV_INC := file("inc")
+DEV_LIB := file("lib")
+
+GEN_DIR := file("gen")
+
+GEN_INC := GEN_DIR/"inc"
+GEN_LIB := GEN_DIR/"lib"
+GEN_DOC := GEN_DIR/"doc"
+
+mkdir(GEN_INC)
+mkdir(GEN_INC/"gcc")
+mkdir(GEN_LIB)
+mkdir(GEN_DOC)
+
+RIVA := OUT_BIN/"riva"
+
+vmount("obj", "src")
+if Web then
+	subdir("web")
+else
+	subdir("obj")
+end

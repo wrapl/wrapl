@@ -1,0 +1,38 @@
+-- ROOT --
+
+if not PLATFORM then
+	PLATFORM := shell("uname")[1, -1]
+end
+
+if not OS then
+	if PLATFORM = "Linux" then
+		var File := open("/etc/os-release", "r"), Line
+		loop while Line := File:read
+			if Line[1, 4] = "ID=" then
+				OS := Line[4, 0]
+				exit
+			end
+		end
+		File:close
+	end
+end
+
+print(PLATFORM, " ", OS)
+
+if CROSS_BUILD then
+	BUILD_DIR := file(CROSS_BUILD)
+	OUT_BIN := BUILD_DIR/"bin"
+	OUT_LIB := BUILD_DIR/"lib"
+else
+	OUT_BIN := file("bin")
+	OUT_LIB := file("lib")
+end
+
+OUT_DOC := file("doc")
+OUT_WEB := file("web")
+
+mkdir(OUT_BIN)
+mkdir(OUT_LIB)
+mkdir(OUT_DOC)
+
+subdir("dev")

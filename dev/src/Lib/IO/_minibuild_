@@ -1,0 +1,32 @@
+CFLAGS := old + ["-std=gnu99"]
+LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
+RDOCFLAGS := old + ["-I", BUILDDIR]
+
+WRAPL_MODULES[
+	riva_module("IO/Stream", [file("Stream.o")]),
+	riva_module("IO/Posix", [file("Posix.o")])
+]
+
+scope("with_posix", fun() do
+	LDFLAGS := old + ["IO/Posix.rlib"]
+	WRAPL_MODULES[
+		riva_module("IO/File", [file("File.o")]),
+		riva_module("IO/Terminal", [file("Terminal.o")]),
+		riva_module("IO/Socket", [file("Socket.o")]),
+		riva_module("IO/Process", [file("Process.o")]),
+		riva_module("IO/Buffer", [file("Buffer.o")]),
+		riva_module("IO/Buffered", [file("Buffered.o")]),
+		riva_module("IO/Special", [file("Special.o")]),
+		riva_module("IO/Escaped", [file("Escaped.o")]),
+		riva_module("IO/Decoder", [file("Decoder.o")]),
+		riva_module("IO/Encoder", [file("Encoder.o")]),
+		riva_module("IO/Poll", [file("Poll.o")]),
+		riva_module("IO/Base64", [file("Base64.o")])
+	]
+	riva_module("IO/StringReader", [file("StringReader.o")])
+	riva_module("IO/Threaded", [file("Threaded.o")])
+	riva_module("IO/Zlib", [file("Zlib.o")])
+	riva_module("IO/Encrypt", [file("Encrypt.o")])
+	riva_module("IO/Deserializer", [file("Deserializer.o")])
+	riva_module("IO/Serializer", [file("Serializer.o")])
+end)
