@@ -1932,6 +1932,7 @@ static void add_file(const char *FileName, int AutoExport) {
 			return;
 		};
 	};
+	if (DependencyMode) return;
 	printf("%s: file not found.\n", FileName);
 	exit(1);
 };
