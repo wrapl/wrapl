@@ -16,7 +16,7 @@ mkdir(GEN_DOC)
 RIVA := OUT_BIN/"riva"
 
 vmount("obj", "src")
-if Web then
+if WEB then
 	subdir("web")
 else
 	subdir("obj")

@@ -1,5 +1,0 @@
-CFLAGS = extend(CFLAGS, pkg_config("--cflags gio-2.0 gio-unix-2.0"), "-include gio/gio.h -include gio/gunixconnection.h -include gio/gunixinputstream.h -include gio/gdesktopappinfo.h -include gio/gunixsocketaddress.h -include gio/gunixmounts.h -include gio/gunixoutputstream.h -include gio/gunixfdmessage.h -DGActionIface=GActionInterface -DGProxyIface=GProxyInterface -DGProxyResolverIface=GProxyResolverInterface -DGActionGroupGActionGroupIface=GActionGroupInterface -DGTlsBackendIface=GTlsBackendInterface -DGPollableInputStreamIface=GPollableInputStreamInterface -DGTlsServerConnectionIface=GTlsServerConnectionInterface -DGPollableOutputStreamIface=GPollableOutputStreamInterface -DGTlsFileDatabaseIface=GTlsFileDatabaseInterface -DGActionMapIface=GActionMapInterface -DGActionGroupIface=GActionGroupInterface -DGRemoteActionGroupIface=GRemoteActionGroupInterface -DGNetworkMonitorIface=GNetworkMonitorInterface -DGTlsClientConnectionIface=GTlsClientConnectionInterface -DGTlsClientConnectionIface=GTlsClientConnectionInterface")
-
-LDFLAGS = extend(LDFLAGS, pkg_config("--libs-only-l gio-2.0"))
-
-detect_modules("Gir/Gio")

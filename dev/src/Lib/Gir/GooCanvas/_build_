@@ -1,6 +1,0 @@
-CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags goocanvas-2.0"),
-	"-include goocanvas.h"
-)
-LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l goocanvas-2.0"))
-
-detect_modules("Gir/GooCanvas")

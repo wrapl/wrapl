@@ -1,2 +1,0 @@
-riva_module("OpenCV/Type", {file("Type.o")})
-riva_module("OpenCV/Mat", {file("Mat.o")})

@@ -16,7 +16,9 @@ dev/gen
 /.anjuta/*
 **/*.bz2
 **/*.o
-**/Gtk/*
+dev/inc/gcc/Gtk/*
+dev/src/Lib/Gtk/*
+dev/lib/Gtk/*
 dev/pkg/debian/*
 dev/src/Lib/Csv/Csv
 dev/inc/gcc/Event
@@ -28,7 +30,6 @@ dev/src/Lib/Event
 dev/_build_.db
 dev/.omakedb
 dev/.omakedb.lock
-dev/web/
 callgrind.out.*
 _build_.db*
 
@@ -40,3 +41,4 @@ dev/src/Lib/WraplC
 dev/src/Wredit
 dev/src/Plugin
 tst
+/Debug/
