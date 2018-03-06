@@ -27,7 +27,7 @@ static void *dynamic_find(const char *Base) {
 };
 
 static int dynamic_load(module_provider_t *Provider, void *Dynamic) {
-	module_set_import_func(Provider, Dynamic, (module_import_func)module_import);
+	module_importer_set(Provider, Dynamic, (module_import_func)module_import);
 	return 1;
 };
 

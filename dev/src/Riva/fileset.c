@@ -56,7 +56,7 @@ static int fileset_load(module_provider_t *Provider, const char *FileName) {
 	fileset_t *FileSet = fileset_load_next(FileName, List, 0);
 	fclose(List);
 	if (FileSet == 0) return 0;
-	module_set_import_func(Provider, FileSet, (module_import_func)fileset_import);
+	module_importer_set(Provider, FileSet, (module_import_func)fileset_import);
 	return 1;
 }; 
 

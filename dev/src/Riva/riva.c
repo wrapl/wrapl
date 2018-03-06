@@ -397,7 +397,7 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 
 	Riva->FileName = FileName;
 
-	module_set_import_func(Provider, Riva, (module_import_func)riva_import);
+	module_importer_set(Provider, Riva, (module_import_func)riva_import);
 
 	int Fd = open(FileName, O_RDONLY);
 	if (Fd < 0) return 0;
@@ -541,7 +541,7 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			asprintf(&SubFileName, "%s/%d", FileName, I) == 0;
 			SubRiva->FileName = SubFileName;
 			module_t *Module = module_new(SubRiva->FileName);
-			module_set_import_func(Module->Providers, SubRiva, (module_import_func)riva_import);
+			module_importer_set(Module->Providers, SubRiva, (module_import_func)riva_import);
 			Section->Data = (uint8_t *)Module;
 			Section->NoOfFixups = 0;
 			uint32_t NoOfExports; gzread(File, &NoOfExports, 4);
