@@ -173,7 +173,7 @@ cfunction _call
 	;jl .state
 	;xor ebx, ebx
 ;.state:
-;	faster version of above, assuming eax = -1,0,1 or 2 and valid states have address % 4 = 0
+;	faster version of above, assuming eax = -1, 0, 1 or 2 and valid states have address % 4 = 0
 	and ebx, eax
 	and bl, 0xFC
 	mov [Std$Function_result(edi).State], ebx

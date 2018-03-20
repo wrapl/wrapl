@@ -32,7 +32,7 @@ static int directory_load(module_provider_t *Provider, const char *FileName) {
 	struct stat Stat[1];
 	stat(FileName, Stat);
 	if (S_ISDIR(Stat->st_mode)) {
-		module_set_import_func(Provider, path_fixup(FileName), (module_import_func)directory_import);
+		module_importer_set(Provider, path_fixup(FileName), (module_import_func)directory_import);
 		return 1;
 	} else {
 		return 0;

@@ -1,7 +1,0 @@
-CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags gtk+-3.0"),
-	"-include pango/pango.h -include pango/pangocairo.h -include pango/pangofc-fontmap.h -include pango/pangoft2.h -include pango/pangocairo.h -include gdk/gdk.h",
-	"-include pango/pango-fontset.h -DPANGO_ENABLE_BACKEND -include pango/pango-modules.h -include pango/pango-engine.h -DPANGO_ENABLE_ENGINE"
-)
-LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l pangoft2 pangocairo"))
-
-detect_modules("Gir/PangoCairo")

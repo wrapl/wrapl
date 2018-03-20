@@ -1,7 +1,0 @@
-CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags --cflags cairo glib-2.0"),
-	"-include cairo.h -include cairo-svg.h -include cairo-ps.h -include cairo-script-interpreter.h -include cairo-pdf.h",
-	"-include cairo-ft.h -include cairo-script.h"
-)
-LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l --cflags cairo glib-2.0"))
-
-detect_modules("Gir/Cairo")

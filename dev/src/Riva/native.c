@@ -106,7 +106,7 @@ void native_init(void) {
 	module_add_alias(Module, "library:/libc");
 	module_add_alias(Module, "library:/cygwin1");
 	module_add_alias(Module, "library:/libpthread");
-	module_set_import_func(Module->Providers, Handle, native_import);
+	module_importer_set(Module->Providers, Handle, native_import);
 	//module_export(Module, "stpcpy", 0, &stpcpy);
 	//module_export(Module, "_mempcpy", 0, &mempcpy);
 
@@ -117,7 +117,7 @@ void native_init(void) {
 	
 	Module = module_new("", "libm");
 	module_add_alias(Module, "libm");
-	module_set_import_func(Module->Providers, Handle, native_import);
+	module_importer_set(Module->Providers, Handle, native_import);
 };
 
 #endif
@@ -165,7 +165,7 @@ static int native_load(module_provider_t *Provider, const char *FileName) {
 	if (stat(FileName, Stat)) return 0;
 	void *Handle = GC_dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
 	if (Handle) {
-		module_set_import_func(Provider, Handle, (module_import_func)native_import);
+		module_importer_set(Provider, Handle, (module_import_func)native_import);
 		return 1;
 	};
 	log_errorf("Error: %s\n", dlerror());
@@ -184,7 +184,7 @@ void native_init(void) {
 	module_add_alias(Module, "library:/__unknown__");
 	module_add_alias(Module, "library:/libc");
 	module_add_alias(Module, "library:/libgcc");
-	module_set_import_func(Module->Providers, Handle, (module_import_func)native_import);
+	module_importer_set(Module->Providers, Handle, (module_import_func)native_import);
 //#include "libc_exports.c"
 	module_export(Module, "atexit", 0, &atexit);
 	module_export(Module, "stat", 0, &stat);
@@ -201,7 +201,7 @@ void native_init(void) {
 
 	Module = module_new("libpthread");
 	module_add_alias(Module, "library:/libpthread");
-	module_set_import_func(Module->Providers, Handle, (module_import_func)native_import);
+	module_importer_set(Module->Providers, Handle, (module_import_func)native_import);
 	module_export(Module, "pthread_create", 0, GC_pthread_create);
 	module_export(Module, "pthread_join", 0, GC_pthread_join);
 	module_export(Module, "pthread_detach", 0, GC_pthread_detach);
@@ -211,7 +211,7 @@ void native_init(void) {
 	
 	Module = module_new("libdl");
 	module_add_alias(Module, "library:/libdl");
-	module_set_import_func(Module->Providers, Handle, (module_import_func)native_import);
+	module_importer_set(Module->Providers, Handle, (module_import_func)native_import);
 	module_export(Module, "dlopen", 0, GC_dlopen);
 };
 
@@ -282,7 +282,7 @@ void native_init(void) {
 	printf("Adding alias libc = 0x%x\n", Module);
 	module_add_alias(Module, "library:/libc");
 	module_add_alias(Module, "library:/libgcc");
-	module_set_import_func(Module->Provider, Handle, native_import);
+	module_importer_set(Module->Provider, Handle, native_import);
 	module_export(Module, "atexit", 0, &atexit);
 	module_export(Module, "stat", 0, &stat);
 	module_export(Module, "mempcpy", 0, &mempcpy);
@@ -302,7 +302,7 @@ void native_init(void) {
 	
 	Module = module_new("libpthread");
 	module_add_alias(Module, "library:/libpthread");
-	module_set_import_func(Module->Provider, Handle, native_import);
+	module_importer_set(Module->Provider, Handle, native_import);
 	module_export(Module, "pthread_create", 0, GC_pthread_create);
 	module_export(Module, "pthread_join", 0, GC_pthread_join);
 	module_export(Module, "pthread_detach", 0, GC_pthread_detach);
@@ -312,7 +312,7 @@ void native_init(void) {
 	
 	Module = module_new("libdl");
 	module_add_alias(Module, "library:/libdl");
-	module_set_import_func(Module->Provider, Handle, native_import);
+	module_importer_set(Module->Provider, Handle, native_import);
 	module_export(Module, "dlopen", 0, GC_dlopen);
 };
 

@@ -92,6 +92,7 @@ static typed_parameters accept_typed_parameters(scanner_t *Scanner) {
 		Param->Name = Scanner->Token.Ident;
 		Param->Variadic = Scanner->parse(tkMULTIPLY);
 		Param->Reference = Scanner->parse(tkPLUS);
+		if (Scanner->parse(tkOR)) Param->Default = accept_term(Scanner);
 	} else {
 		char *Name;
 		int Length = asprintf(&Name, "anon:%x", (unsigned int)Param);

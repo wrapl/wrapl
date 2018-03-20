@@ -31,7 +31,7 @@ typedef struct module_loader_t {
 	const char *Name;
 	int Priority, TimeStamp;
 	module_find_func _Find;
-	module_load_func LoadFunc;
+	module_load_func Load;
 } module_loader_t;
 
 static int ModuleTimeStamp = 0;
@@ -43,7 +43,7 @@ void module_add_loader(const char *Name, int Priority, module_find_func FindFunc
 	module_loader_t *Node = new(module_loader_t);
 	Node->Name = Name;
 	Node->_Find = FindFunc;
-    Node->LoadFunc = LoadFunc;
+    Node->Load = LoadFunc;
 	Node->Priority = Priority;
 	Node->TimeStamp = ++ModuleTimeStamp;
 	module_loader_t **Slot = &ModuleLoaders;
@@ -66,7 +66,7 @@ int module_set_loader_find_func(const char *Name, module_find_func FindFunc) {
 int module_set_loader_load_func(const char *Name, module_load_func LoadFunc) {
 	for (module_loader_t *Node = ModuleLoaders; Node; Node = Node->Next) {
 		if (!strcmp(Node->Name, Name)) {
-			Node->LoadFunc = LoadFunc;
+			Node->Load = LoadFunc;
 			return 0;
 		};
 	};
@@ -141,7 +141,7 @@ static void module_call_loaders(const char *Name, module_t *Module, module_provi
 			module_loader_t *Loader = Provider->Loader;
 			//printf("<thread @ %x> Calling module provider:%s(%s)\n", Thread, Loader->Name, Module->Name);
 			Provider->Module = Module;
-			Loader->LoadFunc(Provider, Provider->LoadInfo);
+			Loader->Load(Provider, Provider->LoadInfo);
 			//printf("<thread @ %x> Called module provider:%s(%s)\n", Thread, Loader->Name, Module->Name);
 		};
 		pthread_mutex_lock(LibRivaMutex);
@@ -362,7 +362,7 @@ void module_provider_export(module_provider_t *Provider, const char *Symbol, int
 	pthread_mutex_unlock(LibRivaMutex);
 };
 
-void module_set_import_func(module_provider_t *Provider, void *ImportInfo, module_import_func ImportFunc) {
+void module_importer_set(module_provider_t *Provider, void *ImportInfo, module_import_func ImportFunc) {
 	if (ImportFunc) {
 		Provider->ImportInfo = ImportInfo;
 		Provider->ImportFunc = ImportFunc;
@@ -383,11 +383,11 @@ module_t *module_load_file(const char *File, const char *Type) {
 		if (Loader == 0) {
 			log_errorf("Error: loader %s not found.\n", Type);
 		} else {
-			if (Loader->LoadFunc(Module->Providers, File)) return Module;
+			if (Loader->Load(Module->Providers, File)) return Module;
 		};
 	} else {
 		for (module_loader_t *Loader = ModuleLoaders; Loader; Loader = Loader->Next) {
-			if (Loader->LoadFunc(Module->Providers, File)) return Module;
+			if (Loader->Load(Module->Providers, File)) return Module;
 		};
 	};
 	return 0;
@@ -412,7 +412,7 @@ void module_init(void) {
 	module_export(Module, "_export", 0, module_export);
 	module_export(Module, "_add_directory", 0, module_add_directory);
 	module_export(Module, "_add_loader", 0, module_add_loader);
-	module_export(Module, "_set_import_func", 0, module_set_import_func);
+	module_export(Module, "_set_import_func", 0, module_importer_set);
 	module_export(Module, "_get_default_provider", 0, module_get_default_provider);
 	module_export(Module, "_set_version", 0, module_set_version);
 	module_export(Module, "_get_version", 0, module_get_version);

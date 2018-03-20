@@ -1,4 +1,0 @@
-CFLAGS = extend(CFLAGS, "-std=gnu99", pkg_config("--cflags gtksourceview-3.0"), "-include gtksourceview/gtksource.h -include gtksourceview/completion-providers/words/gtksourcecompletionwords.h")
-LDFLAGS = extend(LDFLAGS, "libdl.rlib", pkg_config("--libs-only-l gtksourceview-3.0"))
-
-detect_modules("Gir/GtkSource")

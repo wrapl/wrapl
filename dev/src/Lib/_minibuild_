@@ -27,14 +27,14 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", Functions[1])
+				var Scan := Source:scan("INCLUDES") => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Module:basename) % "rlink"):exists or (file(Module:basename) % "rdef"):exists
-	var ScriptIncludes := Script:scan("INCLUDES", rlink_includes)
+	var ScriptIncludes := Script:scan("INCLUDES") => rlink_includes
 	if AutoExport then
 		var ImportFile := GEN_LIB/Name % "rlink"
 		mkdir(ImportFile:dir)
@@ -66,7 +66,7 @@ wrapl_module := fun(Name) do
 	Module[Source] => fun(Module) do
 		Source:copy(Module)
 	end
-	Doc[RDOC, RIVA, WRAPL_MODULES, Sources] => fun(Doc) do
+	Doc[RDOC, RIVA, WRAPL_MODULES, Source] => fun(Doc) do
 		execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, ASFLAGS, Name, Source)
 	end
 	DEFAULT[Module, Doc]
@@ -78,14 +78,14 @@ riva_program := fun(Executable, Objects, Libraries) do
 		for Functions, Extension in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
-				var Scan := Source:scan("INCLUDES", Functions[1])
+				var Scan := Source:scan("INCLUDES") => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Executable:basename) % "rlink"):exists or (file(Executable:basename) % "rdef"):exists
-	var ScriptIncludes := Script and Script:scan("INCLUDES", rlink_includes)
+	var ScriptIncludes := Script and Script:scan("INCLUDES") => rlink_includes
 	Executable[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Executable) do
 		execute(RLINK, LDFLAGS, "-o", Executable, Objects, Libraries, Script, "-v0", "-?", Executable % "lst")
 	end

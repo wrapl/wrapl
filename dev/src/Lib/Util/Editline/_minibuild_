@@ -28,9 +28,7 @@ EDITLINE_DIR => fun() do
 	)
 end
 
-scope("editline", fun() do
-	CFLAGS := old + ["-I", file("include")]
-	LDFLAGS := old + ["Riva/Memory.rlib"]
-	file("Editline.o")[file("libedit.a")]
-	riva_module("Util/Editline", [file("Editline.o")], [file("libedit.a")])
-end)
+CFLAGS := old + ["-I", file("include")]
+LDFLAGS := old + ["Riva/Memory.rlib"]
+file("Editline.o")[file("libedit.a")]
+riva_module("Util/Editline", [file("Editline.o")], [file("libedit.a")])

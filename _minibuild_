@@ -1,5 +1,10 @@
 -- ROOT --
 
+PLATFORM := defined("PLATFORM")
+OS := defined("OS")
+CROSS_BUILD := defined("CROSS_BUILD")
+WEB := defined("WEB")
+
 if not PLATFORM then
 	PLATFORM := shell("uname")[1, -1]
 end

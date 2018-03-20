@@ -123,10 +123,46 @@ asm_compile := fun(Object) do
 	execute('nasm', ASFLAGS, '-o', Object, '-I', Source:dir, Source)
 end
 
+as_includes := fun(Source) do
+	var Files := []
+	var Lines := shell("gcc -c", CFLAGS, "-I", Source:dir, "-M", Source)
+	var Start, File := ""
+	var I := for J := 1 .. Lines:length do
+		if Lines[J, J + 2] = ": " then
+			exit J + 2
+		end
+	end
+	loop while I <= Lines:length
+		var Char := Lines[I]
+		if Char <= " " then
+			if File != "" then
+				Files:put(file(File))
+				File := ""
+			end
+		elseif Char = "\\" then
+			I := old + 1
+			Char := Lines[I]
+			if Char = " " then
+				File := '{old} '
+			end
+		else
+			File := '{old}{Char}'
+		end
+		I := old + 1
+	end
+	return Files
+end
+
+as_compile := fun(Object) do
+	var Source := Object % "S"
+	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dir, Source)
+end
+
 SourceTypes := {
 	"c" is [c_includes, c_compile],
 	"cpp" is [cpp_includes, cpp_compile],
-	"asm" is [asm_includes, asm_compile]
+	"asm" is [asm_includes, asm_compile],
+	"S" is [as_includes, as_compile]
 }
 
 c_program := fun(Executable, Objects, Libraries) do
@@ -138,7 +174,7 @@ c_program := fun(Executable, Objects, Libraries) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", Functions[1])
+				var Scan := Source:scan("INCLUDES") => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
@@ -149,6 +185,8 @@ c_program := fun(Executable, Objects, Libraries) do
 	end
 	DEFAULT[Executable]
 end
+
+UDIS_LIB := file("Rlink/libudis86.a")
 
 subdir("Rlink")
 subdir("Riva")

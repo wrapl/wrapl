@@ -8,9 +8,9 @@ file("TypeMap.c")[RIVA, AUTOGEN, MAPGEN] => fun() do
 	execute(RIVA, "-L. Mapgen")
 end
 
-file("TypeMap.o")[file("TypeMap.c")]
+file("TypeMap.o")[file("TypeMap.c")] => c_compile
 
-riva_module("Gir/TypeMap", [file("TypeMap.o")])
+var TYPEMAP := riva_module("Gir/TypeMap", [file("TypeMap.o")])
 
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
 
@@ -32,13 +32,13 @@ end
 
 detect_modules := fun(Path) do
 	mkdir(OUT_LIB/Path)
-	var DetectedModules := AUTOGEN:scan(Path, fun() do
+	var DetectedModules := AUTOGEN:scan(Path) => fun() do
 		var _ := VERSION
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
 				var Source := file(FileName)
-				var Scan := Source:scan("INCLUDES", c_includes)
+				var Scan := Source:scan("INCLUDES") => c_includes
 				var  Object := Source % "o"
 				Object[Source, Scan, TYPEMAP] => c_compile
 				var Script := Source % "rdef"
@@ -56,7 +56,7 @@ detect_modules := fun(Path) do
 			end
 		end
 		return Modules
-	end)
+	end
 	DEFAULT[DetectedModules]
 end
 
