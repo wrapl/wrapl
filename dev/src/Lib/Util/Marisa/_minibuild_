@@ -1,4 +1,7 @@
-MARISA_DIR := file("marisa-trie") => fun() execute("git clone https://github.com/s-yata/marisa-trie.git")
+MARISA_DIR := file("marisa-trie") => fun(DIR) do
+	execute('rm -rf {DIR}')
+	execute("git clone https://github.com/s-yata/marisa-trie.git")
+end
 
 MARISA_LIB := file("libmarisa.a")[MARISA_DIR] => fun() do
 	execute("cd", MARISA_DIR, "&& autoreconf -i")
@@ -13,6 +16,6 @@ MARISA_LIB := file("libmarisa.a")[MARISA_DIR] => fun() do
 end
 
 CXXFLAGS := old + ["-I", file("include")]
-LDFLAGS := old + ["Riva/Memory.rlib", "libstdc++.a"]
+LDFLAGS := old + ["Riva/Memory.rlib"]
 file("Marisa.o")[MARISA_LIB]
 riva_module("Util/Marisa", [file("Marisa.o")], [MARISA_LIB])

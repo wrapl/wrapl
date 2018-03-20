@@ -200,7 +200,7 @@ static void default_section_setup(section_t *Section) {
 };
 
 static void invalid_section_setup(section_t *Section) {
-	printf("%s: internal failure at line %d.\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s: internal failure at line %d.\n", __FILE__, __LINE__);
 	exit(1);
 };
 
@@ -210,7 +210,7 @@ static void default_section_relocate(section_t *Section, relocation_t *Relocatio
 };
 
 static void invalid_section_relocate(section_t *Section, relocation_t *Relocation, uint32_t *Target) {
-	printf("%s: internal failure at line %d.\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s: internal failure at line %d.\n", __FILE__, __LINE__);
 	exit(1);
 };
 
@@ -220,7 +220,7 @@ static void default_section_export(section_t *Section, uint32_t Offset, export_t
 };
 
 static void invalid_section_export(section_t *Section, uint32_t Offset, export_t *Export) {
-	printf("%s: internal failure at line %d.\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s: internal failure at line %d.\n", __FILE__, __LINE__);
 	exit(1);
 };
 
@@ -618,13 +618,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 		                if (Symbol) break;
 		            }
 #endif
-					printf("%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+		            fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
 					Symbol = new_symbol(Sym->name, new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
-					printf("%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
 					Section2 = new_import_section(UnknownSymbols, Sym->name, 0);
 				};
@@ -638,7 +638,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 				section_relocate(Section2, Relocation, Target);
 				if (Type->partial_inplace) *Target += (uint32_t)Sym->value;
 			} else {
-				printf("%s: unknown relocation type.\n", Bfd->filename);
+				fprintf(stderr, "%s: unknown relocation type.\n", Bfd->filename);
 				exit(1);
 			};
 		};
@@ -699,13 +699,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 		                if (Symbol) break;
 		            }
 #endif
-					printf("%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+		            fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
 					Symbol = new_symbol(Sym->name, new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
-					printf("%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
 					Section2 = new_import_section(UnknownSymbols, Sym->name, 0);
 				};
@@ -716,7 +716,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 				section_relocate(Section2, Relocation, Target);
 				if (Type->partial_inplace) *Target += (uint32_t)Sym->value;
 			} else {
-				printf("%s: unknown relocation type.\n", Bfd->filename);
+				fprintf(stderr, "%s: unknown relocation type.\n", Bfd->filename);
 				exit(1);
 			};
 		};
@@ -1324,7 +1324,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strncmp(Sect->name, ".gnu.warning", 12) == 0) {
 	} else if (strncmp(Sect->name, ".gnu.glibc-stub", 15) == 0) {
 	} else {
-		printf("%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
+		fprintf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
 	};
 };
 
@@ -1388,7 +1388,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 			} else if (Sym->flags & BSF_DEBUGGING) {
 			    // This may be supported later
 			} else {
-				printf("%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
+				fprintf(stderr, "%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
 				//exit(1);
 			};
 		};
@@ -1405,7 +1405,7 @@ static void add_object_file(const char *FileName, int AutoExport) {
 	};
 	bfd *Bfd = bfd_openr(FileName, 0);
 	if (Bfd == 0) {
-		printf("%s: error reading file.\n", FileName);
+		fprintf(stderr, "%s: error reading file.\n", FileName);
 		return;
 	};
 	add_bfd(Bfd, AutoExport);
@@ -1430,7 +1430,7 @@ static void module_section_setup(module_section_t *Section) {
 			if (Symbol) {
 				section_export(Symbol->Section, Symbol->Offset, Export);
 			} else {
-				printf("exported symbol not found: %s.\n", Export->Internal);
+				fprintf(stderr, "exported symbol not found: %s.\n", Export->Internal);
 				exit(1);
 			};
 		};
@@ -1677,7 +1677,7 @@ static int script_file_subexport(lua_State *State) {
     const char *SubName = lua_tostring(State, 1);
     module_section_t *SubModule = ((symbol_t *)HXmap_get(GlobalTable, SubName))->Section;
     if (SubModule == 0) {
-    	printf("submodule not found: %s.\n", SubName);
+    	fprintf(stderr, "submodule not found: %s.\n", SubName);
     	exit(1);
     };
     for (int I = 2; I <= NoOfArgs; ++I) {
@@ -1933,7 +1933,7 @@ static void add_file(const char *FileName, int AutoExport) {
 		};
 	};
 	if (DependencyMode) return;
-	printf("%s: file not found.\n", FileName);
+	fprintf(stderr, "%s: file not found.\n", FileName);
 	exit(1);
 };
 
@@ -1979,7 +1979,7 @@ static void find_shared_lib(const char *Name) {
 		*/
 #endif
 	};
-	printf("%s: shared library not found.\n", Name);
+	fprintf(stderr, "%s: shared library not found.\n", Name);
 	exit(1);
 found:
 	add_shared_lib(strdup(FullFileName), 1);
@@ -2109,7 +2109,7 @@ int main(int Argc, char **Argv) {
 				if (Symbol) {
 					if (Symbol->Section) section_export(Symbol->Section, Symbol->Offset, Export);
 				} else {
-					printf("exported symbol not found: %s.\n", Export->Internal);
+					fprintf(stderr, "exported symbol not found: %s.\n", Export->Internal);
 					exit(1);
 				};
 			};

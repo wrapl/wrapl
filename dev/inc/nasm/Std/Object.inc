@@ -8,6 +8,11 @@ riva_struct t
 	.Type:	resd 1
 endstruct
 
+riva_struct noncallablemessage, Std$Object_t
+	.Count			resd 1
+	.Stack:			resd 12
+endstruct
+
 riva_extern T
 riva_extern Nil
 
@@ -19,6 +24,9 @@ riva_extern Equal
 riva_extern Greater
 
 riva_extern Hash
+
+riva_extern NonCallableMessageT
+riva_extern _default_invoke
 
 %macro initial 0
 section .initial

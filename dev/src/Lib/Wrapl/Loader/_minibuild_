@@ -3,8 +3,6 @@ JANSSON_URL := 'https://github.com/akheron/jansson/archive/v{JANSSON_VERSION}.ta
 JANSSON_DIR := file("libjansson")
 JANSSON_LIB := file("libjansson.a")
 
-var libudis86 := file("../../../Rlink/libudis86.a")
-
 JANSSON_LIB => fun() do
 	mkdir(JANSSON_DIR)
 	execute("cd", JANSSON_DIR, "&&",
@@ -22,8 +20,8 @@ JANSSON_LIB => fun() do
 	execute("cd", JANSSON_DIR, "&&", "make install")
 end
 
-LDFLAGS := old + ["-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", libudis86, JANSSON_LIB]
-CFLAGS := old + ["-x", "c++", "-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", libudis86:dir, "-I", file("include")]
+LDFLAGS := old + ["-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", UDIS_LIB, JANSSON_LIB]
+CFLAGS := old + ["-x", "c++", "-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", UDIS_LIB:dir, "-I", file("include")]
 
 var Files := [
 	file("assembler.o"),
@@ -40,7 +38,7 @@ var Files := [
 	file("wrapl.o")
 ]
 
-file("assembler.o")[libudis86, file("assembler-internal.c")]
+file("assembler.o")[UDIS_LIB, file("assembler-internal.c")]
 
 file("assembler-internal.c")[file("assembler-internal.dasc")] => fun(Target) do
 	execute("lua", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", Target)

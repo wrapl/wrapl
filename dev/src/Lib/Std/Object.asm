@@ -271,6 +271,29 @@ cfunction _in
 	xor eax, eax
 	ret
 
+ctype NonCallableMessageT
+.invoke: equ _default_invoke
+
+extern Riva$Debug$_stack_trace
+cfunction _default_invoke
+	push byte sizeof(Std$Object_noncallablemessage)
+	call Riva$Memory$_alloc
+	mov [esp], eax
+	mov [Std$Object_t(eax).Type], dword NonCallableMessageT
+	lea eax, [Std$Object_noncallablemessage(eax).Stack]
+	push dword 12
+	lea eax, [Std$Object_noncallablemessage(eax).Stack]
+	push eax
+	lea eax, [esp + 12]
+	push eax
+	call Riva$Debug$_stack_trace
+	add esp, byte 12
+	pop ecx
+	mov [Std$Object_noncallablemessage(ecx).Count], eax
+	xor edx, edx
+	mov eax, 2
+	ret
+
 %ifdef DOCUMENTING
 
 %define Std$Object$T T
