@@ -19,11 +19,14 @@ typedef struct path_node {
 static path_node *ModuleLibrary = 0;
 
 void module_add_directory(const char *Dir) {
-    path_node *Node = new(path_node);
-	Node->Dir = path_fixup(Dir);
-    Node->Next = ModuleLibrary;
-    ModuleLibrary = Node;
-    log_writef("Adding %s to library search path.\n", Node->Dir);
+	Dir = path_fixup(Dir);
+	if (Dir) {
+		path_node *Node = new(path_node);
+		Node->Dir = path_fixup(Dir);
+		Node->Next = ModuleLibrary;
+		ModuleLibrary = Node;
+		log_writef("Adding %s to library search path.\n", Node->Dir);
+	}
 };
 
 typedef struct module_loader_t {
