@@ -1,14 +1,11 @@
 #include <Std.h>
 #include <Math/Vector.h>
+#include <Math/Matrix.h>
 #include <Riva/Memory.h>
 #include <stdint.h>
 #include <Util/TypedFunction.h>
 
-typedef struct matrix_t {
-	const Std$Type_t *Type;
-	Std$Integer_smallt NoOfRows, NoOfCols;
-	Std$Object_t *Entries[];
-} matrix_t;
+typedef Math$Matrix_t matrix_t;
 
 TYPE(T);
 TYPE(MessageT);

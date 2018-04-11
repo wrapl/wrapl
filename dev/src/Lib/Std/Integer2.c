@@ -43,6 +43,10 @@ TYPED_INSTANCE(double, Std$Real$double, SmallT, Std$Integer$smallt *A) {
 	return A->Value;
 };
 
+TYPED_INSTANCE(double, Std$Real$double, BigT, Std$Integer$bigt *A) {
+	return mpz_get_d(A->Value);
+};
+
 uint64_t _get_u64(Std$Object_t *Integer) {
 	if (Integer->Type == SmallT) {
 		return ((Std$Integer_smallt *)Integer)->Value;
