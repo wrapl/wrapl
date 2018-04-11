@@ -1,3 +1,7 @@
+include("libgomp.so")
+include("Math/Vector.rlink")
+include("Math/Matrix.rlink")
+
 export("T")
 export("Standard")
 export("Sparse")

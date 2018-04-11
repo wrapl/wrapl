@@ -1,7 +1,6 @@
 #include <fann.h>
 #include <Std.h>
 #include <Riva.h>
-#include <Agg/List.h>
 #include <Math/Vector.h>
 #include <Math/Matrix.h>
 
@@ -175,6 +174,29 @@ METHOD("run", TYP, T, TYP, Math$Vector$T) {
 	return SUCCESS;
 }
 
+METHOD("run", TYP, T, TYP, Std$Number$T) {
+	fann_t *Fann = Args[0].Val;
+	unsigned int NumInput = fann_get_num_input(Fann->Handle);
+	unsigned int NumOutput = fann_get_num_output(Fann->Handle);
+	if (NumInput != Count - 1) {
+		Result->Val = Std$String$new("Number of inputs does not match");
+		return MESSAGE;
+	}
+	fann_type Input[NumInput];
+	Std$Function$argument *Arg = Args + 1;
+	for (int I = 0; I < NumInput; ++I) Input[I] = Std$Real$double((Arg++)->Val);
+	fann_type *Output = fann_run(Fann->Handle, Input);
+	Math$Vector$t *OutputVector = Riva$Memory$alloc(sizeof(Math$Vector$t) + NumOutput * sizeof(Std$Object$t *));
+	OutputVector->Type = Math$Matrix$T;
+	OutputVector->Length.Type = Std$Integer$SmallT;
+	OutputVector->Length.Value = NumOutput;
+	Std$Object$t **Entry = OutputVector->Entries;
+	for (int I = 0; I < NumOutput; ++I) *Entry++ = Std$Real$new(Output[I]);
+	Result->Val = OutputVector;
+	return SUCCESS;
+}
+
+
 static int riva_fann_callback(struct fann *Handle, struct fann_train_data *TrainData, unsigned int MaxEpochs, unsigned int ReportInterval, float DesiredError, unsigned int Epochs) {
 	fann_t *Fann = fann_get_user_data(Handle);
 	Fann->CallbackArgs[4].Val = Std$Integer$new_small(Epochs);
@@ -215,7 +237,7 @@ GLOBAL_FUNCTION(DataNew, 3) {
 	unsigned int NumOutput = Std$Integer$get_small(Args[2].Val);
 	fann_data_t *Data = new(fann_data_t);
 	Data->Type = DataT;
-	Data->Handle = fann_train_data_create(NumData, NumInput, NumOutput);
+	Data->Handle = fann_create_train(NumData, NumInput, NumOutput);
 	Result->Val = (Std$Object$t *)Data;
 	return SUCCESS;
 }
@@ -250,6 +272,29 @@ METHOD("set", TYP, DataT, TYP, Math$Matrix$T) {
 		for (int J = 0; J < NumInput; ++J) Input[J] = Std$Real$double(*Entry++);
 		for (int J = 0; J < NumOutput; ++J) Output[J] = Std$Real$double(*Entry++);
 	}
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("set", TYP, DataT, TYP, Std$Integer$T) {
+	fann_data_t *Data = Args[0].Val;
+	int Index = Std$Integer$get_small(Args[1].Val);
+	unsigned int NumData = fann_length_train_data(Data->Handle);
+	unsigned int NumInput = fann_num_input_train_data(Data->Handle);
+	unsigned int NumOutput = fann_num_output_train_data(Data->Handle);
+	if (Index < 1 || Index > NumData) {
+		Result->Val = Std$String$new("Index out of range");
+		return MESSAGE;
+	}
+	if (NumInput + NumOutput != Count - 2) {
+		Result->Val = Std$String$new("Incorrect number of arguments");
+		return MESSAGE;
+	}
+	fann_type *Input = fann_get_train_input(Data->Handle, Index - 1);
+	fann_type *Output = fann_get_train_output(Data->Handle, Index - 1);
+	Std$Function$argument *Arg = Args + 2;
+	for (int J = 0; J < NumInput; ++J) Input[J] = Std$Real$double((Arg++)->Val);
+	for (int J = 0; J < NumOutput; ++J) Output[J] = Std$Real$double((Arg++)->Val);
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
@@ -485,7 +530,7 @@ METHOD("get_learning_rate", TYP, T) {
 
 METHOD("set_learning_rate", TYP, T, TYP, Std$Real$T) {
 	fann_t *Fann = Args[0].Val;
-	fann_set_learing_rate(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	fann_set_learning_rate(Fann->Handle, Std$Real$get_value(Args[1].Val));
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
@@ -498,7 +543,7 @@ METHOD("get_learning_momentum", TYP, T) {
 
 METHOD("set_learning_momentum", TYP, T, TYP, Std$Real$T) {
 	fann_t *Fann = Args[0].Val;
-	fann_set_learing_momentum(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	fann_set_learning_momentum(Fann->Handle, Std$Real$get_value(Args[1].Val));
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
@@ -545,7 +590,7 @@ METHOD("set_activation", TYP, T, TYP, ActivationT, TYP, Std$Integer$SmallT) {
 METHOD("set_activation", TYP, T, TYP, ActivationT) {
 	fann_t *Fann = Args[0].Val;
 	enum fann_activationfunc_enum Activation = Std$Integer$get_small(Args[1].Val);
-	fann_set_activation_function_layer_hidden(Fann->Handle, Activation);
+	fann_set_activation_function_hidden(Fann->Handle, Activation);
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
@@ -553,7 +598,7 @@ METHOD("set_activation", TYP, T, TYP, ActivationT) {
 METHOD("set_output_activation", TYP, T, TYP, ActivationT) {
 	fann_t *Fann = Args[0].Val;
 	enum fann_activationfunc_enum Activation = Std$Integer$get_small(Args[1].Val);
-	fann_set_activation_function_layer_output(Fann->Handle, Activation);
+	fann_set_activation_function_output(Fann->Handle, Activation);
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
