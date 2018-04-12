@@ -95,9 +95,9 @@ size_t malloc_usable_size(void *Ptr) {
 	return GC_size(Ptr);
 };
 
-char *strdup(const char *Str) {
+/*char *strdup(const char *Str) {
 	return GC_strdup(Str);
-};
+};*/
 
 void *memalign(size_t Alignment, size_t Size) {
 	if (Size < 256) Size = 256; // TODO: This is a temporary fix for what seems to be a bug in the garbage collector

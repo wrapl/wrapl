@@ -276,7 +276,32 @@ METHOD("set", TYP, DataT, TYP, Math$Matrix$T) {
 	return SUCCESS;
 }
 
-METHOD("set", TYP, DataT, TYP, Std$Integer$T) {
+METHOD("set", TYP, DataT, TYP, Std$Integer$SmallT, TYP, Math$Vector$T) {
+	fann_data_t *Data = Args[0].Val;
+	int Index = Std$Integer$get_small(Args[1].Val);
+	Math$Vector$t *Values = Args[2].Val;
+	unsigned int NumData = fann_length_train_data(Data->Handle);
+	unsigned int NumInput = fann_num_input_train_data(Data->Handle);
+	unsigned int NumOutput = fann_num_output_train_data(Data->Handle);
+	if (Index < 1 || Index > NumData) {
+			Result->Val = Std$String$new("Index out of range");
+			return MESSAGE;
+		}
+	if (NumInput + NumOutput != Values->Length.Value) {
+		Result->Val = Std$String$new("Number of values does not match");
+		return MESSAGE;
+	}
+	fann_type *Input = fann_get_train_input(Data->Handle, Index - 1);
+	fann_type *Output = fann_get_train_output(Data->Handle, Index - 1);
+	Std$Object$t **Entry = Values->Entries;
+	for (int J = 0; J < NumInput; ++J) Input[J] = Std$Real$double(*Entry++);
+	for (int J = 0; J < NumOutput; ++J) Output[J] = Std$Real$double(*Entry++);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+
+METHOD("set", TYP, DataT, TYP, Std$Integer$T, TYP, Std$Number$T) {
 	fann_data_t *Data = Args[0].Val;
 	int Index = Std$Integer$get_small(Args[1].Val);
 	unsigned int NumData = fann_length_train_data(Data->Handle);
