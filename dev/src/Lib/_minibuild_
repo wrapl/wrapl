@@ -113,6 +113,7 @@ subdir("Math")
 subdir("Stat")
 subdir("Html")
 --subdir("OpenCV")
+subdir("ML")
 
 if PLATFORM = "Linux" then
 	subdir("Gir")

@@ -18,6 +18,7 @@ EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:val
 	gir_file = "Gtk-2.0.typelib" => STEP;
 	gir_file = "Vte-0.0.typelib" => STEP;
 	gir_file = "Dfu-1.0.typelib" => STEP;
+	gir_file = "HarfBuzz-0.0.typelib" => STEP;
 	Out:write('File: {gir_file}\n');
 	WHILE gir <- IO.Process.Open("g-ir-generate", '{gir_dir}/{gir_file}');
 	VAR gir_xml <- Xml.Load(gir, Xml.NoText);

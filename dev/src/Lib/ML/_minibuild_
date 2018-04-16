@@ -1,0 +1,5 @@
+CFLAGS := old + ["-std=gnu99"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib"]
+RDOCFLAGS := old + ["-I", file("")]
+
+subdir("Fann")

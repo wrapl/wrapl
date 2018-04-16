@@ -312,7 +312,7 @@ static void import_section_debug(import_section_t *Section, FILE *File) {
 	fprintf(File, "%d: import section: %d.%s\n", ((section_t *)Section)->Index, ((section_t *)Section->Library)->Index, Section->Name);
 };
 
-static void import_section_size(import_section_t *Section) {
+static uint32_t import_section_size(import_section_t *Section) {
 	return 1 + 1 + 4 + 4 + strlen(Section->Name) + 1;
 };
 

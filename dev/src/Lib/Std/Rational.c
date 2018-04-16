@@ -13,6 +13,10 @@ TYPED_INSTANCE(int, Std$Number$is1, T, Std$Rational_t *A) {
 	return 0;
 };
 
+TYPED_INSTANCE(double, Std$Real$double, T, Std$Rational$t *A) {
+	return mpq_get_d(A->Value);
+};
+
 Std$Rational_t *_alloc(void) {
 	Std$Rational_t *R = new(Std$Rational_t);
 	R->Type = T;

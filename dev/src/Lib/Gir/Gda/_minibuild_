@@ -1,0 +1,11 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags libgda-5.0"),
+	"-include libgda/libgda.h",
+	"-include libgda/gda-server-provider-extra.h",
+	"-include libgda/gda-server-provider-private.h",
+	"-include libgda/sql-parser/gda-sql-parser.h",
+	"-include libgda/gda-statement-extra.h",
+	"-include libgda/thread-wrapper/gda-thread-wrapper.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l libgda-5.0")]
+
+detect_modules("Gir/Gda")

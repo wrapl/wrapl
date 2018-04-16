@@ -1,0 +1,54 @@
+include("libgomp.so")
+include("Math/Vector.rlink")
+include("Math/Matrix.rlink")
+
+export("T")
+export("Standard")
+export("Sparse")
+export("Shortcut")
+export("Read")
+
+submodule("Data")
+subexport("Data", "DataT", "T")
+subexport("Data", "DataNew", "New")
+subexport("Data", "DataRead", "Read")
+
+submodule("Training")
+subexport("Training", "TrainingT", "T")
+subexport("Training", "TrainingINCREMENTAL", "INCREMENTAL")
+subexport("Training", "TrainingBATCH", "BATCH")
+subexport("Training", "TrainingRPROP", "RPROP")
+subexport("Training", "TrainingQUICKPROP", "QUICKPROP")
+subexport("Training", "TrainingSARPROP", "SARPROP")
+
+submodule("Activation")
+subexport("Activation", "ActivationT", "T");
+subexport("Activation", "ActivationLINEAR", "LINEAR")
+subexport("Activation", "ActivationTHRESHOLD", "THRESHOLD")
+subexport("Activation", "ActivationTHRESHOLD_SYMMETRIC", "THRESHOLD_SYMMETRIC")
+subexport("Activation", "ActivationSIGMOID", "SIGMOID")
+subexport("Activation", "ActivationSIGMOID_STEPWISE", "SIGMOID_STEPWISE")
+subexport("Activation", "ActivationSIGMOID_SYMMETRIC", "SIGMOID_SYMMETRIC")
+subexport("Activation", "ActivationSIGMOID_SYMMETRIC_STEPWISE", "SIGMOID_SYMMETRIC_STEPWISE")
+subexport("Activation", "ActivationGAUSSIAN", "GAUSSIAN")
+subexport("Activation", "ActivationGAUSSIAN_SYMMETRIC", "GAUSSIAN_SYMMETRIC")
+subexport("Activation", "ActivationELLIOT", "ELLIOT")
+subexport("Activation", "ActivationELLIOT_SYMMETRIC", "ELLIOT_SYMMETRIC")
+subexport("Activation", "ActivationLINEAR_PIECE", "LINEAR_PIECE")
+subexport("Activation", "ActivationLINEAR_PIECE_SYMMETRIC", "LINEAR_PIECE_SYMMETRIC")
+subexport("Activation", "ActivationSIN_SYMMETRIC", "SIN_SYMMETRIC")
+subexport("Activation", "ActivationCOS_SYMMETRIC", "COS_SYMMETRIC")
+subexport("Activation", "ActivationSIN", "SIN")
+subexport("Activation", "ActivationCOS", "COS")
+
+submodule("Error")
+subexport("Error", "ErrorT", "T");
+subexport("Error", "ErrorLINEAR", "LINEAR")
+subexport("Error", "ErrorTANH", "TANH")
+
+submodule("Stop")
+subexport("Stop", "StopT", "T");
+subexport("Stop", "StopMSE", "MSE")
+subexport("Stop", "StopBIT", "BIT")
+
+

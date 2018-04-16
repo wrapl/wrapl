@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Raja Mukherji
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="rhtml" _name="rHtml" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-rhtml</property>
+    <property name="globs">*.rhtml;*.rinc</property>
+  </metadata>
+  <definitions>
+    <context id="wrapl-block">
+      <start>\\</start>
+      <end>;</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="def:operator"/>
+        <context sub-pattern="0" where="end" style-ref="def:operator"/>
+        <context ref="wrapl:wrapl"/>
+        <context id="html-block">
+          <start>(do\(&gt;&gt;)(.*)$</start>
+          <end>^\s*(\%{2@start})\)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="def:operator"/>
+            <context sub-pattern="0" where="end" style-ref="def:operator"/>
+            <context ref="rhtml"/>
+          </include>
+        </context>
+      </include>
+    </context>
+    <replace id="html:embedded-lang-hook" ref="wrapl-block"/>
+    <context id="rhtml">
+      <include>
+        <context ref="wrapl-block"/>
+        <context ref="html:html"/>
+      </include>
+    </context>
+  </definitions>
+</language>

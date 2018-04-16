@@ -1,0 +1,7 @@
+module("Math", "Matrix")
+if WINDOWS then
+	prefix("_Math$Matrix$")
+else
+	prefix("Math$Matrix$")
+end
+import("T")

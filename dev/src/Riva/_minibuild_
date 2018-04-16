@@ -5,6 +5,26 @@ GC_LIB := file("libgc.a")
 ATOMIC_OPS_VERSION := "7.4.4"
 ATOMIC_OPS_DIR := GC_DIR/"libatomic_ops"
 
+CONFUSE_VERSION := "3.2"
+CONFUSE_DIR := file('confuse-{CONFUSE_VERSION}')
+CONFUSE_LIB := file("libconfuse.a")
+
+CONFUSE_DIR => fun() do
+	execute('wget -nv https://github.com/martinh/libconfuse/releases/download/v{CONFUSE_VERSION}/confuse-{CONFUSE_VERSION}.tar.gz -O- | tar xzP')
+end
+
+CONFUSE_LIB[CONFUSE_DIR] => fun() do
+	execute("cd", CONFUSE_DIR, "&&",
+		"./configure",
+		"--prefix=/tmp",
+		'--includedir={file("")}',
+		'--libdir={file("")}',
+		'CFLAGS=\"{CFLAGS}\"'
+	)
+	execute("cd", CONFUSE_DIR, "&&", "make")
+	execute("cd", CONFUSE_DIR, "&&", "make install")
+end
+
 CFG_OPTS := {
 	"--enable-munmap" is 4,
 	"--enable-large-config",
@@ -22,7 +42,7 @@ if PLATFORM = "Linux" then
 end
 
 CFLAGS := old + ["-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}']
-LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lconfuse", "-lz", "-Wl,-E"]
+LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lz", "-Wl,-E"]
 
 GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun() do
 	execute("cd", GC_DIR, "&&",
@@ -66,7 +86,7 @@ RIVA_FILES := [
 ]
 
 for File in RIVA_FILES do
-	File[GC_LIB]
+	File[GC_LIB, CONFUSE_LIB]
 end
 
 RIVA_CONF := OUT_BIN/"riva.conf"
@@ -77,6 +97,7 @@ RIVA_CONF => fun(FileName) do
 'library = \{
 	/lib,
 	/usr/lib,
+	/usr/lib32,
 	/usr/lib/i386-linux-gnu,
 	/usr/local/lib,
 	{OUT_LIB}
@@ -93,6 +114,6 @@ end
 
 WRAPL_MODULES[RIVA_CONF]
 
-c_program(RIVA, RIVA_FILES, [GC_LIB])
+c_program(RIVA, RIVA_FILES, [GC_LIB, CONFUSE_LIB])
 
 DEFAULT[RIVA_CONF]
