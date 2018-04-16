@@ -187,7 +187,7 @@ METHOD("run", TYP, T, TYP, Std$Number$T) {
 	for (int I = 0; I < NumInput; ++I) Input[I] = Std$Real$double((Arg++)->Val);
 	fann_type *Output = fann_run(Fann->Handle, Input);
 	Math$Vector$t *OutputVector = Riva$Memory$alloc(sizeof(Math$Vector$t) + NumOutput * sizeof(Std$Object$t *));
-	OutputVector->Type = Math$Matrix$T;
+	OutputVector->Type = Math$Vector$T;
 	OutputVector->Length.Type = Std$Integer$SmallT;
 	OutputVector->Length.Value = NumOutput;
 	Std$Object$t **Entry = OutputVector->Entries;
