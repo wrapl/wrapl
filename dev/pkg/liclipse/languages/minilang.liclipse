@@ -1,0 +1,45 @@
+scope_to_color_name: {
+  doubleQuotedMultiLineString: string,
+  singleQuotedMultiLineString: string,
+  embeddedExpression: localVariable
+}
+
+scope_definition_rules:
+  - {type: EndOfLineRule, scope: singleLineComment, start: '--'} 
+  - {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'", end: "'", escapeCharacter: \}
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"', end: '"', escapeCharacter: \}
+
+scope:
+  singleLineComment:
+    javadocTag: [TODO] #Any TODO inside a comment should have a different color.
+  default:
+    keyword: [if, then, elseif, else, end, loop, while, until, exit, next, for, in, is, fun, return, with, do, 'on', nil, and, or, not, old, def, var]
+    bracket: ['(', ')', '[', ']', '{', '}', ',']
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',', ':']
+    sub_rules: [
+      {type: RegexpRule, regexp: ":[a-zA-Z_][a-zA-Z0-9_]*", scope: method}
+    ]
+  singleQuotedMultiLineString:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        {type: PrevCharNotIn, scope: embeddedExpression, chars: \},
+        {type: MultiLineRule, scope: embeddedExpression, start: '{', end: '}', escapeCharacter: \}
+      ]}
+    ]
+
+file_extensions: [minilang, mini, rlink]
+filename: [_minibuild_]
+name: minilang
+
+outline:
+  - {type: Scope, scope: [default, fun], define: fun}
+
+indent: {
+  type: spaces,
+  spaces_for_tabs: false,
+  scope: default,
+  outline_scopes: [fun]
+}
+
+comment: {type: singleLine, sequence: '--'}
+
