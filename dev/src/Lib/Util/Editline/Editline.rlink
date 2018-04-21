@@ -1,6 +1,7 @@
 include("libedit.a")
 include("libncursesw.so")
 include("libtinfo.so")
+include("Util/Tre")
 
 export("T")
 export("New")
