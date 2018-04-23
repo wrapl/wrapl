@@ -1,7 +1,6 @@
 EDITLINE_URL := "http://thrysoee.dk/editline/libedit-20160903-3.1.tar.gz"
 EDITLINE_DIR := file("libedit")
 
-
 file("libedit.a")[EDITLINE_DIR] => fun() do
 	execute("cd", EDITLINE_DIR, "&&",
 		"./configure --disable-shared --enable-static",

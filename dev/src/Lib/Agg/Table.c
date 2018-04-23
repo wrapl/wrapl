@@ -628,7 +628,6 @@ METHOD("map", TYP, T, TYP, Std$Function$T) {
 			return MESSAGE;
 		};
 	};
-	Table->Default = Source->Default;
 	UNLOCK(Source);
 	Result->Val = (Std$Object_t *)Table;
 	Result->Ref = 0;

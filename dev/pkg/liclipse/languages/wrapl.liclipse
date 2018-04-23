@@ -1,0 +1,61 @@
+# Below is a sample structure for your new language. It specifies a language which has
+# comments starting with '#' single line strings with ' and " and multi-line strings with ''' and """.
+#
+# Later, we go on to say that whenever we find a
+
+scope_to_color_name: {
+ #All types of strings map to the string color
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+}
+
+scope_definition_rules:
+  #Comments
+  #singleLineComment is also the name of the color (no translation required in scope_to_color_name)
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'} 
+
+  #Multi Line Strings
+  - {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \}
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \}
+
+  # Single Line Strings
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true}
+
+scope:
+  singleLineComment:
+    javadocTag: [TODO] #Any TODO inside a comment should have a different color.
+  
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: class }] #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+      },
+    ]
+
+    keyword: [class, pass] #Define that we want to consider 'class' and 'pass' as a keyword
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+
+file_extensions: [set_file_extension] #TODO: Fill with the file extension to match
+filename: []
+name: wrapl
+
+outline: #Note that we just specify 'flat' items here, the indent is later used to specify parent/children scopes.
+  - {type: Scope, scope: [default, class], define: class} #Wherever we have a class inside the default scope we'll show a class icon in the outline.
+
+indent: {
+  type: spaces, #Our example language uses spaces for indenting
+  outline_scopes: [class], #We have to say which outline entries actually create a new scope (so, indent and outline work toghether to specify the tree).
+}
+
+# Specify that the default comment action (Ctrl+/) deals with creating '#' at the start of the line
+comment: {type: singleLine, sequence: '#'}
+

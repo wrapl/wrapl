@@ -256,8 +256,11 @@ static void debugger_append_variable(json_t *Variables, const char *Name, Std$Ob
 }
 
 static int debugger_append_table_func(Std$Object$t *Key, Std$Object$t *Value, json_t *Variables) {
-	debugger_append_variable(Variables, "key", Key);
-	debugger_append_variable(Variables, "value", Value);
+	char *KeyName, *ValueName;
+	asprintf(&KeyName, "key%d", json_array_size(Variables) / 2 + 1);
+	asprintf(&ValueName, "value%d", json_array_size(Variables) / 2 + 1);
+	debugger_append_variable(Variables, KeyName, Key);
+	debugger_append_variable(Variables, ValueName, Value);
 	return 0;
 }
 

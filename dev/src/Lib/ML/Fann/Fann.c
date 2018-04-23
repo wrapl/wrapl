@@ -1,4 +1,4 @@
-#include <fann.h>
+#include <doublefann.h>
 #include <Std.h>
 #include <Riva.h>
 #include <Math/Vector.h>
@@ -165,7 +165,7 @@ METHOD("run", TYP, T, TYP, Math$Vector$T) {
 	for (int I = 0; I < NumInput; ++I) Input[I] = Std$Real$double(*Entry++);
 	fann_type *Output = fann_run(Fann->Handle, Input);
 	Math$Vector$t *OutputVector = Riva$Memory$alloc(sizeof(Math$Vector$t) + NumOutput * sizeof(Std$Object$t *));
-	OutputVector->Type = Math$Matrix$T;
+	OutputVector->Type = Math$Vector$T;
 	OutputVector->Length.Type = Std$Integer$SmallT;
 	OutputVector->Length.Value = NumOutput;
 	Entry = OutputVector->Entries;
@@ -455,6 +455,36 @@ METHOD("test", TYP, T, TYP, DataT) {
 	return SUCCESS;
 }
 
+METHOD("cascade", TYP, T, TYP, DataT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	fann_data_t *Data = Args[1].Val;
+	unsigned int MaxNeurons = Std$Integer$get_small(Args[2].Val);
+	unsigned int ReportInterval = Std$Integer$get_small(Args[3].Val);
+	double DesiredError = Std$Real$get_value(Args[4].Val);
+	Fann->CallbackArgs[0].Val = Fann;
+	Fann->CallbackArgs[1].Val = Std$Integer$new_small(MaxNeurons);
+	Fann->CallbackArgs[2].Val = Std$Integer$new_small(ReportInterval);
+	Fann->CallbackArgs[3].Val = Std$Real$new(DesiredError);
+	fann_cascadetrain_on_data(Fann->Handle, Data->Handle, MaxNeurons, ReportInterval, DesiredError);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("cascade", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	const char *FileName = Std$String$flatten(Args[1].Val);
+	unsigned int MaxNeurons = Std$Integer$get_small(Args[2].Val);
+	unsigned int ReportInterval = Std$Integer$get_small(Args[3].Val);
+	double DesiredError = Std$Real$get_value(Args[4].Val);
+	Fann->CallbackArgs[0].Val = Fann;
+	Fann->CallbackArgs[1].Val = Std$Integer$new_small(MaxNeurons);
+	Fann->CallbackArgs[2].Val = Std$Integer$new_small(ReportInterval);
+	Fann->CallbackArgs[3].Val = Std$Real$new(DesiredError);
+	fann_cascadetrain_on_file(Fann->Handle, FileName, MaxNeurons, ReportInterval, DesiredError);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
 METHOD("scale", TYP, T, TYP, DataT) {
 	fann_t *Fann = Args[0].Val;
 	fann_data_t *Data = Args[1].Val;
@@ -573,6 +603,58 @@ METHOD("set_learning_momentum", TYP, T, TYP, Std$Real$T) {
 	return SUCCESS;
 }
 
+METHOD("get_quickprop_decay", TYP, T) {
+	fann_t *Fann = Args[0].Val;
+	Result->Val = Std$Real$new(fann_get_quickprop_decay(Fann->Handle));
+	return SUCCESS;
+}
+
+METHOD("set_quickprop_decay", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	fann_set_quickprop_decay(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("get_quickprop_mu", TYP, T) {
+	fann_t *Fann = Args[0].Val;
+	Result->Val = Std$Real$new(fann_get_quickprop_mu(Fann->Handle));
+	return SUCCESS;
+}
+
+METHOD("set_quickprop_mu", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	fann_set_quickprop_mu(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("get_rprop_increase_factor", TYP, T) {
+	fann_t *Fann = Args[0].Val;
+	Result->Val = Std$Real$new(fann_get_rprop_increase_factor(Fann->Handle));
+	return SUCCESS;
+}
+
+METHOD("set_rprop_increase_factor", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	fann_set_rprop_increase_factor(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("get_rprop_decrease_factor", TYP, T) {
+	fann_t *Fann = Args[0].Val;
+	Result->Val = Std$Real$new(fann_get_rprop_decrease_factor(Fann->Handle));
+	return SUCCESS;
+}
+
+METHOD("set_rprop_decrease_factor", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	fann_set_rprop_decrease_factor(Fann->Handle, Std$Real$get_value(Args[1].Val));
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
 TYPE(ActivationT, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);
 
 const Std$Integer$smallt ActivationLINEAR[1] = {{ActivationT, FANN_LINEAR}};
@@ -624,6 +706,41 @@ METHOD("set_output_activation", TYP, T, TYP, ActivationT) {
 	fann_t *Fann = Args[0].Val;
 	enum fann_activationfunc_enum Activation = Std$Integer$get_small(Args[1].Val);
 	fann_set_activation_function_output(Fann->Handle, Activation);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("set_steepness", TYP, T, TYP, Std$Real$T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+	fann_t *Fann = Args[0].Val;
+	double Steepness = Std$Real$get_value(Args[1].Val);
+	int Layer = Std$Integer$get_small(Args[2].Val);
+	int Neuron = Std$Integer$get_small(Args[3].Val);
+	fann_set_activation_steepness(Fann->Handle, Steepness, Layer, Neuron);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("set_steepness", TYP, T, TYP, Std$Real$T, TYP, Std$Integer$SmallT) {
+	fann_t *Fann = Args[0].Val;
+	double Steepness = Std$Real$get_value(Args[1].Val);
+	int Layer = Std$Integer$get_small(Args[2].Val);
+	fann_set_activation_steepness_layer(Fann->Handle, Steepness, Layer);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("set_steepness", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	double Steepness = Std$Real$get_value(Args[1].Val);
+	fann_set_activation_steepness_hidden(Fann->Handle, Steepness);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("set_output_steepness", TYP, T, TYP, Std$Real$T) {
+	fann_t *Fann = Args[0].Val;
+	double Steepness = Std$Real$get_value(Args[1].Val);
+	fann_set_activation_steepness_output(Fann->Handle, Steepness);
 	Result->Arg = Args[0];
 	return SUCCESS;
 }
