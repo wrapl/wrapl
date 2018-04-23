@@ -34,7 +34,7 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 		end
 	end
 	var Script := (file(Module:basename) % "rlink"):exists or (file(Module:basename) % "rdef"):exists
-	var ScriptIncludes := Script:scan("INCLUDES") => rlink_includes
+	var ScriptIncludes := Script:scan("INCLUDES")[RLINK] => rlink_includes
 	if AutoExport then
 		var ImportFile := GEN_LIB/Name % "rlink"
 		mkdir(ImportFile:dir)
