@@ -1,7 +1,10 @@
 CFLAGS := old + ["-std=gnu99", pkg_config("--cflags gobject-2.0"), "-include glib-object.h -include gobject/gvaluecollector.h"]
 LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0")]
 
-detect_modules("Gir/GObject")
+var DetectedModules := detect_modules("Gir/GObject")
+
+file("Riva.o")[DetectedModules]
+file("Init.o")[DetectedModules]
 
 riva_module("Gir/GObject/Init", [file("Init.o")])
 riva_module("Gir/GObject/Riva", [file("Riva.o")])

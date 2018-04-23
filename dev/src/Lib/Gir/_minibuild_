@@ -58,6 +58,7 @@ detect_modules := fun(Path) do
 		return Modules
 	end
 	DEFAULT[DetectedModules]
+	return DetectedModules
 end
 
 subdir("GObject")

@@ -1,5 +1,6 @@
 #include <Std.h>
 #include <Riva.h>
+#include <Gir/GLib/Source.h>
 
 typedef struct GRivaSource {
 	GSource Base;
