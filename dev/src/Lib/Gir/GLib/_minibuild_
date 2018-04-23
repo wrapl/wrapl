@@ -1,6 +1,8 @@
 CFLAGS := old + ["-std=gnu99", pkg_config("--cflags --cflags glib-2.0"), "-include glib.h -include glib/gstdio.h -include glib-unix.h"]
 LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l glib-2.0 gthread-2.0")]
 
-detect_modules("Gir/GLib")
+var DetectedModules := detect_modules("Gir/GLib")
+
+file("GRivaSource.o")[DetectedModules]
 
 riva_module("Gir/GLib/GRivaSource", [file("GRivaSource.o")])
