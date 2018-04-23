@@ -78,7 +78,7 @@ riva_program := fun(Executable, Objects, Libraries) do
 		for Functions, Extension in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
-				var Scan := Source:scan("INCLUDES") => Functions[1]
+				var Scan := Source:scan("INCLUDES")[RLINK] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
