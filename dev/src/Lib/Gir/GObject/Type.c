@@ -1,4 +1,5 @@
 #include <Gir/GObject/Type.h>
+#include <Gir/GObject/Object.h>
 #include <Gir/TypeMap.h>
 #include <Riva.h>
 #include <Agg/StringTable.h>

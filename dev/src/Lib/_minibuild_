@@ -85,7 +85,7 @@ riva_program := fun(Executable, Objects, Libraries) do
 		end
 	end
 	var Script := (file(Executable:basename) % "rlink"):exists or (file(Executable:basename) % "rdef"):exists
-	var ScriptIncludes := Script and Script:scan("INCLUDES") => rlink_includes
+	var ScriptIncludes := Script and Script:scan("INCLUDES")[RLINK] => rlink_includes
 	Executable[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Executable) do
 		execute(RLINK, LDFLAGS, "-o", Executable, Objects, Libraries, Script, "-v0", "-?", Executable % "lst")
 	end

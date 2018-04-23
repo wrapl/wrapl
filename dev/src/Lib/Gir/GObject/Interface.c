@@ -1,4 +1,5 @@
 #include <Gir/GObject/Riva.h>
+#include <Gir/GObject/Object.h>
 #include <Gir/GObject/Type.h>
 #include <Gir/GObject/Closure.h>
 #include <Gir/GObject/Value.h>
