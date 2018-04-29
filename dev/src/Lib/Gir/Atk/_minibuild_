@@ -1,0 +1,4 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags atk"), "-include atk/atk.h"]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l atk")]
+
+var DetectedModules := detect_modules("Gir/Atk")

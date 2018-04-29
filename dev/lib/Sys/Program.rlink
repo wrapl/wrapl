@@ -1,0 +1,9 @@
+module("Sys", "Program")
+if WINDOWS then
+	prefix("_Sys$Program$")
+else
+	prefix("Sys$Program$")
+end
+
+import("ErrorT")
+import("_stack_trace")

@@ -4,6 +4,7 @@ library("IO/Socket.rlib")
 library("IO/Posix.rlib")
 library("IO/Encoder.rlib")
 library("IO/Decoder.rlib")
+library("Sys/Program.rlink")
 
 if WINDOWS then
 	_export = export
