@@ -3,6 +3,7 @@
 
 #include <Std/Object.h>
 #include <Std/Integer.h>
+#include <Sys/Program.h>
 
 #define RIVA_MODULE IO$Stream
 #include <Riva-Header.h>
@@ -12,6 +13,7 @@ typedef Std$Object$t IO$Stream$t;
 
 RIVA_STRUCT(messaget) {
 	const Std$Type_t *Type;
+	Sys$Program$stack_trace_t *StackTrace;
 	const char *Message;
 };
 

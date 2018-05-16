@@ -47,7 +47,7 @@ TYPE(TextWriterT, WriterT, T);
 // A writable stream with added methods for writing text.
 
 #ifndef DOCUMENTING
-TYPE(MessageT);
+TYPE(MessageT, Sys$Program$ErrorT);
 #endif
 
 METHOD("@", TYP, MessageT, VAL, Std$String$T) {
@@ -59,20 +59,21 @@ METHOD("@", TYP, MessageT, VAL, Std$String$T) {
 };
 
 #ifndef DOCUMENTING
-TYPE(ConvertMessageT, MessageT);
-TYPE(GenericMessageT, MessageT);
-TYPE(OpenMessageT, MessageT);
-TYPE(ReadMessageT, MessageT);
-TYPE(WriteMessageT, MessageT);
-TYPE(FlushMessageT, MessageT);
-TYPE(SeekMessageT, MessageT);
-TYPE(CloseMessageT, MessageT);
-TYPE(PollMessageT, MessageT);
+TYPE(ConvertMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(GenericMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(OpenMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(ReadMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(WriteMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(FlushMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(SeekMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(CloseMessageT, MessageT, Sys$Program$ErrorT);
+TYPE(PollMessageT, MessageT, Sys$Program$ErrorT);
 
 Std$Object$t *_message_new(const Std$Type$t *Type, const char *Description) {
 	IO$Stream$messaget *Message = new(IO$Stream$messaget);
 	Message->Type = Type;
 	Message->Message = Description;
+	Message->StackTrace = Sys$Program$stack_trace(32);
 	return (Std$Object$t *)Message;
 };
 
@@ -83,6 +84,7 @@ Std$Object$t *_message_new_format(const Std$Type$t *Type, const char *Format, ..
 	va_start(Args, Format);
 	int Length = vasprintf(&Message->Message, Format, Args);
 	va_end(Args);
+	Message->StackTrace = Sys$Program$stack_trace(32);
 	return (Std$Object$t *)Message;
 };
 
@@ -90,7 +92,9 @@ Std$Object$t *_message_from_errno(const Std$Type$t *Type) {
 	IO$Stream$messaget *Message = new(IO$Stream$messaget);
 	Message->Type = Type;
 	char Buffer[256];
-	return (Std$Object$t *)Std$String$copy(strerror_r(Riva$System$get_errno(), Buffer, 128));
+	Message->Message = Riva$Memory$strdup(strerror_r(Riva$System$get_errno(), Buffer, 256));
+	Message->StackTrace = Sys$Program$stack_trace(32);
+	return (Std$Object$t *)Message;
 };
 
 IO$Stream_messaget ConvertMessage[] = {{ConvertMessageT, "Conversion Error"}};

@@ -12,7 +12,7 @@
 #endif
 
 const char DebugKey[] = "Debug.Key";
-int DebugLevels = 10, MaxStackScan = 100;
+int DebugLevels = 10, MaxStackScan = 256;
 
 extern void memory_log_close(void);
 
@@ -38,25 +38,24 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 
 #ifdef LINUX || MACOSX
 int stack_trace(void **Stack, char **Buffer, int BufferSize) {
-	//printf("Stack = %x, Buffer = %x, BufferSize = %d\n", Stack, Buffer, BufferSize);
 	int Count = 0;
 	for (int I = 0; (Count < BufferSize) && (I < MaxStackScan); ++I) {
-		const char **Base = GC_base(Stack[I]);
+		unsigned const char *Code = Stack[I];
+		const char **Base = GC_base(Code);
 		if (Base) {
-			const char *Module, *Symbol;
 			if (Base[DEBUG_HDR_INDEX] == DebugKey) {
-				debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
-				asprintf(Buffer + Count, "%s:%d[0x%x]", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base);
-				//printf("\t%s:%d[0x%x]\n", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base);
-				++Count;
-			};/* else if (module_lookup(Base, &Module, &Symbol)) {
-				asprintf(Buffer + Count, "%s.%s\n", Module, Symbol);
-				printf("\t%s.%s\n", Module, Symbol);
-				++Count;
-			}*/
+				if (Code[-5] == 0xE8) {
+					debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
+					asprintf(Buffer + Count, "%s, %d (+0x%x)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
+					++Count;
+				} else if (Code[-3] == 0xFF) {
+					debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
+					asprintf(Buffer + Count, "%s, %d (+0x%x)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
+					++Count;
+				}
+			};
 		};
 	};
-	//printf("Count = %d\n", Count);
 	return Count;
 };
 

@@ -65,6 +65,7 @@ int main(int Argc, const char **Argv) {
 	const char *MainModule = libriva_mainmodule();
 
 	RivaDelayedLink = 0;
+	int UseThreadExit = 0;
 
 	if (libriva_parseargs()) {
 		for (int I = 1; I < Argc; ++I) {
@@ -170,6 +171,10 @@ int main(int Argc, const char **Argv) {
 				log_writef("\tError = %s, Handle = %x\n", dlerror(), Handle);
 				break;
 			};
+			case 'X': {
+				UseThreadExit = 1;
+				break;
+			};
 			case '-': {
 				++I;
 				Args = Argv + I;
@@ -213,10 +218,5 @@ finished: 0;
 	module_t *Module = module_load_file(MainModule, Type);
 	if (Module == 0) Module = module_load(0, MainModule);
 	if (Module == 0) printf("Error: module %s not found\n", MainModule);
-#ifdef MINGW
-    ExitThread(0);
-#else
-	//GC_enable();
-	GC_pthread_exit(0);
-#endif
+	if (UseThreadExit) GC_pthread_exit(0);
 };

@@ -587,8 +587,6 @@ static block_expr_t *accept_localmust(scanner_t *Scanner) {
 		return Block;
 	} else {
 		block_expr_t *Block = new block_expr_t;
-		if (Block->Receiver.Body) Scanner->raise_error(LineNo, ParseErrorMessageT, "Error: block can not have both receiver and must");
-		if (Block->Must) Scanner->raise_error(LineNo, ParseErrorMessageT, "Error: block can only have one must");
 		Block->Must = Must;
 		return Block;
 	};

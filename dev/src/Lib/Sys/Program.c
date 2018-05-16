@@ -1,9 +1,11 @@
+#include <Sys/Program.h>
 #include <Std.h>
 #include <Agg.h>
 #include <IO/Socket.h>
 #include <Riva/Memory.h>
 #include <Riva/Thread.h>
 #include <Riva/System.h>
+#include <Riva/Debug.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <setjmp.h>
@@ -13,6 +15,8 @@
 #else
 #include <windows.h>
 #endif
+
+TYPE(ErrorT);
 
 #ifdef LINUX
 
@@ -53,6 +57,12 @@ GLOBAL_FUNCTION(OnUrg, 1) {
 	sigaction(SIGURG, &Action, 0);
 	return SUCCESS;
 };
+
+Sys$Program$stack_trace_t *_stack_trace(int MaxDepth) {
+	Sys$Program$stack_trace_t *StackTrace = Riva$Memory$alloc(sizeof(Sys$Program$stack_trace_t) + MaxDepth * sizeof(const char *));
+	StackTrace->Depth = Riva$Debug$stack_trace((void **)&MaxDepth, StackTrace->Trace, MaxDepth);
+	return StackTrace;
+}
 
 #endif
 
