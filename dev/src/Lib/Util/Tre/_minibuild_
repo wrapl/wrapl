@@ -8,6 +8,7 @@ file("libtre.a")[TRE_DIR] => fun() do
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
 		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		"--disable-wchar",
 		"--without-man-pages"
 	)
 	execute("cd", TRE_DIR, "&&",
