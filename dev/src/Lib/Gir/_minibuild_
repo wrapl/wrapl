@@ -8,8 +8,6 @@ file("TypeMap.c")[RIVA, AUTOGEN, MAPGEN] => fun() do
 	execute(RIVA, "-L. Mapgen")
 end
 
-file("TypeMap.o")[file("TypeMap.c")] => c_compile
-
 var TYPEMAP := riva_module("Gir/TypeMap", [file("TypeMap.o")])
 
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
