@@ -915,7 +915,7 @@ AMETHOD(Image, TYP, Agg$List$T) {
 			return MESSAGE;
 		};
 		while (Node = Node->Next) {
-			Final = Std$String$add(Final, CommaSpace);
+			Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
 			switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Node->Value, 0)) {
 			case SUSPEND: case SUCCESS:
 				Final = Std$String$add(Final, Buffer.Val);
@@ -951,7 +951,7 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 		Std$Function_result Buffer;
 		switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Agg$Table$node_key(Node), 0)) {
 		case SUSPEND: case SUCCESS:
-			if (Comma) Final = Std$String$add(Final, CommaSpace);
+			if (Comma) Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
 			Final = Std$String$add(Final, Buffer.Val);
 			break;
 		case FAILURE:
@@ -965,7 +965,7 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 		if (Value != Std$Object$Nil) {
 			switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Value, 0)) {
 			case SUSPEND: case SUCCESS:
-				Final = Std$String$add(Final, SpaceIsSpace);
+				Final = Std$String$add(Final, (Std$Object$t *)SpaceIsSpace);
 				Final = Std$String$add(Final, Buffer.Val);
 				break;
 			case FAILURE:

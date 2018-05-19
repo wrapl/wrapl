@@ -14,6 +14,5 @@ LINENOISE_SOURCE => fun() do
 	(LINENOISE_DIR/"linenoise.h"):copy(LINENOISE_HEADER)
 end
 
-file("linenoise.o")[LINENOISE_SOURCE] => c_compile
-file("Linenoise.o")[file("linenoise.o")]
-riva_module("Util/Linenoise", [file("Linenoise.o")], [file("linenoise.o")])
+file("Linenoise.o")[LINENOISE_SOURCE]
+riva_module("Util/Linenoise", [file("Linenoise.o"), file("linenoise.o")])
