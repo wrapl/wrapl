@@ -31,7 +31,6 @@ end
 detect_modules := fun(Path) do
 	mkdir(OUT_LIB/Path)
 	var DetectedModules := AUTOGEN:scan(Path) => fun() do
-		var _ := VERSION
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
