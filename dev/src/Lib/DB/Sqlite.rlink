@@ -1,3 +1,4 @@
+include("Gcc.rlink")
 include("libpthread.rlib")
 include("libdl.rlib")
 

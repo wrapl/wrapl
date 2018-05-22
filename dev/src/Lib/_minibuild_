@@ -23,7 +23,7 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 	mkdir(Doc:dir)
 	var Sources := []
 	for Object in Objects do
-		for Functions, Extension in SourceTypes do
+		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
@@ -75,7 +75,7 @@ end
 
 riva_program := fun(Executable, Objects, Libraries) do
 	for Object in Objects do
-		for Functions, Extension in SourceTypes do
+		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
 				var Scan := Source:scan("INCLUDES") => Functions[1]
@@ -114,6 +114,7 @@ subdir("Stat")
 subdir("Html")
 --subdir("OpenCV")
 subdir("ML")
+subdir("DB")
 
 if PLATFORM = "Linux" then
 	subdir("Gir")
