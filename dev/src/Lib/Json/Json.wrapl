@@ -138,4 +138,10 @@ METH EncodeString(x @ Table.T) (
 	RET b:rest;
 );
 
+DEF SaveFile!(filename, x) (
+	VAR file <- File.Open(filename, File.Flag.Write + File.Flag.Text);
+	EncodeString(file, x);
+	file:close;
+);
+
 END Json.

@@ -180,4 +180,6 @@ DEF LoadString!(string, flags) (
 
 DEF Escape!(text) text:any("<>&'\"") => text:map(SpecialChars, HtmlEntities) // text;
 
+DEF SaveFile!(filename, xml) File.Open(filename, File.Flag.Write + File.Flag.Text):write(xml):close;
+
 END Xml.
