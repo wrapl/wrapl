@@ -6,7 +6,7 @@ LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Util/TypedFunction.rlib"
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
 UUID_DIR => fun() do
-	execute('wget -nv http://sourceforge.net/projects/libuuid/files/libuuid-{UUID_VERSION}.tar.gz/download -O- | tar xvzP')
+	execute('wget --user-agent=\"Firefox/3.6.12\" -nv https://downloads.sourceforge.net/project/libuuid/libuuid-{UUID_VERSION}.tar.gz -O- | tar xvzP')
 end
 
 file("libuuid.a")[UUID_DIR] => fun() do
