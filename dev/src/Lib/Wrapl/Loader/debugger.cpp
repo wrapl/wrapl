@@ -41,6 +41,7 @@ struct debugger_t {
 	dstate_t *EvaluateState;
 	scanner_t *Scanner;
 	compiler_t *Compiler;
+	int BreakOnSend, BreakOnMessage;
 };
 
 TYPE(T, IO$Stream$ReaderT);
@@ -230,8 +231,9 @@ static void debugger_describe_variable(json_t *Result, Std$Object$t *Value) {
 		json_object_set(Result, "size", json_integer(Agg$List$length(Value)));
 	} else {
 		json_object_set(Result, "type", json_string("object"));
-		const char *Description, *ModuleName, *SymbolName;
-		if (!Riva$Module$lookup(Value->Type, &ModuleName, &SymbolName)) {
+		char *Description;
+		const char *ModuleName, *SymbolName;
+		if (!Riva$Module$lookup((void *)Value->Type, &ModuleName, &SymbolName)) {
 			json_object_set(Result, "value", json_string("object"));
 		} else {
 			const char *ShortName = strrchr(ModuleName, '/');
@@ -355,10 +357,33 @@ static json_t *debugger_command_set_breakpoints(json_t *Args) {
 	return json_true();
 }
 
+uint8_t *debug_break_on_send() {
+	return (uint8_t *)&Debugger->BreakOnSend;
+}
+
+uint8_t *debug_break_on_message() {
+	return (uint8_t *)&Debugger->BreakOnMessage;
+}
+
+static json_t *debugger_command_set_message_breakpoints(json_t *Args) {
+	int BreakOnSend = 0;
+	int BreakOnMessage = 0;
+	for (int I = 0; I < json_array_size(Args); ++I) {
+		const char *Type = json_string_value(json_array_get(Args, I));
+		if (!strcmp(Type, "send")) BreakOnSend = -1;
+		if (!strcmp(Type, "message")) BreakOnMessage = -1;
+	}
+	Debugger->BreakOnSend = BreakOnSend;
+	Debugger->BreakOnMessage = BreakOnMessage;
+	return json_true();
+}
+
 LOCAL_FUNCTION(DebuggerIDFunc) {
 	const char *Name = Std$String$flatten(Args[0].Val);
 	printf("Looking up variable %s\n", Name);
+	if (!Debugger->EvaluateState) return FAILURE;
 	debug_function_t *Function = Debugger->EvaluateState->Function;
+	if (!Function) return FAILURE;
 	Std$Object$t ***Locals = (void *)Debugger->EvaluateState + Function->LocalsOffset;
 	for (debug_local_t *Local = Function->Locals; Local; Local = Local->Next) {
 		if (!strcmp(Local->Name, Name)) {
@@ -369,6 +394,7 @@ LOCAL_FUNCTION(DebuggerIDFunc) {
 			Std$Object$t **Ref = Locals[Local->Index];
 			if (Ref) {
 				Result->Val = Ref[0];
+				Result->Ref = Ref;
 				return SUCCESS;
 			}
 		}
@@ -390,14 +416,15 @@ LOCAL_FUNCTION(DebuggerIDFunc) {
 static json_t *debugger_evaluate(json_t *Args) {
 	debug_thread_t *Thread = debugger_get_thread(Args);
 	if (!Thread || !Thread->Paused) return json_pack("{ss}", "error", "invalid thread");
+	if (json_unpack(Args, "{ss}", "expression", &Debugger->EvaluateBuffer)) return json_pack("{ss}", "error", "missing expression");
 	if (json_object_get(Args, "state")) {
 		Debugger->EvaluateState = (dstate_t *)(size_t)json_number_value(json_object_get(Args, "state"));
 	} else {
 		Debugger->EvaluateState = Thread->State;
 	}
-	if (json_unpack(Args, "{ss}", "expression", &Debugger->EvaluateBuffer)) return json_pack("{ss}", "error", "missing expression");
 	if (setjmp(Debugger->Scanner->Error.Handler)) {
 		Debugger->Scanner->flush();
+		Debugger->EvaluateState = 0;
 		return json_pack("{sssi}", "error", Debugger->Scanner->Error.Message, "line", Debugger->Scanner->Error.LineNo);
 	}
 	command_expr_t *Command = accept_command(Debugger->Scanner);
@@ -406,27 +433,41 @@ static json_t *debugger_evaluate(json_t *Args) {
 #endif
 	if (setjmp(Debugger->Compiler->Error.Handler)) {
 		Debugger->Compiler->flush();
+		Debugger->EvaluateState = 0;
 		return json_pack("{sssi}", "error", Debugger->Compiler->Error.Message, "line", Debugger->Compiler->Error.LineNo);
 	}
-	Std$Function$result Result[0];
+	Std$Function$result Result[1];
 	switch (Command->compile(Debugger->Compiler, Result)) {
 	case SUSPEND: case SUCCESS: {
 		json_t *Output = json_object();
 		debugger_describe_variable(Output, Result->Val);
+		Debugger->EvaluateState = 0;
 		return Output;
 	}
-	case FAILURE: return json_pack("{sb}", "failed", 1);
+	case FAILURE: {
+		Debugger->EvaluateState = 0;
+		return json_pack("{sb}", "failed", 1);
+	}
 	case MESSAGE: {
 		json_t *Output = json_pack("{sb}", "message", 1);
 		debugger_describe_variable(Output, Result->Val);
+		Debugger->EvaluateState = 0;
 		return Output;
 	}
 	}
+	return json_pack("{sb}", "failed", 1);
+}
+
+static void debugger_update(json_t *UpdateJson) {
+	json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
+	write(Debugger->Socket, "\n", strlen("\n"));
+	//printf("Update: %s\n", json_dumps(UpdateJson, JSON_INDENT(4)));
 }
 
 static void *debugger_thread_func(debugger_t *Debugger) {
-	json_t *CommandJson;
+	json_t *CommandJson = json_pack("[is]", 0, "ready");
 	json_error_t JsonError;
+	debugger_update(CommandJson);
 	while (CommandJson = json_loadfd(Debugger->Socket, JSON_DISABLE_EOF_CHECK, &JsonError)) {
 		int Index;
 		const char *Command;
@@ -451,12 +492,6 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 	}
 	// For now, just kill the program once the debugger disconnects
 	exit(1);
-}
-
-static void debugger_update(json_t *UpdateJson) {
-	json_dumpfd(UpdateJson, Debugger->Socket, JSON_COMPACT);
-	write(Debugger->Socket, "\n", strlen("\n"));
-	//printf("Update: %s\n", json_dumps(UpdateJson, JSON_INDENT(4)));
 }
 
 debug_module_t *debug_module(const char *Name) {
@@ -598,6 +633,45 @@ void debug_break_impl(dstate_t *State, uint32_t LineNo) {
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
+void debug_message_impl(dstate_t *State, uint32_t LineNo, Std$Object$t *Message) {
+	debug_thread_t *Thread = State->Thread;
+	pthread_mutex_lock(Debugger->Lock);
+		Thread->Paused = true;
+		json_t *Enters = json_array();
+		dstate_t *EnterState = State;
+		for (int I = 0; I < Thread->Enters; ++I) {
+			debug_function_t *Function = EnterState->Function;
+			json_array_insert_new(Enters, 0, json_pack("{sisisfsi}",
+				"module", Function->Module->Id,
+				"line", Function->LineNo,
+				"state", (double)(size_t)EnterState,
+				"size", Function->NoOfLocals
+			));
+			EnterState = EnterState->UpState;
+		}
+		const char *MessageString = "Message";
+		if (Std$Object$in(Message, Sys$Program$ErrorT)) {
+			Sys$Program$error_t *Error = (Sys$Program$error_t *)Message;
+			MessageString = Error->Message;
+		} else if (Message->Type == Std$Symbol$NoMethodMessageT) {
+			Std$Symbol$nomethodmessage *Error = (Std$Symbol$nomethodmessage *)Message;
+			asprintf((char **)&MessageString, "no method: %s", Std$String$flatten((Std$Object$t *)Error->Symbol->Name));
+		} else if (Message->Type == Std$String$T) {
+			MessageString = Std$String$flatten(Message);
+		}
+		debugger_update(json_pack("[is{sisisisOss}]", 0, "message",
+			"thread", Thread->Id,
+			"exits", Thread->Exits,
+			"line", LineNo,
+			"enters", Enters,
+			"message", MessageString
+		));
+		Thread->Exits = 0;
+		Thread->Enters = 0;
+		do pthread_cond_wait(Thread->Resume, Debugger->Lock); while (Thread->Paused);
+	pthread_mutex_unlock(Debugger->Lock);
+}
+
 void debug_enter_impl(dstate_t *State) {
 	debug_thread_t *Thread = pthread_getspecific(Debugger->ThreadKey);
 	if (!Thread) {
@@ -669,6 +743,7 @@ void debug_enable(const char *SocketPath, bool ClientMode) {
 	stringtable_put(Debugger->Commands, "list_threads", debugger_command_list_threads);
 	stringtable_put(Debugger->Commands, "get_variable", debugger_command_get_variable);
 	stringtable_put(Debugger->Commands, "set_breakpoints", debugger_command_set_breakpoints);
+	stringtable_put(Debugger->Commands, "set_message_breakpoints", debugger_command_set_message_breakpoints);
 	stringtable_put(Debugger->Commands, "evaluate", debugger_evaluate);
 	struct sockaddr_un Name;
 	Name.sun_family = AF_LOCAL;

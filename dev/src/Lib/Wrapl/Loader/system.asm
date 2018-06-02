@@ -769,6 +769,19 @@ cfunction debug_break
 	mov ecx, [bstate(ebp).Val]
 	ret
 
+extern debug_message_impl
+cfunction debug_message
+	mov [bstate(ebp).Val], ecx
+	mov [bstate(ebp).Ref], edx
+	push ecx
+	push eax
+	push ebp
+	call debug_message_impl
+	add esp, byte 12
+	mov edx, [bstate(ebp).Ref]
+	mov ecx, [bstate(ebp).Val]
+	ret
+
 extern debug_exit_impl
 cfunction debug_exit
 	mov [bstate(ebp).Val], ecx

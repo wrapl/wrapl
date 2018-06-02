@@ -8,7 +8,8 @@ UDIS_LIB[UDIS_DIR] => fun() do
 		'--prefix={file("")}',
 		'--includedir={file("")}',
 		'--libdir={file("")}',
-		"--without-man-pages"
+		"--without-man-pages",
+		"CFLAGS=\"-fdata-sections -ffunction-sections -fno-pic\""
 	)
 	execute("cd", UDIS_DIR, "&&",
 		"make mostlyclean"

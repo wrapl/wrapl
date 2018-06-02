@@ -14,6 +14,7 @@ RIVA_STRUCT(stack_trace_t) {
 RIVA_STRUCT(error_t) {
 	const Std$Type$t *Type;
 	Sys$Program$stack_trace_t *StackTrace;
+	const char *Message;
 };
 
 RIVA_TYPE(ErrorT);

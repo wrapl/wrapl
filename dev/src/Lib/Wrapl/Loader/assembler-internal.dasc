@@ -705,6 +705,17 @@ void invoke_inst_t::encode(assembler_t *Assembler) {
 	| 1:
 	| mov esi, <1
 	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	if (Assembler->DebugInfo) {
+		uint8_t *DebugOnMessage = debug_break_on_message();
+		| cmp eax, 2
+		| jne >2
+		| cmp byte [DebugOnMessage], 0
+		| je >2
+		| mov eax, LineNo
+		| call &debug_message
+		| mov eax, 2
+		| 2:
+	}
 	| call dword [eax * 4 + return_table]
 }
 
@@ -765,6 +776,14 @@ void recv_inst_t::encode(assembler_t *Assembler) {
 }
 
 void send_inst_t::encode(assembler_t *Assembler) {
+	if (Assembler->DebugInfo) {
+		uint8_t *DebugOnSend = debug_break_on_send();
+		| cmp byte [DebugOnSend], 0
+		| je >1
+		| mov eax, LineNo
+		| call &debug_message
+		| 1:
+	}
 	| mov eax, 2
 	| jmp dword BSTATE:ebp->Handler
 }
