@@ -20,6 +20,11 @@ subexport("Training", "TrainingBATCH", "BATCH")
 subexport("Training", "TrainingRPROP", "RPROP")
 subexport("Training", "TrainingQUICKPROP", "QUICKPROP")
 subexport("Training", "TrainingSARPROP", "SARPROP")
+subexport("Training", "TrainingINCREMENTAL", "Incremental")
+subexport("Training", "TrainingBATCH", "Batch")
+subexport("Training", "TrainingRPROP", "Rprop")
+subexport("Training", "TrainingQUICKPROP", "Quickprop")
+subexport("Training", "TrainingSARPROP", "Sarprop")
 
 submodule("Activation")
 subexport("Activation", "ActivationT", "T");
@@ -40,15 +45,35 @@ subexport("Activation", "ActivationSIN_SYMMETRIC", "SIN_SYMMETRIC")
 subexport("Activation", "ActivationCOS_SYMMETRIC", "COS_SYMMETRIC")
 subexport("Activation", "ActivationSIN", "SIN")
 subexport("Activation", "ActivationCOS", "COS")
+subexport("Activation", "ActivationT", "T");
+subexport("Activation", "ActivationLINEAR", "Linear")
+subexport("Activation", "ActivationTHRESHOLD", "Threshold")
+subexport("Activation", "ActivationTHRESHOLD_SYMMETRIC", "ThresholdSymmetric")
+subexport("Activation", "ActivationSIGMOID", "Sigmoid")
+subexport("Activation", "ActivationSIGMOID_STEPWISE", "SigmoidStepwise")
+subexport("Activation", "ActivationSIGMOID_SYMMETRIC", "SigmoidSymmetric")
+subexport("Activation", "ActivationSIGMOID_SYMMETRIC_STEPWISE", "SigmoidSymmetricStepwise")
+subexport("Activation", "ActivationGAUSSIAN", "Gaussian")
+subexport("Activation", "ActivationGAUSSIAN_SYMMETRIC", "GaussianSymmetric")
+subexport("Activation", "ActivationELLIOT", "Elliot")
+subexport("Activation", "ActivationELLIOT_SYMMETRIC", "ElliotSymmetric")
+subexport("Activation", "ActivationLINEAR_PIECE", "LinearPiece")
+subexport("Activation", "ActivationLINEAR_PIECE_SYMMETRIC", "LinearPieceSymmetric")
+subexport("Activation", "ActivationSIN_SYMMETRIC", "SinSymmetric")
+subexport("Activation", "ActivationCOS_SYMMETRIC", "CosSymmetric")
+subexport("Activation", "ActivationSIN", "Sin")
+subexport("Activation", "ActivationCOS", "Cos")
 
 submodule("Error")
 subexport("Error", "ErrorT", "T");
 subexport("Error", "ErrorLINEAR", "LINEAR")
 subexport("Error", "ErrorTANH", "TANH")
+subexport("Error", "ErrorLINEAR", "Linear")
+subexport("Error", "ErrorTANH", "Tanh")
 
 submodule("Stop")
 subexport("Stop", "StopT", "T");
 subexport("Stop", "StopMSE", "MSE")
 subexport("Stop", "StopBIT", "BIT")
-
+subexport("Stop", "StopBIT", "Bit")
 

@@ -1530,11 +1530,12 @@ METHOD("newv", TYP, Std$Type$T, TYP, T) {
 	return SUCCESS;
 };
 
-void _foreach(table_t *Table, int (*callback)(Std$Object$t *, Std$Object$t *, void *), void *Data) {
+int _foreach(table_t *Table, int (*callback)(Std$Object$t *, Std$Object$t *, void *), void *Data) {
 	traverser_t Trav[1];
 	for (node_t *Node = avl_t_first(Trav, Table); Node; Node = avl_t_next(Trav)) {
-		if (callback(Node->Key, Node->Value, Data)) return;
+		if (callback(Node->Key, Node->Value, Data)) return 1;
 	};
+	return 0;
 };
 
 traverser_t *_trav_new(void) {
