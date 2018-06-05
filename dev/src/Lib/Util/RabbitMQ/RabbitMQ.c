@@ -280,59 +280,46 @@ static int amqp_table_append(Std$Object$t *Key, Std$Object$t *Value, amqp_table_
 	return 0;
 }
 
+static Std$Object$t *amqp_table_convert(amqp_table_t *Table);
+
 static Std$Object$t *amqp_field_convert(amqp_field_value_t *Value) {
 	switch (Value->kind) {
 	case AMQP_FIELD_KIND_VOID:
-		Value = Std$Object$Nil;
-		break;
+		return Std$Object$Nil;
 	case AMQP_FIELD_KIND_BOOLEAN:
-		Value = Value->value.boolean ? $true : $false;
-		break;
+		return Value->value.boolean ? $true : $false;
 	case AMQP_FIELD_KIND_I8:
-		Value = Std$Integer$new_small(Value->value.i8);
-		break;
+		return Std$Integer$new_small(Value->value.i8);
 	case AMQP_FIELD_KIND_U8:
-		Value = Std$Integer$new_small(Value->value.u8);
-		break;
+		return Std$Integer$new_small(Value->value.u8);
 	case AMQP_FIELD_KIND_I16:
-		Value = Std$Integer$new_small(Value->value.i16);
-		break;
+		return Std$Integer$new_small(Value->value.i16);
 	case AMQP_FIELD_KIND_U16:
-		Value = Std$Integer$new_small(Value->value.u16);
-		break;
+		return Std$Integer$new_small(Value->value.u16);
 	case AMQP_FIELD_KIND_I32:
-		Value = Std$Integer$new_small(Value->value.i32);
-		break;
+		return Std$Integer$new_small(Value->value.i32);
 	case AMQP_FIELD_KIND_U32:
-		Value = Std$Integer$new_u64(Value->value.u32);
-		break;
+		return Std$Integer$new_u64(Value->value.u32);
 	case AMQP_FIELD_KIND_I64:
-		Value = Std$Integer$new_s64(Value->value.i64);
-		break;
+		return Std$Integer$new_s64(Value->value.i64);
 	case AMQP_FIELD_KIND_U64:
-		Value = Std$Integer$new_u64(Value->value.u64);
-		break;
+		return Std$Integer$new_u64(Value->value.u64);
 	case AMQP_FIELD_KIND_F32:
-		Value = Std$Real$new(Value->value.f32);
-		break;
+		return Std$Real$new(Value->value.f32);
 	case AMQP_FIELD_KIND_F64:
-		Value = Std$Real$new(Value->value.f64);
-		break;
+		return Std$Real$new(Value->value.f64);
 	case AMQP_FIELD_KIND_UTF8:
 	case AMQP_FIELD_KIND_BYTES:
-		Value = Std$String$copy_length(Value->value.bytes.bytes, Value->value.bytes.len);
-		break;
+		return Std$String$copy_length(Value->value.bytes.bytes, Value->value.bytes.len);
 	case AMQP_FIELD_KIND_TIMESTAMP:
-		Value = Sys$Time$new(Value->value.u64);
-		break;
+		return Sys$Time$new(Value->value.u64);
 	case AMQP_FIELD_KIND_TABLE:
-		Value = amqp_table_convert(&Value->value.table);
-		break;
+		return amqp_table_convert(&Value->value.table);
 	case AMQP_FIELD_KIND_ARRAY:
-		Value = Agg$List$new(0);
 		Value->value.array;
-		break;
+		return Agg$List$new(0);
 	}
+	return 0;
 }
 
 static Std$Object$t *amqp_table_convert(amqp_table_t *Table) {
