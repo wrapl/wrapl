@@ -23,7 +23,6 @@ export("SessionVar")
 export("ErrorMessageT")
 export("Message")
 export("IncorrectTypeMessageT")
-export("Build")
 export("Image")
 export("SetMissingIDFunc");
 export("LoadExpr")

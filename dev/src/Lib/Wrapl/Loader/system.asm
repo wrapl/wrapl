@@ -32,11 +32,6 @@ struct closure, Std$Object_t
 	.Scopes:
 endstruct
 
-global Build
-cstring Build
-	incbin "build"
-cstrend
-
 struct variadic, Std$Object_t
 	.Length: resv(Std$Integer_smallt)
 	.Args:
