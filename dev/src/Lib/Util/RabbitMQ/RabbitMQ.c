@@ -240,49 +240,71 @@ BASIC_PROPERTY_SETTER(user_id, USER_ID);
 BASIC_PROPERTY_SETTER(app_id, APP_ID);
 BASIC_PROPERTY_SETTER(cluster_id, CLUSTER_ID);
 
-static int amqp_table_append(Std$Object$t *Key, Std$Object$t *Value, amqp_table_t *Table) {
+static inline int table_append_riva(Std$Object$t *Key, Std$Object$t *Value, amqp_table_t *Table);
+
+static inline int riva_to_field(Std$Object$t *Value, amqp_field_value_t *Field) {
+	if (Value == Std$Object$Nil) {
+		Field->kind = AMQP_FIELD_KIND_VOID;
+		return 0;
+	} else if (Value == $true) {
+		Field->kind = AMQP_FIELD_KIND_BOOLEAN;
+		Field->value.boolean = 1;
+		return 0;
+	} else if (Value == $false) {
+		Field->kind = AMQP_FIELD_KIND_BOOLEAN;
+		Field->value.boolean = 0;
+		return 0;
+	} else if (Value->Type == Std$Integer$SmallT) {
+		Field->kind = AMQP_FIELD_KIND_I32;
+		Field->value.i32 = Std$Integer$get_small(Value);
+		return 0;
+	} else if (Value->Type == Std$Integer$BigT) {
+		Field->kind = AMQP_FIELD_KIND_U64;
+		Field->value.i32 = Std$Integer$get_u64(Value);
+		return 0;
+	} else if (Value->Type == Std$Real$T) {
+		Field->kind = AMQP_FIELD_KIND_F64;
+		Field->value.i32 = Std$Real$get_value(Value);
+		return 0;
+	} else if (Value->Type == Std$String$T) {
+		Field->kind = AMQP_FIELD_KIND_UTF8;
+		Field->value.bytes.len = Std$String$get_length(Value);
+		Field->value.bytes.bytes = Std$String$flatten(Value);
+		return 0;
+	} else if (Value->Type == Sys$Time$T) {
+		Field->kind = AMQP_FIELD_KIND_TIMESTAMP;
+		Field->value.u64 = ((Sys$Time$t *)Value)->Value;
+		return 0;
+	} else if (Value->Type == Agg$List$T) {
+		Field->kind = AMQP_FIELD_KIND_ARRAY;
+		int NumEntries = Field->value.array.num_entries = Agg$List$length(Value);
+		amqp_field_value_t *Entry = Field->value.array.entries = (amqp_field_value_t *)Riva$Memory$alloc(NumEntries * sizeof(amqp_field_value_t));
+		for (Agg$List$node *Node = ((Agg$List$t *)Value)->Head; Node; Node = Node->Next) {
+			if (riva_to_field(Node->Value, Entry++)) return 1;
+		}
+		return 0;
+	} else if (Value->Type == Agg$Table$T) {
+		Field->kind = AMQP_FIELD_KIND_TABLE;
+		Field->value.table.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Value) * sizeof(amqp_table_entry_t));
+		if (Agg$Table$foreach(Value, table_append_riva, &Field->value.table)) return 1;
+		return 0;
+	}
+	return 1;
+}
+
+static inline int table_append_riva(Std$Object$t *Key, Std$Object$t *Value, amqp_table_t *Table) {
 	if (Key->Type != Std$String$T) return 1;
 	amqp_table_entry_t *Entry = &Table->entries[Table->num_entries++];
 	Entry->key.len = Std$String$get_length(Key);
 	Entry->key.bytes = Std$String$flatten(Key);
-	if (Value == Std$Object$Nil) {
-		Entry->value.kind = AMQP_FIELD_KIND_VOID;
-	} else if (Value == $true) {
-		Entry->value.kind = AMQP_FIELD_KIND_BOOLEAN;
-		Entry->value.value.boolean = 1;
-	} else if (Value == $false) {
-		Entry->value.kind = AMQP_FIELD_KIND_BOOLEAN;
-		Entry->value.value.boolean = 0;
-	} else if (Value->Type == Std$Integer$SmallT) {
-		Entry->value.kind = AMQP_FIELD_KIND_I32;
-		Entry->value.value.i32 = Std$Integer$get_small(Value);
-	} else if (Value->Type == Std$Integer$BigT) {
-		Entry->value.kind = AMQP_FIELD_KIND_U64;
-		Entry->value.value.i32 = Std$Integer$get_u64(Value);
-	} else if (Value->Type == Std$Real$T) {
-		Entry->value.kind = AMQP_FIELD_KIND_F64;
-		Entry->value.value.i32 = Std$Real$get_value(Value);
-	} else if (Value->Type == Std$String$T) {
-		Entry->value.kind = AMQP_FIELD_KIND_UTF8;
-		Entry->value.value.bytes.len = Std$String$get_length(Value);
-		Entry->value.value.bytes.bytes = Std$String$flatten(Value);
-	} else if (Value->Type == Sys$Time$T) {
-		Entry->value.kind = AMQP_FIELD_KIND_TIMESTAMP;
-		Entry->value.value.u64 = ((Sys$Time$t *)Value)->Value;
-	} else if (Value->Type == Agg$List$T) {
-		Entry->value.kind = AMQP_FIELD_KIND_ARRAY;
-		Entry->value.value.array.num_entries = 0;
-	} else if (Value->Type == Agg$Table$T) {
-		Entry->value.kind = AMQP_FIELD_KIND_TABLE;
-		Entry->value.value.table.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Value) * sizeof(amqp_table_entry_t));
-		if (Agg$Table$foreach(Value, amqp_table_append, &Entry->value.value.table)) return 1;
-	}
+	riva_to_field(Value, &Entry->value);
 	return 0;
 }
 
-static Std$Object$t *amqp_table_convert(amqp_table_t *Table);
+static Std$Object$t *table_to_riva(amqp_table_t *Table);
+static Std$Object$t *array_to_riva(amqp_array_t *Array);
 
-static Std$Object$t *amqp_field_convert(amqp_field_value_t *Value) {
+static inline Std$Object$t *field_to_value(amqp_field_value_t *Value) {
 	switch (Value->kind) {
 	case AMQP_FIELD_KIND_VOID:
 		return Std$Object$Nil;
@@ -314,21 +336,29 @@ static Std$Object$t *amqp_field_convert(amqp_field_value_t *Value) {
 	case AMQP_FIELD_KIND_TIMESTAMP:
 		return Sys$Time$new(Value->value.u64);
 	case AMQP_FIELD_KIND_TABLE:
-		return amqp_table_convert(&Value->value.table);
+		return table_to_riva(&Value->value.table);
 	case AMQP_FIELD_KIND_ARRAY:
-		Value->value.array;
-		return Agg$List$new(0);
+		return array_to_riva(&Value->value.array);
 	}
 	return 0;
 }
 
-static Std$Object$t *amqp_table_convert(amqp_table_t *Table) {
+static Std$Object$t *table_to_riva(amqp_table_t *Table) {
 	Std$Object$t *Result = Agg$Table$new(Std$String$Compare, Std$String$Hash);
 	for (int I = 0; I < Table->num_entries; ++I) {
 		amqp_table_entry_t *Entry = &Table->entries[I];
 		Std$Object$t *Key = Std$String$copy_length(Entry->key.bytes, Entry->key.len);
-		Std$Object$t *Value = amqp_field_convert(&Entry->value);
+		Std$Object$t *Value = field_to_value(&Entry->value);
 		Agg$Table$insert(Result, Key, Value);
+	}
+	return Result;
+}
+
+static Std$Object$t *array_to_riva(amqp_array_t *Array) {
+	Std$Object$t *Result = Agg$List$new0();
+	for (int I = 0; I < Array->num_entries; ++I) {
+		Std$Object$t *Value = field_to_value(&Array->entries[I]);
+		Agg$List$put(Result, Value);
 	}
 	return Result;
 }
@@ -336,14 +366,14 @@ static Std$Object$t *amqp_table_convert(amqp_table_t *Table) {
 METHOD("headers", TYP, BasicPropertiesT) {
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;
 	if (!(Properties->Value->_flags & AMQP_BASIC_HEADERS_FLAG)) return FAILURE;
-	Result->Val = amqp_table_convert(&Properties->Value->headers);
+	Result->Val = table_to_riva(&Properties->Value->headers);
 	return SUCCESS;
 }
 
 METHOD("set_headers", TYP, BasicPropertiesT, TYP, Agg$Table$T) {
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;
 	Properties->Value->headers.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Args[1].Val) * sizeof(amqp_table_entry_t));
-	if (Agg$Table$foreach(Args[1].Val, amqp_table_append, &Properties->Value->headers)) {
+	if (Agg$Table$foreach(Args[1].Val, table_append_riva, &Properties->Value->headers)) {
 		Result->Val = Std$String$new("Error converting arguments to table");
 		return MESSAGE;
 	}
@@ -460,7 +490,7 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 			AutoDelete = 1;
 		} else if (Arg->Type == Agg$Table$T) {
 			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
-			if (Agg$Table$foreach(Arg, amqp_table_append, &Arguments)) {
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
 				Result->Val = Std$String$new("Error converting arguments into table");
 				return MESSAGE;
 			}
@@ -481,7 +511,7 @@ METHOD("queue_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, S
 		Std$Object$t *Arg = Args[I].Val;
 		if (Arg->Type == Agg$Table$T) {
 			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
-			if (Agg$Table$foreach(Arg, amqp_table_append, &Arguments)) {
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
 				Result->Val = Std$String$new("Error converting arguments into table");
 				return MESSAGE;
 			}
@@ -513,7 +543,7 @@ METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
 			Exclusive = 1;
 		} else if (Arg->Type == Agg$Table$T) {
 			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
-			if (Agg$Table$foreach(Arg, amqp_table_append, &Arguments)) {
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
 				Result->Val = Std$String$new("Error converting arguments into table");
 				return MESSAGE;
 			}
