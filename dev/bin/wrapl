@@ -78,7 +78,7 @@ DEF Init() (
 	Loader.SessionDef(global, "help", _help);
 	Loader.SessionDef(global, "load", <filename> stack:push(File.Open(filename, File.Flag.Read + File.Flag.Text)));
 	clients:put(Out);
-	Out:writes("Interactive Wrapl [", Config.Get("version"), ":", Loader.Build, "]\n");
+	Out:writes("Interactive Wrapl [", Config.Get("version"), "]\n");
 	VAR result, details, exec <- Loader.ExecNew();
 	Program.OnInt(exec);
 	Loader.SessionVar(global, "_", result);
@@ -127,7 +127,7 @@ DEF Init() (
 DEF ClientFunc(session, out) (
 	clients:put(out);
 	VAR thread <- 'thread{clients:size}';
-	out:writes('Interactive Wrapl [{Config.Get("version")}:{Loader.Build}] <{thread}>');
+	out:writes('Interactive Wrapl [{Config.Get("version")}] <{thread}>');
 	global:def(thread, Thread.Self());
 	VAR result, type;
 	Loader.SessionVar(session, "_", result);
