@@ -33,6 +33,7 @@ extern void detect_cpu_features();
 
 extern void debug_enter();
 extern void debug_break();
+extern void debug_message();
 extern void debug_exit();
 
 extern bool CmovSupport;

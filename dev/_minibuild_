@@ -20,4 +20,5 @@ if WEB then
 	subdir("web")
 else
 	subdir("obj")
+	subdir("bin")
 end

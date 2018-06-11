@@ -32,11 +32,6 @@ struct closure, Std$Object_t
 	.Scopes:
 endstruct
 
-global Build
-cstring Build
-	incbin "build"
-cstrend
-
 struct variadic, Std$Object_t
 	.Length: resv(Std$Integer_smallt)
 	.Args:
@@ -765,6 +760,19 @@ cfunction debug_break
 	push ebp
 	call debug_break_impl
 	add esp, byte 8
+	mov edx, [bstate(ebp).Ref]
+	mov ecx, [bstate(ebp).Val]
+	ret
+
+extern debug_message_impl
+cfunction debug_message
+	mov [bstate(ebp).Val], ecx
+	mov [bstate(ebp).Ref], edx
+	push ecx
+	push eax
+	push ebp
+	call debug_message_impl
+	add esp, byte 12
 	mov edx, [bstate(ebp).Ref]
 	mov ecx, [bstate(ebp).Val]
 	ret

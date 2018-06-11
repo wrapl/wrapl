@@ -52,10 +52,4 @@ file("keywords.c")[file("keywords.lst")] => fun(Target) do
 	execute("gperf", "-S3", "-LC++", "-C", "-t", "-KName", "-Zkeyword", "-Hhash", "-Nlookup", file("keywords.lst"), ">", Target)
 end
 
-file("system.o")[file("build")]
-
-file("build") => fun(Target) do
-	execute("svnversion", "-n", "../../../..", ">", Target)
-end
-
 WRAPL_MODULES[riva_module("Wrapl/Loader", Files)]

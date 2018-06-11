@@ -1,0 +1,21 @@
+var WRPP := OUT_BIN / "wrpp"
+
+var wrapl_program := fun(Name) do
+	var Source := file(Name)
+	(OUT_BIN / Name)[Source] => fun(Target) do
+		var Input := file(Name):open("r")
+		var Output := Target:open("w")
+		var Line := Input:read
+		Output:write(Line:replace("INTERPRETER", '{RIVA}'))
+		loop
+			Line := while Input:read
+			Output:write(Line)
+		end
+		Output:close
+		Input:close
+		execute("chmod +x", Target)
+	end
+end
+
+DEFAULT[wrapl_program("wrpp")]
+DEFAULT[wrapl_program("wrapl")]
