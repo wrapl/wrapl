@@ -3,6 +3,7 @@
 #include <Agg/Table.h>
 #include <Agg/List.h>
 #include <Sys/Time.h>
+#include <IO/Posix.h>
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
 #include <amqp_ssl_socket.h>
@@ -23,15 +24,15 @@ SYMBOL($internal, "internal")
 
 typedef struct connection_state_t {
 	const Std$Type$t *Type;
-	amqp_connection_state_t *Handle;
+	amqp_connection_state_t Handle;
 } connection_state_t;
 
 TYPE(T);
 
 typedef struct channel_t {
 	const Std$Type$t *Type;
-	amqp_connection_state_t *Connection;
-	int Index;
+	amqp_connection_state_t Connection;
+	amqp_channel_t Index;
 } channel_t;
 
 TYPE(ChannelT);
@@ -41,6 +42,13 @@ GLOBAL_FUNCTION(New, 0) {
 	Connection->Type = T;
 	Connection->Handle = amqp_new_connection();
 	Result->Val = (Std$Object$t *)Connection;
+	return SUCCESS;
+}
+
+METHOD("close", TYP, T) {
+	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
+	amqp_connection_close(Connection->Handle, AMQP_REPLY_SUCCESS);
+	Connection->Handle = 0;
 	return SUCCESS;
 }
 
@@ -61,8 +69,21 @@ METHOD("login", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 	int SaslMethod = AMQP_SASL_METHOD_PLAIN;
 	const char *UserName = Std$String$flatten(Args[5].Val);
 	const char *Password = Std$String$flatten(Args[6].Val);
-	amqp_login(Connection->Handle, VHost, ChannelMax, FrameMax, HeartBeat, SaslMethod, UserName, Password);
-	return SUCCESS;
+	amqp_rpc_reply_t Reply = amqp_login(Connection->Handle, VHost, ChannelMax, FrameMax, HeartBeat, SaslMethod, UserName, Password);
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Arg = Args[0];
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
 }
 
 METHOD("get_rpc_reply", TYP, T) {
@@ -178,7 +199,7 @@ METHOD("body", TYP, MessageT) {
 METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	int Index = Std$Integer$get_small(Args[1].Val);
-	amqp_channel_open(Connection->Handle, Index);
+	amqp_channel_open_ok_t *Ok = amqp_channel_open(Connection->Handle, Index);
 	channel_t *Channel = new(channel_t);
 	Channel->Type = ChannelT;
 	Channel->Connection = Connection->Handle;
@@ -187,7 +208,7 @@ METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 }
 
-METHOD("channel_close", TYP, ChannelT) {
+METHOD("close", TYP, ChannelT) {
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_channel_close(Channel->Connection, Channel->Index, AMQP_REPLY_SUCCESS);
 	Result->Arg = Args[0];
@@ -202,7 +223,7 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
@@ -616,7 +637,7 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 		Result->Arg = Args[0];
 		return SUCCESS;
 	} else {
-		Result->Val = Std$String$new("AMQP Error");
+		Result->Val = Std$String$new_format("AMQP Error: %s", amqp_error_string2(Status));
 		return MESSAGE;
 	}
 }
@@ -779,6 +800,12 @@ METHOD("tcp_socket", TYP, T) {
 	return SUCCESS;
 }
 
+METHOD("fd", TYP, SocketT) {
+	socket_t *Socket = (socket_t *)Args[0].Val;
+	Result->Val = IO$Posix$new(IO$Posix$T, amqp_socket_get_sockfd(Socket->Handle));
+	return SUCCESS;
+}
+
 METHOD("open", TYP, SocketT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	socket_t *Socket = (socket_t *)Args[0].Val;
 	const char *HostName = Std$String$flatten(Args[1].Val);
@@ -788,5 +815,14 @@ METHOD("open", TYP, SocketT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 		return MESSAGE;
 	}
 	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("socket", TYP, T) {
+	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
+	socket_t *Socket = new(socket_t);
+	Socket->Type = SocketT;
+	Socket->Handle = amqp_get_socket(Connection->Handle);
+	Result->Val = (Std$Object$t *)Socket;
 	return SUCCESS;
 }

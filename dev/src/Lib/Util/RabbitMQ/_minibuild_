@@ -4,18 +4,19 @@ RABBITMQ_LIB := file("lib/librabbitmq.a")
 
 RABBITMQ_LIB[RABBITMQ_DIR] => fun() do
 	var BuildDir := (RABBITMQ_DIR / "build"):mkdir
-	execute("cd", BuildDir, '&& cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
-	execute("cd", BuildDir, "&& cmake --build . --config Release --target install")
+	execute("cd", BuildDir, '&& CFLAGS=\"-fdata-sections -ffunction-sections -fno-pic\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	execute("cd", BuildDir, "&& make install")
 end
 
 RABBITMQ_DIR => fun() do
-	mkdir(RABBITMQ_DIR)
+	RABBITMQ_DIR:rmdir
+	RABBITMQ_DIR:mkdir
 	execute("cd", RABBITMQ_DIR, "&&",
 		"wget --user-agent=\"Firefox/3.6.12\" -nv", RABBITMQ_URL, "-O- | tar xvzP --strip-components=1"
 	)
 end
 
 CFLAGS := old + ["-I", file("include")]
-LDFLAGS := old + ["Riva/Memory.rlib"]
+LDFLAGS := old + ["Riva/Memory.rlib", "-d"]
 file("RabbitMQ.o")[RABBITMQ_LIB]
 riva_module("Util/RabbitMQ", [file("RabbitMQ.o")])

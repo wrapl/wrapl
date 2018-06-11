@@ -2,6 +2,7 @@ include("lib/librabbitmq.a")
 include("librt.so")
 include("Agg.rlib")
 include("Sys/Time.rlib")
+include("IO/Posix.rlib")
 
 export("T")
 export("New")
