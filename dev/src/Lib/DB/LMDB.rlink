@@ -1,0 +1,12 @@
+include("liblmdb.so")
+include("libpthread.rlib")
+include("IO/Stream.rlib")
+
+export("New")
+export("Open")
+export("Close")
+export("Begin")
+export("Commit")
+export("Abort")
+export("Renew")
+export("Reset")

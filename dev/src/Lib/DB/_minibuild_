@@ -3,3 +3,4 @@ LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedF
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
 riva_module("DB/Sqlite", [file("SqliteRiva.o"), file("Sqlite3.o")])
+riva_module("DB/LMDB", [file("LMDB.o")])

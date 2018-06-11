@@ -16,6 +16,10 @@ SYMBOL($no_local, "no_local");
 SYMBOL($no_ack, "no_ack");
 SYMBOL($mandatory, "mandatory");
 SYMBOL($immediate, "immediate");
+SYMBOL($empty, "empty")
+SYMBOL($unused, "unused")
+SYMBOL($requeue, "requeue")
+SYMBOL($internal, "internal")
 
 typedef struct connection_state_t {
 	const Std$Type$t *Type;
@@ -63,9 +67,21 @@ METHOD("login", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 
 METHOD("get_rpc_reply", TYP, T) {
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
-	amqp_get_rpc_reply(Connection->Handle);
-	Result->Arg = Args[0];
-	return SUCCESS;
+	amqp_rpc_reply_t Reply = amqp_get_rpc_reply(Connection->Handle);
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Arg = Args[0];
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
 }
 
 typedef struct envelope_t {
@@ -81,6 +97,29 @@ METHOD("consume_message", TYP, T) {
 	Envelope->Type = EnvelopeT;
 	amqp_rpc_reply_t Reply = amqp_consume_message(Connection->Handle, Envelope->Value, NULL, 0);
 	Result->Val = (Std$Object$t *)Envelope;
+	return SUCCESS;
+}
+
+METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
+	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
+	Sys$Time$precise_t *Time = (Sys$Time$precise_t *)Args[1].Val;
+	envelope_t *Envelope = new(envelope_t);
+	Envelope->Type = EnvelopeT;
+	amqp_rpc_reply_t Reply = amqp_consume_message(Connection->Handle, Envelope->Value, &Time->Value, 0);
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Val = (Std$Object$t *)Envelope;
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
 	return SUCCESS;
 }
 
@@ -157,9 +196,42 @@ METHOD("channel_close", TYP, ChannelT) {
 
 METHOD("get_rpc_reply", TYP, ChannelT) {
 	channel_t *Channel = (channel_t *)Args[0].Val;
-	amqp_get_rpc_reply(Channel->Connection);
-	Result->Arg = Args[0];
-	return SUCCESS;
+	amqp_rpc_reply_t Reply = amqp_get_rpc_reply(Channel->Connection);
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Arg = Args[0];
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
+}
+
+METHOD("read_message", TYP, ChannelT) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	message_t *Message = new(message_t);
+	Message->Type = MessageT;
+	amqp_rpc_reply_t Reply = amqp_read_message(Channel->Connection, Channel->Index, Message->Value, 0);;
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Val = (Std$Object$t *)Message;
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
 }
 
 typedef struct basic_properties_t {
@@ -168,27 +240,6 @@ typedef struct basic_properties_t {
 } basic_properties_t;
 
 TYPE(BasicPropertiesT);
-
-/*
-#define AMQP_BASIC_CONTENT_TYPE_FLAG (1 << 15)
-#define AMQP_BASIC_CONTENT_ENCODING_FLAG (1 << 14)
-#define AMQP_BASIC_HEADERS_FLAG (1 << 13)
-#define AMQP_BASIC_DELIVERY_MODE_FLAG (1 << 12)
-#define AMQP_BASIC_PRIORITY_FLAG (1 << 11)
-#define AMQP_BASIC_CORRELATION_ID_FLAG (1 << 10)
-#define AMQP_BASIC_REPLY_TO_FLAG (1 << 9)
-#define AMQP_BASIC_EXPIRATION_FLAG (1 << 8)
-#define AMQP_BASIC_MESSAGE_ID_FLAG (1 << 7)
-#define AMQP_BASIC_TIMESTAMP_FLAG (1 << 6)
-#define AMQP_BASIC_TYPE_FLAG (1 << 5)
-#define AMQP_BASIC_USER_ID_FLAG (1 << 4)
-#define AMQP_BASIC_APP_ID_FLAG (1 << 3)
-#define AMQP_BASIC_CLUSTER_ID_FLAG (1 << 2)
-typedef struct amqp_basic_properties_t_ {
-  amqp_flags_t _flags;
-  uint8_t priority;
-} amqp_basic_properties_t;
-*/
 
 GLOBAL_FUNCTION(BasicPropertiesNew, 0) {
 	basic_properties_t *Properties = new(basic_properties_t);
@@ -363,6 +414,9 @@ static Std$Object$t *array_to_riva(amqp_array_t *Array) {
 	return Result;
 }
 
+#define STRING_TO_BYTES(Val) (amqp_bytes_t){Std$String$get_length(Val), Std$String$flatten(Val)}
+#define BYTES_TO_STRING(Val) Std$String$copy_length(Val.bytes Val.len)
+
 METHOD("headers", TYP, BasicPropertiesT) {
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;
 	if (!(Properties->Value->_flags & AMQP_BASIC_HEADERS_FLAG)) return FAILURE;
@@ -440,37 +494,6 @@ METHOD("set_delivery_mode", TYP, BasicPropertiesT, TYP, DeliveryModeT) {
 	return SUCCESS;
 }
 
-METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
-	channel_t *Channel = (channel_t *)Args[0].Val;
-	amqp_boolean_t Mandatory = 0;
-	amqp_boolean_t Immediate = 0;
-	amqp_basic_properties_t *Properties = 0;
-	for (int I = 5; I < Count; ++I) {
-		Std$Object$t *Arg = Args[I].Val;
-		if (Arg == $mandatory) {
-			Mandatory = 1;
-		} else if (Arg == $immediate) {
-			Immediate = 1;
-		} else if (Arg->Type == BasicPropertiesT) {
-			Properties = ((basic_properties_t *)Arg)->Value;
-		}
-	}
-	amqp_status_enum Status = amqp_basic_publish(
-		Channel->Connection, Channel->Index,
-		(amqp_bytes_t){Std$String$get_length(Args[2].Val), Std$String$flatten(Args[2].Val)},
-		(amqp_bytes_t){Std$String$get_length(Args[3].Val), Std$String$flatten(Args[3].Val)},
-		Mandatory, Immediate, Properties,
-		(amqp_bytes_t){Std$String$get_length(Args[3].Val), Std$String$flatten(Args[4].Val)}
-	);
-	if (Status == AMQP_STATUS_OK) {
-		Result->Arg = Args[0];
-		return SUCCESS;
-	} else {
-		Result->Val = Std$String$new("AMQP Error");
-		return MESSAGE;
-	}
-}
-
 METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_boolean_t Passive = 0;
@@ -478,7 +501,7 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 	amqp_boolean_t Exclusive = 0;
 	amqp_boolean_t AutoDelete = 0;
 	amqp_table_t Arguments = amqp_empty_table;
-	for (int I = 3; I < Count; ++I) {
+	for (int I = 2; I < Count; ++I) {
 		Std$Object$t *Arg = Args[I].Val;
 		if (Arg == $passive) {
 			Passive = 1;
@@ -497,8 +520,7 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 		}
 	}
 	amqp_queue_declare_ok_t *Ok = amqp_queue_declare(Channel->Connection, Channel->Index,
-		(amqp_bytes_t){Std$String$get_length(Args[2].Val), Std$String$flatten(Args[2].Val)},
-		Passive, Durable, Exclusive, AutoDelete, Arguments
+		STRING_TO_BYTES(Args[1].Val), Passive, Durable, Exclusive, AutoDelete, Arguments
 	);
 	Result->Arg = Args[0];
 	return SUCCESS;
@@ -507,7 +529,7 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 METHOD("queue_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_table_t Arguments = amqp_empty_table;
-	for (int I = 3; I < Count; ++I) {
+	for (int I = 4; I < Count; ++I) {
 		Std$Object$t *Arg = Args[I].Val;
 		if (Arg->Type == Agg$Table$T) {
 			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
@@ -518,13 +540,85 @@ METHOD("queue_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, S
 		}
 	}
 	amqp_queue_bind_ok_t *Ok = amqp_queue_bind(Channel->Connection, Channel->Index,
-		(amqp_bytes_t){Std$String$get_length(Args[2].Val), Std$String$flatten(Args[2].Val)},
-		(amqp_bytes_t){Std$String$get_length(Args[3].Val), Std$String$flatten(Args[3].Val)},
-		(amqp_bytes_t){Std$String$get_length(Args[4].Val), Std$String$flatten(Args[4].Val)},
-		Arguments
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), STRING_TO_BYTES(Args[3].Val), Arguments
 	);
 	Result->Arg = Args[0];
 	return SUCCESS;
+}
+
+METHOD("queue_purge", TYP, ChannelT, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_queue_purge_ok_t *Ok = amqp_queue_purge(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val)
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("queue_delete", TYP, ChannelT, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t IfUnused = 0;
+	amqp_boolean_t IfEmpty = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $unused) {
+			IfUnused = 1;
+		} else if (Arg == $empty) {
+			IfEmpty = 1;
+		}
+	}
+	amqp_queue_delete_ok_t *Ok = amqp_queue_delete(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), IfUnused, IfEmpty
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("queue_unbind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_table_t Arguments = amqp_empty_table;
+	for (int I = 4; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg->Type == Agg$Table$T) {
+			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
+				Result->Val = Std$String$new("Error converting arguments into table");
+				return MESSAGE;
+			}
+		}
+	}
+	amqp_queue_unbind_ok_t *Ok = amqp_queue_unbind(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), STRING_TO_BYTES(Args[3].Val), Arguments
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t Mandatory = 0;
+	amqp_boolean_t Immediate = 0;
+	amqp_basic_properties_t *Properties = 0;
+	for (int I = 4; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $mandatory) {
+			Mandatory = 1;
+		} else if (Arg == $immediate) {
+			Immediate = 1;
+		} else if (Arg->Type == BasicPropertiesT) {
+			Properties = ((basic_properties_t *)Arg)->Value;
+		}
+	}
+	amqp_status_enum Status = amqp_basic_publish(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), Mandatory, Immediate, Properties, STRING_TO_BYTES(Args[3].Val)
+	);
+	if (Status == AMQP_STATUS_OK) {
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else {
+		Result->Val = Std$String$new("AMQP Error");
+		return MESSAGE;
+	}
 }
 
 METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
@@ -550,9 +644,120 @@ METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
 		}
 	}
 	amqp_basic_consume_ok_t *Ok = amqp_basic_consume(Channel->Connection, Channel->Index,
-		(amqp_bytes_t){Std$String$get_length(Args[2].Val), Std$String$flatten(Args[2].Val)},
-		(amqp_bytes_t){Std$String$get_length(Args[3].Val), Std$String$flatten(Args[3].Val)},
-		NoLocal, NoAck, Exclusive, Arguments
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), NoLocal, NoAck, Exclusive, Arguments
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("basic_cancel", TYP, ChannelT, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_basic_cancel_ok_t *Ok = amqp_basic_cancel(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val)
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("basic_recover", TYP, ChannelT) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t Requeue = 0;
+	for (int I = 3; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $requeue) {
+			Requeue = 1;
+		}
+	}
+	amqp_basic_recover_ok_t *Ok = amqp_basic_recover(Channel->Connection, Channel->Index,
+		Requeue
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("exchange_declare", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t Passive = 0;
+	amqp_boolean_t Durable = 0;
+	amqp_boolean_t AutoDelete = 0;
+	amqp_boolean_t Internal = 0;
+	amqp_table_t Arguments = amqp_empty_table;
+	for (int I = 3; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $passive) {
+			Passive = 1;
+		} else if (Arg == $durable) {
+			Durable = 1;
+		} else if (Arg == $internal) {
+			Internal = 1;
+		} else if (Arg == $auto_delete) {
+			AutoDelete = 1;
+		} else if (Arg->Type == Agg$Table$T) {
+			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
+				Result->Val = Std$String$new("Error converting arguments into table");
+				return MESSAGE;
+			}
+		}
+	}
+	amqp_exchange_declare_ok_t *Ok = amqp_exchange_declare(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), Passive, Durable, AutoDelete, Internal, Arguments
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("exchange_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_table_t Arguments = amqp_empty_table;
+	for (int I = 4; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg->Type == Agg$Table$T) {
+			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
+				Result->Val = Std$String$new("Error converting arguments into table");
+				return MESSAGE;
+			}
+		}
+	}
+	amqp_exchange_bind_ok_t *Ok = amqp_exchange_bind(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), STRING_TO_BYTES(Args[3].Val), Arguments
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("exchange_delete", TYP, ChannelT, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t IfUnused = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $unused) {
+			IfUnused = 1;
+		}
+	}
+	amqp_exchange_delete_ok_t *Ok = amqp_exchange_delete(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), IfUnused
+	);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("exchange_unbind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_table_t Arguments = amqp_empty_table;
+	for (int I = 4; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg->Type == Agg$Table$T) {
+			Arguments.entries = (amqp_table_entry_t *)Riva$Memory$alloc(Agg$Table$size(Arg) * sizeof(amqp_table_entry_t));
+			if (Agg$Table$foreach(Arg, table_append_riva, &Arguments)) {
+				Result->Val = Std$String$new("Error converting arguments into table");
+				return MESSAGE;
+			}
+		}
+	}
+	amqp_exchange_unbind_ok_t *Ok = amqp_exchange_unbind(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), STRING_TO_BYTES(Args[3].Val), Arguments
 	);
 	Result->Arg = Args[0];
 	return SUCCESS;
