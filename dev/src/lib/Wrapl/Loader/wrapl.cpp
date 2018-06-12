@@ -3,6 +3,8 @@
 #include <IO/File.h>
 #include <string.h>
 #include <Sys/Module.h>
+#include <Agg/List.h>
+#include <Agg/Table.h>
 
 #include <stdlib.h>
 #include "parser.h"
@@ -184,6 +186,7 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
 	}
+	if (Count > 1) Compiler->MissingIDFunc = Args[1].Val;
 	return Expr->evaluate(Compiler, Result);
 }
 
@@ -212,8 +215,194 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 		Result->Val = (Std$Object_t *)Error;
 		return MESSAGE;
 	}
+	if (Count > 1) Compiler->MissingIDFunc = Args[1].Val;
 	return Expr->evaluate(Compiler, Result);
 }
+
+SYMBOL($AT, "@");
+ASYMBOL(WriteExpr);
+// Writes the representation for a value to a stream.
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$Number$T) {
+//:IO$Stream$T
+	Std$Function$result Result0;
+	Std$Function$call((Std$Object_t *)$AT, 2, &Result0, Args[1].Val, 0, Std$String$T, 0);
+	Std$String$t *String = (Std$String$t *)Result0.Val;
+	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
+		IO$Stream$write(Args[0].Val, (const char *)Block->Chars.Value, Block->Length.Value, 1);
+	}
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$String$T) {
+//:IO$Stream$T
+	Std$Object$t *Stream = Args[0].Val;
+	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	IO$Stream$write(Stream, "\"", 1, 1);
+	Std$String$t *String = (Std$String$t *)Args[1].Val;
+	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
+		const char *I = Block->Chars.Value;
+		const char *J = I;
+		const char *L = I + Block->Length.Value;
+		for (; J < L; ++J) {
+			char Char = *J;
+			if (Char == '\"') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\\"", 2, 1);
+				I = J;
+			} else if (Char == '\\') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\\\", 2, 1);
+				I = J;
+			} else if (Char == '\'') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\\'", 2, 1);
+				I = J;
+			} else if (Char == '\t') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\t", 2, 1);
+				I = J;
+			} else if (Char == '\r') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\r", 2, 1);
+				I = J;
+			} else if (Char == '\n') {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				IO$Stream$write(Stream, "\\n", 2, 1);
+				I = J;
+			} else if ((Char < ' ') || (Char >= 0x80)) {
+				if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+				char Tmp[4] = {'\\', 'x', Hex[Char / 16], Hex[Char % 16]};
+				IO$Stream$write(Stream, Tmp, 4, 1);
+				I = J;
+			}
+		}
+		if (I < J) IO$Stream$write(Stream, I, J - I, 1);
+	}
+	IO$Stream$write(Stream, "\"", 1, 1);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$Symbol$T) {
+//:IO$Stream$T
+	Std$Object$t *Stream = Args[0].Val;
+	IO$Stream$write(Stream, ":", 1, 1);
+	return Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, ((Std$Symbol$t *)Args[1].Val)->Name, 0);
+}
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$List$T) {
+//:IO$Stream$T
+	Std$Object$t *Stream = Args[0].Val;
+	Agg$List$node *Node = ((Agg$List$t *)Args[1].Val)->Head;
+	if (Node) {
+		IO$Stream$write(Stream, "[", 1, 1);
+		Std$Function_result Buffer;
+		switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
+		case SUSPEND: case SUCCESS:
+			break;
+		case FAILURE:
+			Result->Val = Std$String$new("WriteExpr error");
+		case MESSAGE:
+			return MESSAGE;
+		};
+		while (Node = Node->Next) {
+			IO$Stream$write(Stream, ", ", 2, 1);
+			switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
+			case SUSPEND: case SUCCESS:
+				break;
+			case FAILURE:
+				Result->Val = Std$String$new("WriteExpr error");
+			case MESSAGE:
+				return MESSAGE;
+			};
+		};
+		IO$Stream$write(Stream, "]", 1, 1);
+	} else {
+		IO$Stream$write(Stream, "[]", 2, 1);
+	}
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$Table$T) {
+//:IO$Stream$T
+	Std$Object$t *Stream = Args[0].Val;
+	Agg$Table$trav *Trav = Agg$Table$trav_new();
+	Std$Object$t *Node = Agg$Table$trav_first(Trav, Args[1].Val);
+	if (!Node) {
+		IO$Stream$write(Stream, "{}", 2, 1);
+		Result->Arg = Args[0];
+		return SUCCESS;
+	}
+
+	IO$Stream$write(Stream, "{", 1, 1);
+	do {
+		Std$Function_result Buffer;
+		switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Agg$Table$node_key(Node), 0)) {
+		case SUSPEND: case SUCCESS:
+			break;
+		case FAILURE:
+			Result->Val = Std$String$new("WriteExpr error");
+		case MESSAGE:
+			return MESSAGE;
+		};
+		Std$Object$t *Value = Agg$Table$node_value(Node);
+		if (Value != Std$Object$Nil) {
+			IO$Stream$write(Stream, " IS ", 4, 1);
+			switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Value, 0)) {
+			case SUSPEND: case SUCCESS:
+				break;
+			case FAILURE:
+				Result->Val = Std$String$new("WriteExpr error");
+			case MESSAGE:
+				return MESSAGE;
+			}
+		}
+		Node = Agg$Table$trav_next(Trav);
+		if (Node) IO$Stream$write(Stream, ", ", 2, 1);
+	} while (Node);
+	IO$Stream$write(Stream, "}", 1, 1);
+	Result->Arg = Args[0];
+	return SUCCESS;
+};
+
+AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, VAL, Std$Object$Nil) {
+//:IO$Stream$T
+	IO$Stream$write(Args[0].Val, "NIL", 3, 1);
+	Result->Arg = Args[0];
+	return SUCCESS;
+};
+
+GLOBAL_FUNCTION(SaveExpr, 2) {
+//@filename:Std$String$T
+//expr:ANY
+//:ANY
+// Evaluates the expression contained in the file <var>filename</var> and returns the result.
+	const char *Path = Std$String$flatten(Args[0].Val);
+	IO$Stream_t *Stream = (IO$Stream_t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_WRITE | IO$File$OPEN_TEXT));
+	if (Stream == 0) {
+		errormessage_t *Error = new errormessage_t;
+		Error->Type = SourceErrorMessageT;
+		Error->LineNo = 0;
+		Error->Message = "Error: error opening file";
+		Result->Val = (Std$Object_t *)Error;
+		return MESSAGE;
+	}
+	Std$Function$status Status = Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Args[1].Val, 0);
+	IO$Stream$close(Stream, IO$Stream$CLOSE_WRITE);
+	switch (Status) {
+	case SUSPEND: case SUCCESS:
+		Result->Arg = Args[1];
+		return SUCCESS;
+	case FAILURE:
+		Result->Val = Std$String$new("WriteExpr error");
+	case MESSAGE:
+		return MESSAGE;
+	}
+}
+
 
 struct session_t {
 	const Std$Type_t *Type;
