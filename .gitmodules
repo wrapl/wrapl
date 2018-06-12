@@ -1,3 +1,3 @@
-[submodule "dev/src/Rabs"]
-	path = dev/src/Rabs
+[submodule "dev/src/rabs"]
+	path = dev/src/rabs
 	url = https://github.com/wrapl/rabs
