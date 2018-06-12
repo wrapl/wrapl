@@ -186,8 +186,8 @@ c_program := fun(Executable, Objects, Libraries) do
 	DEFAULT[Executable]
 end
 
-UDIS_LIB := file("Rlink/libudis86.a")
+UDIS_LIB := file("rlink/libudis86.a")
 
-subdir("Rlink")
-subdir("Riva")
-subdir("Lib")
+subdir("rlink")
+subdir("riva")
+subdir("lib")
