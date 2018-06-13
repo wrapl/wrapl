@@ -1,1 +1,3 @@
 subdir("Loader")
+
+wrapl_module("Wrapl")

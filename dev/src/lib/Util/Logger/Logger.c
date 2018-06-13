@@ -78,7 +78,7 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	if (StreamWriter->Level < LogLevel) return SUCCESS;
 	Std$Object$t *Stream = StreamWriter->Stream;
 	IO$Stream_writefn write = StreamWriter->write;
-	write(Stream, "{\"@timestamp\":\"", 1, 1);
+	write(Stream, "{\"@timestamp\":\"", strlen("{\"@timestamp\":\""), 1);
 	char Buffer[256];
 	time_t Time = time(0);
 	struct tm FullTime;
@@ -109,7 +109,6 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	write(Stream, "\",\"level_value\":", strlen("\",\"level_value\":"), 1);
 	BufferLength = sprintf(Buffer, "%d", StreamWriter->Level);
 	write(Stream, Buffer, BufferLength, 1);
-	write(Stream, "\"", 1, 1);
 	if (FieldNames) {
 		while (Index < Count) {
 			write(Stream, ",\"", 2, 1);

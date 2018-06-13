@@ -44,6 +44,13 @@ GLOBAL_FUNCTION(New, 0) {
 	return SUCCESS;
 }
 
+METHOD("close", TYP, T) {
+	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
+	amqp_connection_close(Connection->Handle, AMQP_RESPONSE_NORMAL);
+	Connection->Handle = 0;
+	return SUCCESS;
+}
+
 METHOD("destroy", TYP, T) {
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	amqp_destroy_connection(Connection->Handle);
@@ -187,7 +194,7 @@ METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 }
 
-METHOD("channel_close", TYP, ChannelT) {
+METHOD("close", TYP, ChannelT) {
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_channel_close(Channel->Connection, Channel->Index, AMQP_REPLY_SUCCESS);
 	Result->Arg = Args[0];
