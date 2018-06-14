@@ -1,11 +1,13 @@
 MOD Main;
 
 IMP IO.File;
-IMP IO.Terminal USE In, Out;
+IMP IO.Terminal USE In, Out, Err;
 IMP Sys.Program USE Args, Exit;
 IMP Sys.FileSys;
 IMP IO.Process;
+IMP IO.Stream;
 IMP Std.Integer;
+IMP Wrapl USE WriteExpr;
 
 DEF Item <- <[] line, comment>;
 DEF Module <- <[Item] path>;
@@ -18,7 +20,18 @@ DEF Symbol <- <[Item] name>;
 DEF Param <- <[] name, type, value>;
 DEF SubModule <- <[Item] name, comment, subitems>; 
 
-VAR xmlfile;
+DEF TypeNames {
+	Item IS "Item",
+	Module IS "Module",
+	Method IS "Method",
+	AMethod IS "AMethod",
+	Function IS "Function",
+	Type IS "Type",
+	Constant IS "Constant",
+	Symbol IS "Symbol",
+	Param IS "Param",
+	SubModule IS "SubModule"
+};
 
 DEF Entities <- {"<" IS "&lt;", ">" IS "&gt;", "&" IS "&amp;"};
 
@@ -33,6 +46,35 @@ DEF Escape(text) (
 	RET r;
 	);
 	RET text;
+);
+
+VAR exprfile;
+VAR xmlfile;
+
+TO WriteExpr(stream @ Stream.T, item @ Item) (
+	VAR type <- ?item;
+	stream:write(TypeNames[type]);
+	stream:write("(");
+	VAR fields <- type:fields, field <- fields[1];
+	WriteExpr(stream, field(item));
+	EVERY field <- 1 SKIP fields:values DO (
+		stream:write(",");
+		WriteExpr(stream, field(item));
+	);
+	stream:write(")");
+);
+
+TO WriteExpr(stream @ Stream.T, item @ Param) (
+	VAR type <- ?item;
+	stream:write(TypeNames[type]);
+	stream:write("(");
+	VAR fields <- type:fields, field <- fields[1];
+	WriteExpr(stream, field(item));
+	EVERY field <- 1 SKIP fields:values DO (
+		stream:write(",");
+		WriteExpr(stream, field(item));
+	);
+	stream:write(")");
 );
 
 TO :write(item@Item) (
@@ -142,6 +184,7 @@ VAR module;
 VAR includes <- [];
 VAR libdirs <- [];
 VAR xmlfilename;
+VAR exprfilename;
 VAR asm <- "nasm";
 
 VAR i <- 1, option;
@@ -153,6 +196,8 @@ REP (WHILE option <- Args[i];
 			libdirs:put(option[3, 0] | Args[i <- i + 1] | SEND "-L expects directory");
 		) // option[2] = "o" => (
 			xmlfilename <- option[3, 0] | Args[i <- i + 1] | SEND "-o expects a filename";
+		) // option[2] = "x" => (
+			exprfilename <- option[3, 0] | Args[i <- i + 1] | SEND "-x expects a filename";
 		) // option[2] = "a" => (
 			asm <- option[3, 0] | SEND "-a expects an assembler name";
 		) // option[2, 0] = "include" ⇒ (
@@ -263,7 +308,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				info <- ALL line:split(", ");
 				item <- Method();
 				item:line <- info:pop@Integer.T;
-				item:symbol <- Escape(info:pop[2,-1]);
+				item:symbol <- Escape(info:pop[2,-1]:map(["\"\""], [""]));
 				item:signature <- info;
 				item:comment <- [];
 				item:params <- [];
@@ -292,7 +337,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				item2:count <- info:pop@Integer.T;
 				item <- Method();
 				item:line <- item2:line;
-				item:symbol <- Escape(info:pop[2,-1]);
+				item:symbol <- Escape(info:pop[2,-1]:map(["\"\""], [""]));
 				item:signature <- info;
 				item2:comment <- item:comment <- [];
 				item2:params <- item:params <- [];
@@ -579,16 +624,86 @@ EVERY file <- Args[i:to(Args:length)] DO (
 		RECV msg DO Out:write('Warning: <{oline}> {msg}\n');
 	) IS "wrapl" DO (
 		VAR wrapl <- File.Open(file, File.Flag.Read + File.Flag.Text);
-		VAR line, lineno <- 0;
+		VAR line, lineno <- 0, item, info, info2;
 		REP (WHILE line <- wrapl:read;
 			lineno <- $ + 1;
-			
+			line:begins("DEF ") & line:find("!(") => (
+				item <- Function();
+				item:name <- line[5, line:find("!")];
+				info <- ALL line:after("("):before(")"):split(",");
+				item:comment <- [];
+				item:params <- [];
+				EVERY info2 <- info:values DO (
+					VAR param <- Param(info2:before(" "));
+					param:type <- info2[info2:find("@") + 1, 0]:before("|"):map([" ", "."], ["", "/"]);
+					param:value <- info2[info2:find("|") + 1, 0]:map([" ", "."], ["", "/"]);
+					item:params:put(param);
+				);
+				REP (lineno <- lineno + 1;
+					WHILE (line <- wrapl:read)[1, 3] = "--";
+					line[3] = ":" => (
+						item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) // line:begins("DEF ") & line:find("! <[") => (
+				item <- Type();
+				item:name <- line[5, line:find("!")];
+				info <- ALL line:after("["):before("]"):split(",");
+				item:parents <- ALL info:values:before(" "):after(" "):map(".", "/");
+				item:comment <- [];
+				REP (lineno <- lineno + 1;
+					WHILE (line <- wrapl:read)[1, 3] = "--";
+					line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			) // line:begins("DEF ") & line:find("! :?") => (
+				item <- AMethod();
+				item:symbol <- line[5, line:find("!")];
+				-- TODO: Finish this
+			) // line:begins("METH ") => (
+				item <- Method();
+				item:symbol <- Escape(line[6, 0]:before("("));
+				item:signature <- [];
+				info <- ALL line:after("("):before(")"):split(",");
+				item:comment <- [];
+				item:params <- [];
+				EVERY info2 <- info:values DO (
+					VAR param <- Param();
+					info2:after(" "):begins("@" | "=") => (
+						param:name <- "_";
+					) // (
+						param:name <- info2:before(" "):before("@"):before("=");
+					);
+					item:params:put(param);
+					item:signature:put("TYP", info2[info2:find("@") + 1, 0]:before("|"):map([" ", "."], ["", "/"])) // item:signature:put("VAL",  info2[info2:find("|") + 1, 0]:map([" ", "."], ["", "/"])) // item:signature:put("SKP");
+				);
+				REP (lineno <- lineno + 1;
+					WHILE (line <- wrapl:read)[1, 3] = "--";
+					line[3] = ":" => (
+						item:return <- line[4, 0];
+					) // line[3] = " " => (
+						item:comment:put(line[4, 0]);
+					) // (
+						item:comment:put(line[3, 0]);
+					);
+				);
+				items:put(item);
+			);
 		);
 		wrapl:close;
 	) DO (
 		SEND "unknown filetype";
 	);
-	RECV msg DO Out:write('{file}: warning: {msg}\n');
+	RECV msg DO Err:write('{file}: warning: {msg}\n');
 );
 
 items:sort(<a, b> (
@@ -605,22 +720,33 @@ items:sort(<a, b> (
 	RET;
 ));
 
-VAR parts <- ALL xmlfilename:split("/");
-parts:pull;
-VAR path <- xmlfilename[1] = "/" => '/{parts:pop}' // parts:pop;
-REP (
-	FileSys.Exists(path) // FileSys.MakeDir(path, 511);
-	WHILE path <- '{path}/{parts:pop}';
-);
-
-
 xmlfilename ~== NIL => (
+	VAR parts <- ALL xmlfilename:split("/");
+	parts:pull;
+	VAR path <- xmlfilename[1] = "/" => '/{parts:pop}' // parts:pop;
+	REP (
+		FileSys.Exists(path) // FileSys.MakeDir(path, 511);
+		WHILE path <- '{path}/{parts:pop}';
+	);
 	xmlfile <- File.Open(xmlfilename, File.Flag.Write + File.Flag.Text);
 	xmlfile:write('<?xml version="1.0" encoding="UTF-8"?>\n');
 	xmlfile:write('<module path="{module}">\n');
 	EVERY items:values:write;
 	xmlfile:write("</module>");
 	xmlfile:close;
+);
+
+exprfilename ~== NIL => (
+	VAR parts <- ALL exprfilename:split("/");
+	parts:pull;
+	VAR path <- exprfilename[1] = "/" => '/{parts:pop}' // parts:pop;
+	REP (
+		FileSys.Exists(path) // FileSys.MakeDir(path, 511);
+		WHILE path <- '{path}/{parts:pop}';
+	);
+	exprfile <- File.Open(exprfilename, File.Flag.Write + File.Flag.Text);
+	WriteExpr(exprfile, items);
+	exprfile:close;
 );
 
 Program.Exit(0);

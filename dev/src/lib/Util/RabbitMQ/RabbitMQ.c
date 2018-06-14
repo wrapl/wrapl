@@ -267,7 +267,7 @@ METHOD(#Name, TYP, BasicPropertiesT) {\
 }\
 
 #define BASIC_PROPERTY_SETTER(Name, FlagName)\
-METHOD("set_" #Name, TYP, BasicPropertiesT, TYP, Std$String$T) {\
+METHOD("set_"#Name, TYP, BasicPropertiesT, TYP, Std$String$T) {\
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;\
 	Properties->Value->Name.bytes = Std$String$flatten(Args[1].Val);\
 	Properties->Value->Name.len = Std$String$get_length(Args[1].Val);\
