@@ -16,10 +16,12 @@ SYMBOL($no_local, "no_local");
 SYMBOL($no_ack, "no_ack");
 SYMBOL($mandatory, "mandatory");
 SYMBOL($immediate, "immediate");
-SYMBOL($empty, "empty")
-SYMBOL($unused, "unused")
-SYMBOL($requeue, "requeue")
-SYMBOL($internal, "internal")
+SYMBOL($empty, "empty");
+SYMBOL($unused, "unused");
+SYMBOL($requeue, "requeue");
+SYMBOL($internal, "internal");
+SYMBOL($multiple, "multiple");
+SYMBOL($global, "global");
 
 typedef struct connection_state_t {
 	const Std$Type$t *Type;
@@ -623,9 +625,25 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 		Result->Arg = Args[0];
 		return SUCCESS;
 	} else {
-		Result->Val = Std$String$new("AMQP Error");
+		Result->Val = Std$String$copy(amqp_error_string(Status));
 		return MESSAGE;
 	}
+}
+
+METHOD("basic_qos", TYP, ChannelT, TYP, Std$Integer$SmallT) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	int PrefetchCount = Std$Integer$get_small(Args[1].Val);
+	int PrefetchSize = 0;
+	amqp_boolean_t Global = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $global) {
+			Global = 1;
+		}
+	}
+	amqp_basic_qos_ok_t *Ok = amqp_basic_qos(Channel->Connection, Channel->Index, 0, PrefetchCount, Global);
+	Result->Arg = Args[0];
+	return SUCCESS;
 }
 
 METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
@@ -655,6 +673,26 @@ METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
 	);
 	Result->Arg = Args[0];
 	return SUCCESS;
+}
+
+METHOD("basic_ack", TYP, ChannelT, TYP, Std$Number$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	uint64_t DeliveryTag = Std$Integer$get_u64(Args[1].Val);
+	amqp_boolean_t Multiple = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $multiple) {
+			Multiple = 1;
+		}
+	}
+	int Status = amqp_basic_ack(Channel->Connection, Channel->Index, DeliveryTag, Multiple);
+	if (Status == AMQP_STATUS_OK) {
+			Result->Arg = Args[0];
+			return SUCCESS;
+		} else {
+			Result->Val = Std$String$copy(amqp_error_string(Status));
+			return MESSAGE;
+		}
 }
 
 METHOD("basic_cancel", TYP, ChannelT, TYP, Std$String$T) {
