@@ -1,5 +1,6 @@
 #include "libriva.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef USE_UDIS
 #include <udis86.h>
@@ -22,16 +23,16 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 		const char *Module, *Symbol;
 		if (Base[DEBUG_HDR_INDEX] == DebugKey) {
 			debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
-			printf("> %s = %s:%d[0x%x]\n", Name, Hdr->StrInfo, Hdr->IntInfo, (const char *)Value - (const char *)Base);
+			fprintf(stderr, "> %s = %s:%d[0x%x]\n", Name, Hdr->StrInfo, Hdr->IntInfo, (const char *)Value - (const char *)Base);
 			return 1;
 		} else if (module_lookup(Base, &Module, &Symbol)) {
-			printf("- %s = %s.%s\n", Name, Module, Symbol);
+			fprintf(stderr, "- %s = %s.%s\n", Name, Module, Symbol);
 			return 0;
 		} else if (ShowAlways) {
-			printf("? %s = 0x%x\n", Name, Base);
+			fprintf(stderr, "? %s = 0x%x\n", Name, Base);
 		};
 	} else if (ShowAlways) {
-		printf("? %s = near 0x%x\n", Name, Value);
+		fprintf(stderr, "? %s = near 0x%x\n", Name, Value);
 	};
 	return 0;
 };
@@ -69,12 +70,12 @@ void display_stack(void *Stack, int Levels) {
 static void segv_handler(int Signal, struct sigcontext Context) {
 	memory_log_close();
 
-	printf("Segmentation fault in thread %x", pthread_self());
+	fprintf(stderr, "Segmentation fault in thread %x", pthread_self());
 	const char *Module, *Symbol;
 
 	void *Eip = (void *)Context.eip;
 	if (Eip == 0) {
-		printf(" calling 0x0 ");
+		fprintf(stderr, " calling 0x0 ");
 		Eip = ((void **)Context.esp)[0];
 	};
 
@@ -82,18 +83,18 @@ static void segv_handler(int Signal, struct sigcontext Context) {
 	if (Base) {
 		if (Base[DEBUG_HDR_INDEX] == DebugKey) {
 			debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
-			printf(" in %s:%d @ %x\n", Hdr->StrInfo, Hdr->IntInfo, Eip - (void *)Base);
+			fprintf(stderr, " in %s:%d @ %x\n", Hdr->StrInfo, Hdr->IntInfo, Eip - (void *)Base);
 		} else if (module_lookup(Base, &Module, &Symbol)) {
-			printf(" in %s.%s @ %x\n", Module, Symbol, Eip - (void *)Base);
+			fprintf(stderr, " in %s.%s @ %x\n", Module, Symbol, Eip - (void *)Base);
 		} else {
-			printf(" in 0x%x @ %x\n", Base, Eip - (void *)Base);
+			fprintf(stderr, " in 0x%x @ %x\n", Base, Eip - (void *)Base);
 		};
 	} else {
-		printf(" near 0x%x\n", Eip);
+		fprintf(stderr, " near 0x%x\n", Eip);
 	};
 
-	printf("eax = %08x, ebx = %08x, ecx = %08x, edx = %08x\n", Context.eax, Context.ebx, Context.ecx, Context.edx);
-	printf("edi = %08x, esi = %08x, ebp = %08x, esp = %08x\n", Context.edi, Context.esi, Context.ebp, Context.esp);
+	fprintf(stderr, "eax = %08x, ebx = %08x, ecx = %08x, edx = %08x\n", Context.eax, Context.ebx, Context.ecx, Context.edx);
+	fprintf(stderr, "edi = %08x, esi = %08x, ebp = %08x, esp = %08x\n", Context.edi, Context.esi, Context.ebp, Context.esp);
 #ifdef USE_UDIS
 	ud_t UD[1];
 	ud_init(UD);

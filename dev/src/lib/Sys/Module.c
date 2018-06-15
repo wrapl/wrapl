@@ -102,6 +102,10 @@ const char *_get_path(Sys$Module_t *Module) {
 	return Riva$Module$get_path(Module);
 };
 
+const char *_get_name(Sys$Module_t *Module) {
+	return Riva$Module$get_name(Module);
+};
+
 GLOBAL_FUNCTION(AddDirectory, 1) {
 //@directory:Std$String$T
 // Adds <var>directory</var> to the module search path.

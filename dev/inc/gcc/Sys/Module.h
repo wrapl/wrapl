@@ -8,6 +8,7 @@
 #include <Riva-Header.h>
 
 typedef Riva$Module_t Sys$Module_t;
+typedef Riva$Module$t Sys$Module$t;
 
 RIVA_TYPE(T);
 
@@ -18,6 +19,7 @@ RIVA_CFUN(void, export, Sys$Module_t *, const char *, int, const void *);
 
 RIVA_CFUN(void, set_path, Sys$Module_t *, const char *);
 RIVA_CFUN(const char *, get_path, Sys$Module_t *);
+RIVA_CFUN(const char *, get_name, Sys$Module_t *);
 
 #undef RIVA_MODULE
 

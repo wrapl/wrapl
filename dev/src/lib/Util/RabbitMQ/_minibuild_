@@ -3,9 +3,9 @@ RABBITMQ_DIR := file("rabbitmq")
 RABBITMQ_LIB := file("lib/librabbitmq.a")
 
 RABBITMQ_LIB[RABBITMQ_DIR] => fun() do
-	var BuildDir := (RABBITMQ_DIR / "build"):mkdir
-	execute("cd", BuildDir, '&& cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
-	execute("cd", BuildDir, "&& cmake --build . --config Release --target install")
+	var BuildDir := (RABBITMQ_DIR / "build"):rmdir:mkdir
+	execute("cd", BuildDir, '&& CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	execute("cd", BuildDir, '&& CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 
 RABBITMQ_DIR => fun() do

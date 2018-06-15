@@ -1,0 +1,1 @@
+riva_module("Util/Logger", [file("Logger.o")])

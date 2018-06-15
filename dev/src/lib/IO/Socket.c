@@ -171,6 +171,7 @@ METHOD("sendfd", TYP, LocalT, TYP, IO$Posix$T) {
 		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
 		return MESSAGE;
 	} else {
+		Result->Arg = Args[0];
 		return SUCCESS;
 	};
 };
@@ -224,6 +225,7 @@ METHOD("bind", TYP, LocalT, TYP, Std$String$T) {
 		Result->Val = (Std$Object_t *)BindMessage;
 		return MESSAGE;
 	};
+	Result->Arg = Args[0];
 	return SUCCESS;
 };
 
@@ -236,6 +238,7 @@ METHOD("bind", TYP, InetT, TYP, Std$Integer$SmallT) {
 		Result->Val = (Std$Object_t *)BindMessage;
 		return MESSAGE;
 	};
+	Result->Arg = Args[0];
 	return SUCCESS;
 };
 
@@ -245,6 +248,7 @@ METHOD("listen", TYP, T, TYP, Std$Integer$SmallT) {
 		Result->Val = (Std$Object_t *)ListenMessage;
 		return MESSAGE;
 	};
+	Result->Arg = Args[0];
 	return SUCCESS;
 };
 
@@ -290,6 +294,7 @@ METHOD("connect", TYP, LocalT, TYP, Std$String$T) {
 		Result->Val = (Std$Object_t *)ConnectMessage;
 		return MESSAGE;
 	};
+	Result->Arg = Args[0];
 	return SUCCESS;
 };
 
@@ -310,6 +315,7 @@ METHOD("connect", TYP, InetT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 		Result->Val = (Std$Object_t *)ConnectMessage;
 		return MESSAGE;
 	};
+	Result->Arg = Args[0];
 	return SUCCESS;
 };
 

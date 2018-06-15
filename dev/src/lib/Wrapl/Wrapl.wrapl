@@ -8,7 +8,6 @@ DEF ReadExpr! Loader.ReadExpr;
 DEF WriteExpr! Loader.WriteExpr;
 DEF SaveExpr! Loader.SaveExpr;
 
-DEF Build! Loader.Build;
 DEF Image! Loader.Image;
 
 DEF Variadic! MOD

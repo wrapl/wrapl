@@ -32,44 +32,45 @@ typedef enum {
 typedef Std$Function$status Std$Function_status;
 
 typedef Std$Object_t Std$Function_t;
+typedef Std$Object$t Std$Function$t;
 
-#define FUNCTION_PARAMS const Std$Function_ct *Fun, unsigned long Count, const Std$Function_argument *Args, Std$Function_result *Result
+#define FUNCTION_PARAMS const Std$Function$ct *Fun, unsigned long Count, const Std$Function$argument *Args, Std$Function$result *Result
 #define FUNCTION_ATTRS __attribute__ ((force_align_arg_pointer))
 
-typedef struct Std$Function_asmt Std$Function_asmt;
-struct Std$Function_asmt {
+RIVA_STRUCT(asmt) {
 	const Std$Type_t *Type;
 	void *Invoke;
 };
 
-typedef struct Std$Function_checkedasmt Std$Function_checkedasmt;
-struct Std$Function_checkedasmt {
+RIVA_STRUCT(checkedasmt) {
 	const Std$Type_t *Type;
-	Std$Function_t Target;
+	Std$Function$t Target;
 };
 
-typedef struct Std$Function_ct Std$Function_ct;
-struct Std$Function_ct {
-	const Std$Type_t *Type;
-	Std$Function_status (*Invoke)(FUNCTION_PARAMS);
+#define Std$Function$CFields \
+	const Std$Type$t *Type; \
+	Std$Function$status (*Invoke)(FUNCTION_PARAMS);
+
+RIVA_STRUCT(ct) {
+	Std$Function$CFields
 };
 
-typedef struct Std$Function_checkedct Std$Function_checkedct;
-struct Std$Function_checkedct {
-	const Std$Type_t *Type;
-	Std$Function_status (*Invoke)(FUNCTION_PARAMS);
+RIVA_STRUCT(checkedct) {
+	Std$Function$CFields
 	int Count;
 	const char *File;
 	int Line;
 };
 
-typedef struct Std$Function_cstate Std$Function_cstate;
-typedef struct Std$Function_cresumedata Std$Function_cresumedata;
-typedef Std$Function_status (* Std$Function_cresumefn)(Std$Function_cresumedata *Data);
+RIVA_STRUCT(cstate);
+RIVA_STRUCT(cresumedata);
 
-struct Std$Function_cresumedata {
-	Std$Function_cstate *State;
-	Std$Function_argument Result;
+typedef Std$Function$status (* Std$Function$cresumefn)(Std$Function$cresumedata *Data);
+typedef Std$Function$cresumefn Std$Function_cresumefn;
+
+struct Std$Function$cresumedata {
+	Std$Function$cstate *State;
+	Std$Function$argument Result;
 };
 
 RIVA_STRUCT(state_t) {
@@ -78,9 +79,9 @@ RIVA_STRUCT(state_t) {
 	void *Resume;
 };
 
-struct Std$Function_cstate {
+struct Std$Function$cstate {
 	void *Run, *Chain, *Resume;
-	Std$Function_cresumefn Invoke;
+	Std$Function$cresumefn Invoke;
 };
 
 RIVA_TYPE(T);

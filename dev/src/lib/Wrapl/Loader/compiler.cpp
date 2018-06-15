@@ -2645,12 +2645,12 @@ operand_t *module_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 		if (Std$Function$call(Closure->Value, 0, &Result) == MESSAGE) {
 			if (Std$Object$in(Result.Val, Sys$Program$ErrorT)) {
 				Sys$Program$stack_trace_t *StackTrace = ((Sys$Program$error_t *)Result.Val)->StackTrace;
-				for (int I = 0; I < StackTrace->Depth; ++I) printf("\t%s\n", StackTrace->Trace[I]);
+				for (int I = 0; I < StackTrace->Depth; ++I) fprintf(stderr, "\t%s\n", StackTrace->Trace[I]);
 				Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0);
 				Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
 			} else if (Result.Val->Type == Std$Symbol$NoMethodMessageT) {
 				Std$Symbol$nomethodmessage *Message = (Std$Symbol$nomethodmessage *)Result.Val;
-				for (int I = 0; I < Message->Count; ++I) printf("\t%s\n", Message->Stack[I]);
+				for (int I = 0; I < Message->Count; ++I) fprintf(stderr, "\t%s\n", Message->Stack[I]);
 				Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0);
 				Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
 			} else if (Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0) < FAILURE) {
