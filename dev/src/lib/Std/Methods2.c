@@ -1587,98 +1587,33 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	};
 };
 
+SYMBOL($any, "any");
+SYMBOL($skip, "skip");
+SYMBOL($INDEX, "[]");
+
 STRING_METHOD("before", TYP, Std$String$T, TYP, Std$String$T) {
 //@a
 //@b
 //:T
 // Returns the largest initial substring of <var>a</var> that does not contain any characters in <var>b</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
-	if (Arg1->Length.Value == 0) return FAILURE;
-	if (Arg0->Length.Value == 0) {
-		if (Arg1->Length.Value == 0) return FAILURE;
-		Result->Val = Std$String$new_char(((unsigned char *)Arg1->Blocks->Chars.Value)[1]);
-		return SUCCESS;
-	} else {
-	    uint8_t Mask[32];
-	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
-	        for (int I = 0; I < Block->Length.Value; ++I) {
-	            unsigned char Char = Chars[I];
-	            Mask[Char >> 3] |= 1 << (Char & 7);
-	        };
-	    };
-		unsigned long SI = 1;
-		const Std$String_block *SB = Arg1->Blocks;
-		const unsigned char *SC = SB->Chars.Value;
-		unsigned long SL = SB->Length.Value;
-		while (charcset(*SC, Mask) != 0) {
-			++SI;
-			if (--SL == 0) {
-				++SB;
-				SC = SB->Chars.Value;
-				SL = SB->Length.Value;
-				if (SC == 0) return FAILURE;
-			} else {
-				++SC;
-			};
-		};
-		unsigned long SI0 = SI;
-        const Std$String_block *SB0 = SB;
-        const unsigned char *SC0 = SC;
-        unsigned long SL0 = SL;
-        while (charcset(*SC, Mask) == 0) {
-        	++SI;
-        	if (--SL == 0) {
-        		++SB;
-        		SC = SB->Chars.Value;
-        		SL = SB->Length.Value;
-        		if (SC == 0) {
-        			int NoOfBlocks = SB - SB0;
-        			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
-        			Slice->Length.Value = SI - SI0;
-        			Slice->Blocks[0].Length.Value = SL0;
-        			Slice->Blocks[0].Chars.Value = SC0;
-        			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
-        			Result->Val = Std$String$freeze(Slice);
-        			return SUCCESS;
-        		};
-        	} else {
-        		++SC;
-        	};
-        };
-        if (SL == SB->Length.Value) {
-			int NoOfBlocks = SB - SB0;
-			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
-			Slice->Length.Value = SI - SI0;
-			Slice->Blocks[0].Length.Value = SL0;
-			Slice->Blocks[0].Chars.Value = SC0;
-			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
-			Result->Val = Std$String$freeze(Slice);
-        } else {
-			int NoOfBlocks = (SB - SB0) + 1;
-			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
-			Slice->Length.Value = SI - SI0;
-			if (--NoOfBlocks) {
-				Slice->Blocks[0].Length.Value = SL0;
-				Slice->Blocks[0].Chars.Value = SC0;
-				Slice->Blocks[NoOfBlocks].Length.Value = SB->Length.Value - SL;
-				Slice->Blocks[NoOfBlocks].Chars.Value = SB->Chars.Value;
-				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
-			} else {
-				Slice->Blocks[0].Length.Value = SL0 - SL;
-				Slice->Blocks[0].Chars.Value = SC0;
-			};
-			Result->Val = Std$String$freeze(Slice);
-        };
+	static Std$Integer_smallt One[] = {{Std$Integer$SmallT, 1}};
+	Std$Function_result Result0;
+	Std$Function_argument Args0[3] = {{Args[0].Val, 0}, {Args[1].Val, 0}, {0, 0}};
+	switch (Std$Function$invoke($any, 2, &Result0, Args0)) {
+	case FAILURE: {
+		Result->Val = Args[0].Val;
 		return SUCCESS;
 	};
+	case MESSAGE: {
+		Result->Val = Result0.Val;
+		return MESSAGE;
+	};
+	default: break;
+	};
+	Args0[1].Val = (Std$Object_t *)One;
+	Args0[2].Val = Result0.Val;
+	return Std$Function$invoke($INDEX, 3, Result, Args0);
 };
-
-SYMBOL($any, "any");
-SYMBOL($skip, "skip");
-SYMBOL($INDEX, "[]");
 
 STRING(EmptyString, "");
 
