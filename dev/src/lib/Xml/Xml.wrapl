@@ -147,14 +147,14 @@ END;
 
 DEF Load! :?;
 
-METH Load(@Stream.ReaderT) IS <stream, flags> (
+METH Load(stream @ Stream.ReaderT) IS <stream, flags> (
 	VAR loader <- Loader.New(flags);
 	stream:copy(loader);
 	loader:finish;
 	RET loader:userdata;
 );
 
-METH Load(@String.T) IS <string, flags> (
+METH Load(string @ String.T) IS <string, flags> (
 	VAR loader <- Loader.New(flags);
 	loader:write(string);
 	loader:finish;
