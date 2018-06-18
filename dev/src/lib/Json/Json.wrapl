@@ -140,7 +140,7 @@ METH EncodeString(x @ Table.T) (
 
 DEF SaveFile!(filename, x) (
 	VAR file <- File.Open(filename, File.Flag.Write + File.Flag.Text);
-	EncodeString(file, x);
+	Encode(file, x);
 	file:close;
 );
 
