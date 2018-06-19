@@ -85,7 +85,7 @@ METHOD("get_rpc_reply", TYP, T) {
 		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -123,7 +123,7 @@ METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
 		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -184,6 +184,18 @@ METHOD("body", TYP, MessageT) {
 	return SUCCESS;
 }
 
+METHOD("_bytes", TYP, MessageT) {
+	message_t *Message = (message_t *)Args[0].Val;
+	Result->Val = Std$Address$new(Message->Value->body.bytes);
+	return SUCCESS;
+}
+
+METHOD("_length", TYP, MessageT) {
+	message_t *Message = (message_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Message->Value->body.len);
+	return SUCCESS;
+}
+
 METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	int Index = Std$Integer$get_small(Args[1].Val);
@@ -214,7 +226,7 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -235,7 +247,7 @@ METHOD("read_message", TYP, ChannelT) {
 		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -625,7 +637,7 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 		Result->Arg = Args[0];
 		return SUCCESS;
 	} else {
-		Result->Val = Std$String$copy(amqp_error_string(Status));
+		Result->Val = Std$String$new(amqp_error_string2(Status));
 		return MESSAGE;
 	}
 }
@@ -690,7 +702,7 @@ METHOD("basic_ack", TYP, ChannelT, TYP, Std$Number$T) {
 			Result->Arg = Args[0];
 			return SUCCESS;
 		} else {
-			Result->Val = Std$String$copy(amqp_error_string(Status));
+			Result->Val = Std$String$new(amqp_error_string2(Status));
 			return MESSAGE;
 		}
 }
