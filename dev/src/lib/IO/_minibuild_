@@ -23,7 +23,7 @@ scope("with_posix", fun() do
 		riva_module("IO/Poll", [file("Poll.o")]),
 		riva_module("IO/Base64", [file("Base64.o")])
 	]
-	riva_module("IO/AddressReader", [file("AddressReader.o")])
+	riva_module("IO/MemoryReader", [file("MemoryReader.o")])
 	riva_module("IO/StringReader", [file("StringReader.o")])
 	riva_module("IO/Threaded", [file("Threaded.o")])
 	riva_module("IO/Zlib", [file("Zlib.o")])

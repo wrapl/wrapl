@@ -1,4 +1,5 @@
 #include <Std.h>
+#include <Agg/Buffer.h>
 #include <Riva/Memory.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
@@ -12,6 +13,7 @@ typedef struct reader_t {
 } reader_t;
 
 TYPE(T, IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
+// A simple reader pointing to a section of memory.
 
 TYPED_INSTANCE(int, IO$Stream$eoi, T, reader_t *Stream) {
 	return Stream->Length == 0;
@@ -32,13 +34,29 @@ TYPED_INSTANCE(int, IO$Stream$read, T, reader_t *Stream, char *Buffer, int Count
 	}
 };
 
-GLOBAL_FUNCTION(New, 2) {
-	CHECK_ARG_TYPE(0, Std$Address$T);
-	CHECK_ARG_TYPE(1, Std$Integer$SmallT);
+ASYMBOL(New);
+
+AMETHOD(New, TYP, Agg$Buffer$T) {
+//@buffer
+//:T
+// Returns a new reader starting at <code>buffer</code> with length <code>buffer:length</code>.
+	reader_t *Reader = new(reader_t);
+	Reader->Type = T;
+	Reader->Address = Agg$Buffer$get_value(Args[0].Val);
+	Reader->Length = Agg$Buffer$get_length(Args[0].Val);
+	Result->Val = (Std$Object$t *)Reader;
+	return SUCCESS;
+}
+
+AMETHOD(New, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+//@address
+//@length
+//:T
+// Returns a new reader starting at <code>address</code> with length <code>length</code>.
 	reader_t *Reader = new(reader_t);
 	Reader->Type = T;
 	Reader->Address = Std$Address$get_value(Args[0].Val);
 	Reader->Length = Std$Integer$get_small(Args[1].Val);
 	Result->Val = (Std$Object$t *)Reader;
 	return SUCCESS;
-};
+}
