@@ -764,6 +764,7 @@ address_method "gets", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
+	inc eax
 	push eax
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
@@ -772,6 +773,7 @@ address_method "gets", ADDRESS, SMALLINT
 	mov edi, eax
 	mov ecx, [esp + 4]
 	rep movsb
+	mov [edi], byte 0
 	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
@@ -800,6 +802,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
+	inc eax
 	push eax
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
@@ -810,6 +813,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	mov edi, eax
 	mov ecx, [esp + 4]
 	rep movsb
+	mov [edi], byte 0
 	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
