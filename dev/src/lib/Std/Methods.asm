@@ -755,7 +755,7 @@ address_method "geta", ADDRESS, SMALLINT
 	xor edx, edx
 	ret
 
-_amethod Std$String$New, Std$String$FromAddress, STRING, SMALLINT
+_amethod Std$String$New, Std$String$FromAddress, ADDRESS, SMALLINT
 
 address_method "gets", ADDRESS, SMALLINT
 ;@src
