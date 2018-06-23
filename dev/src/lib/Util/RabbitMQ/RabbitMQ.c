@@ -98,7 +98,7 @@ METHOD("get_rpc_reply", TYP, T) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
@@ -142,7 +142,7 @@ METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
 		Result->Val = (Std$Object$t *)Envelope;
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
@@ -269,7 +269,7 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
@@ -292,7 +292,7 @@ METHOD("read_message", TYP, ChannelT) {
 		Result->Val = (Std$Object$t *)Message;
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
@@ -598,6 +598,10 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 }
 
 METHOD("queue_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+//@channel
+//@queue
+//@exchange
+//@routing_key
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_table_t Arguments = amqp_empty_table;
 	for (int I = 4; I < Count; ++I) {
