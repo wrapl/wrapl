@@ -231,7 +231,23 @@ CONSTANT(LoggerFactory, Std$Object$T) {
 			return Data;
 		}
 	}
+	const char *LogLevelName = Riva$Config$get("Logger/Level");
+	if (LogLevelName) {
+		for (int Level = 0; Level < NumLevels; ++Level) {
+			if (!strcmp(LogLevelName, LevelNames[Level])) {
+				LogLevel = Level;
+				break;
+			}
+		}
+	}
 	return TextStream;
+}
+
+GLOBAL_FUNCTION(SetLevel, 1) {
+	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
+	LogLevel = Std$Integer$get_small(Args[0].Val);
+	Result->Arg = Args[0];
+	return SUCCESS;
 }
 
 GLOBAL_FUNCTION(New, 1) {

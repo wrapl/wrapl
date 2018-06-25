@@ -16,10 +16,12 @@ SYMBOL($no_local, "no_local");
 SYMBOL($no_ack, "no_ack");
 SYMBOL($mandatory, "mandatory");
 SYMBOL($immediate, "immediate");
-SYMBOL($empty, "empty")
-SYMBOL($unused, "unused")
-SYMBOL($requeue, "requeue")
-SYMBOL($internal, "internal")
+SYMBOL($empty, "empty");
+SYMBOL($unused, "unused");
+SYMBOL($requeue, "requeue");
+SYMBOL($internal, "internal");
+SYMBOL($multiple, "multiple");
+SYMBOL($global, "global");
 
 typedef struct connection_state_t {
 	const Std$Type$t *Type;
@@ -27,6 +29,7 @@ typedef struct connection_state_t {
 } connection_state_t;
 
 TYPE(T);
+// A RabbitMQ connection.
 
 typedef struct channel_t {
 	const Std$Type$t *Type;
@@ -35,8 +38,11 @@ typedef struct channel_t {
 } channel_t;
 
 TYPE(ChannelT);
+// A single channel in a RabbitMQ connection. Contains a reference to the connection.
 
 GLOBAL_FUNCTION(New, 0) {
+//:T
+// Return a new RabbitMQ connection.
 	connection_state_t *Connection = new(connection_state_t);
 	Connection->Type = T;
 	Connection->Handle = amqp_new_connection();
@@ -45,6 +51,8 @@ GLOBAL_FUNCTION(New, 0) {
 }
 
 METHOD("close", TYP, T) {
+//@connection
+// Close <var>connection</var>.
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	amqp_connection_close(Connection->Handle, AMQP_RESPONSE_NORMAL);
 	Connection->Handle = 0;
@@ -52,13 +60,22 @@ METHOD("close", TYP, T) {
 }
 
 METHOD("destroy", TYP, T) {
+//@connection
+// Destroy <var>connection</var>.
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	amqp_destroy_connection(Connection->Handle);
 	Connection->Handle = 0;
 	return SUCCESS;
 }
 
-METHOD("login", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+METHOD("login", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, Std$String$T, TYP, Std$String$T) {
+//@connection
+//@host
+//@channel_max
+//@frame_max
+//@heartbeat
+//@username
+//@password
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	Result->Arg = Args[0];
 	const char *VHost = Std$String$flatten(Args[1].Val);
@@ -73,6 +90,7 @@ METHOD("login", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 }
 
 METHOD("get_rpc_reply", TYP, T) {
+//@connection
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	amqp_rpc_reply_t Reply = amqp_get_rpc_reply(Connection->Handle);
 	switch (Reply.reply_type) {
@@ -80,10 +98,10 @@ METHOD("get_rpc_reply", TYP, T) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -97,8 +115,11 @@ typedef struct envelope_t {
 } envelope_t;
 
 TYPE(EnvelopeT);
+// A RabbitMQ envelope.
 
 METHOD("consume_message", TYP, T) {
+//@connection
+//:EnvelopeT
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	envelope_t *Envelope = new(envelope_t);
 	Envelope->Type = EnvelopeT;
@@ -108,6 +129,9 @@ METHOD("consume_message", TYP, T) {
 }
 
 METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
+//@connection
+//@timeout
+//:EnvelopeT
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	Sys$Time$precise_t *Time = (Sys$Time$precise_t *)Args[1].Val;
 	envelope_t *Envelope = new(envelope_t);
@@ -118,10 +142,10 @@ METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
 		Result->Val = (Std$Object$t *)Envelope;
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -131,30 +155,40 @@ METHOD("consume_message", TYP, T, TYP, Sys$Time$PreciseT) {
 }
 
 METHOD("consumer_tag", TYP, EnvelopeT) {
+//@envelope
+//:Std.String.T
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	Result->Val = Std$String$copy_length(Envelope->Value->consumer_tag.bytes, Envelope->Value->consumer_tag.len);
 	return SUCCESS;
 }
 
 METHOD("delivery_tag", TYP, EnvelopeT) {
+//@envelope
+//:Std.Integer.T
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	Result->Val = Std$Integer$new_u64(Envelope->Value->delivery_tag);
 	return SUCCESS;
 }
 
 METHOD("redelivered", TYP, EnvelopeT) {
+//@envelope
+//:Std.Symbol.T
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	Result->Arg = Args[0];
 	return Envelope->Value->redelivered ? SUCCESS : FAILURE;
 }
 
 METHOD("exchange", TYP, EnvelopeT) {
+//@envelope
+//:Std.String.T
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	Result->Val = Std$String$copy_length(Envelope->Value->exchange.bytes, Envelope->Value->exchange.len);
 	return SUCCESS;
 }
 
 METHOD("routing_key", TYP, EnvelopeT) {
+//@envelope
+//:Std.String.T
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	Result->Val = Std$String$copy_length(Envelope->Value->routing_key.bytes, Envelope->Value->routing_key.len);
 	return SUCCESS;
@@ -166,8 +200,11 @@ typedef struct message_t {
 } message_t;
 
 TYPE(MessageT);
+// A RabbitMQ message.
 
 METHOD("message", TYP, EnvelopeT) {
+//@envelope
+//:MessageT
 	envelope_t *Envelope = (envelope_t *)Args[0].Val;
 	message_t *Message = new(message_t);
 	Message->Type = MessageT;
@@ -177,12 +214,33 @@ METHOD("message", TYP, EnvelopeT) {
 }
 
 METHOD("body", TYP, MessageT) {
+//@message
+//:Std.String.T
 	message_t *Message = (message_t *)Args[0].Val;
 	Result->Val = Std$String$copy_length(Message->Value->body.bytes, Message->Value->body.len);
 	return SUCCESS;
 }
 
+METHOD("_bytes", TYP, MessageT) {
+//@message
+//:Std.Address.T
+	message_t *Message = (message_t *)Args[0].Val;
+	Result->Val = Std$Address$new(Message->Value->body.bytes);
+	return SUCCESS;
+}
+
+METHOD("_length", TYP, MessageT) {
+//@message
+//:Std.Integer.SmallT
+	message_t *Message = (message_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Message->Value->body.len);
+	return SUCCESS;
+}
+
 METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
+//@connection
+//@channel
+//:ChannelT
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	int Index = Std$Integer$get_small(Args[1].Val);
 	amqp_channel_open(Connection->Handle, Index);
@@ -195,6 +253,7 @@ METHOD("channel_open", TYP, T, TYP, Std$Integer$SmallT) {
 }
 
 METHOD("close", TYP, ChannelT) {
+//@channel
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_channel_close(Channel->Connection, Channel->Index, AMQP_REPLY_SUCCESS);
 	Result->Arg = Args[0];
@@ -202,6 +261,7 @@ METHOD("close", TYP, ChannelT) {
 }
 
 METHOD("get_rpc_reply", TYP, ChannelT) {
+//@channel
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_rpc_reply_t Reply = amqp_get_rpc_reply(Channel->Connection);
 	switch (Reply.reply_type) {
@@ -209,10 +269,10 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -221,6 +281,8 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 }
 
 METHOD("read_message", TYP, ChannelT) {
+//@channel
+//:MessageT
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	message_t *Message = new(message_t);
 	Message->Type = MessageT;
@@ -230,10 +292,10 @@ METHOD("read_message", TYP, ChannelT) {
 		Result->Val = (Std$Object$t *)Message;
 		return SUCCESS;
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
-		Result->Val = Std$String$new_format("Server exception for method %d", Reply.reply.id);
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
 		return MESSAGE;
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		Result->Val = Std$String$copy(amqp_error_string(Reply.library_error));
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
 		return MESSAGE;
 	default:
 		Result->Val = Std$String$new("Invalid rpc reply");
@@ -247,8 +309,10 @@ typedef struct basic_properties_t {
 } basic_properties_t;
 
 TYPE(BasicPropertiesT);
+// Set of properties for basic RabbitMQ methods.
 
 GLOBAL_FUNCTION(BasicPropertiesNew, 0) {
+//:BasicPropertiesT
 	basic_properties_t *Properties = new(basic_properties_t);
 	Properties->Type = BasicPropertiesT;
 	Result->Val = (Std$Object$t *)Properties;
@@ -534,6 +598,10 @@ METHOD("queue_declare", TYP, ChannelT, TYP, Std$String$T) {
 }
 
 METHOD("queue_bind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+//@channel
+//@queue
+//@exchange
+//@routing_key
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_table_t Arguments = amqp_empty_table;
 	for (int I = 4; I < Count; ++I) {
@@ -602,6 +670,12 @@ METHOD("queue_unbind", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP,
 }
 
 METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
+//@channel
+//@exchange
+//@routing_key
+//@message
+//:ChannelT
+// Also accepts <code>:mandatory</code>, <code>:immediate</code> and <id>BasicPropertiesT</id>.
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_boolean_t Mandatory = 0;
 	amqp_boolean_t Immediate = 0;
@@ -623,12 +697,35 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 		Result->Arg = Args[0];
 		return SUCCESS;
 	} else {
-		Result->Val = Std$String$new("AMQP Error");
+		Result->Val = Std$String$new(amqp_error_string2(Status));
 		return MESSAGE;
 	}
 }
 
+METHOD("basic_qos", TYP, ChannelT, TYP, Std$Integer$SmallT) {
+//@channel
+//@prefetch_count
+//:ChannelT
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	int PrefetchCount = Std$Integer$get_small(Args[1].Val);
+	int PrefetchSize = 0;
+	amqp_boolean_t Global = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $global) {
+			Global = 1;
+		}
+	}
+	amqp_basic_qos_ok_t *Ok = amqp_basic_qos(Channel->Connection, Channel->Index, 0, PrefetchCount, Global);
+	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
 METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
+//@channel
+//@queue
+//@consumer_tag
+// Also accepts <code>:no_local</code>, <code>:no_ack</code>, <code>:exclusive</code> and <id>Agg.Table.T</id> for additional arguments.
 	channel_t *Channel = (channel_t *)Args[0].Val;
 	amqp_boolean_t NoLocal = 0;
 	amqp_boolean_t NoAck = 0;
@@ -655,6 +752,26 @@ METHOD("basic_consume", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T) {
 	);
 	Result->Arg = Args[0];
 	return SUCCESS;
+}
+
+METHOD("basic_ack", TYP, ChannelT, TYP, Std$Number$T) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	uint64_t DeliveryTag = Std$Integer$get_u64(Args[1].Val);
+	amqp_boolean_t Multiple = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $multiple) {
+			Multiple = 1;
+		}
+	}
+	int Status = amqp_basic_ack(Channel->Connection, Channel->Index, DeliveryTag, Multiple);
+	if (Status == AMQP_STATUS_OK) {
+			Result->Arg = Args[0];
+			return SUCCESS;
+		} else {
+			Result->Val = Std$String$new(amqp_error_string2(Status));
+			return MESSAGE;
+		}
 }
 
 METHOD("basic_cancel", TYP, ChannelT, TYP, Std$String$T) {

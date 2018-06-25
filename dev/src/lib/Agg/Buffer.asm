@@ -52,7 +52,8 @@ function New, 1
 	ret
 .allocate:
 	mov eax, [Std$Function_argument(edi).Val]
-	push dword [Std$Integer_smallt(eax).Value]
+	mov ebx, [Std$Integer_smallt(eax).Value]
+	push ebx
 	call Riva$Memory$_alloc
 	mov [esp], eax
 	push byte sizeof(Agg$Buffer_t)
@@ -62,27 +63,47 @@ function New, 1
 	mov [Std$Object_t(ecx).Type], dword T
 	pop dword [Agg$Buffer_t(ecx).Value]
 	mov [Std$Object_t(Agg$Buffer_t(ecx).Length).Type], dword Std$Integer$SmallT
-	pop dword [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value]
+	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], ebx
 	xor eax, eax
 	xor edx, edx
 	ret
 
 function NewAtomic, 1
 ;@length:Std$Integer$SmallT
+;@data:Std$Address$T
 ;:T
 ; Allocates <var>length</var> bytes of memory and returns its address.
+	cmp esi, byte 1
+	je .allocate
+	push dword sizeof(Agg$Buffer_t)
+	call Riva$Memory$_alloc
+	pop ecx
+	mov ecx, eax
+	mov [Std$Object_t(ecx).Type], dword T
+	mov [Std$Object_t(Agg$Buffer_t(ecx).Length).Type], dword Std$Integer$SmallT
 	mov eax, [Std$Function_argument(edi).Val]
-	push dword [Std$Integer_smallt(eax).Value]
+	mov eax, [Std$Integer_smallt(eax).Value]
+	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], eax
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov eax, [Std$Address_t(eax).Value]
+	mov [Agg$Buffer_t(ecx).Value], eax
+	xor edx, edx
+	xor eax, eax
+	ret
+.allocate:
+	mov eax, [Std$Function_argument(edi).Val]
+	mov ebx, [Std$Integer_smallt(eax).Value]
+	push ebx
 	call Riva$Memory$_alloc_atomic
-	push eax
+	mov [esp], eax
 	push byte sizeof(Agg$Buffer_t)
 	call Riva$Memory$_alloc
 	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
-	pop dword [Std$Address_t(eax).Value]
-	mov [Std$Object_t(Agg$Buffer_t(eax).Length).Type], dword Std$Integer$SmallT
-	pop dword [Std$Integer_smallt(Agg$Buffer_t(eax).Length).Value]
 	mov ecx, eax
+	mov [Std$Object_t(ecx).Type], dword T
+	pop dword [Agg$Buffer_t(ecx).Value]
+	mov [Std$Object_t(Agg$Buffer_t(ecx).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], ebx
 	xor eax, eax
 	xor edx, edx
 	ret
@@ -90,6 +111,29 @@ function NewAtomic, 1
 method "length", TYP, T
 	mov eax, [Std$Function_argument(edi).Val]
 	lea ecx, [Agg$Buffer_t(eax).Length]
+	xor edx, edx
+	xor eax, eax
+	ret
+
+method "@", TYP, T, VAL, Std$String$T
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	call Riva$Memory$_alloc_stubborn
+	add esp, byte 4
+	mov ecx, eax
+	mov [Std$Object_t(ecx).Type], dword Std$String$T
+	mov [Std$Object_t(Std$String_t(ecx).Length).Type], dword Std$Integer$SmallT
+	mov eax, [Std$Function_argument(edi).Val]
+	mov edx, [Agg$Buffer_t(eax).Value]
+	mov [Std$Address_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Value], edx
+	mov edx, [Std$Integer_smallt(Agg$Buffer_t(eax).Length).Value]
+	mov [Std$Integer_smallt(Std$String_block(Std$String_t(ecx).Blocks).Length).Value], edx
+	mov [Std$Integer_smallt(Std$String_t(ecx).Length).Value], edx
+	mov [Std$String_t(ecx).Count], dword 1
+	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Type], dword Std$Address$T
+	push ecx
+	call Riva$Memory$_freeze_stubborn
+	pop ecx
 	xor edx, edx
 	xor eax, eax
 	ret

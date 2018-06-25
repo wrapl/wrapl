@@ -603,8 +603,8 @@ address_method "get16", ADDRESS
 ; Returns the 16 bit int at <var>src</var>.
 	mov eax, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Address_t(eax).Value]
-        mov eax, [eax]
-        and eax, 0xFFFF
+	mov eax, [eax]
+	and eax, 0xFFFF
 	push eax
 	call Std$Integer$_alloc_small
 	pop dword [Std$Integer_smallt(eax).Value]
@@ -619,8 +619,8 @@ address_method "get24", ADDRESS
 ; Returns the 24 bit int at <var>src</var>.
 	mov eax, [Std$Function_argument(edi).Val]
 	mov eax, [Std$Address_t(eax).Value]
-        mov eax, [eax]
-        and eax, 0xFFFFFF
+	mov eax, [eax]
+	and eax, 0xFFFFFF
 	push eax
 	call Std$Integer$_alloc_small
 	pop dword [Std$Integer_smallt(eax).Value]
@@ -705,7 +705,7 @@ address_method "get16", ADDRESS, SMALLINT
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	mov eax, [eax]
-        and eax, 0xFFFF
+	and eax, 0xFFFF
 	push eax
 	call Std$Integer$_alloc_small
 	pop dword [Std$Integer_smallt(eax).Value]
@@ -720,7 +720,7 @@ address_method "get24", ADDRESS, SMALLINT
 	mov eax, [Std$Address_t(eax).Value]
 	add eax, [Std$Integer_smallt(ebx).Value]
 	mov eax, [eax]
-        and eax, 0xFFFFFF
+	and eax, 0xFFFFFF
 	push eax
 	call Std$Integer$_alloc_small
 	pop dword [Std$Integer_smallt(eax).Value]
@@ -755,7 +755,7 @@ address_method "geta", ADDRESS, SMALLINT
 	xor edx, edx
 	ret
 
-_amethod Std$String$New, Std$String$FromAddress, STRING, SMALLINT
+_amethod Std$String$New, Std$String$FromAddress, ADDRESS, SMALLINT
 
 address_method "gets", ADDRESS, SMALLINT
 ;@src
@@ -764,6 +764,7 @@ address_method "gets", ADDRESS, SMALLINT
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
+	inc eax
 	push eax
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
@@ -772,6 +773,7 @@ address_method "gets", ADDRESS, SMALLINT
 	mov edi, eax
 	mov ecx, [esp + 4]
 	rep movsb
+	mov [edi], byte 0
 	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
@@ -800,6 +802,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov eax, [Std$Integer_smallt(eax).Value]
 	push eax
+	inc eax
 	push eax
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
@@ -810,6 +813,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	mov edi, eax
 	mov ecx, [esp + 4]
 	rep movsb
+	mov [edi], byte 0
 	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
@@ -1099,68 +1103,68 @@ cfunction bin2ascii_test
 ; Convert an unsigned 32-bit number into a 10-digit ascii value
 .magic1: equ 0a7c5ac47h
 .magic2: equ 068db8badh
-        mov     eax,.magic1
-        mul     esi
-        shr     esi,3
-        add     esi,eax
-        adc     edx,0
-        shr     esi,20                  ;separate remainder
-        mov     ebx,edx
-        shl     ebx,12
-        and     edx,0FFFF0000h          ;mask quotient
-        and     ebx,0FFFFFFFh           ;remove quotient nibble from remainder.
-        mov     eax,.magic2
-        mul     edx
-        add     esi,ebx
-        mov     eax,edx
-        shr     edx,28
-        and     eax,0FFFFFFFh
-        lea     esi,[4*esi+esi+5]       ;multiply by 5 and round up
-        add     dl,'0'
-        mov     ebx,esi
-        and     esi,07FFFFFFh
-        shr     ebx,27
-        mov     [edi],dl
-        add     bl,'0'
-        lea     eax,[4*eax+eax+5]       ;mul by 5 and round up
-        mov     [edi+5],bl
-        lea     esi,[4*esi+esi]
-        mov     edx,eax
-        and     eax,07FFFFFFh
-        shr     edx,27
-        lea     ebx,[esi+0c0000000h]
-        shr     ebx,26
-        and     esi,03FFFFFFh
-        add     dl,'0'
-        lea     eax,[4*eax+eax]
-        mov     [edi+1],dl
-        lea     esi,[4*esi+esi]
-        mov     [edi+6],bl
-        lea     edx,[eax+0c0000000h]
-        shr     edx,26
-        and     eax,03FFFFFFh
-        lea     ebx,[esi+60000000h]
-        and     esi,01FFFFFFh
-        shr     ebx,25
-        lea     eax,[4*eax+eax]
-        mov     [edi+2],dl
-        lea     esi,[4*esi+esi]
-        mov     [edi+7],bl
-        lea     edx,[eax+60000000h]
-        shr     edx,25
-        and     eax,01FFFFFFh
-        lea     ebx,[esi+30000000h]
-        mov     [edi+3],dl
-        shr     ebx,24
-        and     esi,00FFFFFFh
-        mov     [edi+8],bl
-        lea     edx,[4*eax+eax+30000000h]
-        shr     edx,24
-        lea     ebx,[4*esi+esi+18000000h]
-        shr     ebx,23
-        mov     [edi+4],dl
-        mov     [edi+9],bl
-        ret
+	mov eax, .magic1
+	mul esi
+	shr esi, 3
+	add esi, eax
+	adc edx, 0
+	shr esi, 20 ;separate remainder
+	mov ebx, edx
+	shl ebx, 12
+	and edx, 0FFFF0000h ;mask quotient
+	and ebx, 0FFFFFFFh ;remove quotient nibble from remainder.
+	mov eax, .magic2
+	mul edx
+	add esi, ebx
+	mov eax, edx
+	shr edx, 28
+	and eax, 0FFFFFFFh
+	lea esi, [4 * esi + esi + 5] ;multiply by 5 and round up
+	add dl, '0'
+	mov ebx, esi
+	and esi, 07FFFFFFh
+	shr ebx, 27
+	mov [edi], dl
+	add bl, '0'
+	lea eax, [4 * eax + eax + 5] ;mul by 5 and round up
+	mov [edi + 5], bl
+	lea esi, [4 * esi + esi]
+	mov edx, eax
+	and eax, 07FFFFFFh
+	shr edx, 27
+	lea ebx, [esi + 0c0000000h]
+	shr ebx, 26
+	and esi, 03FFFFFFh
+	add dl, '0'
+	lea eax, [4 * eax + eax]
+	mov [edi + 1], dl
+	lea esi, [4 * esi + esi]
+	mov [edi + 6], bl
+	lea edx, [eax + 0c0000000h]
+	shr edx, 26
+	and eax, 03FFFFFFh
+	lea ebx, [esi + 60000000h]
+	and esi, 01FFFFFFh
+	shr ebx, 25
+	lea eax, [4 * eax + eax]
+	mov [edi + 2], dl
+	lea esi, [4 * esi + esi]
+	mov [edi + 7], bl
+	lea edx, [eax + 60000000h]
+	shr edx, 25
+	and eax, 01FFFFFFh
+	lea ebx, [esi + 30000000h]
+	mov [edi + 3], dl
+	shr ebx, 24
+	and esi, 00FFFFFFh
+	mov [edi + 8], bl
+	lea edx, [4 * eax + eax + 30000000h]
+	shr edx, 24
+	lea ebx, [4 * esi + esi + 18000000h]
+	shr ebx, 23
+	mov [edi + 4], dl
+	mov [edi + 9], bl
+	ret
 
 integer_method "@", SMALLINT, VAL, Std$String$T
 	mov ebx, 10
@@ -2154,37 +2158,37 @@ integer_method "gcd", SMALLINT, SMALLINT
 	; by definition: gcd(a,0) = a, gcd(0,b) = b, gcd(0,0) = 1 !
 	mov ecx, eax
 	or ecx, ebx
-	bsf ecx, ecx                     ; extract the greatest common power of 2 of a and b...
+	bsf ecx, ecx ;extract the greatest common power of 2 of a and b...
 	jnz notBoth0
-	mov eax, 1                       ; if a = 0 and b = 0, return 1
+	mov eax, 1 ;if a = 0 and b = 0, return 1
 	jmp done
 notBoth0:
-	mov edi, ecx                     ; ...and remember it for later use
+	mov edi, ecx ;...and remember it for later use
 	test eax, eax
 	jnz aNot0
-	mov eax, ebx                     ; if a = 0, return b
+	mov eax, ebx ;if a = 0, return b
 	jmp done
 aNot0:
 	test ebx, ebx
-	jz done                         ; if b = 0, return a
-	bsf ecx, eax                     ; "simplify" a as much as possible
+	jz done ; if b = 0, return a
+	bsf ecx, eax ; "simplify" a as much as possible
 	shr eax, cl
-	bsf ecx, ebx                     ; "simplify" b as much as possible
+	bsf ecx, ebx ; "simplify" b as much as possible
 	shr ebx, cl
 mainLoop:
 	mov ecx, ebx
-	sub ecx, eax                     ; b - a
-	sbb edx, edx                     ; edx = 0 if b >= a or -1 if a > b
-	and ecx, edx                     ; ecx = 0 if b >= a or b - a if a > b
-	add eax, ecx                     ; a-new = min(a,b)
-	sub ebx, ecx                     ; b-new = max(a,b)
-	sub ebx, eax                     ; we're now sure that that difference is >= 0
-	bsf ecx, eax                     ; "simplify" as much as possible by 2
+	sub ecx, eax ; b - a
+	sbb edx, edx ; edx = 0 if b >= a or -1 if a > b
+	and ecx, edx ;ecx = 0 if b >= a or b - a if a > b
+	add eax, ecx ;a-new = min(a,b)
+	sub ebx, ecx ;b-new = max(a,b)
+	sub ebx, eax ;we're now sure that that difference is >= 0
+	bsf ecx, eax ;"simplify" as much as possible by 2
 	shr eax, cl
-	bsf ecx, ebx                     ; "simplify" as much as possible by 2
+	bsf ecx, ebx ;"simplify" as much as possible by 2
 	shr ebx, cl
-	jnz mainLoop            ; keep looping until ebx = 0
-	mov ecx, edi                     ; multiply back with the common power of 2
+	jnz mainLoop ;keep looping until ebx = 0
+	mov ecx, edi ;multiply back with the common power of 2
 	shl eax, cl
 done: 
 	pop ecx

@@ -3,6 +3,7 @@ include("Sys/Module.rlib")
 include("Util/TypedFunction.rlib")
 include("IO/Terminal.rlib")
 
+export("SetLevel")
 export("New")
 export("JsonStream")
 export("TextStream")

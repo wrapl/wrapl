@@ -5,3 +5,10 @@ include("Sys/Time.rlib")
 
 export("T")
 export("New")
+
+submodule("DeliveryMode")
+subexport("DeliveryMode", "DeliveryModePersistent", "Persistent")
+subexport("DeliveryMode", "DeliveryModeNonPersistent", "NonPersistent")
+
+submodule("BasicProperties")
+subexport("BasicProperties", "BasicPropertiesNew", "New")

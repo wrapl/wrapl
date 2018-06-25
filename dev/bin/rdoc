@@ -634,6 +634,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				item:comment <- [];
 				item:params <- [];
 				EVERY info2 <- info:values DO (
+					REP WHILE info2[1] = " " => info2 <- info2[2, 0];
 					VAR param <- Param(info2:before(" "));
 					param:type <- info2[info2:find("@") + 1, 0]:before("|"):map([" ", "."], ["", "/"]);
 					param:value <- info2[info2:find("|") + 1, 0]:map([" ", "."], ["", "/"]);
@@ -652,9 +653,18 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				items:put(item);
 			) // line:begins("DEF ") & line:find("! <[") => (
 				item <- Type();
-				item:name <- line[5, line:find("!")];
+				VAR type <- item:name <- line[5, line:find("!")];
 				info <- ALL line:after("["):before("]"):split(",");
 				item:parents <- ALL info:values:before(" "):after(" "):map(".", "/");
+				line:find(">") => (
+					info <- ALL line:after("]"):before(">"):split(", ");
+				) // (
+					info <- ALL line:after("]"):split(", ");
+					REP (lineno <- lineno + 1;
+						UNTIL (line <- wrapl:read):find(">");
+						EVERY info:put(line:split(", \t"));
+					);
+				);
 				item:comment <- [];
 				REP (lineno <- lineno + 1;
 					WHILE (line <- wrapl:read)[1, 3] = "--";
@@ -665,20 +675,38 @@ EVERY file <- Args[i:to(Args:length)] DO (
 					);
 				);
 				items:put(item);
+				EVERY info2 <- info:values DO (
+					item <- Method();
+					item:symbol <- Escape(info2);
+					item:comment <- [];
+					item:signature <- ["TYP", type];
+					item:params <- [Param("_")];
+					items:put(item);
+				);
 			) // line:begins("DEF ") & line:find("! :?") => (
 				item <- AMethod();
 				item:symbol <- line[5, line:find("!")];
 				-- TODO: Finish this
 			) // line:begins("METH ") => (
-				item <- Method();
-				item:symbol <- Escape(line[6, 0]:before("("));
+				line[6] = ":" => (
+					item <- Method();
+					line[7] = "\"" => (
+						item:symbol <- Escape(line[7, 0]:before("(")[2, -1]);
+					) // (
+						item:symbol <- Escape(line[7, 0]:before("("));
+					);
+				) // (
+					item <- AMethod();
+					item:symbol <- Escape(line[6, 0]:before("("));
+				);
 				item:signature <- [];
 				info <- ALL line:after("("):before(")"):split(",");
 				item:comment <- [];
 				item:params <- [];
 				EVERY info2 <- info:values DO (
 					VAR param <- Param();
-					info2:after(" "):begins("@" | "=") => (
+					REP WHILE info2[1] = " " => info2 <- info2[2, 0];
+					info2:begins("@" | "=") => (
 						param:name <- "_";
 					) // (
 						param:name <- info2:before(" "):before("@"):before("=");

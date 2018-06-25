@@ -1039,3 +1039,18 @@ METHOD("copy", TYP, T, TYP, T) {
 	Result->Val = Std$Integer$new_small(Length);
 	return SUCCESS;
 };
+
+METHOD("put", TYP, Std$Address$T, TYP, T) {
+//@address
+//@t
+// Writes the contents of <var>t</var> at <var>address</var>.
+	unsigned char *Address = Std$Address$get_value(Args[0].Val);
+	buffer_t *Buffer = (buffer_t *)Args[1].Val;
+	for (node_t *Node = Buffer->Head; Node; Node = Node->Next) {
+		memcpy(Address, Node->Chars, Node->Length);
+		Address += Node->Length;
+		Buffer->Position += Node->Length;
+	}
+	Buffer->Head = Buffer->Tail = 0;
+	return SUCCESS;
+}

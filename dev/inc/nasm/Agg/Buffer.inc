@@ -8,7 +8,7 @@ riva_module Agg$Buffer
 
 riva_struct t, Std$Object_t
 	.Value:	resd 1
-	.Length: resd 1
+	.Length: resb sizeof(Std$Integer_smallt)
 endstruct
 
 riva_extern T
