@@ -91,9 +91,7 @@ riva_program := fun(Executable, Objects, Libraries) do
 	end
 end
 
-pkg_config := fun(Options) do
-	return shell("pkg-config", Options)[1, -1]
-end
+pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):trim
 
 subdir("Lib")
 subdir("Std")
