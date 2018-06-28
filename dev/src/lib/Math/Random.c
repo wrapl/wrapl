@@ -181,12 +181,25 @@ METHOD("generate", TYP, T, VAL, Std$Real$T, TYP, Std$Real$T) {
 METHOD("generate", TYP, T, VAL, Std$String$T, TYP, Std$Integer$SmallT) {
 	random_t *Random = Args[0].Val;
 	int Length = ((Std$Integer_smallt *)Args[2].Val)->Value;
-	char *Chars = Riva$Memory$alloc_atomic(Length + 1);
-	int Left = Length;
-	char *Ptr = Chars;
-	while (Left--) *(Ptr++) = gmp_urandomm_ui(Random->State, 8);
-	*Ptr = 0;
-	Result->Val = Std$String$new_length(Chars, Length);
+	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
+	Std$String$t *String = Std$String$alloc(NumBlocks);
+	String->Length.Value = Length;
+	Std$String$block *Block = String->Blocks;
+	while (Length > Std$String$MaxBlockSize) {
+		uint32_t *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		Block->Length.Value = Std$String$MaxBlockSize;
+		for (int Left = Std$String$MaxBlockSize; --Left >= 0;) {
+			*(Dest++) = gmp_urandomb_ui(Random->State, 32);
+		}
+		Length -= Std$String$MaxBlockSize;
+		++Block;
+	}
+	uint8_t *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	Block->Length.Value = Length;
+	for (int Left = Length; --Left >= 0;) {
+		*(Dest++) = gmp_urandomb_ui(Random->State, 8);
+	}
+	Result->Val = Std$String$freeze(String);
 	return SUCCESS;
 };
 
@@ -196,12 +209,25 @@ METHOD("generate", TYP, T, VAL, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$
 	int NoOfChars = ((Std$String_t *)Args[3].Val)->Length.Value;
 	char CharSet[NoOfChars + 1];
 	Std$String$flatten_to(Args[3].Val, CharSet);
-	char *Chars = Riva$Memory$alloc_atomic(Length + 1);
-	int Left = Length;
-	char *Ptr = Chars;
-	while (Left--) *(Ptr++) = CharSet[gmp_urandomm_ui(Random->State, NoOfChars)];
-	*Ptr = 0;
-	Result->Val = Std$String$new_length(Chars, Length);
+	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
+	Std$String$t *String = Std$String$alloc(NumBlocks);
+	String->Length.Value = Length;
+	Std$String$block *Block = String->Blocks;
+	while (Length > Std$String$MaxBlockSize) {
+		char *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		Block->Length.Value = Std$String$MaxBlockSize;
+		for (int Left = Std$String$MaxBlockSize; --Left >= 0;) {
+			*(Dest++) = CharSet[gmp_urandomm_ui(Random->State, NoOfChars)];
+		}
+		Length -= Std$String$MaxBlockSize;
+		++Block;
+	}
+	char *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	Block->Length.Value = Length;
+	for (int Left = Length; --Left >= 0;) {
+		*(Dest++) = CharSet[gmp_urandomm_ui(Random->State, NoOfChars)];
+	}
+	Result->Val = Std$String$freeze(String);
 	return SUCCESS;
 };
 

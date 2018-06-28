@@ -25,6 +25,50 @@
 
 #endif
 
+ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+	int Length = Std$Integer$get_small(Args[1].Val);
+	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
+	Std$String$t *String = Std$String$alloc(NumBlocks);
+	String->Length.Value = Length;
+	void *Source = Std$Address$get_value(Args[0].Val);
+	Std$String$block *Block = String->Blocks;
+	while (Length > Std$String$MaxBlockSize) {
+		void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		Block->Length.Value = Std$String$MaxBlockSize;
+		memcpy(Dest, Source, Std$String$MaxBlockSize);
+		Source += Std$String$MaxBlockSize;
+		Length -= Std$String$MaxBlockSize;
+		++Block;
+	}
+	void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	Block->Length.Value = Length;
+	memcpy(Dest, Source, Length);
+	Result->Val = Std$String$freeze(String);
+	return SUCCESS;
+}
+
+ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+	int Length = Std$Integer$get_small(Args[1].Val);
+	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
+	Std$String$t *String = Std$String$alloc(NumBlocks);
+	String->Length.Value = Length;
+	void *Source = Std$Address$get_value(Args[0].Val) + Std$Integer$get_small(Args[2].Val);
+	Std$String$block *Block = String->Blocks;
+	while (Length > Std$String$MaxBlockSize) {
+		void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		Block->Length.Value = Std$String$MaxBlockSize;
+		memcpy(Dest, Source, Std$String$MaxBlockSize);
+		Source += Std$String$MaxBlockSize;
+		Length -= Std$String$MaxBlockSize;
+		++Block;
+	}
+	void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	Block->Length.Value = Length;
+	memcpy(Dest, Source, Length);
+	Result->Val = Std$String$freeze(String);
+	return SUCCESS;
+}
+
 REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$String$T, TYP, Std$String$T) {
 	double Value = ((Std$Real_t *)Args[0].Val)->Value;
 	const unsigned char *Format = Std$String$flatten(Args[2].Val);

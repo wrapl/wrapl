@@ -7,6 +7,8 @@
 #define RIVA_MODULE Std$String
 #include <Riva-Header.h>
 
+#define Std$String$MaxBlockSize 65500
+
 RIVA_STRUCT(block) {
 	Std$Integer_smallt Length;
 	Std$Address_constt Chars;
