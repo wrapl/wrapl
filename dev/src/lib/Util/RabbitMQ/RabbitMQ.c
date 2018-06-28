@@ -2,6 +2,7 @@
 #include <Riva/Memory.h>
 #include <Agg/Table.h>
 #include <Agg/List.h>
+#include <Agg/Buffer.h>
 #include <Sys/Time.h>
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
@@ -117,12 +118,17 @@ typedef struct envelope_t {
 TYPE(EnvelopeT);
 // A RabbitMQ envelope.
 
+void envelope_finalize(envelope_t *Envelope, void *Data) {
+	amqp_destroy_envelope(Envelope->Value);
+}
+
 METHOD("consume_message", TYP, T) {
 //@connection
 //:EnvelopeT
 	connection_state_t *Connection = (connection_state_t *)Args[0].Val;
 	envelope_t *Envelope = new(envelope_t);
 	Envelope->Type = EnvelopeT;
+	Riva$Memory$register_finalizer(Envelope, envelope_finalize, 0, 0, 0);
 	amqp_rpc_reply_t Reply = amqp_consume_message(Connection->Handle, Envelope->Value, NULL, 0);
 	Result->Val = (Std$Object$t *)Envelope;
 	return SUCCESS;
@@ -278,6 +284,13 @@ METHOD("get_rpc_reply", TYP, ChannelT) {
 		Result->Val = Std$String$new("Invalid rpc reply");
 		return MESSAGE;
 	}
+}
+
+METHOD("maybe_release_buffers", TYP, ChannelT) {
+//@channel
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_maybe_release_buffers_on_channel(Channel->Connection, Channel->Index);
+	return SUCCESS;
 }
 
 METHOD("read_message", TYP, ChannelT) {
@@ -487,6 +500,8 @@ static Std$Object$t *array_to_riva(amqp_array_t *Array) {
 
 #define STRING_TO_BYTES(Val) (amqp_bytes_t){Std$String$get_length(Val), Std$String$flatten(Val)}
 #define BYTES_TO_STRING(Val) Std$String$copy_length(Val.bytes Val.len)
+
+#define BUFFER_TO_BYTES(Val) (amqp_bytes_t){Agg$Buffer$get_length(Val), Agg$Buffer$get_value(Val)}
 
 METHOD("headers", TYP, BasicPropertiesT) {
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;
@@ -702,6 +717,39 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 	}
 }
 
+METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Agg$Buffer$T) {
+//@channel
+//@exchange
+//@routing_key
+//@message
+//:ChannelT
+// Also accepts <code>:mandatory</code>, <code>:immediate</code> and <id>BasicPropertiesT</id>.
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	amqp_boolean_t Mandatory = 0;
+	amqp_boolean_t Immediate = 0;
+	amqp_basic_properties_t *Properties = 0;
+	for (int I = 4; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $mandatory) {
+			Mandatory = 1;
+		} else if (Arg == $immediate) {
+			Immediate = 1;
+		} else if (Arg->Type == BasicPropertiesT) {
+			Properties = ((basic_properties_t *)Arg)->Value;
+		}
+	}
+	amqp_status_enum Status = amqp_basic_publish(Channel->Connection, Channel->Index,
+		STRING_TO_BYTES(Args[1].Val), STRING_TO_BYTES(Args[2].Val), Mandatory, Immediate, Properties, BUFFER_TO_BYTES(Args[3].Val)
+	);
+	if (Status == AMQP_STATUS_OK) {
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else {
+		Result->Val = Std$String$new(amqp_error_string2(Status));
+		return MESSAGE;
+	}
+}
+
 METHOD("basic_qos", TYP, ChannelT, TYP, Std$Integer$SmallT) {
 //@channel
 //@prefetch_count
@@ -766,12 +814,32 @@ METHOD("basic_ack", TYP, ChannelT, TYP, Std$Number$T) {
 	}
 	int Status = amqp_basic_ack(Channel->Connection, Channel->Index, DeliveryTag, Multiple);
 	if (Status == AMQP_STATUS_OK) {
-			Result->Arg = Args[0];
-			return SUCCESS;
-		} else {
-			Result->Val = Std$String$new(amqp_error_string2(Status));
-			return MESSAGE;
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else {
+		Result->Val = Std$String$new(amqp_error_string2(Status));
+		return MESSAGE;
+	}
+}
+
+METHOD("basic_reject", TYP, ChannelT) {
+	channel_t *Channel = (channel_t *)Args[0].Val;
+	uint64_t DeliveryTag = Std$Integer$get_u64(Args[1].Val);
+	amqp_boolean_t Requeue = 0;
+	for (int I = 2; I < Count; ++I) {
+		Std$Object$t *Arg = Args[I].Val;
+		if (Arg == $requeue) {
+			Requeue = 1;
 		}
+	}
+	int Status = amqp_basic_reject(Channel->Connection, Channel->Index, DeliveryTag, Requeue);
+	if (Status == AMQP_STATUS_OK) {
+		Result->Arg = Args[0];
+		return SUCCESS;
+	} else {
+		Result->Val = Std$String$new(amqp_error_string2(Status));
+		return MESSAGE;
+	}
 }
 
 METHOD("basic_cancel", TYP, ChannelT, TYP, Std$String$T) {
