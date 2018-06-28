@@ -1,9 +1,9 @@
-GC_VERSION := "7.6.0"
-GC_DIR := file('gc-{GC_VERSION}')
-GC_LIB := file("libgc.a")
+GC_VERSION := "7.6.6"
+var GC_DIR := file('gc-{GC_VERSION}')
+var GC_LIB := file("libgc.a")
 
-ATOMIC_OPS_VERSION := "7.4.4"
-ATOMIC_OPS_DIR := GC_DIR/"libatomic_ops"
+ATOMIC_OPS_VERSION := "7.6.4"
+var ATOMIC_OPS_DIR := GC_DIR/"libatomic_ops"
 
 CONFUSE_VERSION := "3.2"
 CONFUSE_DIR := file('confuse-{CONFUSE_VERSION}')
@@ -53,13 +53,13 @@ GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun() do
 end
 
 GC_DIR => fun() do
-	execute('wget -nv http://hboehm.info/gc/gc_source/gc-{GC_VERSION}.tar.gz -O- | tar xvzP')
+	execute('wget -nv https://github.com/ivmai/bdwgc/releases/download/v{GC_VERSION}/gc-{GC_VERSION}.tar.gz -O- | tar xvzP')
 end
 
 ATOMIC_OPS_DIR[GC_DIR] => fun() do
 	execute("mkdir", "-p", ATOMIC_OPS_DIR)
 	execute("cd", ATOMIC_OPS_DIR, "&&",
-		'wget -nv http://hboehm.info/gc/gc_source/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
+		'wget -nv https://github.com/ivmai/libatomic_ops/releases/download/v{ATOMIC_OPS_VERSION}/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
 	)
 end
 

@@ -755,17 +755,18 @@ address_method "geta", ADDRESS, SMALLINT
 	xor edx, edx
 	ret
 
-_amethod Std$String$New, Std$String$FromAddress, ADDRESS, SMALLINT
-
+%if 0
 address_method "gets", ADDRESS, SMALLINT
 ;@src
 ;@length
 ; Returns a string composed of the <var>length</var> bytes at <var>src</var>.
-	mov eax, [Std$Function_argument(edi, 1).Val]
-	mov eax, [Std$Integer_smallt(eax).Value]
-	push eax
-	inc eax
-	push eax
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Integer_smallt(ebx).Value]
+	cmp ebx, MAX_STRING_BLOCK_SIZE
+	jg .large
+	push ebx
+	inc ebx
+	push ebx
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
 	mov esi, [Std$Function_argument(edi).Val]
@@ -793,6 +794,8 @@ address_method "gets", ADDRESS, SMALLINT
 	xor edx, edx
 	xor eax, eax
 	ret
+.large:
+	
 
 address_method "gets", ADDRESS, SMALLINT, SMALLINT
 ;@src
@@ -833,6 +836,7 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	xor edx, edx
 	xor eax, eax
 	ret
+%endif
 
 address_method "+", SMALLINT, ADDRESS
 	mov eax, [Std$Function_argument(edi).Val]

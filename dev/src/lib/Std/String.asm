@@ -1042,8 +1042,6 @@ _function Create
 .error1:
 	ret
 
-asymbol New
-
 %ifdef DOCUMENTING
 
 %define Std$String$T T

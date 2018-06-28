@@ -8,7 +8,7 @@ riva_module Std$Symbol
 
 riva_struct t, Std$Object_t
 	.ValueSize:		resd 1
-	.ValueSpace:		resd 1
+	.ValueSpace:	resd 1
 	.ValueTable:	resd 1
 	.TypeSize:		resd 1
 	.TypeSpace:		resd 1

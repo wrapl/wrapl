@@ -4,7 +4,6 @@ IMP Std USE Number, String, Symbol;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
 IMP Json.Parser;
-IMP Wrapl;
 
 DEF EscapeMap! Escaped.MapNew({
 	"\n" IS "\\n",
