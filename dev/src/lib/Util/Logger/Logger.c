@@ -86,10 +86,13 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	IO$Stream_writefn write = StreamWriter->write;
 	write(Stream, "{\"@timestamp\":\"", strlen("{\"@timestamp\":\""), 1);
 	char Buffer[256];
-	time_t Time = time(0);
+	struct timeval Time;
+	gettimeofday(&Time, 0);
 	struct tm FullTime;
-	localtime_r(&Time, &FullTime);
+	localtime_r(&Time.tv_sec, &FullTime);
 	size_t BufferLength = strftime(Buffer, 256, "%Y-%m-%dT%H:%M:%S.000%z", &FullTime);
+	sprintf(Buffer + 20, "%03d", Time.tv_usec / 1000);
+	Buffer[23] = '+';
 	write(Stream, Buffer, BufferLength, 1);
 	write(Stream, "\",\"component\":\"", strlen("\",\"component\":\""), 1);
 	write_json_chars(MainModule, strlen(MainModule), Stream, write);
@@ -122,7 +125,14 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 			write(Stream, ",\"", 2, 1);
 			write_json_string(FieldNames[0]->Name, Stream, write);
 			write(Stream, "\":\"", 3, 1);
-			write_json_string(Args[Index].Val, Stream, write);
+			Std$Object$t *Val = Args[Index].Val;
+			if (Val->Type != Std$String$T) {
+				Std$Function$result Result0;
+				if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+					Val = Result0.Val;
+				}
+			}
+			write_json_string(Val, Stream, write);
 			write(Stream, "\"", 1, 1);
 			++Index;
 			++FieldNames;
@@ -170,10 +180,11 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 	write(Stream, LevelNames[StreamWriter->Level], strlen(LevelNames[StreamWriter->Level]), 1);
 	write(Stream, "] ", 2, 1);
 	char Buffer[256];
-	time_t Time = time(0);
+	struct timeval Time;
+	gettimeofday(&Time, 0);
 	struct tm FullTime;
 	localtime_r(&Time, &FullTime);
-	size_t BufferLength = strftime(Buffer, 256, "%Y-%m-%d %H:%M:%S", &FullTime);
+	size_t BufferLength = strftime(Buffer, 256, "%Y-%m-%dT%H:%M:%S", &FullTime);
 	write(Stream, Buffer, BufferLength, 1);
 	write(Stream, " ", 1, 1);
 	write(Stream, MainModule, strlen(MainModule), 1);
@@ -201,7 +212,14 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 			write(Stream, " ", 1, 1);
 			write_text_string(FieldNames[0]->Name, Stream, write);
 			write(Stream, "=", 1, 1);
-			write_text_string(Args[Index].Val, Stream, write);
+			Std$Object$t *Val = Args[Index].Val;
+			if (Val->Type != Std$String$T) {
+				Std$Function$result Result0;
+				if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+					Val = Result0.Val;
+				}
+			}
+			write_text_string(Val, Stream, write);
 			++Index;
 			++FieldNames;
 		}
