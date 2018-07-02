@@ -4,6 +4,7 @@ export("Hash")
 export("Nil")
 export("New")
 export("NewAtomic")
+export("NewLarge")
 export("_alloc")
 export("_new")
 

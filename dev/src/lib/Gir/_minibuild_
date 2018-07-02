@@ -35,7 +35,7 @@ detect_modules := fun(Path) do
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
 				var Source := file(FileName)
-				var Scan := Source:scan("INCLUDES") => c_includes
+				var Scan := Source:scan("INCLUDES", :true) => c_includes
 				var  Object := Source % "o"
 				Object[Source, Scan, TYPEMAP] => c_compile
 				var Script := Source % "rdef"

@@ -108,6 +108,46 @@ function NewAtomic, 1
 	xor edx, edx
 	ret
 
+function NewLarge, 1
+;@length:Std$Integer$SmallT
+;@data:Std$Address$T
+;:T
+; Allocates <var>length</var> bytes of memory and returns its address.
+	cmp esi, byte 1
+	je .allocate
+	push dword sizeof(Agg$Buffer_t)
+	call Riva$Memory$_alloc_large
+	pop ecx
+	mov ecx, eax
+	mov [Std$Object_t(ecx).Type], dword T
+	mov [Std$Object_t(Agg$Buffer_t(ecx).Length).Type], dword Std$Integer$SmallT
+	mov eax, [Std$Function_argument(edi).Val]
+	mov eax, [Std$Integer_smallt(eax).Value]
+	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], eax
+	mov eax, [Std$Function_argument(edi, 1).Val]
+	mov eax, [Std$Address_t(eax).Value]
+	mov [Agg$Buffer_t(ecx).Value], eax
+	xor edx, edx
+	xor eax, eax
+	ret
+.allocate:
+	mov eax, [Std$Function_argument(edi).Val]
+	mov ebx, [Std$Integer_smallt(eax).Value]
+	push ebx
+	call Riva$Memory$_alloc_atomic
+	mov [esp], eax
+	push byte sizeof(Agg$Buffer_t)
+	call Riva$Memory$_alloc
+	pop ecx
+	mov ecx, eax
+	mov [Std$Object_t(ecx).Type], dword T
+	pop dword [Agg$Buffer_t(ecx).Value]
+	mov [Std$Object_t(Agg$Buffer_t(ecx).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Agg$Buffer_t(ecx).Length).Value], ebx
+	xor eax, eax
+	xor edx, edx
+	ret
+
 method "length", TYP, T
 	mov eax, [Std$Function_argument(edi).Val]
 	lea ecx, [Agg$Buffer_t(eax).Length]

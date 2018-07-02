@@ -41,7 +41,7 @@ typedef struct fast_buffer {
 	unsigned char *Chars;
 } fast_buffer;
 
-#define FastBufferSize 100
+#define FastBufferSize 1000
 static fast_buffer * restrict alloc_fast_buffer(void) {
 	fast_buffer *Buffer = new(fast_buffer);
 	Buffer->Chars = Riva$Memory$alloc_atomic(FastBufferSize);

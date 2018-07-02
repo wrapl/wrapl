@@ -9,6 +9,7 @@ riva_extern _strdup
 riva_extern _alloc
 riva_extern _alloc_uncollectable
 riva_extern _alloc_atomic
+riva_extern _alloc_large
 riva_extern _alloc_code
 riva_extern _calloc
 riva_extern _realloc

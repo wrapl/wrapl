@@ -1,6 +1,7 @@
 include("lib/librabbitmq.a")
 include("librt.so")
 include("Agg.rlib")
+include("Agg/Buffer.rlib")
 include("Sys/Time.rlib")
 
 export("T")
