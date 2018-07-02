@@ -884,6 +884,9 @@ TYPED_INSTANCE(size_t, IO$Stream$remaining, T, buffer_t *Stream) {
 };
 
 METHOD("empty", TYP, T) {
+//@buffer
+//:T
+// Clears the contents of the buffer.
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	Stream->Head = Stream->Tail = 0;
 	Result->Arg = Args[0];
@@ -899,6 +902,9 @@ METHOD("length", TYP, T) {
 };
 
 METHOD("remaining", TYP, T) {
+//@buffer
+//:Std.Integer.SmallT
+// Returns the number of bytes available to read.
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	int Length = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) Length += Node->Length;

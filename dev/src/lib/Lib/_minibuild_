@@ -1,4 +1,4 @@
-GMP_VERSION := "6.0.0"
+GMP_VERSION := "6.1.2"
 GMP_DIR := file('gmp-{GMP_VERSION}')
 
 file("libgmp.a")[GMP_DIR] => fun() do
