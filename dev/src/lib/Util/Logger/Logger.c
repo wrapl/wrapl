@@ -4,6 +4,7 @@
 #include <Riva/Memory.h>
 #include <Sys/Module.h>
 #include <Riva/Config.h>
+#include <Riva/System.h>
 #include <Sys/Time.h>
 #include <Util/TypedFunction.h>
 
@@ -18,6 +19,7 @@ static const char *LevelNames[] = {
 	"ERROR",
 	"FATAL"
 };
+static const char *MainModule = 0;
 
 typedef struct {
 	Std$Function$CFields
@@ -31,42 +33,46 @@ SYMBOL($AT, "@");
 
 static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
+static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream, IO$Stream_writefn write) {
+	const char *I = Chars;
+	const char *J = I;
+	const char *L = I + Length;
+	for (; J < L; ++J) {
+		char Char = *J;
+		if (Char == '\"') {
+			if (I < J) write(Stream, I, J - I, 1);
+			write(Stream, "\\\"", 2, 1);
+			I = J + 1;
+		} else if (Char == '\\') {
+			if (I < J) write(Stream, I, J - I, 1);
+			write(Stream, "\\\\", 2, 1);
+			I = J + 1;
+		} else if (Char == '\t') {
+			if (I < J) write(Stream, I, J - I, 1);
+			write(Stream, "\\t", 2, 1);
+			I = J + 1;
+		} else if (Char == '\r') {
+			if (I < J) write(Stream, I, J - I, 1);
+			write(Stream, "\\r", 2, 1);
+			I = J + 1;
+		} else if (Char == '\n') {
+			if (I < J) write(Stream, I, J - I, 1);
+			write(Stream, "\\n", 2, 1);
+			I = J + 1;
+		} else if ((Char < ' ') || (Char >= 0x80)) {
+			if (I < J) write(Stream, I, J - I, 1);
+			char Tmp[4] = {'\\', 'x', Hex[Char / 16], Hex[Char % 16]};
+			write(Stream, Tmp, 4, 1);
+			I = J + 1;
+		}
+	}
+	if (I < J) write(Stream, I, J - I, 1);
+}
+
 static inline write_json_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream_writefn write) {
 	if (Val->Type == Std$String$T) {
 		for (Std$String$block *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
-			const char *I = Block->Chars.Value;
-			const char *J = I;
-			const char *L = I + Block->Length.Value;
-			for (; J < L; ++J) {
-				char Char = *J;
-				if (Char == '\"') {
-					if (I < J) write(Stream, I, J - I, 1);
-					write(Stream, "\\\"", 2, 1);
-					I = J;
-				} else if (Char == '\\') {
-					if (I < J) write(Stream, I, J - I, 1);
-					write(Stream, "\\\\", 2, 1);
-					I = J;
-				} else if (Char == '\t') {
-					if (I < J) write(Stream, I, J - I, 1);
-					write(Stream, "\\t", 2, 1);
-					I = J;
-				} else if (Char == '\r') {
-					if (I < J) write(Stream, I, J - I, 1);
-					write(Stream, "\\r", 2, 1);
-					I = J;
-				} else if (Char == '\n') {
-					if (I < J) write(Stream, I, J - I, 1);
-					write(Stream, "\\n", 2, 1);
-					I = J;
-				} else if ((Char < ' ') || (Char >= 0x80)) {
-					if (I < J) write(Stream, I, J - I, 1);
-					char Tmp[4] = {'\\', 'x', Hex[Char / 16], Hex[Char % 16]};
-					write(Stream, Tmp, 4, 1);
-					I = J;
-				}
-			}
-			if (I < J) write(Stream, I, J - I, 1);
+			write_json_chars(Block->Chars.Value, Block->Length.Value, Stream, write);
 		}
 	} else {
 		write(Stream, "<value>", strlen("<value>"), 1);
@@ -85,6 +91,8 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	localtime_r(&Time, &FullTime);
 	size_t BufferLength = strftime(Buffer, 256, "%Y-%m-%dT%H:%M:%S.000%z", &FullTime);
 	write(Stream, Buffer, BufferLength, 1);
+	write(Stream, "\",\"component\":\"", strlen("\",\"component\":\""), 1);
+	write_json_chars(MainModule, strlen(MainModule), Stream, write);
 	write(Stream, "\",\"@version\":1,\"message\":\"", strlen("\",\"@version\":1,\"message\":\""), 1);
 	Std$Symbol$t **FieldNames = 0;
 	int Index;
@@ -168,6 +176,8 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 	size_t BufferLength = strftime(Buffer, 256, "%Y-%m-%d %H:%M:%S", &FullTime);
 	write(Stream, Buffer, BufferLength, 1);
 	write(Stream, " ", 1, 1);
+	write(Stream, MainModule, strlen(MainModule), 1);
+	write(Stream, " ", 1, 1);
 	write(Stream, StreamWriter->LoggerName, strlen(StreamWriter->LoggerName), 1);
 	write(Stream, " - ", 3, 1);
 	Std$Symbol$t **FieldNames = 0;
@@ -221,6 +231,7 @@ GLOBAL_FUNCTION(TextStream, 2) {
 
 CONSTANT(LoggerFactory, Std$Object$T) {
 	const char *ConfigPath = Riva$Config$get("Logger/Config");
+	MainModule = Riva$Config$get("Riva/MainModule");
 	Sys$Module$t *ConfigModule = 0;
 	if (ConfigPath) ConfigModule = Sys$Module$load(0, ConfigPath);
 	if (ConfigModule) {

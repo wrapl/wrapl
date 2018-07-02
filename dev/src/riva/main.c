@@ -201,6 +201,8 @@ finished: 0;
 
 	log_writef("GC = %s.\n", GC_is_disabled() ? "disabled" : "enabled");
 
+	config_set("Riva/MainModule", MainModule);
+
 	module_t *System = module_new("Riva/System");
 	module_add_alias(System, "library:/Riva/System");
 	module_export(System, "_Args", 0, &Args);
