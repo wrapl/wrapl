@@ -113,7 +113,7 @@ subdir("Html")
 --subdir("OpenCV")
 subdir("ML")
 subdir("DB")
---subdir("Yaml")
+subdir("Yaml")
 
 if PLATFORM = "Linux" then
 	subdir("Gir")
