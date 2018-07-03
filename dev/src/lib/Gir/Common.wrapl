@@ -88,7 +88,11 @@ TO :generate_c(function@FunctionT) (
 	VAR line;
 	VAR m <- 0;
 	EVERY m <- m + types:values:c_argcount;
+	r:put('#ifdef DOCUMENTING');
+	r:put('GLOBAL_FUNCTION({function:name}, {m}) \{');
+	r:put('#else');
 	r:put('GLOBAL_FUNCTION(__${function:name}, {m}) \{');
+	r:put('#endif');
 	VAR i; EVERY i <- 1:to(n) DO r:put('//@{params[i]:name}:{types[i]:rtype}');
 	VAR rettype <- Type.Lookup(function:type);
 	r:put('//:{rettype:rtype}');

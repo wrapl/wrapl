@@ -34,8 +34,8 @@ detect_modules := fun(Path) do
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
-				var Source := file(FileName)
-				var Scan := Source:scan("INCLUDES") => c_includes
+				var Source := file(FileName)[AUTOGEN]
+				var Scan := Source:scan("INCLUDES", :true) => c_includes
 				var  Object := Source % "o"
 				Object[Source, Scan, TYPEMAP] => c_compile
 				var Script := Source % "rdef"
@@ -48,8 +48,7 @@ detect_modules := fun(Path) do
 				Doc[RDOC, RIVA, WRAPL_MODULES, Source] => fun(Doc) do
 					execute(RIVA, "-tWrapl", RDOC, "-o", Doc, CFLAGS, Name, Source)
 				end
-				Modules:put(Module)
-				Modules:put(Doc)
+				Modules:put(Module, Doc)
 			end
 		end
 		return Modules
