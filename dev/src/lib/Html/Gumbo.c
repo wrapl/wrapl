@@ -1,6 +1,7 @@
 #include <Std.h>
 #include <Riva.h>
 #include <IO/Stream.h>
+#include <Util/TypedFunction.h>
 #include <gumbo.h>
 
 typedef struct gumbo_t {
@@ -199,6 +200,63 @@ METHOD("@", TYP, ElementNodeT, VAL, Std$String$T) {
 	*End++ = ']';
 	*End = 0;
 	Result->Val = Std$String$new_length(Buffer, Length);
+	return SUCCESS;
+}
+
+static int write_node(GumboNode *Node, IO$Stream$t *Stream, IO$Stream_writefn write) {
+	switch (Node->type) {
+	case GUMBO_NODE_DOCUMENT: {
+		break;
+	}
+	case GUMBO_NODE_ELEMENT: {
+		write(Stream, "<", 1, 1);
+		const char *TagName = gumbo_normalized_tagname(Node->v.element.tag);
+		write(Stream, TagName, strlen(TagName), 1);
+		for (int I = 0; I < Node->v.element.attributes.length; ++I) {
+			GumboAttribute *Attribute = Node->v.element.attributes.data[I];
+			write(Stream, " ", 1, 1);
+			write(Stream, Attribute->original_name.data, Attribute->original_name.length, 1);
+			write(Stream, "=", 1, 1);
+			write(Stream, Attribute->original_value.data, Attribute->original_value.length, 1);
+		}
+		if (Node->v.element.children.length) {
+			write(Stream, ">", 1, 1);
+			for (int I = 0; I < Node->v.element.children.length; ++I) {
+				write_node(Node->v.element.children.data[I], Stream, write);
+			}
+			write(Stream, "</", 2, 1);
+			write(Stream, TagName, strlen(TagName), 1);
+			write(Stream, ">", 1, 1);
+		} else {
+			write(Stream, "/>", 2, 1);
+		}
+		break;
+	}
+	case GUMBO_NODE_TEXT:
+	case GUMBO_NODE_CDATA:
+	case GUMBO_NODE_WHITESPACE: {
+		write(Stream, Node->v.text.original_text.data, Node->v.text.original_text.length, 1);
+		break;
+	}
+	case GUMBO_NODE_COMMENT: {
+		write(Stream, "<!--", 4, 1);
+		write(Stream, Node->v.text.original_text.data, Node->v.text.original_text.length, 1);
+		write(Stream, "-->", 3, 1);
+		break;
+	}
+	case GUMBO_NODE_TEMPLATE: {
+		break;
+	}
+	}
+	return 0;
+}
+
+METHOD("write", TYP, IO$Stream$T, TYP, NodeT) {
+	IO$Stream$t *Stream = Args[0].Val;
+	IO$Stream_writefn write = Util$TypedFunction$get(IO$Stream$write, Stream->Type);
+	gumbo_node_t *Node = (gumbo_node_t *)Args[1].Val;
+	write_node(Node->Handle, Stream, write);
+	Result->Arg = Args[0];
 	return SUCCESS;
 }
 
