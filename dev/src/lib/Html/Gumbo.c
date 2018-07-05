@@ -31,6 +31,8 @@ TYPE(TemplateNodeT, ElementNodeT, NodeT);
 
 TYPE(VectorT);
 
+static Std$Object$t *Tags[GUMBO_TAG_LAST];
+
 static void *riva_gumbo_allocator(void *User, size_t Size) {
 	return Riva$Memory$alloc(Size);
 }
@@ -100,6 +102,30 @@ METHOD("root", TYP, T) {
 	return SUCCESS;
 }
 
+METHOD("parent", TYP, NodeT) {
+	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
+	gumbo_node_t *Parent = new(gumbo_node_t);
+	Parent->Handle = Node->Handle->parent;
+	switch (Parent->Handle->type) {
+	case GUMBO_NODE_DOCUMENT: Parent->Type = DocumentNodeT; break;
+	case GUMBO_NODE_ELEMENT: Parent->Type = ElementNodeT; break;
+	case GUMBO_NODE_TEXT: Parent->Type = TextNodeT; break;
+	case GUMBO_NODE_CDATA: Parent->Type = CDataNodeT; break;
+	case GUMBO_NODE_COMMENT: Parent->Type = CommentNodeT; break;
+	case GUMBO_NODE_WHITESPACE: Parent->Type = WhitespaceNodeT; break;
+	case GUMBO_NODE_TEMPLATE: Parent->Type = TemplateNodeT; break;
+	default: Parent->Type = NodeT; break;
+	}
+	Result->Val = (Std$Object$t *)Parent;
+	return SUCCESS;
+}
+
+METHOD("index", TYP, NodeT) {
+	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Node->Handle->index_within_parent + 1);
+	return SUCCESS;
+}
+
 METHOD("@", TYP, TextNodeT, VAL, Std$String$T) {
 	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
 	Result->Val = Std$String$new(Node->Handle->v.text.text);
@@ -112,14 +138,52 @@ METHOD("text", TYP, TextNodeT) {
 	return SUCCESS;
 }
 
+METHOD("text", TYP, ElementNodeT) {
+	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
+	int Length = 0;
+	for (int I = 0; I < Node->Handle->v.element.children.length; ++I) {
+		GumboNode *Child = Node->Handle->v.element.children.data[I];
+		switch (Child->type) {
+		case GUMBO_NODE_TEXT:
+		case GUMBO_NODE_CDATA:
+			Length += strlen(Child->v.text.text);
+			break;
+		}
+	}
+	char *Buffer = Riva$Memory$alloc_atomic(Length + 1);
+	char *End = Buffer;
+	for (int I = 0; I < Node->Handle->v.element.children.length; ++I) {
+		GumboNode *Child = Node->Handle->v.element.children.data[I];
+		switch (Child->type) {
+		case GUMBO_NODE_TEXT:
+		case GUMBO_NODE_CDATA:
+			End = stpcpy(End, Child->v.text.text);
+			break;
+		}
+	}
+	*End = 0;
+	Result->Val = Std$String$new_length(Buffer, Length);
+	return SUCCESS;
+}
+
 METHOD("@", TYP, ElementNodeT, VAL, Std$String$T) {
 	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
-	char *Buffer = Riva$Memory$alloc_atomic(4096);
+	const char *Tag = gumbo_normalized_tagname(Node->Handle->v.element.tag);
+	GumboAttribute **Attributes = (GumboAttribute **)Node->Handle->v.element.attributes.data;
+	int Length = 1 + strlen(Tag);
+	char CountBuffer[12];
+	int CountLength = sprintf(CountBuffer, "%d", Node->Handle->v.element.children.length);
+	for (int I = 0; I < Node->Handle->v.element.attributes.length; ++I) {
+		GumboAttribute *Attribute = Attributes[I];
+		Length += 1 + strlen(Attribute->name);
+		Length += 2 + strlen(Attribute->value);
+		Length += 1;
+	}
+	Length += 3 + CountLength;
+	char *Buffer = Riva$Memory$alloc_atomic(Length + 1);
 	char *End = Buffer;
 	*End++ = '<';
-	GumboTag Tag = Node->Handle->v.element.tag;
-	End = stpcpy(End, gumbo_normalized_tagname(Tag));
-	GumboAttribute **Attributes = (GumboAttribute **)Node->Handle->v.element.attributes.data;
+	End = stpcpy(End, Tag);
 	for (int I = 0; I < Node->Handle->v.element.attributes.length; ++I) {
 		GumboAttribute *Attribute = Attributes[I];
 		*End++ = ' ';
@@ -129,15 +193,18 @@ METHOD("@", TYP, ElementNodeT, VAL, Std$String$T) {
 		End = stpcpy(End, Attribute->value);
 		*End++ = '\"';
 	}
-	End += sprintf(End, ">[%d]", Node->Handle->v.element.children.length);
-	Result->Val = Std$String$copy_length(Buffer, End - Buffer);
+	*End++ = '>';
+	*End++ = '[';
+	End = stpcpy(End, CountBuffer);
+	*End++ = ']';
+	*End = 0;
+	Result->Val = Std$String$new_length(Buffer, Length);
 	return SUCCESS;
 }
 
 METHOD("tag", TYP, ElementNodeT) {
 	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
-	GumboTag Tag = Node->Handle->v.element.tag;
-	Result->Val = Std$String$new(gumbo_normalized_tagname(Tag));
+	Result->Val = Tags[Node->Handle->v.element.tag];
 	return SUCCESS;
 }
 
@@ -171,6 +238,12 @@ METHOD("children", TYP, ElementNodeT) {
 	Vector->Type = VectorT;
 	Vector->Handle = &Node->Handle->v.element.children;
 	Result->Val = (Std$Object$t *)Vector;
+	return SUCCESS;
+}
+
+METHOD("length", TYP, ElementNodeT) {
+	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Node->Handle->v.element.children.length);
 	return SUCCESS;
 }
 
@@ -329,6 +402,7 @@ struct find_node_t {
 	find_node_t *Next;
 	GumboVector *Vector;
 	int Index;
+	Std$Object$t *Info;
 };
 
 typedef struct element_find_generator {
@@ -342,6 +416,8 @@ static Std$Function$status resume_element_find(Std$Function$cresumedata *Data) {
 	find_node_t *FindNode = Generator->FindNode;
 	for (;;) {
 		if (!FindNode) return FAILURE;
+		Std$Object$t *InfoVal = FindNode->Info;
+		Std$Object$t **InfoRef = &InfoVal;
 		int Index = FindNode->Index;
 		gumbo_node_t *Node = new(gumbo_node_t);
 		Node->Handle = FindNode->Vector->data[Index];
@@ -359,6 +435,8 @@ static Std$Function$status resume_element_find(Std$Function$cresumedata *Data) {
 				NewNode->Next = FindNode;
 				NewNode->Index = 0;
 				NewNode->Vector = &Node->Handle->v.element.children;
+				NewNode->Info = InfoVal;
+				InfoRef = &NewNode->Info;
 				FindNode = NewNode;
 			}
 			break;
@@ -370,8 +448,10 @@ static Std$Function$status resume_element_find(Std$Function$cresumedata *Data) {
 		case GUMBO_NODE_TEMPLATE: Node->Type = TemplateNodeT; break;
 		default: Node->Type = NodeT; break;
 		}
-		switch (Std$Function$call(Generator->Filter, 1, &Data->Result, Node, 0)) {
+		Std$Function$result Result;
+		switch (Std$Function$call(Generator->Filter, 2, &Result, Node, 0, InfoVal, InfoRef)) {
 		case SUSPEND: case SUCCESS:
+			Data->Result = Result.Arg;
 			Generator->FindNode = FindNode;
 			return SUSPEND;
 		case FAILURE:
@@ -388,8 +468,18 @@ METHOD("find", TYP, ElementNodeT, ANY) {
 	find_node_t *FindNode = new(find_node_t);
 	FindNode->Index = 0;
 	FindNode->Vector = &Element->Handle->v.element.children;
+	Std$Object$t *Filter;
+	if (Count > 2) {
+		FindNode->Info = Args[1].Val;
+		Filter = Args[2].Val;
+	} else {
+		FindNode->Info = Std$Object$Nil;
+		Filter = Args[1].Val;
+	}
 	for (;;) {
 		if (!FindNode) return FAILURE;
+		Std$Object$t *InfoVal = FindNode->Info;
+		Std$Object$t **InfoRef = &InfoVal;
 		int Index = FindNode->Index;
 		gumbo_node_t *Node = new(gumbo_node_t);
 		Node->Handle = FindNode->Vector->data[Index];
@@ -407,6 +497,8 @@ METHOD("find", TYP, ElementNodeT, ANY) {
 				NewNode->Next = FindNode;
 				NewNode->Index = 0;
 				NewNode->Vector = &Node->Handle->v.element.children;
+				NewNode->Info = InfoVal;
+				InfoRef = &NewNode->Info;
 				FindNode = NewNode;
 			}
 			break;
@@ -418,7 +510,7 @@ METHOD("find", TYP, ElementNodeT, ANY) {
 		case GUMBO_NODE_TEMPLATE: Node->Type = TemplateNodeT; break;
 		default: Node->Type = NodeT; break;
 		}
-		switch (Std$Function$call(Args[1].Val, 1, Result, Node, 0)) {
+		switch (Std$Function$call(Args[1].Val, 2, Result, Node, 0, InfoVal, InfoRef)) {
 		case SUSPEND: case SUCCESS: {
 			element_find_generator *Generator = new(element_find_generator);
 			Generator->State.Run = Std$Function$resume_c;
@@ -456,4 +548,15 @@ METHOD("[]", TYP, DocumentNodeT, TYP, Std$Integer$SmallT) {
 	}
 	Result->Val = (Std$Object$t *)Node;
 	return SUCCESS;
+}
+
+extern int Riva$Symbol[];
+
+INITIAL() {
+	for (GumboTag Tag = 0; Tag < GUMBO_TAG_LAST; ++Tag) {
+		int Type; void *Value;
+		const char *TagName = gumbo_normalized_tagname(Tag);
+		Riva$Module$import(Riva$Symbol, TagName, &Type, &Value);
+		Tags[Tag] = Value;
+	}
 }

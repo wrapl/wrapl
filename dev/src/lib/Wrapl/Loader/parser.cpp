@@ -750,7 +750,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			Scanner->accept(tkGREATER);
 			return new invoke_expr_t(LineNo, new const_expr_t(Scanner->Token.LineNo, Std$Function$VariableNew), Value);
 		} else {
-			func_expr_t::parameter_t *Parameters= accept_typed_parameters(Scanner).Parameters;
+			func_expr_t::parameter_t *Parameters = accept_typed_parameters(Scanner).Parameters;
 			Scanner->accept(tkGREATER);
 			if (Parameters == 0) {
 				if (Scanner->parse(tkVAR)) {
@@ -1007,7 +1007,7 @@ start:
 		if (Scanner->parse(tkLPAREN)) {
 			Expr->Next = accept_arguments(Scanner);
 			if (Scanner->parse(tkSEMICOLON)) {
-				func_expr_t::parameter_t *Parameters= accept_typed_parameters(Scanner).Parameters;
+				func_expr_t::parameter_t *Parameters = accept_typed_parameters(Scanner).Parameters;
 				Scanner->accept(tkRPAREN);
 				expr_t **Slot = &Expr;
 				while (*Slot) Slot = &Slot[0]->Next;
