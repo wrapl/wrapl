@@ -510,13 +510,13 @@ METHOD("find", TYP, ElementNodeT, ANY) {
 		case GUMBO_NODE_TEMPLATE: Node->Type = TemplateNodeT; break;
 		default: Node->Type = NodeT; break;
 		}
-		switch (Std$Function$call(Args[1].Val, 2, Result, Node, 0, InfoVal, InfoRef)) {
+		switch (Std$Function$call(Filter, 2, Result, Node, 0, InfoVal, InfoRef)) {
 		case SUSPEND: case SUCCESS: {
 			element_find_generator *Generator = new(element_find_generator);
 			Generator->State.Run = Std$Function$resume_c;
 			Generator->State.Invoke = (Std$Function_cresumefn)resume_element_find;
 			Generator->FindNode = FindNode;
-			Generator->Filter = Args[1].Val;
+			Generator->Filter = Filter;
 			Result->State = Generator;
 			return SUSPEND;
 		}
