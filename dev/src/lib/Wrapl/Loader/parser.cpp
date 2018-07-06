@@ -50,7 +50,6 @@ static func_expr_t::parameter_t *accept_parameters(scanner_t *Scanner) {
 	if (Scanner->parse(tkIDENT)) {
 		func_expr_t::parameter_t *Param = new func_expr_t::parameter_t;
 		Param->Name = Scanner->Token.Ident;
-		bool DefaultRequired = false;
 		if (Param->Reference = Scanner->parse(tkPLUS)) {
 			if (Scanner->parse(tkOR)) Param->Default = accept_term(Scanner);
 		} else if (Scanner->parse(tkOR)) {
@@ -94,9 +93,7 @@ static typed_parameters accept_typed_parameters(scanner_t *Scanner) {
 		Param->Reference = Scanner->parse(tkPLUS);
 		if (Scanner->parse(tkOR)) Param->Default = accept_term(Scanner);
 	} else {
-		char *Name;
-		int Length = asprintf(&Name, "anon:%x", (unsigned int)Param);
-		Param->Name = Name;
+		asprintf((char **)&Param->Name, "anon:%x", (unsigned int)Param);
 	};
 	expr_t *Type;
 	if (Scanner->parse(tkAT)) {
@@ -836,7 +833,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			Last->Next = accept_expr(Scanner);
 			Last = Last->Next;
 		};
-		return new sequence_expr_t(Scanner->Token.LineNo, Exprs);
+		return new sequence_expr_t(LineNo, Exprs);
 	};
 	if (Scanner->parse(tkPAR)) {
 		uint32_t LineNo = Scanner->Token.LineNo;
@@ -846,7 +843,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			Last->Next = accept_expr(Scanner);
 			Last = Last->Next;
 		};
-		return new parallel_expr_t(Scanner->Token.LineNo, Exprs);
+		return new parallel_expr_t(LineNo, Exprs);
 	};
 	if (Scanner->parse(tkINT)) {
 		uint32_t LineNo = Scanner->Token.LineNo;
@@ -856,7 +853,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			Last->Next = accept_expr(Scanner);
 			Last = Last->Next;
 		};
-		return new interleave_expr_t(Scanner->Token.LineNo, Exprs);
+		return new interleave_expr_t(LineNo, Exprs);
 	};
 	if (Scanner->parse(tkEXIT)) {
 		uint32_t LineNo = Scanner->Token.LineNo;
@@ -1260,22 +1257,21 @@ static expr_t *parse_expr(scanner_t *Scanner) {
 	if (Scanner->parse(tkELSE)) return new cond_expr_t(Expr->LineNo, Expr, 0, accept_expr(Scanner));
 // 	if (Scanner->parse(tkELSE)) return new cond_expr_t(Expr->LineNo, Expr, new const_expr_t(Scanner->Token.LineNo, Std$Object$Nil), accept_expr(Scanner));
 	if (Scanner->parse(tkRECV)) {
-		int LineNo = Scanner->Token.LineNo;
 		Scanner->accept(tkIDENT);
 		const char *Var = Scanner->Token.Ident;
 		expr_t *Body;
 		if (Scanner->parse(tkAS)) {
 			int LineNo = Scanner->Token.LineNo;
-			whentype_expr_t *Expr = accept_whentype_expr_case(Scanner, true);
-			Expr->Condition = new ident_expr_t(LineNo, Var);
-			Expr->LineNo = LineNo;
-			Body = Expr;
+			whentype_expr_t *Expr2 = accept_whentype_expr_case(Scanner, true);
+			Expr2->Condition = new ident_expr_t(LineNo, Var);
+			Expr2->LineNo = LineNo;
+			Body = Expr2;
 		} else if (Scanner->parse(tkIS)) {
 			int LineNo = Scanner->Token.LineNo;
-			when_expr_t *Expr = accept_when_expr_case(Scanner, true);
-			Expr->Condition = new ident_expr_t(LineNo, Var);
-			Expr->LineNo = LineNo;
-			Body = Expr;
+			when_expr_t *Expr2 = accept_when_expr_case(Scanner, true);
+			Expr2->Condition = new ident_expr_t(LineNo, Var);
+			Expr2->LineNo = LineNo;
+			Body = Expr2;
 		} else {
 			Scanner->accept(tkDO);
 			Body = accept_expr(Scanner);

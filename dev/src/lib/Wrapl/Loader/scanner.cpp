@@ -395,7 +395,7 @@ bool scanner_t::parse(int Type) {
 				goto scan_done;
 			};
 			case '\'':
-				NextChar = ++Current;
+				NextChar = Current + 1;
 				scan_string_block0(this);
 				Current = NextChar;
 				goto scan_done;
@@ -704,7 +704,7 @@ void scanner_t::accept(int Type) {
 void scanner_t::raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
-	int Length = vasprintf((char **)&Error.Message, Format, Args);
+	vasprintf((char **)&Error.Message, Format, Args);
 	va_end(Args);
 	Error.LineNo = LineNo;
 	Error.Type = Type;

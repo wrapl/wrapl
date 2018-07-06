@@ -96,18 +96,18 @@ struct compiler_t {
 		Scope = Global = new scope_t(scope_t::SC_GLOBAL);
 		Function = 0;
 		this->SourceName = SourceName;
-	};
+	}
 
 	compiler_t(const char *SourceName, scope_t *Shared) {
 		Scope = Global = Shared;
 		Function = 0;
 		this->SourceName = SourceName;
-	};
+	}
 
 	void flush() {
 		Scope = Global;
 		Function = 0;
-	};
+	}
 
 	operand_t *new_parameter(bool Indirect, bool Variadic, bool Default);
 	operand_t *new_local();
@@ -126,9 +126,9 @@ struct compiler_t {
 	uint32_t use_trap();
 	void pop_trap();
 	void back_trap(label_t *Start);
-	uint32_t trap() {return Function->Loop->Trap->Index;};
+	uint32_t trap() {return Function->Loop->Trap->Index;}
 
-	frame_t *frame() {return &Function->Frame;};
+	frame_t *frame() {return &Function->Frame;}
 
 	void push_function(int LineNo);
 	frame_t *pop_function();
@@ -157,34 +157,35 @@ struct compiler_t {
 #define CLASSID \
 	static const char *_classid() {\
 		return __PRETTY_FUNCTION__;\
-	};\
+	}\
 	const char *classid() {\
 		return _classid();\
-	};
+	}
 
 struct expr_t {
 	expr_t *Next;
 	int LineNo;
 #if defined(PARSER_LISTING) || defined(ASSEMBLER_LISTING)
-	virtual void print(int Indent) {};
+	virtual void print(int Indent) {}
 #endif
 	enum precomp_t {_PC_NONE, _PC_PARTIAL, _PC_FULL, _PC_WAIT};
-	virtual operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success) {return 0;};
-	virtual operand_t *constant(compiler_t *Compiler) {return 0;};
+	virtual operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success) {return 0;}
+	virtual operand_t *constant(compiler_t *Compiler) {return 0;}
 	virtual operand_t *precompile(compiler_t *Compiler, precomp_t &Type) {
 		operand_t *Operand = constant(Compiler);
 		if (Operand) Type = _PC_FULL;
 		return Operand;
-	};
+	}
 	Std$Object_t *evaluate(compiler_t *Compiler);
 	Std$Function_status evaluate(compiler_t *Compiler, Std$Function_result *Result);
 	
+	virtual ~expr_t() {}
 	static const char *_classid() {
 		return __PRETTY_FUNCTION__;
-	};
+	}
 	virtual const char *classid() {
 		return _classid();
-	};
+	}
 };
 
 struct assign_expr_t : expr_t {CLASSID
@@ -193,7 +194,7 @@ struct assign_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -204,7 +205,7 @@ struct rassign_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -215,7 +216,7 @@ struct ref_assign_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -226,7 +227,7 @@ struct invoke_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Function = Function;
 		this->Args = Args;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -237,7 +238,7 @@ struct parallel_invoke_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Function = Function;
 		this->Args = Args;
-	};
+	}
 	void print(int Index);
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -249,11 +250,11 @@ struct const_expr_t : expr_t {CLASSID
 		Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
 		Operand->Value = (Std$Object_t *)Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
-	operand_t *constant(compiler_t *Compiler) {return Operand;};
-	operand_t *precompile(compiler_t *Compiler, precomp_t &Type) {Type = _PC_FULL; return Operand;};
+	operand_t *constant(compiler_t *Compiler) {return Operand;}
+	operand_t *precompile(compiler_t *Compiler, precomp_t &Type) {Type = _PC_FULL; return Operand;}
 };
 
 struct backquote_expr_t : expr_t {CLASSID
@@ -261,7 +262,7 @@ struct backquote_expr_t : expr_t {CLASSID
 	backquote_expr_t(int LineNo, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 	//operand_t *constant(compiler_t *Compiler);
@@ -284,7 +285,7 @@ struct func_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Parameters = Parameters;
 		this->Body = Body;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 	operand_t *precompile(compiler_t *Compiler, precomp_t &Type);
@@ -295,7 +296,7 @@ struct code_expr_t : expr_t {CLASSID
 	code_expr_t(int LineNo, expr_t *Body) {
 		this->LineNo = LineNo;
 		this->Body = Body;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -305,7 +306,7 @@ struct ident_expr_t : expr_t {CLASSID
 	ident_expr_t(int LineNo, const char *Name) {
 		this->LineNo = LineNo;
 		this->Name = Name;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 	operand_t *constant(compiler_t *Compiler);
@@ -319,7 +320,7 @@ struct qualident_expr_t : expr_t {CLASSID
 	qualident_expr_t(int LineNo, name_t *Names) {
 		this->LineNo = LineNo;
 		this->Names = Names;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 	operand_t *constant(compiler_t *Compiler);
@@ -330,7 +331,7 @@ struct ret_expr_t : expr_t {CLASSID
 	ret_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -340,7 +341,7 @@ struct susp_expr_t : expr_t {CLASSID
 	susp_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -348,7 +349,7 @@ struct susp_expr_t : expr_t {CLASSID
 struct fail_expr_t : expr_t {CLASSID
 	fail_expr_t(int LineNo) {
 		this->LineNo = LineNo;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -356,7 +357,7 @@ struct fail_expr_t : expr_t {CLASSID
 struct back_expr_t : expr_t {CLASSID
 	back_expr_t(int LineNo) {
 		this->LineNo = LineNo;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -375,7 +376,7 @@ struct with_expr_t : expr_t {CLASSID
 		this->Parallel = Parallel;
 		this->Bindings = Bindings;
 		this->Body = Body;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -385,7 +386,7 @@ struct rep_expr_t : expr_t {CLASSID
 	rep_expr_t(int LineNo, expr_t *Body) {
 		this->LineNo = LineNo;
 		this->Body = Body;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -395,7 +396,7 @@ struct exit_expr_t : expr_t {CLASSID
 	exit_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -403,7 +404,7 @@ struct exit_expr_t : expr_t {CLASSID
 struct step_expr_t : expr_t {CLASSID
 	step_expr_t(int LineNo) {
 		this->LineNo = LineNo;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -414,7 +415,7 @@ struct every_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Condition = Condition;
 		this->Body = Body;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -424,7 +425,7 @@ struct all_expr_t : expr_t {CLASSID
 	all_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -434,7 +435,7 @@ struct uniq_expr_t : expr_t {CLASSID
 	uniq_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -444,7 +445,7 @@ struct count_expr_t : expr_t {CLASSID
 	count_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -454,7 +455,7 @@ struct send_expr_t : expr_t {CLASSID
 	send_expr_t(int LineNo, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Value = Value;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -462,7 +463,7 @@ struct send_expr_t : expr_t {CLASSID
 struct self_expr_t : expr_t {CLASSID
 	self_expr_t(int LineNo) {
 		this->LineNo = LineNo;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -472,7 +473,7 @@ struct sequence_expr_t : expr_t {CLASSID
 	sequence_expr_t(int LineNo, expr_t *Exprs) {
 		this->LineNo = LineNo;
 		this->Exprs = Exprs;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -482,7 +483,7 @@ struct parallel_expr_t : expr_t {CLASSID
 	parallel_expr_t(int LineNo, expr_t *Exprs) {
 		this->LineNo = LineNo;
 		this->Exprs = Exprs;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -492,7 +493,7 @@ struct interleave_expr_t : expr_t {CLASSID
 	interleave_expr_t(int LineNo, expr_t *Exprs) {
 		this->LineNo = LineNo;
 		this->Exprs = Exprs;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -502,7 +503,7 @@ struct typeof_expr_t : expr_t {CLASSID
 	typeof_expr_t(int LineNo, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -512,7 +513,7 @@ struct valueof_expr_t : expr_t {CLASSID
 	valueof_expr_t(int LineNo, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -523,7 +524,7 @@ struct limit_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Limit = Limit;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -534,7 +535,7 @@ struct skip_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Skip = Skip;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD;
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -544,7 +545,7 @@ struct infinite_expr_t : expr_t {CLASSID
 	infinite_expr_t(int LineNo, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Expr = Expr;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -555,7 +556,7 @@ struct left_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -566,7 +567,7 @@ struct right_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -578,7 +579,7 @@ struct cond_expr_t : expr_t {CLASSID
 		this->Condition = Condition;
 		this->Success = Success;
 		this->Failure = Failure;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -591,7 +592,7 @@ struct comp_expr_t : expr_t {CLASSID
 		this->Eq = Eq;
 		this->Left = Left;
 		this->Right = Right;
-	};
+	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
@@ -606,7 +607,7 @@ struct when_expr_t : expr_t {CLASSID
 				this->LineNo = LineNo;
 				this->Min = Min;
 				this->Max = Max;
-			};
+			}
 		};
 		case_t *Next;
 		int LineNo;
@@ -616,7 +617,7 @@ struct when_expr_t : expr_t {CLASSID
 			this->LineNo = LineNo;
 			this->Ranges = Ranges;
 			this->Body = Body;
-		};
+		}
 	};
 	expr_t *Condition;
 	case_t *Cases;
@@ -634,7 +635,7 @@ struct whentype_expr_t : expr_t {CLASSID
 			this->LineNo = LineNo;
 			this->Types = Types;
 			this->Body = Body;
-		};
+		}
 	};
 	expr_t *Condition;
 	case_t *Cases;

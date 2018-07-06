@@ -1725,7 +1725,6 @@ operand_t *interleave_expr_t::compile(compiler_t *Compiler, label_t *Start, labe
 
 	expr_t *Expr = Exprs;
 	Label0 = Compiler->push_trap(LineNo, Label0, LabelX);
-		Label1 = new label_t;
 		Label0->store_link(LineNo, Gate, Label1);
 		label_t *Label2 = new label_t;
 		Label0->link(LineNo, Label2);
@@ -1734,7 +1733,6 @@ operand_t *interleave_expr_t::compile(compiler_t *Compiler, label_t *Start, labe
 		Label5->link(LineNo, LabelS);
 
 		label_t *LabelZ = new label_t;
-		LabelF = new label_t;
 		LabelZ->store_link(LineNo, Gate, LabelF);
 		Compiler->back_trap(LabelZ);
 
@@ -1785,7 +1783,6 @@ operand_t *left_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 
     operand_t *OldSelf = Compiler->Function->Loop->Self;
 	Compiler->Function->Loop->Self = Result;
-	label_t *Label1 = new label_t;
 	Right->compile(Compiler, Label0, Success);
 	Compiler->Function->Loop->Self = OldSelf;
 	return Result;

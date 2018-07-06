@@ -243,7 +243,6 @@ typedef struct code_section_t {
 	uint32_t Flags;
 	uint32_t Size;
 	uint32_t NoOfRelocs;
-	uint8_t *Text;
 	relocation_t Relocs[];
 } code_section_t;
 
@@ -1335,7 +1334,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 		bfd_info_t *BfdInfo = new(bfd_info_t);
 		BfdInfo->FileName = Bfd->filename;
 		BfdInfo->LocalTable = HXmap_init(HXMAPT_DEFAULT, HXMAP_SCKEY);
-		memset(BfdInfo->LocalTable, 0, sizeof(BfdInfo->LocalTable));
+		//memset(BfdInfo->LocalTable, 0, sizeof(BfdInfo->LocalTable));
 		BfdInfo->Symbols = (asymbol **)malloc(bfd_get_symtab_upper_bound(Bfd));
 		int NoOfSymbols = bfd_canonicalize_symtab(Bfd, BfdInfo->Symbols);
 		bfd_map_over_sections(Bfd, (bfd_map)add_bfd_section, BfdInfo);
@@ -1372,7 +1371,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) ((section_t *)Sym->section->userdata)->Name = Name;
 				HXmap_add(BfdInfo->LocalTable, Name, Symbol);
-			} else if (Sym->flags & BSF_WEAK || Sym->flags & BSF_GNU_UNIQUE) {
+			} else if (Sym->flags & (BSF_WEAK | BSF_GNU_UNIQUE)) {
 				const char *Name = strdup(Sym->name);
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) ((section_t *)Sym->section->userdata)->Name = Name;
@@ -1703,10 +1702,9 @@ static int script_file_subexport(lua_State *State) {
 	Export->External = External;
 	Export->Flags = Flags;
 	Export->Section = 0;
-	Export->Next = 0;
-	++SubModule->NoOfExports;
 	Export->Next = SubModule->Exports;
 	SubModule->Exports = Export;
+	++SubModule->NoOfExports;
     return 0;
 };
 
@@ -1787,6 +1785,7 @@ static int definition_file_symbol(lua_State *State) {
     //printf("Adding symbol: %s -> %s\n", Internal, External);
 
 	new_export(Internal, External, 0);
+	return 0;
 };
 
 static void add_definition_file(const char *FileName, int AutoExport) {
@@ -1835,10 +1834,11 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 			asymbol *Sym = BfdInfo->Symbols[I];
 			//printf("Sym->name = %s\n", Sym->name);
 #ifdef WINDOWS
-			if (Sym->flags & BSF_GLOBAL && Sym->flags & BSF_FUNCTION) {
+			if (Sym->flags & BSF_GLOBAL && Sym->flags & BSF_FUNCTION)
 #else
-			if (Sym->flags & BSF_GLOBAL) {
+			if (Sym->flags & BSF_GLOBAL)
 #endif
+			{
 				const char *Name = strdup(Sym->name);
 				//printf("\tAdding import %s\n", Name);
 				import_section_t *ImportSection = (import_section_t *)HXmap_get(LibrarySection->Imports, Name);
@@ -2043,6 +2043,7 @@ int main(int Argc, char **Argv) {
 					} else {
 						add_path(Argv[++I]);
 					}
+					break;
 				case 's':
 					break;
                 case 'm':

@@ -108,7 +108,7 @@ extern void module_add_directory(const char *Directory);
 
 extern void module_add_loader(const char *Name, int Priority, module_find_func FindFunc, module_load_func LoadFunc);
 
-extern const char *path_join(const char *Base, const char *Path);
+extern const char *path_join(const char *Path, const char *Name);
 extern const char *path_dir(const char *Path);
 extern const char *path_file(const char *Path);
 extern const char *path_fixup(const char *Path);

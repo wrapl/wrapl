@@ -906,7 +906,7 @@ struct skip_inst_t : inst_t {
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
-		printf("%4d: skip %d, %x\n", LineNo, Temp);
+		printf("%4d: skip %d\n", LineNo, Temp);
 	};
 #endif
 	void encode(assembler_t *Assembler);
