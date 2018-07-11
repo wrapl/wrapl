@@ -29,9 +29,9 @@ FCGI_DIR => fun()
 	)
 end
 
-scope("fcgi", fun()
+scope("fcgi") do
 	CFLAGS := old + ["-I", file("include")]
 	LDFLAGS := old + ["Riva/Memory.rlib", "IO/Stream.rlib", "Util/TypedFunction.rlib"]
 	file("Init.o")[file("libfcgi.a")]
 	riva_module("Web/FastCGI", [file("Init.o")], [file("libfcgi.a")])
-end)
+end

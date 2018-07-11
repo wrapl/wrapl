@@ -7,7 +7,7 @@ WRAPL_MODULES[
 	riva_module("IO/Posix", [file("Posix.o")])
 ]
 
-scope("with_posix", fun() do
+scope("with_posix") do
 	LDFLAGS := old + ["IO/Posix.rlib"]
 	WRAPL_MODULES[
 		riva_module("IO/File", [file("File.o")]),
@@ -30,4 +30,4 @@ scope("with_posix", fun() do
 	riva_module("IO/Encrypt", [file("Encrypt.o")])
 	riva_module("IO/Deserializer", [file("Deserializer.o")])
 	riva_module("IO/Serializer", [file("Serializer.o")])
-end)
+end

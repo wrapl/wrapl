@@ -91,11 +91,7 @@ riva_program := fun(Executable, Objects, Libraries) do
 	end
 end
 
-if MACHINE = "i686" then
-	pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config-32", Options):trim
-else
-	pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):trim
-end
+pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):trim
 
 subdir("Lib")
 subdir("Std")

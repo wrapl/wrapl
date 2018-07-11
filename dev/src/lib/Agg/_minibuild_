@@ -46,10 +46,10 @@ riva_module("Agg/Buffer", [file("Buffer.o"), file("Buffer2.o")])
 riva_module("Agg/Grid", [file("Grid.o")])
 --riva_module("Agg/Graph", {file("Graph.o"), file("../dso_handle.o")})
 
-scope("threaded", fun() do
+scope("threaded") do
 	LDFLAGS := old + ["libpthread.rlib"]
 	ASFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
 	CFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
 	riva_module("Agg/ThrList", [file("ThrList.o")])
 	riva_module("Agg/ThrTable", [file("ThrTable.o"), file("ThrTable2.o")])
-end)
+end

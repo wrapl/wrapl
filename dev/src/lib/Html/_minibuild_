@@ -20,9 +20,9 @@ GUMBO_LIB => fun() do
 	)
 end
 
-scope("html", fun() do
+scope("html") do
 	CFLAGS := old + ["-I", file("include")]
 	file("Gumbo.o")[file("libgumbo.a")]
 	riva_module("Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])
 	wrapl_module("Html")
-end)
+end

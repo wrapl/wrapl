@@ -27,7 +27,7 @@ UDIS_DIR => fun() do
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc"]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
 CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
 
 file("rlink.o")[UDIS_LIB]
@@ -43,39 +43,39 @@ var Objects := [
 ]
 
 if PLATFORM = "Linux" then
---	LDFLAGS := old + ["-lbfd"]
---	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB])
-	BINUTILS_VERSION := "2.30"
-	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
-	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
-	file("lib32/liberty.a")[BINUTILS_DIR] => fun() do
-		execute("cd", BINUTILS_DIR / "libiberty", "&&",
-			"./configure --build=i686-linux-gnu",
-			"--enable-install-libiberty",
-			'--prefix={file("")}',
-			"--without-man-pages",
-			'CFLAGS=\"{LIBCFLAGS}\"',
-			'LDFLAGS=\"{LIBLDFLAGS}\"'
-		)
-		execute("cd", BINUTILS_DIR / "libiberty", "&& make")
-		execute("cd", BINUTILS_DIR / "libiberty", "&& make install")
-	end
-	file("lib/libbfd.a")[BINUTILS_DIR] => fun() do
-		execute("cd", BINUTILS_DIR, "&&",
-			"./configure --build=i686-linux-gnu",
-			'--prefix={file("")}',
-			"--without-man-pages",
-			'CFLAGS=\"{LIBCFLAGS}\"',
-			'LDFLAGS=\"{LIBLDFLAGS}\"'
-		)
-		execute("cd", BINUTILS_DIR, "&& make")
-		execute("cd", BINUTILS_DIR, "&& make install")
-	end
-	BINUTILS_DIR => fun() do
-		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
-	end
-	CFLAGS := old + ['-I{file("include")}']
-	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a"), file("lib32/libiberty.a")])
+	LDFLAGS := old + ["-lbfd"]
+	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB])
+--	BINUTILS_VERSION := "2.30"
+--	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
+--	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
+--	file("lib32/liberty.a")[BINUTILS_DIR] => fun() do
+--		execute("cd", BINUTILS_DIR / "libiberty", "&&",
+--			"./configure --build=i686-linux-gnu",
+--			"--enable-install-libiberty",
+--			'--prefix={file("")}',
+--			"--without-man-pages",
+--			'CFLAGS=\"{LIBCFLAGS}\"',
+--			'LDFLAGS=\"{LIBLDFLAGS}\"'
+--		)
+--		execute("cd", BINUTILS_DIR / "libiberty", "&& make")
+--		execute("cd", BINUTILS_DIR / "libiberty", "&& make install")
+--	end
+--	file("lib/libbfd.a")[BINUTILS_DIR] => fun() do
+--		execute("cd", BINUTILS_DIR, "&&",
+--			"./configure --build=i686-linux-gnu",
+--			'--prefix={file("")}',
+--			"--without-man-pages",
+--			'CFLAGS=\"{LIBCFLAGS}\"',
+--			'LDFLAGS=\"{LIBLDFLAGS}\"'
+--		)
+--		execute("cd", BINUTILS_DIR, "&& make")
+--		execute("cd", BINUTILS_DIR, "&& make install")
+--	end
+--	BINUTILS_DIR => fun() do
+--		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
+--	end
+--	CFLAGS := old + ['-I{file("include")}']
+--	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a"), file("lib32/libiberty.a")])
 elseif PLATFORM = "Darwin" then
 	BINUTILS_VERSION := "2.30"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
