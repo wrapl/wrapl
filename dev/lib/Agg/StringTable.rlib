@@ -1,9 +1,5 @@
 module("Agg", "StringTable")
-if WINDOWS then
-	prefix("_Agg$StringTable$")
-else
-	prefix("Agg$StringTable$")
-end
+
 export("T")
 export("_init")
 export("_get")

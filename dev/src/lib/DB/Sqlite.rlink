@@ -2,13 +2,6 @@ include("Gcc.rlink")
 include("libpthread.rlib")
 include("libdl.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("Open")
 export("OK")

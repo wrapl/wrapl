@@ -1,3 +1,6 @@
 [submodule "dev/src/rabs"]
 	path = dev/src/rabs
 	url = https://github.com/wrapl/rabs
+[submodule "dev/src/rlink/minilang"]
+	path = dev/src/rlink/minilang
+	url = https://github.com/wrapl/minilang

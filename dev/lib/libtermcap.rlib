@@ -1,4 +1,5 @@
 module("libtermcap")
+prefix("")
 export("BC")
 export("PC")
 export("UP")

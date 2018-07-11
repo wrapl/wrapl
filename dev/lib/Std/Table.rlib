@@ -1,9 +1,5 @@
 module("Std", "Table")
-if WINDOWS then
-	prefix("_Std$Table$")
-else
-	prefix("Std$Table$")
-end
+
 export("T")
 export("New")
 export("Make")

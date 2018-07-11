@@ -1,9 +1,5 @@
 module("Std", "Symbol")
-if WINDOWS then
-	prefix("_Std$Symbol$")
-else
-	prefix("Std$Symbol$")
-end
+
 export("T")
 export("T.invoke")
 export("ArrayT")

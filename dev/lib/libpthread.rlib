@@ -1,4 +1,5 @@
 module("libpthread")
+prefix("")
 export("open")
 export("fork")
 export("wait")

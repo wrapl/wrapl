@@ -1,9 +1,5 @@
 module("libnettle")
-
-if WINDOWS then
-	prefix("_")
-end
-
+prefix("")
 export("nettle_sexp_iterator_first")
 export("nettle_sha256_update")
 export("nettle_pgp_put_header")

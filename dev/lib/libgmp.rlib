@@ -1,12 +1,5 @@
 module("libgmp")
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export(Name, "_" .. Name)
-		_export(Name, "__imp__" .. Name)
-	end
-	--prefix("__imp__")
-end
+prefix("")
 export("__gmpn_copyd_p6")
 export("__gmpn_rootrem")
 export("__gmpn_mul_basecase_k7")

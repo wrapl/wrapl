@@ -1,9 +1,5 @@
 module("Gmp")
-
-if WINDOWS then
-	prefix("_")
-end
-
+prefix("")
 export("__gmp_assert_fail")
 export("__gmp_assert_header")
 export("__gmpz_legendre")

@@ -1,4 +1,5 @@
 module("libstdc++")
+prefix("")
 export("_Znwj")
 export("_Znaj")
 export("_ZTIa")

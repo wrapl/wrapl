@@ -1,12 +1,5 @@
 include("libnettle.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("Md5T")
 export("Md5New")
 export("GenSalt")

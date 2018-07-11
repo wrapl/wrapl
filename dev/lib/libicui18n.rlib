@@ -1,4 +1,5 @@
 module("libicui18n")
+prefix("")
 export("_end")
 export("_ZN7icu_4_018DateIntervalFormat14createInstanceERKNS_13UnicodeStringERKNS_6LocaleERKNS_16DateIntervalInfoER10UErrorCode")
 export("_fini")

@@ -1,7 +1,3 @@
 module("Std", "Methods")
-if WINDOWS then
-	prefix("_Std$Methods$")
-else
-	prefix("Std$Methods$")
-end
+
 export("add_string_string")

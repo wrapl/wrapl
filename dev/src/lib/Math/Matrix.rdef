@@ -1,13 +1,6 @@
 require("Math/Methods")
 library("Math/Vector.rlink")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("New")
 export("Hash")

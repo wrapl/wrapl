@@ -1,9 +1,5 @@
 module("Std", "Address")
-if WINDOWS then
-	prefix("_Std$Address$")
-else
-	prefix("Std$Address$")
-end
+
 export("T")
 export("Compare")
 export("Hash")

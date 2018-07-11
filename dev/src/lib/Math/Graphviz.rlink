@@ -1,13 +1,6 @@
 include("/usr/lib/libcgraph.so")
 include("/usr/lib/libgvc.so")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("GraphT")
 export("NodeT")
 export("EdgeT")

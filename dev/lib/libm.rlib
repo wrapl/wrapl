@@ -1,4 +1,5 @@
 module("libm")
+prefix("")
 if LINUX then
 	export("cbrtl")
 	export("rintf")

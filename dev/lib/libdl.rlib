@@ -1,4 +1,5 @@
 module("libdl")
+prefix("")
 export("GLIBC_2.0")
 export("dlvsym")
 export("dlinfo")

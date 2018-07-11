@@ -416,17 +416,6 @@ TO :generate_rdef_file(type@Type.T, basedir) (
 		EVERY libraries:insert(item:libraries:keys);
 	);
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rdef', File.Flag.Write + File.Flag.Text);
-	file:write(>>EOI
-	if WINDOWS then
-		_export = export
-		export = function(Name, Name2)
-			if Name2 == nil then
-				Name2 = Name
-			end
-			_export("_" .. Name, Name2)
-		end
-	end
-EOI);
 	List:write('{basedir}/{type:namespace}/{type:name}.rdef\n');
 	type:namespace ~= "GObject" => file:write('require(\"Gir/GObject/Init\")\n');
 	type:name ~= "Init" => file:write('require(\"Gir/{type:namespace}/Init\")\n');

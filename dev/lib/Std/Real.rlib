@@ -1,9 +1,5 @@
 module("Std", "Real")
-if WINDOWS then
-	prefix("_Std$Real$")
-else
-	prefix("Std$Real$")
-end
+
 export("T")
 export("Hash")
 export("Compare")

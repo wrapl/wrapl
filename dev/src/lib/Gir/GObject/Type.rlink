@@ -4,13 +4,6 @@ include("Gir/TypeMap.rlib")
 include("Agg/ObjectTable.rlib")
 include("Agg/StringTable.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("_to_riva")
 export("_register_type")

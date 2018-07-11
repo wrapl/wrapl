@@ -15,6 +15,33 @@ DEF AddIdent!(name, path) (
 	identifiers:insert(name, path);
 );
 
+DEF FixupHtml(node) (
+	WHEN node:tag IS :a DO (
+		VAR child <- node:children:values IN Gumbo.Node.ElementT | RET node;
+		WHEN child:tag IS :code DO (
+			WHEN child.class IS "function" DO (
+				VAR id <- identifiers[child:text:before(" ()")];
+				id ~== NIL => (
+					VAR prefix <- 'Gir/{ns}/{name}/';
+					id:begins(prefix) => id <- id[prefix:length + 1, 0];
+					node:content <- [id];
+					node:tag <- :id;
+					node:attrs <- {};
+				);
+			) IS "literal" DO (
+				VAR id <- identifiers[child:text];
+				id ~== NIL => (
+					VAR prefix <- 'Gir/{ns}/{name}/';
+					id:begins(prefix) => id <- id[prefix:length + 1, 0];
+					node:content <- [id];
+					node:tag <- :id;
+					node:attrs <- {};
+				);
+			);
+		);
+	);
+);
+
 DEF FixupXml(node) (
 	--Out:write('node = {node}\n');
 	WHEN node:tag IS :a DO (
