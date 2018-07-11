@@ -33,7 +33,7 @@ scope("fontconfig") do
 			"./configure --enable-shared",
 			"--prefix=/usr",
 			"--sysconfdir=/etc",
-			'CFLAGS=\"{CFLAGS} -O2\"',
+			'CFLAGS=\"{LIBCFLAGS} -O2\"',
 			--'LDFLAGS=\"-L{FCFIX_SO:dir()} -lfcfix\"',
 			"--disable-docs"
 		)

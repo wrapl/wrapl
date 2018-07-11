@@ -5,6 +5,7 @@
 #include <bfd.h>
 #include <fcntl.h>
 #include <zlib.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <gc/gc.h>
 #include "minilang/minilang.h"
@@ -384,12 +385,12 @@ typedef struct tbss_section_t {
 } tbss_section_t;
 
 static void tbss_section_relocate(tbss_section_t *Section, relocation_t *Relocation, uint32_t *Target) {
-	section_require(Section);
-	unsigned char *Temp = Target - 1;
+	section_require((section_t *)Section);
+	unsigned char *Temp = (unsigned char *)(Target - 1);
 	printf("%s: testing tbss relocations @ %d[%x, %d]:\n\t", ((section_t *)Section)->Name, Relocation->Position, Relocation->Flags, Relocation->Size);
 	for (size_t I = 0; I < 12; ++I) printf("%x ", Temp[I]);
 	printf("\n");
-	Relocation->Section = Section;
+	Relocation->Section = (section_t *)Section;
 }
 
 static void tbss_section_debug(tbss_section_t *Section, FILE *File) {
@@ -406,10 +407,10 @@ static void tbss_section_write(tbss_section_t *Section, gzFile File) {
 	Temp = Section->Size; gzwrite(File, &Temp, 4);
 }
 
-static tbss_section_t *new_tbss_section(uint32_t Size) {
+static section_t *new_tbss_section(uint32_t Size) {
 	static section_methods Methods = {
 		default_section_setup,
-		tbss_section_relocate,
+		(void *)tbss_section_relocate,
 		default_section_export,
 		(void (*)(section_t *, FILE *))tbss_section_debug,
 		(uint32_t (*)(section_t *))tbss_section_size,
@@ -419,7 +420,7 @@ static tbss_section_t *new_tbss_section(uint32_t Size) {
 	((section_t *)Section)->Index = SEC_UNUSED;
 	((section_t *)Section)->Methods = &Methods;
 	Section->Size = Size;
-	return Section;
+	return (section_t *)Section;
 }
 
 typedef struct symbol_section_t {
@@ -450,7 +451,7 @@ static void symbol_section_write(symbol_section_t *Section, gzFile File) {
 	}
 }
 
-static symbol_section_t *new_symbol_section(const char *Name) {
+static section_t *new_symbol_section(const char *Name) {
 	static section_methods Methods = {
 		default_section_setup,
 		invalid_section_relocate,
@@ -463,13 +464,13 @@ static symbol_section_t *new_symbol_section(const char *Name) {
 	((section_t *)Section)->Index = SEC_UNUSED;
 	((section_t *)Section)->Methods = &Methods;
 	Section->Name = Name;
-	return Section;
+	return (section_t *)Section;
 }
 
 typedef struct symbols_section_t {
 	section_t Base;
 	const char *Symbols;
-	symbol_section_t **ASymbols;
+	section_t **ASymbols;
 } symbols_section_t;
 
 static void symbols_section_relocate(symbols_section_t *Section, relocation_t *Relocation, uint32_t *Target) {
@@ -478,14 +479,13 @@ static void symbols_section_relocate(symbols_section_t *Section, relocation_t *R
 		const char *Name = Section->Symbols + *Target;
 		Symbol = (section_t *)stringmap_search(SymbolTable, Name);
 		if (!Symbol) {
-			Name = strdup(Name);
-			Symbol = (section_t *)new_symbol_section(Name);
+			Symbol = new_symbol_section(Name);
 			stringmap_insert(SymbolTable, Name, Symbol);
 		}
 	} else {
 		Symbol = Section->ASymbols[*Target];
 		if (!Symbol) {
-			Section->ASymbols[*Target] = Symbol = (section_t *)new_symbol_section(0);
+			Symbol = Section->ASymbols[*Target] = new_symbol_section(0);
 		}
 	}
 	*Target = 0;
@@ -499,21 +499,20 @@ static void symbols_section_export(symbols_section_t *Section, uint32_t Offset, 
 		const char *Name = Section->Symbols + Offset;
 		Symbol = (section_t *)stringmap_search(SymbolTable, Name);
 		if (!Symbol) {
-			Name = strdup(Name);
-			Symbol = (section_t *)new_symbol_section(Name);
+			Symbol = new_symbol_section(Name);
 			stringmap_insert(SymbolTable, Name, Symbol);
 		}
 	} else {
 		Symbol = Section->ASymbols[Offset];
 		if (!Symbol) {
-			Section->ASymbols[Offset] = Symbol = (section_t *)new_symbol_section(0);
+			Symbol = Section->ASymbols[Offset] = new_symbol_section(0);
 		}
 	}
 	Export->Section = Symbol;
 	Export->Offset = 0;
 }
 
-static symbols_section_t *new_symbols_section(asection *Sect, bfd *Bfd, int Anon) {
+static section_t *new_symbols_section(asection *Sect, bfd *Bfd, int Anon) {
 	static section_methods Methods = {
 		invalid_section_setup,
 		(void (*)(section_t *, relocation_t *, uint32_t *))symbols_section_relocate,
@@ -527,11 +526,11 @@ static symbols_section_t *new_symbols_section(asection *Sect, bfd *Bfd, int Anon
 	((section_t *)Section)->Methods = &Methods;
 	if (Anon) {
 		Section->Symbols = 0;
-		Section->ASymbols = calloc(bfd_get_section_size(Sect), sizeof(section_t *));
+		Section->ASymbols = anew(section_t *, bfd_get_section_size(Sect));
 	} else {
 		bfd_malloc_and_get_section(Bfd, Sect, (bfd_byte **)&Section->Symbols);
 	}
-	return Section;
+	return (section_t *)Section;
 }
 
 typedef struct bfd_info_t {
@@ -596,7 +595,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			}
 			if (!strcmp(Sym->name, "_GLOBAL_OFFSET_TABLE_")) {
 				Relocation->Flags = RELOC_GOT;
-				section_relocate(Section, Relocation, Target);
+				section_relocate((section_t *)Section, Relocation, Target);
 			} else if ((Sym->section == bfd_und_section_ptr) || (Sym->section == bfd_com_section_ptr)) {
 				symbol_t *Symbol;
 				do {
@@ -620,13 +619,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 #endif
 					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
-					Symbol = new_symbol(Sym->name, new_import_section(UnknownSymbols, Sym->name, 0), 0);
+					Symbol = new_symbol(Sym->name, (section_t *)new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
 					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
-					Section2 = new_import_section(UnknownSymbols, Sym->name, 0);
+					Section2 = (section_t *)new_import_section(UnknownSymbols, Sym->name, 0);
 				}
 				if (!memcmp(Section2->Name, ".tbss", 5)) {
 					printf("DEBUG: %s, %d\n", Type->name, Type->type);
@@ -643,8 +642,8 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			}
 		}
 		// Need to reverse the order of the pointers in this section
-		uint32_t *OldCode = Section->Code + Section->Size;
-		uint32_t *NewCode = Section->Code = snew(Section->Size);
+		uint32_t *OldCode = (uint32_t *)(Section->Code + Section->Size);
+		uint32_t *NewCode = (uint32_t *)(Section->Code = snew(Section->Size));
 		for (int I = Section->Size / 4; --I >= 0;) {
 			--OldCode;
 			*NewCode = *OldCode;
@@ -677,7 +676,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			}
 			if (!strcmp(Sym->name, "_GLOBAL_OFFSET_TABLE_")) {
 				Relocation->Flags = RELOC_GOT;
-				section_relocate(Section, Relocation, Target);
+				section_relocate((section_t *)Section, Relocation, Target);
 			} else if ((Sym->section == bfd_und_section_ptr) || (Sym->section == bfd_com_section_ptr)) {
 				symbol_t *Symbol;
 				do {
@@ -701,13 +700,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 #endif
 					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
-					Symbol = new_symbol(Sym->name, new_import_section(UnknownSymbols, Sym->name, 0), 0);
+					Symbol = new_symbol(Sym->name, (section_t *)new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
 					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
 					if (StopOnUnknown) exit(1);
-					Section2 = new_import_section(UnknownSymbols, Sym->name, 0);
+					Section2 = (section_t *)new_import_section(UnknownSymbols, Sym->name, 0);
 				}
 				section_relocate(Section2, Relocation, Target);
 				if (Type->partial_inplace) *Target += (uint32_t)Symbol->Offset;
@@ -857,7 +856,7 @@ static void tdata_section_write(bfd_section_t *Section, gzFile File) {
 	}
 }
 
-static tdata_section_t *new_tdata_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo) {
+static section_t *new_tdata_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo) {
 	static section_methods Methods = {
 		(void (*)(section_t *))bfd_section_setup,
 		default_section_relocate,
@@ -880,7 +879,7 @@ static tdata_section_t *new_tdata_section(asection *Sect, bfd *Bfd, bfd_info_t *
 	} else if (DelayedLink) {
 		Section->Flags |= FLAG_DELAY;
 	}
-	return Section;
+	return (section_t *)Section;
 }
 
 typedef struct got_entry_t got_entry_t;
@@ -893,8 +892,8 @@ static void got_section_setup(got_section_t *Section) {
 }
 
 static void got_section_relocate(got_section_t *Section, relocation_t *Relocation, uint32_t *Target) {
-	section_require(Section);
-	Relocation->Section = Section;
+	section_require((section_t *)Section);
+	Relocation->Section = (section_t *)Section;
 }
 
 static void got_section_debug(got_section_t *Section, FILE *File) {
@@ -907,10 +906,10 @@ static uint32_t got_section_size(got_section_t *Section) {
 static void got_section_write(got_section_t *Section, gzFile File) {
 }
 
-static got_section_t *new_got_section() {
+static section_t *new_got_section() {
 	static section_methods Methods = {
 		(void (*)(section_t *))default_section_setup,
-		got_section_relocate,
+		(void *)got_section_relocate,
 		invalid_section_export,
 		(void (*)(section_t *, FILE *))got_section_debug,
 		(uint32_t (*)(section_t *))got_section_size,
@@ -921,7 +920,7 @@ static got_section_t *new_got_section() {
 		((section_t *)Section)->Index = SEC_UNUSED;
 		((section_t *)Section)->Methods = &Methods;
 		((section_t *)Section)->Name = "_GLOBAL_OFFSET_TABLE_";
-		GlobalOffsetTable = Section;
+		GlobalOffsetTable = (section_t *)Section;
 	}
 	return GlobalOffsetTable;
 }
@@ -973,7 +972,7 @@ static void method_section_write(methods_section_t *Section, gzFile File) {
 	}
 }
 
-static methods_section_t *new_method_section() {
+static section_t *new_method_section() {
 	static section_methods Methods = {
 		(void (*)(section_t *))method_section_setup,
 		invalid_section_relocate,
@@ -989,7 +988,7 @@ static methods_section_t *new_method_section() {
 		Section->Blocks = 0;
 		Section->Size = 0;
 		Section->NoOfRelocs = 0;
-		MethodsSection = Section;
+		MethodsSection = (section_t *)Section;
 	}
 	return MethodsSection;
 }
@@ -1041,7 +1040,7 @@ static void typedfn_section_write(typedfn_section_t *Section, gzFile File) {
 	}
 }
 
-static typedfn_section_t *new_typedfn_section() {
+static section_t *new_typedfn_section() {
 	static section_methods Methods = {
 		(void (*)(section_t *))typedfn_section_setup,
 		invalid_section_relocate,
@@ -1057,7 +1056,7 @@ static typedfn_section_t *new_typedfn_section() {
 		Section->Blocks = 0;
 		Section->Size = 0;
 		Section->NoOfRelocs = 0;
-		TypedFnSection = Section;
+		TypedFnSection = (section_t *)Section;
 	}
 	return TypedFnSection;
 }
@@ -1115,7 +1114,7 @@ static void initial_section_write(initial_section_t *Section, gzFile File) {
 	}
 }
 
-static initial_section_t *new_initial_section() {
+static section_t *new_initial_section() {
 	static section_methods Initials = {
 		(void (*)(section_t *))initial_section_setup,
 		invalid_section_relocate,
@@ -1131,7 +1130,7 @@ static initial_section_t *new_initial_section() {
 		Section->Blocks = 0;
 		Section->Size = 0;
 		Section->NoOfRelocs = 0;
-		InitialSection = Section;
+		InitialSection = (section_t *)Section;
 	}
 	return InitialSection;
 }
@@ -1193,7 +1192,7 @@ static void constants_section_relocate(constants_section_t *Section, relocation_
 		bfd *Bfd = Section->Bfd;
 		bfd_info_t *BfdInfo = Section->BfdInfo;
 		int Count = bfd_get_section_size(Sect) / 4;
-		Section->Constants = anew(constant_section_t, Count);
+		Section->Constants = anew(constant_section_t *, Count);
 		for (int I = 0; I < Count; I++) Section->Constants[I] = new_constant_section();
 		uint8_t *Code;
 		bfd_malloc_and_get_section(Bfd, Sect, &Code);
@@ -1211,8 +1210,8 @@ static void constants_section_relocate(constants_section_t *Section, relocation_
 	}
 	constant_section_t *Constant = Section->Constants[*Target / 4];
 	*Target = 0;
-	section_require(Constant);
-	Relocation->Section = Constant;
+	section_require((section_t *)Constant);
+	Relocation->Section = (section_t *)Constant;
 }
 
 static void constants_section_export(constants_section_t *Section, uint32_t Offset, export_t *Export) {
@@ -1221,7 +1220,7 @@ static void constants_section_export(constants_section_t *Section, uint32_t Offs
 		bfd *Bfd = Section->Bfd;
 		bfd_info_t *BfdInfo = Section->BfdInfo;
 		int Count = bfd_get_section_size(Sect) / 4;
-		Section->Constants = anew(constant_section_t, Count);
+		Section->Constants = anew(constant_section_t *, Count);
 		for (int I = 0; I < Count; I++) Section->Constants[I] = new_constant_section();
 		uint8_t *Code;
 		bfd_malloc_and_get_section(Bfd, Sect, &Code);
@@ -1238,11 +1237,11 @@ static void constants_section_export(constants_section_t *Section, uint32_t Offs
 		Section->Sect = 0;
 	}
 	constant_section_t *Constant = Section->Constants[Offset / 4];
-	Export->Section = Constant;
+	Export->Section = (section_t *)Constant;
 	Export->Offset = 0;
 }
 
-static constants_section_t *new_constants_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo) {
+static section_t *new_constants_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo) {
 	static section_methods Methods = {
 		invalid_section_setup,
 		(void (*)(section_t *, relocation_t *, uint32_t *))constants_section_relocate,
@@ -1257,7 +1256,7 @@ static constants_section_t *new_constants_section(asection *Sect, bfd *Bfd, bfd_
 	Section->Sect = Sect;
 	Section->Bfd = Bfd;
 	Section->BfdInfo = BfdInfo;
-	return Section;
+	return (section_t *)Section;
 }
 
 static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
@@ -1267,7 +1266,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 		Sect->userdata = new_symbols_section(Sect, Bfd, 1);
 	} else if (strcmp(Sect->name, ".methods") == 0) {
 		if (Sect->size) {
-			methods_section_t *Section = new_method_section();
+			methods_section_t *Section = (methods_section_t *)new_method_section();
 			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
 			Block->Next = Section->Blocks;
 			Section->Blocks = Block;
@@ -1275,7 +1274,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 		}
 	} else if (strcmp(Sect->name, ".typedfn") == 0) {
 		if (Sect->size) {
-			typedfn_section_t *Section = new_typedfn_section();
+			typedfn_section_t *Section = (typedfn_section_t *)new_typedfn_section();
 			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
 			Block->Next = Section->Blocks;
 			Section->Blocks = Block;
@@ -1283,7 +1282,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 		}
 	} else if (strcmp(Sect->name, ".initial") == 0) {
 		if (Sect->size) {
-			initial_section_t *Section = new_initial_section();
+			initial_section_t *Section = (initial_section_t *)new_initial_section();
 			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
 			Block->Next = Section->Blocks;
 			Section->Blocks = Block;
@@ -1292,7 +1291,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strcmp(Sect->name, ".ctors") == 0) {
 		//printf("New .ctors handling code...\n");
 		if (Sect->size) {
-			initial_section_t *Section = new_initial_section();
+			initial_section_t *Section = (initial_section_t *)new_initial_section();
 			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
 			Block->Next = Section->Blocks;
 			Section->Blocks = Block;
@@ -1343,7 +1342,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 		for (int I = NoOfSymbols - 1; I >= 0; --I) {
 			asymbol *Sym = BfdInfo->Symbols[I];
 			if (Sym->flags & BSF_GLOBAL) {
-				const char *Name = strdup(Sym->name);
+				const char *Name = GC_strdup(Sym->name);
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) {
 					((section_t *)Sym->section->userdata)->Name = Name;
@@ -1359,7 +1358,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 				symbol_t *Symbol = (symbol_t *)stringmap_search(GlobalTable, Sym->name);
 				bss_section_t *Section;
 				if (!Symbol) {
-					const char *Name = strdup(Sym->name);
+					const char *Name = GC_strdup(Sym->name);
 					Section = new_bss_section(0);
 					Symbol = new_symbol(Name, (section_t *)Section, 0);
 					stringmap_insert(GlobalTable, Name, Symbol);
@@ -1369,12 +1368,12 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 				}
 				if (Sym->value > Section->Size) Section->Size = Sym->value;
 			} else if (Sym->flags & BSF_LOCAL) {
-				const char *Name = strdup(Sym->name);
+				const char *Name = GC_strdup(Sym->name);
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) ((section_t *)Sym->section->userdata)->Name = Name;
 				stringmap_insert(BfdInfo->LocalTable, Name, Symbol);
 			} else if (Sym->flags & (BSF_WEAK | BSF_GNU_UNIQUE)) {
-				const char *Name = strdup(Sym->name);
+				const char *Name = GC_strdup(Sym->name);
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) ((section_t *)Sym->section->userdata)->Name = Name;
 				stringmap_insert(WeakTable, Name, Symbol);
@@ -1542,7 +1541,7 @@ static ml_value_t *script_file_module(void *Data, int Count, ml_value_t **Args) 
 #endif
 
 	for (int I = 0; I < Count; ++I) {
-		char *Temp = ml_string_value(Args[I]);
+		const char *Temp = ml_string_value(Args[I]);
 		PathPtr = stpcpy(PathPtr, Temp);
 		*(PathPtr++) = '/';
 		NamePtr = stpcpy(NamePtr, Temp);
@@ -1587,7 +1586,7 @@ static ml_value_t *script_file_import(void *Data, int Count, ml_value_t **Args) 
 			Flags = E->Flags;
 		}
 	}
-	if (External == 0) asprintf(&External, "%s%s", CurrentLibrary->Prefix, Internal);
+	if (External == 0) asprintf((char **)&External, "%s%s", CurrentLibrary->Prefix, Internal);
 
 	//printf("Adding import: %s -> %s\n", Internal, External);
 
@@ -1630,11 +1629,11 @@ static ml_value_t *script_file_export(void *Data, int Count, ml_value_t **Args) 
 }
 
 static ml_value_t *script_file_require(void *Data, int Count, ml_value_t **Args) {
-	char *Library = ml_string_value(Args[0]);
+	const char *Library = ml_string_value(Args[0]);
 	if (Library[0] == '.') {
-		new_require(LIBRARY_REL, strdup(Library + 1));
+		new_require(LIBRARY_REL, Library + 1);
 	} else {
-		new_require(LIBRARY_ABS, strdup(Library));
+		new_require(LIBRARY_ABS, Library);
 	}
 	return MLNil;
 }
@@ -1664,7 +1663,7 @@ static ml_value_t *script_file_subexport(void *Data, int Count, ml_value_t **Arg
 	const char *External = 0;
 	int Flags = 0;
 	const char *SubName = ml_string_value(Args[0]);
-	module_section_t *SubModule = ((symbol_t *)stringmap_search(GlobalTable, SubName))->Section;
+	module_section_t *SubModule = (module_section_t *)((symbol_t *)stringmap_search(GlobalTable, SubName))->Section;
 	if (SubModule == 0) {
 		fprintf(stderr, "submodule not found: %s.\n", SubName);
 		exit(1);
@@ -1706,7 +1705,7 @@ static void add_script_file(const char *FileName, int AutoExport) {
 	Library->Section = 0;
 	library_file_t *PreviousLibrary = CurrentLibrary;
 	CurrentLibrary = Library;
-	ml_value_t *Closure = ml_load(global_get, RlinkGlobals, FileName);
+	ml_value_t *Closure = ml_load((ml_getter_t)global_get, RlinkGlobals, FileName);
 	if (Closure->Type == MLErrorT) {
 		fprintf(stderr, "\e[31mError: %s\n\e[0m", ml_error_message(Closure));
 		const char *Source;
@@ -1734,7 +1733,7 @@ static void add_library_file(const char *FileName, int AutoExport) {
 	Library->Section = 0;
 	library_file_t *PreviousLibrary = CurrentLibrary;
 	CurrentLibrary = Library;
-	ml_value_t *Closure = ml_load(global_get, RlibGlobals, FileName);
+	ml_value_t *Closure = ml_load((ml_getter_t)global_get, RlibGlobals, FileName);
 	if (Closure->Type == MLErrorT) {
 		fprintf(stderr, "\e[31mError: %s\n\e[0m", ml_error_message(Closure));
 		const char *Source;
@@ -1764,8 +1763,8 @@ static ml_value_t *definition_file_symbol(void *Data, int Count, ml_value_t **Ar
 }
 
 static void add_definition_file(const char *FileName, int AutoExport) {
-	if (DependencyMode) stringmap_insert(Dependencies, FileName, FileName);
-	ml_value_t *Closure = ml_load(global_get, RdefGlobals, FileName);
+	if (DependencyMode) stringmap_insert(Dependencies, FileName, 0);
+	ml_value_t *Closure = ml_load((ml_getter_t)global_get, RdefGlobals, FileName);
 	if (Closure->Type == MLErrorT) {
 		fprintf(stderr, "\e[31mError: %s\n\e[0m", ml_error_message(Closure));
 		const char *Source;
@@ -1808,7 +1807,7 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 			if (Sym->flags & BSF_GLOBAL)
 #endif
 			{
-				const char *Name = strdup(Sym->name);
+				const char *Name = GC_strdup(Sym->name);
 				//printf("\tAdding import %s\n", Name);
 				import_section_t *ImportSection = (import_section_t *)stringmap_search(LibrarySection->Imports, Name);
 				if (ImportSection == 0) {
@@ -1835,7 +1834,7 @@ static void add_shared_lib(const char *FileName, int AutoExport) {
 		stringmap_insert(Dependencies, FileName, 0);
 		return;
 	}
-	char *Module = strdup(basename(FileName));
+	char *Module = GC_strdup(basename(FileName));
 #ifdef LINUX
 	Module[strlen(Module) - 3] = 0;
 #endif
@@ -1856,7 +1855,7 @@ static void add_shared_lib(const char *FileName, int AutoExport) {
 	}
 }
 
-static struct HXMap *SupportedFiles;
+static stringmap_t *SupportedFiles;
 
 typedef void (*file_adder)(const char *, int);
 
@@ -1870,7 +1869,7 @@ static search_path_t *SearchPathTail = &SearchPath;
 
 static void add_path(const char *Path) {
 	search_path_t *Node = new(search_path_t);
-	Node->Path = strdup(Path);
+	Node->Path = Path;
 	Node->Next = 0;
 	SearchPathTail->Next = Node;
 	SearchPathTail = Node;
@@ -1893,12 +1892,12 @@ static void add_file(const char *FileName, int AutoExport) {
 	for (search_path_t *Node = &SearchPath; Node; Node = Node->Next) {
 		sprintf(FullFileName, "%s%s", Node->Path, FileName);
 		if (stat(FullFileName, &Stat) == 0) {
-			_add(strdup(FullFileName), AutoExport);
+			_add(FullFileName, AutoExport);
 			return;
 		}
 		sprintf(FullFileName, "%s/%s", Node->Path, FileName);
 		if (stat(FullFileName, &Stat) == 0) {
-			_add(strdup(FullFileName), AutoExport);
+			_add(FullFileName, AutoExport);
 			return;
 		}
 	}
@@ -1952,7 +1951,7 @@ static void find_shared_lib(const char *Name) {
 	fprintf(stderr, "%s: shared library not found.\n", Name);
 	exit(1);
 found:
-	add_shared_lib(strdup(FullFileName), 1);
+	add_shared_lib(FullFileName, 1);
 }
 
 static int print_dependency(const char *Key, void *Data, void *Arg) {
@@ -1961,6 +1960,7 @@ static int print_dependency(const char *Key, void *Data, void *Arg) {
 }
 
 int main(int Argc, char **Argv) {
+	GC_INIT();
 	if (Argc < 2) {
 		puts("Usage: rlink [-o output] [-l listing] [-L directory] inputs ... ");
 		exit(0);
@@ -2129,6 +2129,10 @@ int main(int Argc, char **Argv) {
 			}
 			case 'M': {
 				DependencyMode = 1;
+				break;
+			}
+			case 't': {
+				GC_disable();
 				break;
 			}
 			}

@@ -38,7 +38,7 @@ scope("libc", fun() do
 	GCC_VERSION := shell("gcc -dumpversion")[1, -1]
 	LDFLAGS := old + ['-L/usr/lib/gcc/{GCC_HOST}/{GCC_VERSION}/', "-Z -d",
 		"-xlibgcc.a", "-xlibgcc_eh.a", "-xlibc_nonshared.a", "-xlibstdc++.a",
-		"-xlibsupc++.a", "-xlibpthread.a", "libpthread.rlib", "-XGcc.exports"
+		"-xlibsupc++.a", "libpthread.rlib", "-XGcc.exports"
 	]
 	riva_module("Gcc", [file("Gcc.o")])
 end)

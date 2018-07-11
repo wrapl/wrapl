@@ -8,8 +8,9 @@ MARISA_LIB := file("libmarisa.a")[MARISA_DIR] => fun() do
 	execute("cd", MARISA_DIR, "&& ./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
-		"--without-man-pages"
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
 	execute("cd", MARISA_DIR, "&&", "make")
 	execute("cd", MARISA_DIR, "&&", "make install")

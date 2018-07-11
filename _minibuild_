@@ -1,13 +1,10 @@
 -- ROOT --
 
-PLATFORM := defined("PLATFORM")
+PLATFORM := defined("PLATFORM") or shell("uname"):trim
+MACHINE := defined("MACHINE") or shell("uname -m"):trim
 OS := defined("OS")
 CROSS_BUILD := defined("CROSS_BUILD")
 WEB := defined("WEB")
-
-if not PLATFORM then
-	PLATFORM := shell("uname")[1, -1]
-end
 
 if not OS then
 	if PLATFORM = "Linux" then
@@ -22,7 +19,7 @@ if not OS then
 	end
 end
 
-print(PLATFORM, " ", OS)
+print(PLATFORM, " ", MACHINE, " ", OS)
 
 if CROSS_BUILD then
 	BUILD_DIR := file(CROSS_BUILD)
