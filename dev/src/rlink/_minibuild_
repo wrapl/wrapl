@@ -9,7 +9,8 @@ UDIS_LIB[UDIS_DIR] => fun() do
 		'--includedir={file("")}',
 		'--libdir={file("")}',
 		"--without-man-pages",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -fno-pic\""
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
 	execute("cd", UDIS_DIR, "&&",
 		"make mostlyclean"
@@ -26,8 +27,8 @@ UDIS_DIR => fun() do
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-llua", "-lHX", "-ldl", "-g", "-lgc"]
-CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-m32", "-pthread"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", "-m32"]
 
 file("rlink.o")[UDIS_LIB]
 
@@ -42,22 +43,58 @@ var Objects := [
 ]
 
 if PLATFORM = "Linux" then
-	LDFLAGS := old + ["-lbfd"]
-	c_program(RLINK, Objects, [UDIS_LIB])
-elseif PLATFORM = "Darwin" then
-	BINUTILS_VERSION := "2.28"
+--	LDFLAGS := old + ["-lbfd"]
+--	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB])
+	BINUTILS_VERSION := "2.30"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
 	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
-	file("libbfd.a")[BINUTILS_DIR] => fun() do
-		execute("cd", BINUTILS_DIR, "&&",
-			"./configure --build=i386-apple-darwin16.6.0",
+	file("lib32/liberty.a")[BINUTILS_DIR] => fun() do
+		execute("cd", BINUTILS_DIR / "libiberty", "&&",
+			"./configure --build=i686-linux-gnu",
+			"--enable-install-libiberty",
 			'--prefix={file("")}',
-			"--without-man-pages"
+			"--without-man-pages",
+			'CFLAGS=\"{LIBCFLAGS}\"',
+			'LDFLAGS=\"{LIBLDFLAGS}\"'
 		)
+		execute("cd", BINUTILS_DIR / "libiberty", "&& make")
+		execute("cd", BINUTILS_DIR / "libiberty", "&& make install")
+	end
+	file("lib/libbfd.a")[BINUTILS_DIR] => fun() do
+		execute("cd", BINUTILS_DIR, "&&",
+			"./configure --build=i686-linux-gnu",
+			'--prefix={file("")}',
+			"--without-man-pages",
+			'CFLAGS=\"{LIBCFLAGS}\"',
+			'LDFLAGS=\"{LIBLDFLAGS}\"'
+		)
+		execute("cd", BINUTILS_DIR, "&& make")
+		execute("cd", BINUTILS_DIR, "&& make install")
 	end
 	BINUTILS_DIR => fun() do
 		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
 	end
-	c_program(RLINK, Objects, [UDIS_LIB, file("libbfd.a")])
+	CFLAGS := old + ['-I{file("include")}']
+	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a"), file("lib32/libiberty.a")])
+elseif PLATFORM = "Darwin" then
+	BINUTILS_VERSION := "2.30"
+	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
+	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
+	file("lib/libbfd.a")[BINUTILS_DIR] => fun() do
+		execute("cd", BINUTILS_DIR, "&&",
+			"./configure --build=i386-apple-darwin16.6.0",
+			'--prefix={file("")}',
+			"--without-man-pages",
+			'CFLAGS=\"{LIBCFLAGS}\"',
+			'LDFLAGS=\"{LIBLDFLAGS}\"'
+		)
+		execute("cd", BINUTILS_DIR, "&& make")
+		execute("cd", BINUTILS_DIR, "&& make install")
+	end
+	BINUTILS_DIR => fun() do
+		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
+	end
+	CFLAGS := old + ['-I{file("include")}']
+	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a")])
 end
 

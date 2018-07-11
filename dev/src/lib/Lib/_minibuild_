@@ -7,8 +7,9 @@ file("libgmp.a")[GMP_DIR] => fun() do
 		'--prefix={file("")}',
 		'--libdir={file("")}',
 		"ABI=32",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
-		"--without-man-pages"
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
 	execute("cd", GMP_DIR, "&&",
 		"make clean"
