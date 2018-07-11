@@ -41,8 +41,8 @@ if PLATFORM = "Linux" then
 	CFG_OPTS := old + {"--enable-redirect-malloc"}
 end
 
-CFLAGS := old + ["-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}']
-LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lz", "-Wl,-E"]
+CFLAGS := old + ["-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}', "-g"]
+LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lz", "-Wl,-E", "-g"]
 
 GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun() do
 	execute("cd", GC_DIR, "&&",

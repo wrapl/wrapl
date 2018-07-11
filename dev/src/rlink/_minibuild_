@@ -26,8 +26,8 @@ UDIS_DIR => fun() do
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-llua", "-lHX", "-ldl", "-g", "-lgc"]
-CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
 
 file("rlink.o")[UDIS_LIB]
 
