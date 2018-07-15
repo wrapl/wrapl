@@ -19,8 +19,8 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 	Libraries := Libraries or []
 	var Module := OUT_LIB/Name % "riva"
 	var Doc := GEN_DOC/Name % "xml"
-	mkdir(Module:dir)
-	mkdir(Doc:dir)
+	Module:dir:mkdir
+	Doc:dir:mkdir
 	var Sources := []
 	for Object in Objects do
 		for Extension, Functions in SourceTypes do
@@ -37,14 +37,14 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 	var ScriptIncludes := Script:scan("INCLUDES", :true)[RLINK] => rlink_includes
 	if AutoExport then
 		var ImportFile := GEN_LIB/Name % "rlink"
-		mkdir(ImportFile:dir)
+		ImportFile:dir:mkdir
 		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module) do
 			execute(RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst", "-X", ImportFile, "-N", Name)
 		end
 		ImportFile{Module}
 	else
 		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module) do
-			execute(RLINK, LDFLAGS, '-L{Script:dir(:true)}', "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst")
+			execute(RLINK, LDFLAGS, '-L{Script:dirname}', "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst")
 		end
 	end
 	Doc[RDOC, RIVA, WRAPL_MODULES, Sources] => fun(Doc) do
@@ -61,7 +61,7 @@ end
 wrapl_module := fun(Name) do
 	var Module := OUT_LIB/Name % "wrapl"
 	var Doc := GEN_DOC/Name % "xml"
-	mkdir(Module:dir)
+	Module:dir:mkdir
 	var Source := file(Module:basename)
 	Module[Source] => fun(Module) do
 		Source:copy(Module)

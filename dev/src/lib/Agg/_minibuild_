@@ -48,8 +48,8 @@ riva_module("Agg/Grid", [file("Grid.o")])
 
 scope("threaded") do
 	LDFLAGS := old + ["libpthread.rlib"]
-	ASFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
-	CFLAGS := old + ["-I", file("_minibuild_"):dir(:true)/""]
+	ASFLAGS := old + ['-I{file("Table2.asm"):dirname}/']
+	CFLAGS := old + ["-I", file("Table2.asm"):dirname]
 	riva_module("Agg/ThrList", [file("ThrList.o")])
 	riva_module("Agg/ThrTable", [file("ThrTable.o"), file("ThrTable2.o")])
 end

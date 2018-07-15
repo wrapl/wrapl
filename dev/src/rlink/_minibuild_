@@ -28,7 +28,7 @@ UDIS_DIR => fun() do
 end
 
 LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
-CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", "-I", UDIS_LIB:dirname]
 
 file("rlink.o")[UDIS_LIB]
 
@@ -37,6 +37,9 @@ var Minilang := file("minilang"):mkdir
 var Objects := [
 	file("rlink.o"),
 	Minilang / "minilang.o",
+	Minilang / "ml_compiler.o",
+	Minilang / "ml_runtime.o",
+	Minilang / "ml_types.o",
 	Minilang / "stringmap.o",
 	Minilang / "sha256.o",
 	Minilang / "linenoise.o"

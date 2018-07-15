@@ -1,4 +1,4 @@
--- LDFLAGS := old + ['-L{file("Common.rlink"):dir(:true)}/']
+-- LDFLAGS := old + ['-L{file("Common.rlink"):dirname}/']
 
 riva_module("Stat/Dist/Normal", [file("Normal.o")])
 riva_module("Stat/Dist/StudentT", [file("StudentT.o")])

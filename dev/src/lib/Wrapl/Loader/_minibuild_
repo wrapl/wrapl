@@ -22,7 +22,7 @@ JANSSON_LIB => fun() do
 end
 
 LDFLAGS := old + ["-d", "Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "IO/Stream.rlib", "IO/File.rlib", "-L.", UDIS_LIB, JANSSON_LIB]
-CXXFLAGS := old + ["-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", UDIS_LIB:dir, "-I", file("include")]
+CXXFLAGS := old + ["-fpermissive", "-fno-exceptions", "-fno-rtti", "-Wno-non-virtual-dtor", "-I", UDIS_LIB:dirname, "-I", file("include"), "-I", file("keywords.c"):dirname]
 
 var Files := [
 	file("assembler.o"),

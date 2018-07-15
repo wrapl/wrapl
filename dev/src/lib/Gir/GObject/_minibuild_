@@ -34,7 +34,7 @@ scope("fontconfig") do
 			"--prefix=/usr",
 			"--sysconfdir=/etc",
 			'CFLAGS=\"{LIBCFLAGS} -O2\"',
-			--'LDFLAGS=\"-L{FCFIX_SO:dir()} -lfcfix\"',
+			--'LDFLAGS=\"-L{FCFIX_SO:dirname} -lfcfix\"',
 			"--disable-docs"
 		)
 		execute("cd", FONTCONFIG_DIR/"src", "&&",

@@ -14,5 +14,7 @@ LINENOISE_SOURCE => fun() do
 	(LINENOISE_DIR/"linenoise.h"):copy(LINENOISE_HEADER)
 end
 
+CFLAGS := old + ['-I{LINENOISE_SOURCE:dirname}']
+
 file("Linenoise.o")[LINENOISE_SOURCE]
 riva_module("Util/Linenoise", [file("Linenoise.o"), file("linenoise.o")])
