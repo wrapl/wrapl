@@ -7,15 +7,27 @@ CXXFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensi
 ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
 GOFLAGS := []
 LDFLAGS := []
+LIBCFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-ftls-model=global-dynamic", "-w", "-O2"]
 
 if PLATFORM = "Linux" then
 	CFLAGS := old + ["-DLINUX"]
 	CXXFLAGS := old + ["-DLINUX"]
-	ASFLAGS := old + [ASFLAGS, "-DLINUX", "-felf"]
+	ASFLAGS := old + [ASFLAGS, "-DLINUX"]
 elseif PLATFORM = "Darwin" then
 	CFLAGS := old + ["-DMACOSX"]
 	CXXFLAGS := old + ["-DMACOSX"]
-	ASFLAGS := old["-DMACOSX"]
+	ASFLAGS := old + ["-DMACOSX"]
+end
+
+if MACHINE = "i686" then
+	CFLAGS := old + ["-DX86", "-fno-pic", "-m32"]
+	CXXFLAGS := old + ["-DX86", "-fno-pic", "-m32"]
+	ASFLAGS := old + ["-DX86", "-felf32"]
+	LIBCFLAGS := old + ["-fno-pic", "-m32"]
+elseif MACHINE = "x86_64" then
+	CFLAGS := old + ["-DX64", "-m64", "-fPIC"]
+	CXXFLAGS := old + ["-DX64", "-m64", "-fPIC"]
+	ASFLAGS := old + ["-DX64", "-felf64"]
 end
 
 c_includes := fun(Source) do
@@ -174,7 +186,7 @@ c_program := fun(Executable, Objects, Libraries) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES") => Functions[1]
+				var Scan := Source:scan("INCLUDES", :true) => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end

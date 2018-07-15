@@ -1,12 +1,33 @@
 %ifndef RIVA_HEADER_INC
 %define RIVA_HEADER_INC
 
-bits 32
 section .symbols noexec
 section .methods noexec
 section .initial noexec
 section .typedfn noexec
 section .text
+
+%macro da 1-*
+%ifdef X86
+	%rep  %0
+		dd %1
+	%rotate 1
+	%endrep
+%elifdef X64
+	%rep  %0
+		dq %1
+	%rotate 1
+	%endrep
+%endif
+%endmacro
+
+%macro resa 1
+%ifdef X86
+	resd %1
+%elifdef X64
+	resq %1
+%endif
+%endmacro
 
 %ifndef SECTION_INDEX
 	%assign SECTION_INDEX 1
@@ -70,8 +91,13 @@ section .text
 extern RIVA_MODULE %+ $ %+ %1
 %endmacro
 
-%macro riva_struct 1+
-struct RIVA_MODULE %+ _ %+ %1
+%macro alias 2
+	%define %1 %2
+%endmacro
+
+%macro riva_struct 1-2
+alias RIVA_MODULE %+ _ %+ %1, RIVA_MODULE %+ $ %+ %1
+struct RIVA_MODULE %+ $ %+ %1
 %endmacro
 
 %ifdef DOCUMENTING

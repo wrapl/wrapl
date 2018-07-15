@@ -7,10 +7,10 @@
 riva_module Std$Type
 
 riva_struct t, Std$Object_t
-	.Types:		resd 1
-	.Invoke:	resd 1; invoke(value, args, count)
-	.Fields:	resd 1
-	.Levels:	resd 1
+	.Types: resa 1
+	.Invoke: resa 1; invoke(value, args, count)
+	.Fields: resa 1
+	.Levels: resa 1
 endstruct
 
 riva_extern T
@@ -32,20 +32,20 @@ datasect
 %else
 	global %1:data
 %endif
-%1: dd Std$Type$T
-	dd .types
-	dd .invoke
-	dd .fields
-	dd .levels
+%1: da Std$Type$T
+	da .types
+	da .invoke
+	da .fields
+	da .levels
 .types:
-	dd %1, %2, 0
+	da %1, %2, 0
 .fields:
-	dd Std$Array$T, 0, Std$Integer$SmallT, 0
+	da Std$Array$T, 0, Std$Integer$SmallT, 0
 .levels:
-	dd %0
+	da %0
 %assign i 0
 %rep %0
-	dd i
+	da i
 	%assign i i + 1
 %endrep
 textsect

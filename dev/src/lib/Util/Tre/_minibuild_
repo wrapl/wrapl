@@ -7,7 +7,7 @@ file("libtre.a")[TRE_DIR] => fun() do
 		"./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		'CFLAGS=\"{LIBCFLAGS}\"',
 		"--disable-wchar",
 		"--without-man-pages"
 	)

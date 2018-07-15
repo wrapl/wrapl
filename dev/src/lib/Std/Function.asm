@@ -17,19 +17,19 @@ ctype StatusT, Std$Integer$SmallT, Std$Integer$T, Std$Number$T
 .invoke: equ 0
 
 cglobal Suspend, StatusT
-	dd StatusT, -1
+	da StatusT, -1
 
 cglobal Success, StatusT
-	dd StatusT, 0
+	da StatusT, 0
 
 cglobal Failure, StatusT
-	dd StatusT, 1
+	da StatusT, 1
 
 cglobal Message, StatusT
-	dd StatusT, 2
+	da StatusT, 2
 
 cglobal Nil, T
-	dd T
+	da T
 
 ctype AsmT, T
 ; Type of functions written in assembly.
@@ -44,11 +44,16 @@ ctype AsmT, T
 ; <var>ebx</var> = suspended state, if <code>eax = 1</code>
 ; <var>ecx</var> = returned value, if <code>eax = -1</code>, <code>0</code> or <code>2</code>
 ; <var>edx</var> = returned reference, if <code>eax = -1</code> or <code>0</code>
+%ifdef X86
 	jmp [Std$Function_asmt(ecx).Invoke]
+%elifdef X64
+	jmp [Std$Function_asmt(rdi).Invoke]
+%endif
 
 ctype CheckedAsmT, AsmT, T
 ; Type of functions written in assembly with a checked minimum number of arguments
 .invoke:
+%ifdef X86
 	cmp esi, [Std$Function_checkedasmt(ecx).Count]
 	jb .toofewargs
 	jmp [Std$Function_asmt(Std$Function_checkedasmt(ecx).Unchecked).Invoke]
@@ -64,10 +69,28 @@ ctype CheckedAsmT, AsmT, T
 	xor edx, edx
 	mov eax, 2
 	ret
+%elifdef X64
+	cmp esi, [Std$Function_checkedasmt(rdi).Count]
+	jb .toofewargs
+	jmp [Std$Function_asmt(Std$Function_checkedasmt(rdi).Unchecked).Invoke]
+.toofewargs:
+	mov rbx, rdi
+	push byte sizeof(Std$Function_fewargsmessage)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov [Std$Object_t(rax).Type], dword FewArgsMessageT
+	mov [Std$Function_fewargsmessage(rax).Func], rbx
+	mov [Std$Function_fewargsmessage(rax).Count], esi
+	mov rcx, rax
+	xor rdx, rdx
+	mov rax, 2
+	ret
+%endif
 
 ctype CT, T
-; Type of functions written in C.
+; Type of functions written in C. 
 cfunction CT.invoke
+%ifdef X86
 	push byte 0
 	push byte 0
 	push dword Std$Object$Nil
@@ -84,10 +107,26 @@ cfunction CT.invoke
 	pop edx
 	pop ebx
 	ret
+%elifdef X64
+; param: rdi = const Std$Function$ct *Fun
+; param: rsi = unsigned long Count
+; param: rdx = const Std$Function$argument *Args
+; param: rcx = Std$Function$result *Result
+; save rbx, rbp, and r12–r15
+; return: rax = status
+	sub rsp, byte 24
+	mov rcx, rsp
+	call [Std$Function_ct(rdi).Invoke]
+	pop rcx
+	pop rdx
+	pop rbx
+	ret
+%endif
 
 ctype CheckedCT, CT, T
 ; Type of functions written in C with checked minimum number of arguments.
 .invoke:
+%ifdef X86
 	cmp esi, [Std$Function_checkedct(ecx).Count]
 	jb .toofewargs
 	push byte 0
@@ -118,8 +157,32 @@ ctype CheckedCT, CT, T
 	xor edx, edx
 	mov eax, 2
 	ret
+%elifdef X64
+	cmp esi, [Std$Function_checkedct(rdi).Count]
+	jb .toofewargs
+	sub rsp, byte 24
+	mov rcx, rsp
+	call [Std$Function_checkedct(rdi).Invoke]
+	pop rcx
+	pop rdx
+	pop rbx
+	ret
+.toofewargs:
+	mov rbx, rdi
+	push byte sizeof(Std$Function_fewargsmessage)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov [Std$Object_t(rax).Type], dword FewArgsMessageT
+	mov [Std$Function_fewargsmessage(rax).Func], rbx
+	mov [Std$Function_fewargsmessage(rax).Count], esi
+	mov rcx, rax
+	xor rdx, rdx
+	mov rax, 2
+	ret
+%endif
 
 cfunction _new_arg_type_message
+%ifdef X86
 	push byte sizeof(Std$Function_argtypemessage)
 	call Riva$Memory$_alloc
 	add esp, byte 4
@@ -133,8 +196,24 @@ cfunction _new_arg_type_message
 	mov [Std$Function_argtypemessage(eax).Expected], ecx
 	mov [Std$Function_argtypemessage(eax).Received], edx
 	ret
+%elifdef X64
+	push byte sizeof(Std$Function_argtypemessage)
+	call Riva$Memory$_alloc
+	add esp, byte 4
+	mov [Std$Object_t(eax).Type], dword ArgTypeMessageT
+	mov ecx, [esp + 4]
+	mov edx, [esp + 8]
+	mov [Std$Function_argtypemessage(eax).Func], ecx
+	mov [Std$Function_argtypemessage(eax).Index], edx
+	mov ecx, [esp + 12]
+	mov edx, [esp + 16]
+	mov [Std$Function_argtypemessage(eax).Expected], ecx
+	mov [Std$Function_argtypemessage(eax).Received], edx
+	ret
+%endif
 
 cfunction _new_c
+%ifdef X86
 	push byte sizeof(Std$Function_ct)
 	call Riva$Memory$_alloc
 	add esp, byte 4
@@ -142,12 +221,24 @@ cfunction _new_c
 	mov [Std$Object_t(eax).Type], dword CT
 	mov [Std$Function_ct(eax).Invoke], ecx
 	ret
+%elifdef X64
+	push rdi
+	sub esp, byte 8
+	push byte sizeof(Std$Function_ct)
+	call Riva$Memory$_alloc
+	add rsp, byte 16
+	mov rcx, qword CT
+	pop qword [Std$Function$ct(rax).Invoke]
+	mov [Std$Object$t(rax).Type], rcx
+	ret
+%endif
 
 struct cstate, Std$Function_state
-	.Invoke:	resd 1
+	.Invoke:	resa 1
 endstruct
 
 cfunction _resume_c
+%ifdef X86
 	push byte 0
 	push dword Std$Object$Nil
 	push eax
@@ -158,8 +249,22 @@ cfunction _resume_c
 	pop ecx
 	pop edx
 	ret
+%elifdef X64
+	push rax
+	mov rdi, rax
+	mov rax, qword Std$Object$Nil
+	push byte 0
+	push rax
+	mov rsi, rsp
+	call [cstate(rdi).Invoke]
+	pop rcx
+	pop rdx
+	pop rbx
+	ret
+%endif
 
 cfunction _call
+%ifdef X86
 	push ebx
 	push esi
 	push edi
@@ -183,8 +288,39 @@ cfunction _call
 	pop esi
 	pop ebx
 	ret
+%elifdef X64
+; param: rdi = const Std$Function$ct *Fun
+; param: rsi = unsigned long Count
+; param: rdx = Std$Function$result *Result
+; param: rcx, r8, r9, stack = const Std$Function$argument *Args
+; save rbx, rbp, and r12–r15
+; return: rax = status
+	pop rax ; save old return address
+	push r9 ; push reg args onto stack below rest of args
+	push r8 ; push reg args onto stack below rest of args
+	push rcx ; push reg args onto stack below rest of args
+	push rax
+	push rbx
+	push rdx
+	lea rdx, [rsp + 24]
+	mov rax, [Std$Object$t(rdi).Type]
+	call [Std$Type$t(rax).Invoke]
+; 	rax = status
+; 	rbx = suspended state, if rax = -1
+; 	rdi = returned value, if rax = -1, 0 or 2
+; 	rsi = returned reference, if rax = -1 or 0
+	pop rdx
+	and rbx, rax
+	and bl, 0xFC
+	mov [Std$Function$result(rdx).State], rbx
+	mov [Std$Function$result(rdx).Val], rcx
+	mov [Std$Function$result(rdx).Ref], rdx
+	pop rbx
+	ret 24
+%endif
 
 cfunction _invoke
+%ifdef X86
 	push ebx
 	push esi
 	push edi
@@ -207,8 +343,32 @@ cfunction _invoke
 	pop esi
 	pop ebx
 	ret
+%elifdef X64
+; param: rdi = const Std$Function$ct *Fun
+; param: rsi = unsigned long Count
+; param: rdx = Std$Function$result *Result
+; param: rcx = Std$Function$argument *Args
+; save rbx, rbp, and r12–r15
+; return: rax = status
+	push rbx
+	push rdx
+	push rdx ; extra push/pop to correct stack alignment
+	mov rdx, rcx
+	mov rax, [Std$Object$t(rdi).Type]
+	call [Std$Type$t(rax).Invoke]
+	pop rdx
+	pop rdx
+	and rbx, rax
+	and bl, 0xFC
+	mov [Std$Function$result(rdx).State], rbx
+	mov [Std$Function$result(rdx).Val], rcx
+	mov [Std$Function$result(rdx).Ref], rdx
+	pop rbx
+	ret
+%endif
 
 cfunction _resume
+%ifdef X86
 	push ebx
 	push esi
 	push edi
@@ -229,28 +389,60 @@ cfunction _resume
 	pop esi
 	pop ebx
 	ret
+%elifdef X64
+; param: rdi = Std$Function$result *Result
+	push rbx
+	push rdi
+	push rdi
+	mov rdi, [Std$Function$result(rdi).State]
+	call [Std$Function$state(rdi).Run]
+	pop rdx
+	pop rdx
+	and rbx, rax
+	and bl, 0xFC
+	mov [Std$Function$result(rdx).State], rbx
+	mov [Std$Function$result(rdx).Val], rcx
+	mov [Std$Function$result(rdx).Ref], rdx
+	pop rbx
+	ret
+%endif
 
 function Identity, 1
+%ifdef X86
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
 	ret
+%elifdef X64
+	mov rcx, [Std$Function$argument(rsi).Val]
+	mov rdx, [Std$Function$argument(rsi).Ref]
+	xor rax, rax
+	ret
+%endif
 
 struct constant0, Std$Object_t
-    .Value: resd 1
+    .Value: resa 1
 endstruct
 
 ctype ConstantT, T
 .invoke:
+%ifdef X86
     lea edx, [constant0(ecx).Value]
     mov ecx, [constant0(ecx).Value]
     xor eax, eax
     ret
+%elifdef X64
+	lea rdx, [constant0(rdi).Value]
+	mov rcx, [constant0(rdi).Value]
+	xor rax, rax
+	ret
+%endif
 
 function ConstantNew, 1
 ;@x
 ;:T
 ; returns a function which always returns the value <var>x</var>.
+%ifdef X86
     push byte sizeof(constant0)
     call Riva$Memory$_alloc
     add esp, byte 4
@@ -261,8 +453,22 @@ function ConstantNew, 1
     xor edx, edx
     xor eax, eax
     ret
+%elifdef X64
+	push byte sizeof(constant0)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov rdx, ConstantT
+	mov rcx, qword [Std$Function$argument(rdi).Val]
+	mov [Std$Object$t(rax).Type], rdx
+	mov [constant0(rax).Value], rcx
+	mov rcx, rax
+	xor rdx, rdx
+	xor rax, rax
+	ret
+%endif
 
 cfunction _constant_new
+%ifdef X86
 	push byte sizeof(constant0)
     call Riva$Memory$_alloc
     add esp, byte 4
@@ -270,22 +476,44 @@ cfunction _constant_new
 	mov [Std$Object_t(eax).Type], dword ConstantT
     mov [constant0(eax).Value], ecx
 	ret
+%elifdef X64
+	push byte sizeof(constant0)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov rdx, ConstantT
+	mov [constant0(rax).Value], rdi
+	mov [Std$Object$t(rax).Type], rdx
+	ret
+%endif
 
 function Fail, 0
+%ifdef X86
 	mov eax, 1
 	ret
+%elifdef X64
+	mov rax, 1
+	ret
+%endif
 
 ctype MessageT, T
 .invoke:
+%ifdef X86
     xor edx, edx
     mov ecx, [constant0(ecx).Value]
     mov eax, 2
     ret
+%elifdef X64
+	xor rdx, rdx
+	mov rcx, [constant0(rcx).Value]
+	mov rax, 2
+	ret
+%endif
 
 function MessageNew, 1
 ;@x
 ;:T
 ; returns a function which always sends the message <var>x</var>.
+%ifdef X86
     push byte sizeof(constant0)
     call Riva$Memory$_alloc
     add esp, byte 4
@@ -296,8 +524,22 @@ function MessageNew, 1
     xor edx, edx
     xor eax, eax
     ret
+%elifdef X64
+	push byte sizeof(constant0)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov rdx, MessageT
+	mov rcx, qword [Std$Function$argument(rdi).Val]
+	mov [Std$Object$t(rax).Type], rdx
+	mov [constant0(rax).Value], rcx
+	mov rcx, rax
+	xor rdx, rdx
+	xor rax, rax
+	ret
+%endif
 
 cfunction _message_new
+%ifdef X86
 	push byte sizeof(constant0)
     call Riva$Memory$_alloc
     add esp, byte 4
@@ -305,22 +547,39 @@ cfunction _message_new
 	mov [Std$Object_t(eax).Type], dword MessageT
     mov [constant0(eax).Value], ecx
 	ret
+%elifdef X64
+	push byte sizeof(constant0)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov rdx, MessageT
+	mov [constant0(rax).Value], rdi
+	mov [Std$Object$t(rax).Type], rdx
+	ret
+%endif
 
 struct variable, Std$Object_t
-    .Address: resd 1
+    .Address: resa 1
 endstruct
 
 ctype VariableT, T
 .invoke:
+%ifdef X86
     mov edx, [variable(ecx).Address]
     mov ecx, [edx]
     xor eax, eax
     ret
+%elifdef X64
+	mov rdx, [variable(rdi).Address]
+	mov rcx, [rdx]
+	xor rax, rax
+	ret
+%endif
 
 function VariableNew, 1
 ;@v+
 ;:T
 ; returns a function which always returns the variable <var>v</var>.
+%ifdef X86
     push byte sizeof(variable)
     call Riva$Memory$_alloc
     add esp, byte 4
@@ -331,6 +590,19 @@ function VariableNew, 1
     xor edx, edx
     xor eax, eax
     ret
+%elifdef X64
+	push byte sizeof(variable)
+	call Riva$Memory$_alloc
+	add rsp, byte 8
+	mov rdx, VariableT
+	mov rcx, qword [Std$Function$argument(rdi).Ref]
+	mov [Std$Object$t(rax).Type], rdx
+	mov [variable(rax).Address], rcx
+	mov rcx, rax
+	xor rdx, rdx
+	xor rax, rax
+	ret
+%endif
 
 _function Fold
 ;@func1

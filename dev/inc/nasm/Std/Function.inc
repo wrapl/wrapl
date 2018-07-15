@@ -7,58 +7,58 @@
 riva_module Std$Function
 
 riva_struct argument
-	.Val:	resd 1
-	.Ref:	resd 1
+	.Val: resa 1
+	.Ref: resa 1
 endstruct
 
 riva_struct result
-	.Val:	resd 1
-	.Ref:	resd 1
-	.State:	resd 1
+	.Val: resa 1
+	.Ref: resa 1
+	.State: resa 1
 endstruct
 
 riva_struct state
-	.Run:		resd 1
-	.Chain:		resd 1
-	.Resume:	resd 1
+	.Run: resa 1
+	.Chain: resa 1
+	.Resume: resa 1
 endstruct
 
 riva_struct asmt, Std$Object_t
-	.Invoke:	resd 1;(fun, count, args)
+	.Invoke: resa 1;(fun, count, args)
 endstruct
 
 riva_struct checkedasmt, Std$Object_t
-	.Unchecked:		resv(Std$Function_asmt)
-	.Count:			resd 1
-	.File:			resd 1
-	.Line:			resd 1
+	.Unchecked: resv(Std$Function_asmt)
+	.Count: resa 1
+	.File: resa 1
+	.Line: resa 1
 endstruct
 
 riva_struct asmstate, Std$Function_state
-	.Handler:	resd 1
+	.Handler: resa 1
 endstruct
 
 riva_struct ct, Std$Object_t
-	.Invoke:	resd 1;(native, count, args, result)
+	.Invoke: resa 1;(native, count, args, result)
 endstruct
 
 riva_struct checkedct, Std$Object_t
-	.Invoke:	resd 1
-	.Count:		resd 1
-	.File:		resd 1
-	.Line:		resd 1
+	.Invoke: resa 1
+	.File: resa 1
+	.Line: resd 1
+	.Count: resd 1
 endstruct
 
 riva_struct fewargsmessage, Std$Object_t
-	.Func:		resd 1
-	.Count:		resd 1
+	.Func: resa 1
+	.Count: resa 1
 endstruct
 
 riva_struct argtypemessage, Std$Object_t
-	.Func:		resd 1
-	.Index:		resd 1
-	.Expected:	resd 1
-	.Received:	resd 1
+	.Func: resa 1
+	.Index: resa 1
+	.Expected: resa 1
+	.Received: resa 1
 endstruct
 
 riva_extern T
@@ -91,8 +91,8 @@ function __LINE__, %1
 %endif
 datasect
 %1:
-	dd Std$Function$AsmT
-	dd %%here
+	da Std$Function$AsmT
+	da %%here
 textsect
 %%here:
 %endmacro
@@ -109,13 +109,13 @@ textsect
 %endif
 datasect
 %1:
-	dd Std$Function$CheckedAsmT
+	da Std$Function$CheckedAsmT
 .unchecked:
-	dd Std$Function$AsmT
-	dd .invoke
-	dd %2
-	dd %%file
+	da Std$Function$AsmT
+	da .invoke
+	da %%file
 	dd __LINE__
+	dd %2
 %%file:
 	db __FILE__, 0
 textsect
@@ -127,8 +127,8 @@ textsect
 %macro local_function 1
 datasect
 %1:
-	dd Std$Function$AsmT
-	dd %%here
+	da Std$Function$AsmT
+	da %%here
 textsect
 %%here:
 %endmacro

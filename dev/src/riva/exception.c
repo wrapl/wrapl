@@ -4,8 +4,8 @@ __thread handler_t *CurrentHandler = 0;
 
 __attribute__ ((returns_twice)) void *handler_push(handler_t *Handler) {
 	Handler->Prev = CurrentHandler;
+	register intptr_t Temp;
 	asm("movl\t%%esp, %0" : "=m" (Handler->EIP));
-	register int Temp;
 	asm("movl\t(%%esp), %0\n\tmovl\t%0, %1" : "=r" (Temp), "=m" (Handler->ESP));
 	CurrentHandler = Handler;
 	return 0;

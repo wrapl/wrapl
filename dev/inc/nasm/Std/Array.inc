@@ -8,7 +8,7 @@ riva_module Std$Array
 
 riva_struct t, Std$Object_t
 	.Values: resd 1
-	.Length: resv(Std$Integer_smallt)
+	.Length: resv(Std$Integer$smallt)
 endstruct
 
 riva_extern T

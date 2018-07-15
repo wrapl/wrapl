@@ -18,6 +18,26 @@ struct node
 	.Value:	resd 1
 endstruct
 
+;typedfn(Receiver, ...)
+;0:  53                      push ebx
+;1:  8b 44 24 08             mov eax, [esp + 0x8] Receiver
+;5:  8b 18                   mov ebx, [Std$Object_t(Receiver).Type]
+;7:  8b 5b 04                mov ebx, [Std$Type_t(ebx).Types]
+;a:  8b 0b                   mov ecx, [ebx]
+;c:  83 c3 04                add ebx, 0x4
+;f:  89 ca                   mov edx, ecx
+;11: 89 c8                   mov eax, ecx
+;13: c1 ca 04                ror edx, 0x4
+;16: 8d 44 50 01             lea eax, [eax + edx * 2 + 1]
+;1a: 25 01 00 00 00          and eax, 0x1
+;1f: 39 0c c5 11 11 11 11    cmp [eax * 8 + Entries], ecx
+;26: 72 e2                   jb 0xa
+;28: 77 ec                   ja 0x16
+;2a: 5b                      pop ebx
+;2b: ff 24 c5 22 22 22 22    jmp [eax * 8 + Entries + 4]
+;32: 90                      nop
+;33: 90                      nop 
+
 cfunction _set
 	push ebx
 	push edi

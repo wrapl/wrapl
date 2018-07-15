@@ -5,7 +5,7 @@ end
 
 FANN_LIB := file("lib/libdoublefann.a")[FANN_DIR] => fun() do
 	execute("cd", FANN_DIR, "&&",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\" cmake .",
+		'CFLAGS=\"{LIBCFLAGS}\" cmake .',
 		'-DCMAKE_INSTALL_PREFIX:PATH={BUILDDIR}'
 	)
 	execute("cd", FANN_DIR, "&&", "make")

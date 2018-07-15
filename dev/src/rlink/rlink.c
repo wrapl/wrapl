@@ -672,9 +672,6 @@ static void bfd_section_setup(bfd_section_t *Section) {
 		        *(long *)(Section->Code + Relocs[I]->address) -= Relocs[I]->address;// + 4 on windows platforms ???;
 #endif
 			};
-			if (!strcmp(Sym->name, "_nxweb_net_thread_data")) {
-				printf("DEBUG: %s, %d\n", Type->name, Type->type);
-			};
 			if (!strcmp(Sym->name, "_GLOBAL_OFFSET_TABLE_")) {
 				Relocation->Flags = RELOC_GOT;
 				section_relocate(Section, Relocation, Target);

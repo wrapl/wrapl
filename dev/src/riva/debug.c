@@ -37,7 +37,7 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 	return 0;
 };
 
-#ifdef LINUX || MACOSX
+#ifdef LINUX
 int stack_trace(void **Stack, char **Buffer, int BufferSize) {
 	int Count = 0;
 	for (int I = 0; (Count < BufferSize) && (I < MaxStackScan); ++I) {
@@ -47,11 +47,11 @@ int stack_trace(void **Stack, char **Buffer, int BufferSize) {
 			if (Base[DEBUG_HDR_INDEX] == DebugKey) {
 				if (Code[-5] == 0xE8) {
 					debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
-					asprintf(Buffer + Count, "%s, %d (+0x%x)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
+					asprintf(Buffer + Count, "%s, %ld (+0x%lx)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
 					++Count;
 				} else if (Code[-3] == 0xFF) {
 					debug_hdr *Hdr = (debug_hdr *)Base[DEBUG_HDR_INDEX + 1];
-					asprintf(Buffer + Count, "%s, %d (+0x%x)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
+					asprintf(Buffer + Count, "%s, %ld (+0x%lx)", Hdr->StrInfo, Hdr->IntInfo, (const char *)Stack[I] - (const char *)Base - 8);
 					++Count;
 				}
 			};
@@ -70,9 +70,10 @@ void display_stack(void *Stack, int Levels) {
 static void segv_handler(int Signal, struct sigcontext Context) {
 	memory_log_close();
 
-	fprintf(stderr, "Segmentation fault in thread %x", pthread_self());
+	fprintf(stderr, "Segmentation fault in thread %lx", pthread_self());
 	const char *Module, *Symbol;
 
+#ifdef X32
 	void *Eip = (void *)Context.eip;
 	if (Eip == 0) {
 		fprintf(stderr, " calling 0x0 ");
@@ -111,7 +112,11 @@ static void segv_handler(int Signal, struct sigcontext Context) {
 	display_reg("edx", (void *)Context.edx, 1);
 
 	if (Context.ebp) display_stack((void *)Context.ebp, DebugLevels);
+#endif
 	
+#ifdef X64
+
+#endif
 	exit(1);
 };
 #endif

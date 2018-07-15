@@ -140,7 +140,7 @@ extern void libriva_config(const char *, preload_t **);
 
 typedef struct debug_hdr {
 	const char *StrInfo;
-	int IntInfo;
+	long IntInfo;
 } debug_hdr;
 
 extern const char DebugKey[];
@@ -149,7 +149,12 @@ extern debug_hdr *debug_get_hdr(void *);
 
 typedef struct handler_t {
 	struct handler_t *Prev;
-	int32_t EIP, ESP;
+#ifdef X32
+	uint32_t EIP, ESP;
+#endif
+#ifdef X64
+	uint64_t RIP, RSP;
+#endif
 } handler_t;
 
 extern void *handler_push(handler_t *Handler) __attribute__ ((returns_twice));

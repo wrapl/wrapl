@@ -56,8 +56,8 @@ RIVA_TYPE(ArrayT);
 #else
 
 #define SYMBOL(NAME, VALUE)\
-	extern Std$Object_t NAME[];\
-	static const char __symbol ## NAME[] __asmify(NAME) __attribute__ ((section (".symbols"), used)) = VALUE;
+	extern Std$Object_t NAME[] __asmify(__concat(_, NAME));\
+	static const char __symbol ## NAME[] __asmify(__concat(_, NAME)) __attribute__ ((section (".symbols"), used)) = VALUE;
 
 #define ANY (void *)1
 #define SKP (void *)1

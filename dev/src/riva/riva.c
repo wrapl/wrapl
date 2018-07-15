@@ -59,7 +59,7 @@ typedef struct reloc_t {
 #define LOADED		2
 
 typedef struct section_t {
-	uint32_t (*Fixup)(struct section_t *Section, jmp_buf OnError);
+	intptr_t (*Fixup)(struct section_t *Section, jmp_buf OnError);
 	uint32_t Flags;
 	uint32_t NoOfFixups;
 	uint8_t *Data;
@@ -103,27 +103,28 @@ typedef struct code_header_t {
 	void *Links[];
 } code_header_t;
 
-static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 	uint8_t *Data = Section->Data;
 	if (Section->NoOfFixups) {
 		code_header_t *Header = ((code_header_t **)Data)[-1];
 		while (Section->NoOfFixups) {
 			int Index = Section->NoOfRelocs - Section->NoOfFixups--;
 			const reloc_t *Reloc = &Section->Relocs[Index];
-			uint32_t Value;
+			intptr_t Value;
 			if (Reloc->Section == Section) {
-				Value = (uint32_t)Data;
+				Value = (intptr_t)Data;
 			} else {
 				Value = Reloc->Section->Fixup(Reloc->Section, OnError);
 			};
 			Header->Links[Index] = (void *)Value;
 			if (Reloc->Flags == RELOC_REL) {
-				Value -= (uint32_t)Data;
+				Value -= (intptr_t)Data;
 			} else if (Reloc->Flags == RELOC_IND) {
-				uint32_t Offset = *(uint32_t *)(Data + Reloc->Position);
-				*(uint32_t *)(Data + Reloc->Position) = 0;
+				puts("Check this: RELOC_IND in x64!!");
+				intptr_t Offset = *(intptr_t *)(Data + Reloc->Position);
+				*(intptr_t *)(Data + Reloc->Position) = 0;
 				Header->Links[Index] += Offset;
-				Value = (uint32_t)&Header->Links[Index];
+				Value = (intptr_t)&Header->Links[Index];
 			} else if (Reloc->Flags == RELOC_GOT) {
 				Value = -Value;
 			};
@@ -137,11 +138,14 @@ static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 			case 4:
 				*(uint32_t *)(Data + Reloc->Position) += Value;
 				break;
+			case 8:
+				*(uint64_t *)(Data + Reloc->Position) += Value;
+				break;
 			};
 		};
 		Section->Relocs = 0;
 	};
-	return (uint32_t)Data;
+	return (intptr_t)Data;
 };
 
 extern void init_text_section(void);
@@ -165,14 +169,14 @@ void relocate_text_section(uint8_t *Data) {
 	
 	for (int Index = 0; Index < Section->NoOfRelocs; ++Index) {
 		const reloc_t *Reloc = &Section->Relocs[Index];
-		uint32_t Value;
+		intptr_t Value;
 		if (Reloc->Section == Section) {
-			Value = (uint32_t)Data;
+			Value = (intptr_t)Data;
 		} else {
 			Value = Reloc->Section->Fixup(Reloc->Section, OnError);
 			Header->Links[Index] = (void *)Value;
 		};
-		if (Reloc->Flags == RELOC_REL) Value -= (uint32_t)Data;
+		if (Reloc->Flags == RELOC_REL) Value -= (intptr_t)Data;
 		switch (Reloc->Size) {
 		case 1:
 			*(uint8_t *)(Data + Reloc->Position) += Value;
@@ -183,6 +187,9 @@ void relocate_text_section(uint8_t *Data) {
 		case 4:
 			*(uint32_t *)(Data + Reloc->Position) += Value;
 			break;
+		case 8:
+			*(uint64_t *)(Data + Reloc->Position) += Value;
+			break;
 		};
 	};
 	Section->Relocs = 0;
@@ -191,7 +198,7 @@ void relocate_text_section(uint8_t *Data) {
 	//printf("Relocated [%x] %s:%d\n", Data, Header->Hdr.StrInfo, Header->Hdr.IntInfo);
 };
 
-static uint32_t fixup_text_section_delayed(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_text_section_delayed(section_t *Section, jmp_buf OnError) {
 	uint8_t *Data = Section->Data;
 	if (Section->NoOfFixups) {
 		code_header_t *Header = ((code_header_t **)Data)[-1];
@@ -206,7 +213,7 @@ static uint32_t fixup_text_section_delayed(section_t *Section, jmp_buf OnError) 
 	return (uint32_t)Data;
 };
 
-static uint32_t fixup_data_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_data_section(section_t *Section, jmp_buf OnError) {
 	uint8_t *Data = Section->Data;
 	if (Section->NoOfFixups) {
 		while (Section->NoOfFixups) {
@@ -233,14 +240,17 @@ static uint32_t fixup_data_section(section_t *Section, jmp_buf OnError) {
 			case 4:
 				*(uint32_t *)(Data + Reloc->Position) += Value;
 				break;
+			case 8:
+				*(uint64_t *)(Data + Reloc->Position) += Value;
+				break;
 			};
 		};
 		Section->Relocs = 0;
 	};
-	return (uint32_t)Data;
+	return (intptr_t)Data;
 };
 
-static uint32_t fixup_tdata_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_tdata_section(section_t *Section, jmp_buf OnError) {
 	uint8_t *TData = Section->TData;
 	if (Section->NoOfFixups) {
 		while (Section->NoOfFixups) {
@@ -267,14 +277,17 @@ static uint32_t fixup_tdata_section(section_t *Section, jmp_buf OnError) {
 			case 4:
 				*(uint32_t *)(TData + Reloc->Position) += Value;
 				break;
+			case 8:
+				*(uint64_t *)(TData + Reloc->Position) += Value;
+				break;
 			};
 		};
 		Section->Relocs = 0;
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_library_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_library_section(section_t *Section, jmp_buf OnError) {
 	if (Section->NoOfFixups) {
 		module_t *Module = module_load(Section->Path, Section->Name);
 		if (Module == 0) {
@@ -284,10 +297,10 @@ static uint32_t fixup_library_section(section_t *Section, jmp_buf OnError) {
 		Section->Data = (uint8_t *)Module;
 		Section->NoOfFixups = 0;
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_import_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_import_section(section_t *Section, jmp_buf OnError) {
 	if (Section->NoOfFixups) {
 		module_t *Module = (module_t *)Section->Library->Fixup(Section->Library, OnError);
 		int IsRef;
@@ -298,19 +311,19 @@ static uint32_t fixup_import_section(section_t *Section, jmp_buf OnError) {
 			longjmp(OnError, 1);
 		};
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_bss_section(section_t *Section, jmp_buf OnError) {
-	return (uint32_t)Section->Data;
+static intptr_t fixup_bss_section(section_t *Section, jmp_buf OnError) {
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_tbss_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_tbss_section(section_t *Section, jmp_buf OnError) {
 	printf("TBSS SECTION: 0x%x\n", Section->Data);
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_symbol_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_symbol_section(section_t *Section, jmp_buf OnError) {
 	if (Section->NoOfFixups) {
 		if (Section->Name) {
 			int IsRef;
@@ -320,25 +333,25 @@ static uint32_t fixup_symbol_section(section_t *Section, jmp_buf OnError) {
 		};
 		Section->NoOfFixups = 0;
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
-static uint32_t fixup_constant_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_constant_section(section_t *Section, jmp_buf OnError) {
 	if (Section->NoOfFixups) {
 		void *(*init)(void) = (void *)(Section->Init->Fixup(Section->Init, OnError) + Section->Offset);
 		Section->Data = init();
 		Section->NoOfFixups = 0;
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
 static int riva_import(riva_t *Riva, const char *Symbol, int *IsRef, void **Data);
 
-static uint32_t fixup_module_section(section_t *Section, jmp_buf OnError) {
+static intptr_t fixup_module_section(section_t *Section, jmp_buf OnError) {
 	if (Section->NoOfFixups) {
 		Section->NoOfFixups = 0;
 	};
-	return (uint32_t)Section->Data;
+	return (intptr_t)Section->Data;
 };
 
 static void *check_import(riva_t *Riva, const char *Symbol, jmp_buf OnError) {
@@ -472,7 +485,7 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			//Section->Data = GC_MALLOC_UNCOLLECTABLE(Length);
 			uint8_t *Data = GC_MALLOC(Length + 16);
 			//uint8_t *Data = GC_MALLOC_UNCOLLECTABLE(Length + 16);
-			Data += (16 - (uint32_t)Data & 15) & 15;
+			Data += (16 - (intptr_t)Data & 15) & 15;
 			Section->Data = Data;
 			gzread(File, Section->Data, Length);
 			for (int J = 0; J < NoOfRelocs; ++J) {
@@ -510,7 +523,7 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			gzread(File, &Section->Flags, 1);
 			uint32_t Size; gzread(File, &Size, 4);
 			uint8_t *Data = GC_MALLOC(Size + 16);
-			Data += (16 - (uint32_t)Data & 15) & 15;
+			Data += (16 - (intptr_t)Data & 15) & 15;
 			Section->Data = Data;
 			Section->NoOfFixups = 0;
 		break;};

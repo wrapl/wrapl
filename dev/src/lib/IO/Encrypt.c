@@ -280,7 +280,8 @@ static int cipher_write(cipher_t *Stream, const char *Source, int Length, int Bl
 		Ptr += Bytes;
 		Length -= Bytes;
 	};
-	return Total;};
+	return Total;
+};
 
 static void cipher_writec(cipher_t *Stream, char Char) {
 	arcfour_crypt(Stream->Context, 1, &Char, &Char);

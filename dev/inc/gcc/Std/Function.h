@@ -126,7 +126,7 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 
 #define GLOBAL_FUNCTION(NAME, COUNT)\
 	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS);\
-	Std$Function_checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
+	Std$Function_checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, __FILE__, __LINE__, COUNT}};\
 	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS)
 
 #endif

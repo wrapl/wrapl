@@ -1,4 +1,4 @@
-GMP_VERSION := "6.0.0"
+GMP_VERSION := "6.1.2"
 GMP_DIR := file('gmp-{GMP_VERSION}')
 
 file("libgmp.a")[GMP_DIR] => fun() do
@@ -6,8 +6,8 @@ file("libgmp.a")[GMP_DIR] => fun() do
 		"./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
 		'--libdir={file("")}',
-		"ABI=32",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
+		'ABI={if MACHINE = "i686" then "32" else "64" end}',
+		'CFLAGS=\"{LIBCFLAGS}\"',
 		"--without-man-pages"
 	)
 	execute("cd", GMP_DIR, "&&",

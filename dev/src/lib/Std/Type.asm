@@ -9,7 +9,30 @@ endstruct
 %define Std$Type$T T
 
 ctype T
-;  the type of all types
+; the type of all types
+; x86 calling convention
+; params:
+; 	ecx = called function
+; 	esi = #arguments
+; 	edi = arguments
+; save ebp
+; returns:
+; 	eax = status
+; 	ebx = suspended state, if eax = -1
+; 	ecx = returned value, if eax = -1, 0 or 2
+; 	edx = returned reference, if eax = -1 or 0
+; x64 calling convention
+; 	rsp % 16 = 8
+; params:
+; 	rdi = called function
+; 	rsi = #arguments
+; 	rdx = arguments
+; save rbp
+; returns:
+; 	rax = status
+; 	rbx = suspended state, if rax = -1
+; 	rcx = returned value, if rax = -1, 0 or 2
+; 	rdx = returned reference, if rax = -1 or 0
 cfunction T.invoke
 	push ecx
 	mov eax, [Std$Type_t(ecx).Fields]

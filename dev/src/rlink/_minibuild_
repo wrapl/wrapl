@@ -9,7 +9,8 @@ UDIS_LIB[UDIS_DIR] => fun() do
 		'--includedir={file("")}',
 		'--libdir={file("")}',
 		"--without-man-pages",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -fno-pic\""
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
 	execute("cd", UDIS_DIR, "&&",
 		"make mostlyclean"
@@ -26,14 +27,24 @@ UDIS_DIR => fun() do
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-llua", "-lHX", "-ldl", "-g"]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc"]
 CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
 
 file("rlink.o")[UDIS_LIB]
 
+var Minilang := file("minilang"):mkdir
+
+var Objects := [
+	file("rlink.o"),
+	Minilang / "minilang.o",
+	Minilang / "stringmap.o",
+	Minilang / "sha256.o",
+	Minilang / "linenoise.o"
+]
+
 if PLATFORM = "Linux" then
 	LDFLAGS := old + ["-lbfd"]
-	c_program(RLINK, [file("rlink.o")], [UDIS_LIB])
+	c_program(RLINK, Objects, [UDIS_LIB])
 elseif PLATFORM = "Darwin" then
 	BINUTILS_VERSION := "2.28"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
@@ -48,6 +59,6 @@ elseif PLATFORM = "Darwin" then
 	BINUTILS_DIR => fun() do
 		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
 	end
-	c_program(RLINK, [file("rlink.o")], [UDIS_LIB, file("libbfd.a")])
+	c_program(RLINK, Objects, [UDIS_LIB, file("libbfd.a")])
 end
 

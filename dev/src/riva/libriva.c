@@ -16,6 +16,7 @@
 #include <execinfo.h>
 #include <malloc.h>
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 
 #ifdef MACOSX
@@ -47,7 +48,7 @@ static void *memory_memalign(size_t Alignment, size_t Size, const void *Caller) 
 #else
 	uint8_t *Result = GC_malloc_uncollectable(Size + Alignment);
 #endif
-	uint32_t Offset = (uint32_t)Result % Alignment;
+	intptr_t Offset = (intptr_t)Result % Alignment;
 	if (Offset) Result += (Alignment - Offset);
 	return Result;
 };
@@ -273,7 +274,7 @@ void __attribute__ ((constructor)) init(void) {
 	riva_init();
 	symbol_init();
 	dynamic_init();
-	exception_init();
+	//exception_init();
 #ifdef LINUX
 	debug_init();
 #endif
