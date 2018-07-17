@@ -46,7 +46,7 @@ riva_module("Agg/Buffer", [file("Buffer.o"), file("Buffer2.o")])
 riva_module("Agg/Grid", [file("Grid.o")])
 --riva_module("Agg/Graph", {file("Graph.o"), file("../dso_handle.o")})
 
-scope("threaded") do
+scope("threaded";) do
 	LDFLAGS := old + ["libpthread.rlib"]
 	ASFLAGS := old + ['-I{file("Table2.asm"):dirname}/']
 	CFLAGS := old + ["-I", file("Table2.asm"):dirname]

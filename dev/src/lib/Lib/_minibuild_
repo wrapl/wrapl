@@ -28,12 +28,12 @@ end
 
 file("Gmp.o")[file("libgmp.a")]
 
-scope("gmp") do
+scope("gmp";) do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", "-xlibgmp.a", "-XGmp.exports"]
 	WRAPL_MODULES[riva_module("Gmp", [file("Gmp.o")])]
 end
 
-scope("libc") do
+scope("libc";) do
 	GCC_HOST := shell("gcc -dumpmachine")[1, -1]
 	GCC_VERSION := shell("gcc -dumpversion")[1, -1]
 	LDFLAGS := old + ['-L/usr/lib/gcc/{GCC_HOST}/{GCC_VERSION}/', "-Z -d",

@@ -25,7 +25,7 @@ FCFIX_SO[file("fcfix.c"), file("fcfix.h")] => fun() do
 	execute("gcc", "-shared", "-o", FCFIX_SO, "-fPIC", file("fcfix.c"))
 end
 
-scope("fontconfig") do
+scope("fontconfig";) do
 	CFLAGS := ["-Dmalloc=fcfix_malloc", "-Drealloc=fcfix_realloc", "-Dfree=fcfix_free", "-Dcalloc=fcfix_calloc", "-include", file("fcfix.h")]
 	
 	FONTCONFIG_SO[FONTCONFIG_DIR, FCFIX_SO] => fun() do
