@@ -1400,7 +1400,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 
 static void add_object_file(const char *FileName, int AutoExport) {
 	if (DependencyMode) {
-		stringmap_insert(Dependencies, FileName, 0);
+		stringmap_insert(Dependencies, strdup(FileName), 0);
 		return;
 	}
 	bfd *Bfd = bfd_openr(FileName, 0);
@@ -1412,7 +1412,7 @@ static void add_object_file(const char *FileName, int AutoExport) {
 }
 
 static void add_dependency_file(const char *FileName, int AutoExport) {
-	stringmap_insert(Dependencies, FileName, 0);
+	stringmap_insert(Dependencies, strdup(FileName), 0);
 }
 
 typedef struct module_section_t {
@@ -1697,7 +1697,7 @@ static ml_value_t *global_get(stringmap_t *Globals, const char *Name) {
 }
 
 static void add_script_file(const char *FileName, int AutoExport) {
-	if (DependencyMode) stringmap_insert(Dependencies, FileName, 0);
+	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	//printf("add_script_file(%s, %d)\n", FileName, AutoExport);
 	library_file_t *Library = new(library_file_t);
 	Library->FileName = FileName;
@@ -1725,7 +1725,7 @@ static void add_script_file(const char *FileName, int AutoExport) {
 }
 
 static void add_library_file(const char *FileName, int AutoExport) {
-	if (DependencyMode) stringmap_insert(Dependencies, FileName, 0);
+	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	//printf("add_script_file(%s, %d)\n", FileName, AutoExport);
 	library_file_t *Library = new(library_file_t);
 	Library->FileName = FileName;
@@ -1763,7 +1763,7 @@ static ml_value_t *definition_file_symbol(void *Data, int Count, ml_value_t **Ar
 }
 
 static void add_definition_file(const char *FileName, int AutoExport) {
-	if (DependencyMode) stringmap_insert(Dependencies, FileName, 0);
+	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	ml_value_t *Closure = ml_load((ml_getter_t)global_get, RdefGlobals, FileName);
 	if (Closure->Type == MLErrorT) {
 		fprintf(stderr, "\e[31mError: %s\n\e[0m", ml_error_message(Closure));
@@ -1831,7 +1831,7 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 
 static void add_shared_lib(const char *FileName, int AutoExport) {
 	if (DependencyMode) {
-		stringmap_insert(Dependencies, FileName, 0);
+		stringmap_insert(Dependencies, strdup(FileName), 0);
 		return;
 	}
 	char *Module = GC_strdup(basename(FileName));

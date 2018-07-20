@@ -28,7 +28,8 @@ end
 scope("fontconfig";) do
 	CFLAGS := ["-Dmalloc=fcfix_malloc", "-Drealloc=fcfix_realloc", "-Dfree=fcfix_free", "-Dcalloc=fcfix_calloc", "-include", file("fcfix.h")]
 	
-	FONTCONFIG_SO[FONTCONFIG_DIR, FCFIX_SO] => fun() do
+	FONTCONFIG_SO[FCFIX_SO] => fun() do
+		execute("wget -nv", FONTCONFIG_URL, "-O-", "|", "tar", "xvjP")
 		execute("cd", FONTCONFIG_DIR, "&&",
 			"./configure --enable-shared",
 			"--prefix=/usr",
@@ -46,9 +47,5 @@ scope("fontconfig";) do
 		execute("cp", FONTCONFIG_DIR/"src/.libs/libfontconfig.so", FONTCONFIG_SO)
 	end
 
-	FONTCONFIG_DIR => fun() do
-		execute("wget -nv", FONTCONFIG_URL, "-O-", "|", "tar", "xvjP")
-	end
-	
 	DEFAULT[FONTCONFIG_SO]
 end

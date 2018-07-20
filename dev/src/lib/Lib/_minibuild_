@@ -1,9 +1,10 @@
 GMP_VERSION := "6.1.2"
-GMP_DIR := file('gmp-{GMP_VERSION}')
-
-file("libgmp.a")[GMP_DIR] => fun() do
-	execute("cd", GMP_DIR, "&&",
-		"./configure --disable-shared --enable-static",
+var GMP_DIR := file('gmp-{GMP_VERSION}')
+var GMP_LIB := file("libgmp.a") => fun() do
+	GMP_DIR:rmdir
+	execute('wget -nv https://gmplib.org/download/gmp/gmp-{GMP_VERSION}.tar.bz2 -O- | tar xvjP')
+	GMP_DIR:chdir
+	execute("./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
 		'--libdir={file("")}',
 		"ABI=32",
@@ -11,22 +12,12 @@ file("libgmp.a")[GMP_DIR] => fun() do
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", GMP_DIR, "&&",
-		"make clean"
-	)
-	execute("cd", GMP_DIR, "&&",
-		"make"
-	)
-	execute("cd", GMP_DIR, "&&",
-		"make install"
-	)
+	execute("make clean")
+	execute("make")
+	execute("make install")
 end
 
-GMP_DIR => fun() do
-	execute('wget -nv https://gmplib.org/download/gmp/gmp-{GMP_VERSION}.tar.bz2 -O- | tar xvjP')
-end
-
-file("Gmp.o")[file("libgmp.a")]
+file("Gmp.o")[GMP_LIB]
 
 scope("gmp";) do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", "-xlibgmp.a", "-XGmp.exports"]

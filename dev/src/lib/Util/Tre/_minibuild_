@@ -1,10 +1,11 @@
 TRE_URL := "https://github.com/laurikari/tre.git"
-TRE_DIR := file("tre")
-
-file("libtre.a")[TRE_DIR] => fun() do
-	execute("cd", TRE_DIR, "&&", "./utils/autogen.sh")
-	execute("cd", TRE_DIR, "&&",
-		"./configure --disable-shared --enable-static",
+var TRE_DIR := file("tre")
+var TRE_LIB := file("libtre.a") => fun() do
+	TRE_DIR:rmdir
+	execute("git clone", TRE_URL)
+	TRE_DIR:chdir
+	execute("./utils/autogen.sh")
+	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
 		"--disable-wchar",
@@ -12,19 +13,10 @@ file("libtre.a")[TRE_DIR] => fun() do
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", TRE_DIR, "&&",
-		"make check"
-	)
-	execute("cd", TRE_DIR, "&&",
-		"make install"
-	)
-end
-
-TRE_DIR => fun() do
-	TRE_DIR:rmdir
-	execute("git clone", TRE_URL)
+	execute("make check")
+	execute("make install")
 end
 
 LDFLAGS := old + ["-xlibtre.a", "-XTre.exports"]
 
-riva_module("Util/Tre", [file("Tre.o")], [file("libtre.a")])
+riva_module("Util/Tre", [file("Tre.o")], [TRE_LIB])
