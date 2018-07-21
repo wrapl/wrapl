@@ -29,7 +29,7 @@ AUTOGEN[RIVA, AUTOGEN_SOURCES, API_XML] => fun() do
 end
 
 detect_modules := fun(Path) do
-	mkdir(OUT_LIB/Path)
+	mkdir(OUT_LIB / Path)
 	var DetectedModules := AUTOGEN:scan(Path) => fun() do
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
@@ -40,8 +40,8 @@ detect_modules := fun(Path) do
 				Object[Source, Scan, TYPEMAP] => c_compile
 				var Script := Source % "rdef"
 				var Name := '{Path}/{FileName[1, -2]}'
-				var Module := OUT_LIB/Name % "riva"
-				var Doc := GEN_DOC/Name % "xml"
+				var Module := OUT_LIB / Name % "riva"
+				var Doc := GEN_DOC / Name % "xml"
 				Module[RLINK, Script, Object] => fun(Module) do
 					execute(RLINK, LDFLAGS, "-o", Module, Object, Script, "-v0", "-?", Script % "lst")
 				end

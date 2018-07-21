@@ -39,6 +39,7 @@ c_includes := fun(Source) do
 	var Files := []
 	var Lines := shell('gcc -c {CFLAGS} -I{Source:dirname} -M -MG {Source}')
 	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
+	Files:pop
 	for File in Files do
 		File := file(File:replace(r"\\ ", " "))
 	end
@@ -54,6 +55,7 @@ cpp_includes := fun(Source) do
 	var Files := []
 	var Lines := shell('gcc -c {CXXFLAGS} -I{Source:dirname} -M -MG {Source}')
 	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
+	Files:pop
 	for File in Files do
 		File := file(File:replace(r"\\ ", " "))
 	end
