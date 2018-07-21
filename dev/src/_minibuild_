@@ -35,9 +35,9 @@ elseif MACHINE = "x86_64" then
 	ASFLAGS := old + ["-DX64", "-felf64"]
 end
 
-c_includes := fun(Source) do
+c_includes := fun(Target) do
 	var Files := []
-	var Lines := shell('gcc -c {CFLAGS} -I{Source:dirname} -M -MG {Source}')
+	var Lines := shell('gcc -c {CFLAGS} -M -MG {Target:source}')
 	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
 	Files:pop
 	for File in Files do
@@ -48,12 +48,12 @@ end
 
 c_compile := fun(Object) do
 	var Source := Object % "c"
-	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dirname, Source)
+	execute('gcc -c', CFLAGS, '-o', Object, Source)
 end
 
-cpp_includes := fun(Source) do
+cpp_includes := fun(Target) do
 	var Files := []
-	var Lines := shell('gcc -c {CXXFLAGS} -I{Source:dirname} -M -MG {Source}')
+	var Lines := shell('gcc -c {CXXFLAGS} -M -MG {Target:source}')
 	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
 	Files:pop
 	for File in Files do
@@ -64,12 +64,12 @@ end
 
 cpp_compile := fun(Object) do
 	var Source := Object % "cpp"
-	execute('gcc -c', CXXFLAGS, '-o', Object, '-I', Source:dirname, Source)
+	execute('gcc -c', CXXFLAGS, '-o', Object, Source)
 end
 
-asm_includes := fun(Source) do
+asm_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("nasm", ASFLAGS, "-I", Source:dirname, "-M", Source)
+	var Lines := shell("nasm", ASFLAGS, "-M", Target:source)
 	var Start, File := ""
 	var I := for J := 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
@@ -99,12 +99,12 @@ end
 
 asm_compile := fun(Object) do
 	var Source := Object % "asm"
-	execute('nasm', ASFLAGS, '-o', Object, '-I', Source:dirname, Source)
+	execute('nasm', ASFLAGS, '-o', Object, Source)
 end
 
-as_includes := fun(Source) do
+as_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("gcc -c", CFLAGS, "-I", Source:dirname, "-M", Source)
+	var Lines := shell("gcc -c", CFLAGS, "-M", Target:source)
 	var Start, File := ""
 	var I := for J := 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
