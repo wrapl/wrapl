@@ -2,13 +2,6 @@ include("Gir/GObject/Object.rlib")
 include("Gir/GObject/Type.rlib")
 include("Gir/GObject/Closure.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("_object_new")
 export("_object_to_riva")
 export("_value_to_riva")

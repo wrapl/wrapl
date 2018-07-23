@@ -1,9 +1,5 @@
 module("Std", "Integer")
-if WINDOWS then
-	prefix("_Std$Integer$")
-else
-	prefix("Std$Integer$")
-end
+
 export("T")
 export("SmallT")
 export("BigT")

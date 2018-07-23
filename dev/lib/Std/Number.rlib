@@ -1,9 +1,5 @@
 module("Std", "Number")
-if WINDOWS then
-	prefix("_Std$Number$")
-else
-	prefix("Std$Number$")
-end
+
 export("T")
 export("New")
 

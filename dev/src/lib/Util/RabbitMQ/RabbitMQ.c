@@ -130,7 +130,20 @@ METHOD("consume_message", TYP, T) {
 	Envelope->Type = EnvelopeT;
 	Riva$Memory$register_finalizer(Envelope, envelope_finalize, 0, 0, 0);
 	amqp_rpc_reply_t Reply = amqp_consume_message(Connection->Handle, Envelope->Value, NULL, 0);
-	Result->Val = (Std$Object$t *)Envelope;
+	switch (Reply.reply_type) {
+	case AMQP_RESPONSE_NORMAL:
+		Result->Val = (Std$Object$t *)Envelope;
+		return SUCCESS;
+	case AMQP_RESPONSE_SERVER_EXCEPTION:
+		Result->Val = Std$String$new_format("Server exception for method %s", amqp_method_name(Reply.reply.id));
+		return MESSAGE;
+	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+		Result->Val = Std$String$new(amqp_error_string2(Reply.library_error));
+		return MESSAGE;
+	default:
+		Result->Val = Std$String$new("Invalid rpc reply");
+		return MESSAGE;
+	}
 	return SUCCESS;
 }
 

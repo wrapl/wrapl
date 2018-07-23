@@ -148,7 +148,6 @@ static int native_import(void *Handle, const char *Symbol, int *IsRef, void **Da
 };
 
 static const char *native_find(const char *Base) {
-	struct stat Stat[1];
 	char Pattern[strlen(Base) + 10];
 	strcpy(stpcpy(Pattern, Base), ".so{,*}");
 	glob_t Results[1];

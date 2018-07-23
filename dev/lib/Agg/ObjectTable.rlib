@@ -1,9 +1,5 @@
 module("Agg", "ObjectTable")
-if WINDOWS then
-	prefix("_Agg$ObjectTable$")
-else
-	prefix("Agg$ObjectTable$")
-end
+
 export("T")
 export("_init")
 export("_get")

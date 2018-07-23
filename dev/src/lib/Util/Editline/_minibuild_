@@ -1,30 +1,19 @@
-EDITLINE_URL := "http://thrysoee.dk/editline/libedit-20160903-3.1.tar.gz"
-EDITLINE_DIR := file("libedit")
+var EDITLINE_URL := "http://thrysoee.dk/editline/libedit-20160903-3.1.tar.gz"
+var EDITLINE_DIR := file("libedit")
 
-file("libedit.a")[EDITLINE_DIR] => fun() do
-	execute("cd", EDITLINE_DIR, "&&",
-		"./configure --disable-shared --enable-static",
+file("libedit.a") => fun() do
+	EDITLINE_DIR:rmdir:mkdir:chdir
+	execute("wget --user-agent=\"Firefox/3.6.12\" -nv", EDITLINE_URL, "-O- | tar xvzP --strip-components=1")
+	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
-		"--without-man-pages"
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", EDITLINE_DIR, "&&",
-		"make clean"
-	)
-	execute("cd", EDITLINE_DIR, "&&",
-		"make TARGET_LIBS=\"static\""
-	)
-	execute("cd", EDITLINE_DIR, "&&",
-		"make install"
-	)
-end
-
-EDITLINE_DIR => fun() do
-	mkdir(EDITLINE_DIR)
-	execute("cd", EDITLINE_DIR, "&&",
-		"wget --user-agent=\"Firefox/3.6.12\" -nv", EDITLINE_URL, "-O- | tar xvzP --strip-components=1"
-	)
+	execute("make clean")
+	execute("make TARGET_LIBS=\"static\"")
+	execute("make install")
 end
 
 CFLAGS := old + ["-I", file("include")]

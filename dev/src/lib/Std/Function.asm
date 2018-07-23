@@ -232,7 +232,7 @@ cfunction _resume
 
 function Identity, 1
 	mov ecx, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
 	ret
 

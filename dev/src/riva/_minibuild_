@@ -1,28 +1,21 @@
 GC_VERSION := "7.6.6"
-var GC_DIR := file('gc-{GC_VERSION}')
-var GC_LIB := file("libgc.a")
-
 ATOMIC_OPS_VERSION := "7.6.4"
-var ATOMIC_OPS_DIR := GC_DIR/"libatomic_ops"
-
 CONFUSE_VERSION := "3.2"
-CONFUSE_DIR := file('confuse-{CONFUSE_VERSION}')
-CONFUSE_LIB := file("libconfuse.a")
 
-CONFUSE_DIR => fun() do
+var CONFUSE_LIB := file("libconfuse.a") => fun() do
+	var CONFUSE_DIR := file('confuse-{CONFUSE_VERSION}')
+	CONFUSE_DIR:rmdir
 	execute('wget -nv https://github.com/martinh/libconfuse/releases/download/v{CONFUSE_VERSION}/confuse-{CONFUSE_VERSION}.tar.gz -O- | tar xzP')
-end
-
-CONFUSE_LIB[CONFUSE_DIR] => fun() do
-	execute("cd", CONFUSE_DIR, "&&",
-		"./configure",
+	CONFUSE_DIR:chdir
+	execute("./configure",
 		"--prefix=/tmp",
 		'--includedir={file("")}',
 		'--libdir={file("")}',
-		'CFLAGS=\"{CFLAGS}\"'
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", CONFUSE_DIR, "&&", "make")
-	execute("cd", CONFUSE_DIR, "&&", "make install")
+	execute("make")
+	execute("make install")
 end
 
 CFG_OPTS := {
@@ -41,26 +34,22 @@ if PLATFORM = "Linux" then
 	CFG_OPTS := old + {"--enable-redirect-malloc"}
 end
 
-CFLAGS := old + ["-m32", "-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}']
-LDFLAGS := old + ["-m32", "-pthread", "-ldl", "-lz", "-Wl,-E"]
+CFLAGS := old + ["-DGC_THREADS", "-DTHREAD_LOCAL_ALLOC", "-DUSE_COMPILER_TLS", "-O2", '-I{file("")}']
+LDFLAGS := old + ["-pthread", "-ldl", "-lz", "-Wl,-E"]
 
-GC_LIB[GC_DIR, ATOMIC_OPS_DIR] => fun() do
-	execute("cd", GC_DIR, "&&",
-		"./configure", CFG_OPTS, 'CFLAGS=\"{CFLAGS}\"'
-	)
-	execute("cd", GC_DIR, "&&", "make")
-	execute("cd", GC_DIR, "&&", "make install")
-end
-
-GC_DIR => fun() do
+GC_LIB => fun() do
+	var GC_DIR := file('gc-{GC_VERSION}')
+	var ATOMIC_OPS_DIR := GC_DIR / "libatomic_ops"
+	GC_DIR:rmdir
 	execute('wget -nv https://github.com/ivmai/bdwgc/releases/download/v{GC_VERSION}/gc-{GC_VERSION}.tar.gz -O- | tar xvzP')
-end
-
-ATOMIC_OPS_DIR[GC_DIR] => fun() do
 	execute("mkdir", "-p", ATOMIC_OPS_DIR)
 	execute("cd", ATOMIC_OPS_DIR, "&&",
 		'wget -nv https://github.com/ivmai/libatomic_ops/releases/download/v{ATOMIC_OPS_VERSION}/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
 	)
+	GC_DIR:chdir
+	execute("./configure", CFG_OPTS, 'CFLAGS=\"{CFLAGS}\"')
+	execute("make")
+	execute("make install")
 end
 
 RIVA_FILES := [
@@ -89,7 +78,7 @@ for File in RIVA_FILES do
 	File[GC_LIB, CONFUSE_LIB]
 end
 
-RIVA_CONF := OUT_BIN/"riva.conf"
+RIVA_CONF := OUT_BIN / "riva.conf"
 
 RIVA_CONF => fun(FileName) do
 	var File := open(FileName:string, "w")

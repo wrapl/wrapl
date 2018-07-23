@@ -3,13 +3,6 @@ library("Gtk/GObject/Object.rlib")
 library("Gtk/GObject/Type.rlib")
 library("Gtk/GObject/Enum.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("New")
 export("_to_riva")

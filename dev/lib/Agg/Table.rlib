@@ -1,9 +1,5 @@
 module("Agg", "Table")
-if WINDOWS then
-	prefix("_Agg$Table$")
-else
-	prefix("Agg$Table$")
-end
+
 export("T")
 export("New")
 export("Make")

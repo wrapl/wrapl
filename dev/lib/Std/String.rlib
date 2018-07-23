@@ -1,9 +1,5 @@
 module("Std", "String")
-if WINDOWS then
-	prefix("_Std$String$")
-else
-	prefix("Std$String$")
-end
+
 export("T")
 export("Nil")
 export("Empty")

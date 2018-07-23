@@ -1,4 +1,5 @@
 module("libc")
+prefix("")
 export("abs")
 export("brk")
 export("ftw")

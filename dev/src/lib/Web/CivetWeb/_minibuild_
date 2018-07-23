@@ -10,30 +10,24 @@ YUAREL_ARCHIVE := file("yuarel-master.zip")
 YUAREL_DIR := file("libyuarel-master")
 YUAREL_LIB := YUAREL_DIR/"libyuarel.a"
 
-CIVETWEB_LIB[CIVETWEB_DIR, CIVETWEB_PATCHED] => fun()
+CIVETWEB_LIB[CIVETWEB_PATCHES] => fun() do
+	execute("wget -nv", CIVETWEB_URL, "-O", CIVETWEB_ARCHIVE)
+	execute("unzip", "-o", CIVETWEB_ARCHIVE)
+	execute("patch", CIVETWEB_SRC, CIVETWEB_PATCHES)
 	execute("cd", CIVETWEB_DIR, "&&", "make clean")
 	execute("cd", CIVETWEB_DIR, "&&", "make WITH_WEBSOCKET=1 lib")
 	execute("cp", CIVETWEB_LIB, ".")
 end
 
-CIVETWEB_DIR[CIVETWEB_PATCHES] => fun()
-	execute("wget -nv", CIVETWEB_URL, "-O", CIVETWEB_ARCHIVE)
-	execute("unzip", "-o", CIVETWEB_ARCHIVE)
-	execute("patch", CIVETWEB_SRC, CIVETWEB_PATCHES)
-end
-
-YUAREL_LIB[YUAREL_DIR] => fun()
+YUAREL_LIB => fun()
+	execute("wget -nv", YUAREL_URL, "-O", YUAREL_ARCHIVE)
+	execute("unzip", "-o", YUAREL_ARCHIVE)
 	execute("cd", YUAREL_DIR, "&&", "make")
 end
 
-YUAREL_DIR => fun()
-	execute("wget -nv", YUAREL_URL, "-O", YUAREL_ARCHIVE)
-	execute("unzip", "-o", YUAREL_ARCHIVE)
-end
-
-scope("civetweb", fun()
+scope("civetweb") do
 	CFLAGS := old + ["-I", CIVETWEB_DIR/"include", "-I", YUAREL_DIR]
 	LDFLAGS := old + ["Riva/Memory.rlib", "IO/Stream.rlib", "Util/TypedFunction.rlib"]
 	file("CivetWeb.o")[CIVETWEB_LIB, YUAREL_LIB]
 	riva_module("Web/CivetWeb", [file("CivetWeb.o")], [CIVETWEB_LIB, YUAREL_LIB])
-end)
+end

@@ -1,9 +1,5 @@
 module("Std", "Function")
-if WINDOWS then
-	prefix("_Std$Function$")
-else
-	prefix("Std$Function$")
-end
+
 export("T")
 export("AsmT")
 export("CheckedAsmT")

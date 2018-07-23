@@ -23,21 +23,17 @@ Std$Integer_smallt APPEND[] = {{Std$Integer$SmallT, IO$File$OPEN_APPEND}};
 Std$Integer_smallt TEXT[] = {{Std$Integer$SmallT, IO$File$OPEN_TEXT}};
 Std$Integer_smallt NOBLOCK[] = {{Std$Integer$SmallT, IO$File$OPEN_NOBLOCK}};
 
-CONSTANT(Flag, Sys$Module$T) {
-// Flags for selecting opening mode <dl class="submodule">
-// <dt><code>.</code>Read : <id>Std/Integer/SmallT</id></dt><dd>Open a file for reading.</dd>
-// <dt><code>.</code>Write : <id>Std/Integer/SmallT</id></dt><dd>Open a file for writing.</dd>
-// <dt><code>.</code>Text : <id>Std/Integer/SmallT</id></dt><dd>Open a file in text mode (returned object is a <id>IO/Stream/TextReaderT</id> or <id>IO/Stream/TextWriterT</id>.</dd>
-// <dt><code>.</code>Append : <id>Std/Integer/SmallT</id></dt><dd>For files opened in write mode, append new output to the end of the file.</dd>
-// </dl>
-	Sys$Module_t *Module = Sys$Module$new("Flag");
-	Sys$Module$export(Module, "Read", 0, (void *)READ);
-	Sys$Module$export(Module, "Write", 0, (void *)WRITE);
-	Sys$Module$export(Module, "Text", 0, (void *)TEXT);
-	Sys$Module$export(Module, "Append", 0, (void *)APPEND);
-	Sys$Module$export(Module, "NoBlock", 0, (void *)NOBLOCK);
-	return (Std$Object_t *)Module;
-};
+SUBMODULE(Flag);
+//@Read : Std$Integer$SmallT
+// Open a file for reading.
+//@Write : Std$Integer$SmallT
+// Open a file for writing.
+//@Append : Std$Integer$SmallT
+// Start at the end of the file.
+//@Text : Std$Integer$SmallT
+// Open a file for reading or writing text. This adds <id>IO/Stream/TextReaderT</id> and / or <id>IO/Stream/TextWriterT</id> as parents.
+//@NoBlock : Std$Integer$SmallT
+// Open a file in non-blocking mode.
 
 #if defined(WINDOWS) && !defined(CYGWIN)
 
@@ -146,8 +142,8 @@ GLOBAL_FUNCTION(Temp, 0) {
 };
 
 GLOBAL_FUNCTION(Pipe, 2) {
-//rd:
-//wr:
+//@rd+:
+//@wr+:
 // Creates a pipe and storing the reader / writer streams in <var>rd</var> / <var>wr</var> respectively.
 	int Handles[2];
 	if (pipe(Handles)) {

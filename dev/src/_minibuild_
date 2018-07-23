@@ -7,90 +7,69 @@ CXXFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensi
 ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
 GOFLAGS := []
 LDFLAGS := []
+LIBCFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-ftls-model=global-dynamic", "-w", "-O2"]
+LIBLDFLAGS := []
+LIBHOST := ""
 
 if PLATFORM = "Linux" then
 	CFLAGS := old + ["-DLINUX"]
 	CXXFLAGS := old + ["-DLINUX"]
-	ASFLAGS := old + [ASFLAGS, "-DLINUX", "-felf"]
+	ASFLAGS := old + [ASFLAGS, "-DLINUX"]
 elseif PLATFORM = "Darwin" then
 	CFLAGS := old + ["-DMACOSX"]
 	CXXFLAGS := old + ["-DMACOSX"]
-	ASFLAGS := old["-DMACOSX"]
+	ASFLAGS := old + ["-DMACOSX"]
 end
 
-c_includes := fun(Source) do
+if MACHINE = "i686" then
+	CFLAGS := old + ["-DX86", "-fno-pic", "-m32"]
+	CXXFLAGS := old + ["-DX86", "-fno-pic", "-m32"]
+	ASFLAGS := old + ["-DX86", "-felf32"]
+	LDFLAGS := old + ["-m32"]
+	LIBCFLAGS := old + ["-fno-pic", "-m32"]
+	LIBLDFLAGS := old + ["-m32"]
+	LIBHOST := "i686-linux-gnu"
+elseif MACHINE = "x86_64" then
+	CFLAGS := old + ["-DX64", "-m64", "-fPIC"]
+	CXXFLAGS := old + ["-DX64", "-m64", "-fPIC"]
+	ASFLAGS := old + ["-DX64", "-felf64"]
+end
+
+c_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("gcc", CFLAGS, "-I", Source:dir, "-M", "-MG", Source)
-	var Start, File := ""
-	var I := for J := 1 .. Lines:length do
-		if Lines[J, J + 2] = ": " then
-			exit J + 2
-		end
-	end
-	loop while I <= Lines:length
-		var Char := Lines[I]
-		if Char <= " " then
-			if File != "" then
-				Files:put(file(File))
-				File := ""
-			end
-		elseif Char = "\\" then
-			I := old + 1
-			Char := Lines[I]
-			if Char = " " then
-				File := '{old} '
-			end
-		else
-			File := '{old}{Char}'
-		end
-		I := old + 1
+	var Lines := shell('gcc -c {CFLAGS} -M -MG {Target:source}')
+	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
+	Files:pop
+	for File in Files do
+		File := file(File:replace(r"\\ ", " "))
 	end
 	return Files
 end
 
 c_compile := fun(Object) do
 	var Source := Object % "c"
-	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dir, Source)
+	execute('gcc -c', CFLAGS, '-o', Object, Source)
 end
 
-cpp_includes := fun(Source) do
+cpp_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("gcc", CXXFLAGS, "-I", Source:dir, "-M -MG", Source)
-	var Start, File := ""
-	var I := for J := 1 .. Lines:length do
-		if Lines[J, J + 2] = ": " then
-			exit J + 2
-		end
-	end
-	loop while I <= Lines:length
-		var Char := Lines[I]
-		if Char <= " " then
-			if File != "" then
-				Files:put(file(File))
-				File := ""
-			end
-		elseif Char = "\\" then
-			I := old + 1
-			Char := Lines[I]
-			if Char = " " then
-				File := '{old} '
-			end
-		else
-			File := '{old}{Char}'
-		end
-		I := old + 1
+	var Lines := shell('gcc -c {CXXFLAGS} -M -MG {Target:source}')
+	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
+	Files:pop
+	for File in Files do
+		File := file(File:replace(r"\\ ", " "))
 	end
 	return Files
 end
 
 cpp_compile := fun(Object) do
 	var Source := Object % "cpp"
-	execute('gcc -c', CXXFLAGS, '-o', Object, '-I', Source:dir, Source)
+	execute('gcc -c', CXXFLAGS, '-o', Object, Source)
 end
 
-asm_includes := fun(Source) do
+asm_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("nasm", ASFLAGS, "-I", Source:dir, "-M", Source)
+	var Lines := shell("nasm", ASFLAGS, "-M", Target:source)
 	var Start, File := ""
 	var I := for J := 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
@@ -120,12 +99,12 @@ end
 
 asm_compile := fun(Object) do
 	var Source := Object % "asm"
-	execute('nasm', ASFLAGS, '-o', Object, '-I', Source:dir, Source)
+	execute('nasm', ASFLAGS, '-o', Object, Source)
 end
 
-as_includes := fun(Source) do
+as_includes := fun(Target) do
 	var Files := []
-	var Lines := shell("gcc -c", CFLAGS, "-I", Source:dir, "-M", Source)
+	var Lines := shell("gcc -c", CFLAGS, "-M", Target:source)
 	var Start, File := ""
 	var I := for J := 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
@@ -155,7 +134,7 @@ end
 
 as_compile := fun(Object) do
 	var Source := Object % "S"
-	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dir, Source)
+	execute('gcc -c', CFLAGS, '-o', Object, '-I', Source:dirname, Source)
 end
 
 SourceTypes := {
@@ -163,7 +142,7 @@ SourceTypes := {
 	"cpp" is [cpp_includes, cpp_compile],
 	"asm" is [asm_includes, asm_compile],
 	"S" is [as_includes, as_compile]
-}
+}e
 
 c_program := fun(Executable, Objects, Libraries) do
 	Objects := Objects or []
@@ -187,6 +166,7 @@ c_program := fun(Executable, Objects, Libraries) do
 end
 
 UDIS_LIB := file("rlink/libudis86.a")
+GC_LIB := file("riva/libgc.a")
 
 subdir("rlink")
 subdir("riva")

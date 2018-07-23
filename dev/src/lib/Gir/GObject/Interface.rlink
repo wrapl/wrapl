@@ -3,13 +3,6 @@ include("Gir/GObject/Object.rlib")
 include("Gir/GObject/Type.rlib")
 include("Gir/GObject/Riva.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("New")
 export("Implement")

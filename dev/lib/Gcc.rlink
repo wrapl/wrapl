@@ -1,4 +1,5 @@
 module("Gcc")
+prefix("")
 import("__muldi3")
 import("__negdi2")
 import("__lshrdi3")

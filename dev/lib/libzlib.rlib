@@ -1,9 +1,5 @@
 module("libz")
-
-if WINDOWS then
-	prefix("_")
-end
-
+prefix("")
 export("gzrewind")
 export("gzeof")
 export("deflateParams")

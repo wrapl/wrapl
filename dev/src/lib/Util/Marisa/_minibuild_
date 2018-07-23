@@ -1,18 +1,18 @@
-MARISA_DIR := file("marisa-trie") => fun(DIR) do
-	execute('rm -rf {DIR}')
+var MARISA_DIR := file("marisa-trie")
+var MARISA_LIB := file("libmarisa.a") => fun() do
+	MARISA_DIR:rmdir
 	execute("git clone https://github.com/s-yata/marisa-trie.git")
-end
-
-MARISA_LIB := file("libmarisa.a")[MARISA_DIR] => fun() do
-	execute("cd", MARISA_DIR, "&& autoreconf -i")
-	execute("cd", MARISA_DIR, "&& ./configure --disable-shared --enable-static",
+	MARISA_DIR:chdir
+	execute("autoreconf -i")
+	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
-		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
-		"--without-man-pages"
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", MARISA_DIR, "&&", "make")
-	execute("cd", MARISA_DIR, "&&", "make install")
+	execute("make")
+	execute("make install")
 end
 
 CXXFLAGS := old + ["-I", file("include")]

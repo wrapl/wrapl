@@ -1,9 +1,5 @@
 module("Agg", "IntegerTable")
-if WINDOWS then
-	prefix("_Agg$IntegerTable$")
-else
-	prefix("Agg$IntegerTable$")
-end
+
 export("T")
 export("_init")
 export("_get")

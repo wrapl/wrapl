@@ -1,7 +1,5 @@
 module("libexpat")
-if WINDOWS then
-	prefix("_")
-end
+prefix("")
 export("XML_Parse")
 export("_edata")
 export("XmlGetUtf16InternalEncoding")

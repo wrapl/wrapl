@@ -2,13 +2,6 @@ require("Gtk/GObject/Init")
 library("Gtk/GObject/Object.rlib")
 library("Gtk/TypeMap.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("_to_riva")
 export("_register_type")

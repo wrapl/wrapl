@@ -1,14 +1,3 @@
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-	_subexport = subexport
-	subexport = function(Module, Internal, External)
-		_subexport(Module, "_" .. Internal, External)
-	end
-end
-
 export("Collect")
 export("Alloc")
 export("AllocAtomic")

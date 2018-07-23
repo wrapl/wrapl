@@ -4,13 +4,6 @@ include("Agg/Table.rlib")
 include("libexpat.so")
 include("IO/Stream.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("T")
 export("New")
 

@@ -1,0 +1,18 @@
+export("T")
+export("__file_open", "_open")
+export("Open")
+export("Temp")
+export("Pipe")
+
+
+submodule("Flag")
+subexport("Flag", "READ", "Read")
+subexport("Flag", "WRITE", "Write")
+subexport("Flag", "TEXT", "Text")
+subexport("Flag", "APPEND", "Append")
+subexport("Flag", "NOBLOCK", "NoBlock")
+
+export("READ")
+export("WRITE")
+export("TEXT")
+export("APPEND")

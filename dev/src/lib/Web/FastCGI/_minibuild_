@@ -2,7 +2,12 @@ FCGI_URL := "https://github.com/toshic/libfcgi/archive/master.zip"
 FCGI_ARCHIVE := file("master.zip")
 FCGI_DIR := file("libfcgi-master")
 
-file("libfcgi.a")[FCGI_DIR] => fun()
+var FCGI_LIB := file("libfcgi.a")[file("fcgi.diff")] => fun()
+	execute("wget -nv", FCGI_URL)
+	execute("unzip", "-o", FCGI_ARCHIVE)
+	execute("cd", FCGI_DIR, "&&",
+		"patch -p0 <", file("fcgi.diff")
+	)
 	execute("cd", FCGI_DIR, "&&",
 		"./configure --disable-shared --enable-static",
 		"--prefix=" .. file(""),
@@ -21,17 +26,9 @@ file("libfcgi.a")[FCGI_DIR] => fun()
 	)
 end
 
-FCGI_DIR => fun()
-	execute("wget -nv", FCGI_URL)
-	execute("unzip", "-o", FCGI_ARCHIVE)
-	execute("cd", FCGI_DIR, "&&",
-		"patch -p0 <", file("fcgi.diff")
-	)
-end
-
-scope("fcgi", fun()
+scope("fcgi") do
 	CFLAGS := old + ["-I", file("include")]
 	LDFLAGS := old + ["Riva/Memory.rlib", "IO/Stream.rlib", "Util/TypedFunction.rlib"]
-	file("Init.o")[file("libfcgi.a")]
+	file("Init.o")[FCGI_LIB]
 	riva_module("Web/FastCGI", [file("Init.o")], [file("libfcgi.a")])
-end)
+end

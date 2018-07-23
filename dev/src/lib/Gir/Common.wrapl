@@ -88,7 +88,11 @@ TO :generate_c(function@FunctionT) (
 	VAR line;
 	VAR m <- 0;
 	EVERY m <- m + types:values:c_argcount;
+	r:put('#ifdef DOCUMENTING');
+	r:put('GLOBAL_FUNCTION({function:name}, {m}) \{');
+	r:put('#else');
 	r:put('GLOBAL_FUNCTION(__${function:name}, {m}) \{');
+	r:put('#endif');
 	VAR i; EVERY i <- 1:to(n) DO r:put('//@{params[i]:name}:{types[i]:rtype}');
 	VAR rettype <- Type.Lookup(function:type);
 	r:put('//:{rettype:rtype}');
@@ -412,17 +416,6 @@ TO :generate_rdef_file(type@Type.T, basedir) (
 		EVERY libraries:insert(item:libraries:keys);
 	);
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rdef', File.Flag.Write + File.Flag.Text);
-	file:write(>>EOI
-	if WINDOWS then
-		_export = export
-		export = function(Name, Name2)
-			if Name2 == nil then
-				Name2 = Name
-			end
-			_export("_" .. Name, Name2)
-		end
-	end
-EOI);
 	List:write('{basedir}/{type:namespace}/{type:name}.rdef\n');
 	type:namespace ~= "GObject" => file:write('require(\"Gir/GObject/Init\")\n');
 	type:name ~= "Init" => file:write('require(\"Gir/{type:namespace}/Init\")\n');

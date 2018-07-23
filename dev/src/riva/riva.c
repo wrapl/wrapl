@@ -472,7 +472,8 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			//Section->Data = GC_MALLOC_UNCOLLECTABLE(Length);
 			uint8_t *Data = GC_MALLOC(Length + 16);
 			//uint8_t *Data = GC_MALLOC_UNCOLLECTABLE(Length + 16);
-			Data += (16 - (uint32_t)Data & 15) & 15;
+			Data += 15;
+			Data -= (uint32_t)Data % 16;
 			Section->Data = Data;
 			gzread(File, Section->Data, Length);
 			for (int J = 0; J < NoOfRelocs; ++J) {
@@ -510,7 +511,8 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			gzread(File, &Section->Flags, 1);
 			uint32_t Size; gzread(File, &Size, 4);
 			uint8_t *Data = GC_MALLOC(Size + 16);
-			Data += (16 - (uint32_t)Data & 15) & 15;
+			Data += 15;
+			Data -= (uint32_t)Data % 16;
 			Section->Data = Data;
 			Section->NoOfFixups = 0;
 		break;};

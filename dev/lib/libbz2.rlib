@@ -1,4 +1,5 @@
 module("libbz2")
+prefix("")
 export("_end")
 export("_fini")
 export("_init")

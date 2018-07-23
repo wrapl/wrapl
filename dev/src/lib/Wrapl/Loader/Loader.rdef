@@ -6,13 +6,6 @@ library("IO/Encoder.rlib")
 library("IO/Decoder.rlib")
 library("Sys/Program.rlink")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("WraplT")
 export("LoadModule")
 export("SessionNew")

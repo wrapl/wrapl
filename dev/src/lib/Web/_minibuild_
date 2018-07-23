@@ -2,11 +2,11 @@ CFLAGS := old + ["-std=gnu99", "-Iinclude"]
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Agg.rlib"]
 RDOCFLAGS := old + ["-I", file("")]
 
-scope("curl", fun()
+scope("curl") do
 	CFLAGS := old + [pkg_config("--cflags libcurl")]
 	LDFLAGS := old + [pkg_config("--libs-only-l libcurl"), "Sys/Module.rlib"]
 	riva_module("Web/Curl", [file("Curl.o")])
-end)
+end
 
 riva_module("Web/Smtp", [file("Smtp.o")])
 

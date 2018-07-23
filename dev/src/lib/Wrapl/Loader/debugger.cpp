@@ -267,8 +267,6 @@ static int debugger_append_table_func(Std$Object$t *Key, Std$Object$t *Value, js
 }
 
 static json_t *debugger_command_get_variable(json_t *Args) {
-	int Count = json_integer_value(json_object_get(Args, "count"));
-	int Start = json_integer_value(json_object_get(Args, "start"));
 	json_t *Variables = json_array();
 	if (json_object_get(Args, "state")) {
 		dstate_t *State = (dstate_t *)(size_t)json_number_value(json_object_get(Args, "state"));
@@ -693,7 +691,7 @@ void debug_enter_impl(dstate_t *State) {
 	} else {
 		++Thread->Enters;
 	}
-	dstate_t *UpState = State->UpState = Thread->State;
+	State->UpState = Thread->State;
 	State->Thread = Thread;
 	Thread->State = State;
 }

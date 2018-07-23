@@ -1,9 +1,5 @@
 module("Agg", "Buffer")
-if WINDOWS then
-	prefix("_Agg$Buffer$")
-else
-	prefix("Agg$Buffer$")
-end
+
 export("T")
 export("Compare")
 export("Hash")
@@ -11,13 +7,8 @@ export("New")
 export("_alloc")
 export("_new")
 
-function typed_buffer(Name)
+var typed_buffer := fun(Name) do
     module("Agg", "Buffer", Name)
-    if WINDOWS then
-        prefix("_Agg$Buffer$" .. Name .. "$")
-    else
-        prefix("Agg$Buffer$" .. Name .. "$")
-    end
     export("T")
     export("_new")
 end

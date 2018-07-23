@@ -1,13 +1,6 @@
 library("IO/Socket.rlib")
 library("Riva/Debug.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("Args")
 export("Exit")
 export("Break")
@@ -27,5 +20,5 @@ if MACOSX then
 end
 
 if WINDOWS then
-	_export("__Sleep", "Sleep")
+	export("__Sleep", "Sleep")
 end

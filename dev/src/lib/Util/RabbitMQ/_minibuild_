@@ -1,18 +1,13 @@
 RABBITMQ_URL := "https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz"
-RABBITMQ_DIR := file("rabbitmq")
-RABBITMQ_LIB := file("lib/librabbitmq.a")
-
-RABBITMQ_LIB[RABBITMQ_DIR] => fun() do
-	var BuildDir := (RABBITMQ_DIR / "build"):rmdir:mkdir
-	execute("cd", BuildDir, '&& CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
-	execute("cd", BuildDir, '&& CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
-end
-
-RABBITMQ_DIR => fun() do
-	mkdir(RABBITMQ_DIR)
+var RABBITMQ_DIR := file("rabbitmq")
+var RABBITMQ_LIB := file("lib/librabbitmq.a") => fun() do
+	RABBITMQ_DIR:rmdir:mkdir
 	execute("cd", RABBITMQ_DIR, "&&",
 		"wget --user-agent=\"Firefox/3.6.12\" -nv", RABBITMQ_URL, "-O- | tar xvzP --strip-components=1"
 	)
+	(RABBITMQ_DIR / "build"):mkdir:chdir
+	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 
 CFLAGS := old + ["-I", file("include")]

@@ -99,7 +99,7 @@ void encode_entry(assembler_t *Assembler) {
 				| 3:
 				| push edx
 				| call &alloc_local
-				| pop dword [edx]
+				| pop dword [eax]
 				| 4:
 				| mov [ebp + Assembler->Locals + 4 * I], eax
 				| 5:

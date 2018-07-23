@@ -1,53 +1,62 @@
 UDIS_VERSION := "1.7.2"
-UDIS_URL := 'http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-{UDIS_VERSION}.tar.gz'
-UDIS_DIR := file('udis86-{UDIS_VERSION}')
 
-UDIS_LIB[UDIS_DIR] => fun() do
-	execute("cd", UDIS_DIR, "&&",
-		"./configure --disable-shared --enable-static",
+UDIS_LIB => fun() do
+	var UDIS_DIR := file('udis86-{UDIS_VERSION}')
+	var UDIS_URL := 'http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-{UDIS_VERSION}.tar.gz'
+	UDIS_DIR:rmdir
+	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
+	UDIS_DIR:chdir
+	execute("./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
 		'--includedir={file("")}',
 		'--libdir={file("")}',
 		"--without-man-pages",
-		"CFLAGS=\"-fdata-sections -ffunction-sections -fno-pic\""
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", UDIS_DIR, "&&",
-		"make mostlyclean"
-	)
-	execute("cd", UDIS_DIR, "&&",
-		"make TARGET_LIBS=\"static\""
-	)
-	execute("cd", UDIS_DIR, "&&",
-		"make install"
-	)
+	execute("make mostlyclean")
+	execute("make TARGET_LIBS=\"static\"")
+	execute("make install")
 end
 
-UDIS_DIR => fun() do
-	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
-end
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", "-I", UDIS_LIB:dirname]
 
-LDFLAGS := old + ["-L.", "-lz", "-llua", "-lHX", "-ldl", "-g"]
-CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-w", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION"]
+file("rlink.c"):scan("INCLUDES")[UDIS_LIB]
 
-file("rlink.o")[UDIS_LIB]
+var Minilang := file("minilang"):mkdir
+
+var Objects := [
+	file("rlink.o"),
+	Minilang / "minilang.o",
+	Minilang / "ml_compiler.o",
+	Minilang / "ml_runtime.o",
+	Minilang / "ml_types.o",
+	Minilang / "stringmap.o",
+	Minilang / "sha256.o",
+	Minilang / "linenoise.o"
+]
 
 if PLATFORM = "Linux" then
 	LDFLAGS := old + ["-lbfd"]
-	c_program(RLINK, [file("rlink.o")], [UDIS_LIB])
+	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB])
 elseif PLATFORM = "Darwin" then
-	BINUTILS_VERSION := "2.28"
+	BINUTILS_VERSION := "2.30"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
 	BINUTILS_DIR := file('binutils-{BINUTILS_VERSION}')
-	file("libbfd.a")[BINUTILS_DIR] => fun() do
+	file("lib/libbfd.a") => fun() do
+		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
 		execute("cd", BINUTILS_DIR, "&&",
 			"./configure --build=i386-apple-darwin16.6.0",
 			'--prefix={file("")}',
-			"--without-man-pages"
+			"--without-man-pages",
+			'CFLAGS=\"{LIBCFLAGS}\"',
+			'LDFLAGS=\"{LIBLDFLAGS}\"'
 		)
+		execute("cd", BINUTILS_DIR, "&& make")
+		execute("cd", BINUTILS_DIR, "&& make install")
 	end
-	BINUTILS_DIR => fun() do
-		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
-	end
-	c_program(RLINK, [file("rlink.o")], [UDIS_LIB, file("libbfd.a")])
+	CFLAGS := old + ['-I{file("include")}']
+	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a")])
 end
 

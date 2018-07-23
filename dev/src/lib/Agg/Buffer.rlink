@@ -8,11 +8,11 @@ export("NewLarge")
 export("_alloc")
 export("_new")
 
-function typed_buffer(Name)
+var typed_buffer := fun(Name) do
 	submodule(Name)
-	subexport(Name, Name .. "T", "T")
-	subexport(Name, Name .. "New", "New")
-	subexport(Name, Name .. "_new", "_new")
+	subexport(Name, '{Name}T', "T")
+	subexport(Name, '{Name}New', "New")
+	subexport(Name, '{Name}_new', "_new")
 end
 
 typed_buffer("Int8")

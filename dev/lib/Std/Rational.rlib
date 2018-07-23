@@ -1,9 +1,5 @@
 module("Std", "Rational")
-if WINDOWS then
-	prefix("_Std$Rational$")
-else
-	prefix("Std$Rational$")
-end
+
 export("T")
 export("New")
 export("_alloc")

@@ -1,0 +1,31 @@
+YAML_VERSION := "0.1.7"
+YAML_DIR := file('yaml-{YAML_VERSION}')
+YAML_URL := 'http://pyyaml.org/download/libyaml/yaml-{YAML_VERSION}.tar.gz'
+
+var YAML_LIB := file("libyaml.a") => fun() do
+	execute("mkdir", "-p", YAML_DIR)
+	execute("cd", YAML_DIR, "&&", 'wget -nv {YAML_URL} -O- | tar xvzP --strip-components=1')
+	execute("cd", YAML_DIR, "&&",
+		"./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		'--libdir={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("cd", YAML_DIR, "&&",
+		"make clean"
+	)
+	execute("cd", YAML_DIR, "&&",
+		"make TARGET_LIBS=\"static\""
+	)
+	execute("cd", YAML_DIR, "&&",
+		"make install"
+	)
+end
+
+CFLAGS := old + ["-I", file("include")]
+
+file("Parser.o")[YAML_LIB]
+riva_module("Yaml/Parser", [file("Parser.o")])
+wrapl_module("Yaml")

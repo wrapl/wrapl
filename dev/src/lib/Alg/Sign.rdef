@@ -1,12 +1,5 @@
 library("libnettle.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("RsaPublicT")
 export("RsaPrivateT")
 

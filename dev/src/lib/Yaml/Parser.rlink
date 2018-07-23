@@ -1,0 +1,33 @@
+include("libyaml.a")
+include("Std.rlib")
+include("Riva/Memory.rlib")
+include("Riva/Module.rlib")
+include("Riva/Symbol.rlib")
+include("IO/Stream.rlib")
+
+export("T")
+export("New")
+
+submodule("Event")
+subexport("Event", "EventT", "T")
+subexport("Event", "NoEventT", "NoT")
+subexport("Event", "StreamStartEventT", "StreamStartT")
+subexport("Event", "StreamEndEventT", "StreamEndT")
+subexport("Event", "DocumentStartEventT", "DocumentStartT")
+subexport("Event", "DocumentEndEventT", "DocumentEndT")
+subexport("Event", "AliasEventT", "AliasT")
+subexport("Event", "ScalarEventT", "ScalarT")
+subexport("Event", "SequenceStartEventT", "SequenceStartT")
+subexport("Event", "SequenceEndEventT", "SequenceEndT")
+subexport("Event", "MappingStartEventT", "MappingStartT")
+subexport("Event", "MappingEndEventT", "MappingEndT")
+
+--[[
+module("Riva/Memory")
+import("_alloc", "malloc")
+import("_realloc", "realloc")
+import("_free", "free")
+import("_calloc", "calloc")
+import("_strdup", "strdup")
+import("_strdup", "__strdup")
+--]]

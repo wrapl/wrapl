@@ -1,9 +1,5 @@
 module("Std", "Type")
-if WINDOWS then
-	prefix("_Std$Type$")
-else
-	prefix("Std$Type$")
-end
+
 export("T")
 export("T.invoke")
 export("_is")

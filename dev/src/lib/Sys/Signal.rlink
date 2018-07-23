@@ -1,17 +1,6 @@
 include("libpthread.rlib")
 include("Riva/System.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-	_subexport = subexport
-	subexport = function(Module, Internal, External)
-		_subexport(Module, "_" .. Internal, External)
-	end
-end
-
 if LINUX then
 	export("Signal_SIGHUP", "HUP")
 	export("Signal_SIGINT", "INT")

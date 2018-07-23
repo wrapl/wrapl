@@ -1,4 +1,5 @@
 module("Gmp")
+prefix("")
 import("__gmp_assert_fail")
 import("__gmp_assert_header")
 import("__gmpz_legendre")

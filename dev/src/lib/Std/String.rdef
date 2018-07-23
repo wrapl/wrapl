@@ -1,15 +1,5 @@
 --require("Std/Methods")
 
-if WINDOWS then
-	_export = export
-	export = function(internal, external)
-		if not external then
-			external = internal
-		end
-		_export("_" .. internal, external)
-	end
-end
-
 export("T")
 export("Nil")
 export("Empty")

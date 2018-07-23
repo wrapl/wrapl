@@ -4,6 +4,7 @@ IMP IO.Terminal USE Out;
 
 IMP Sys.Program USE Args;
 IMP Sys.FileSys;
+IMP Sys.Time;
 IMP IO.File;
 IMP Xml.Parser;
 
@@ -205,6 +206,7 @@ EVERY type <- Common.Targets:values DO (
 mapfile:close;
 Out:write("done.\n");
 
+Log.Log:write('{Time.Now()}\n');
 Log.Log:close;
 Log.List:close;
 

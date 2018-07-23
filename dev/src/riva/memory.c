@@ -114,6 +114,7 @@ static void memory_log_writef(const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	vfprintf(MemLog, Format, Args);
+	va_end(Args);
 };
 
 void memory_log_enable(void) {
