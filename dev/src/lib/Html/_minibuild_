@@ -22,7 +22,7 @@ end
 
 scope("html";) do
 	CFLAGS := old + ["-I", file("include")]
-	file("Gumbo.o")[file("libgumbo.a")]
+	file("Gumbo.c"):scan("INCLUDES", :true)[GUMBO_LIB]
 	riva_module("Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])
 	wrapl_module("Html")
 end
