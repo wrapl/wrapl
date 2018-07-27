@@ -22,7 +22,7 @@ end
 LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
 CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", "-I", UDIS_LIB:dirname]
 
-file("rlink.c"):scan("INCLUDES")[UDIS_LIB]
+file("rlink.c"):scan("INCLUDES", :true)[UDIS_LIB]
 
 var Minilang := file("minilang"):mkdir
 
