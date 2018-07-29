@@ -2,15 +2,17 @@ UDIS_VERSION := "1.7.2"
 
 UDIS_LIB => fun() do
 	var UDIS_DIR := file('udis86-{UDIS_VERSION}')
-	var UDIS_URL := 'http://downloads.sourceforge.net/project/udis86/udis86/1.7/udis86-{UDIS_VERSION}.tar.gz'
+	var UDIS_URL := 'https://github.com/vmt/udis86/archive/v{UDIS_VERSION}.tar.gz'
 	UDIS_DIR:rmdir
 	execute("wget -nv", UDIS_URL, "-O- | tar xvzP")
 	UDIS_DIR:chdir
+	execute("./autogen.sh")
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={file("")}',
 		'--includedir={file("")}',
 		'--libdir={file("")}',
 		"--without-man-pages",
+		'--with-python=python2',
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
