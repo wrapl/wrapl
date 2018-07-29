@@ -13,5 +13,5 @@ end
 
 CFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
-file("Fann.o")[FANN_LIB]
+file("Fann.c"):scan("INCLUDES", :true)[FANN_LIB]
 riva_module("ML/Fann", [file("Fann.o")], [FANN_LIB])

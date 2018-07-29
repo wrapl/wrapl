@@ -71,7 +71,7 @@ asm_includes := fun(Target) do
 	var Files := []
 	var Lines := shell("nasm", ASFLAGS, "-M", Target:source)
 	var Start, File := ""
-	var I := for J := 1 .. Lines:length do
+	var I := for J in 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
 			exit J + 2
 		end
@@ -106,7 +106,7 @@ as_includes := fun(Target) do
 	var Files := []
 	var Lines := shell("gcc -c", CFLAGS, "-M", Target:source)
 	var Start, File := ""
-	var I := for J := 1 .. Lines:length do
+	var I := for J in 1 .. Lines:length do
 		if Lines[J, J + 2] = ": " then
 			exit J + 2
 		end

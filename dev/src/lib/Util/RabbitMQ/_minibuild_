@@ -12,5 +12,5 @@ end
 
 CFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
-file("RabbitMQ.o")[RABBITMQ_LIB]
+file("RabbitMQ.c"):scan("INCLUDES", :true)[RABBITMQ_LIB]
 riva_module("Util/RabbitMQ", [file("RabbitMQ.o")])
