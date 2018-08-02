@@ -47,7 +47,7 @@ end
 
 --file("scanner.o"){file("keywords.c")}
 
-file("debugger.o")[JANSSON_LIB]
+file("debugger.cpp")[JANSSON_LIB]
 
 file("keywords.c")[file("keywords.lst")] => fun(Target) do
 	execute("gperf", "-S3", "-LC++", "-C", "-t", "-KName", "-Zkeyword", "-Hhash", "-Nlookup", file("keywords.lst"), ">", Target)
