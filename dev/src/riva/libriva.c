@@ -169,28 +169,6 @@ const char *libriva_mainmodule(void) {return MainModule;};
 
 extern void module_init2(void);
 
-static const char *get_wrapper_name(void) {
-	char Conf[1024];
-#ifdef WINDOWS
-    int Length = GetModuleFileName(0, Conf, 1018);
-    strcpy(strrchr(Conf, '.'), ".wrap.so");
-#endif
-#ifdef LINUX
-    char Link[1024];
-	sprintf(Link, "/proc/%i/exe", getpid());
-	int Length = readlink(Link, Conf, 1018);
-	strcpy(Conf + Length, ".wrap.so");
-#endif
-#ifdef MACOSX
-	char Path[PATH_MAX];
-	int Length = PATH_MAX;
-	_NSGetExecutablePath(Path, &Length);
-	realpath(Path, Conf);
-	strcat(Conf, ".wrap.so");
-#endif
-	return GC_STRDUP(Conf);
-};
-
 void libriva_config(const char *Conf, preload_t **Preloads) {
 	static cfg_opt_t OptsMain[] = {
 		CFG_STR_LIST("library", 0, CFGF_NONE),
