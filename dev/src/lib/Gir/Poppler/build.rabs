@@ -1,0 +1,6 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags poppler-glib"),
+	"-include poppler.h -include poppler-layer.h -include poppler-document.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l poppler-glib")]
+
+detect_modules("Gir/Poppler")

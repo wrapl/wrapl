@@ -128,6 +128,13 @@ DEF Opaque {
 		"ClientContext",
 		"Multipart",
 		"XMLRPCParams"
+	],
+	"Poppler" IS [
+		"IndexIter",
+		"FontsIter",
+		"StructureElementIter",
+		"TextSpan",
+		"Rectangle"
 	]
 };
 

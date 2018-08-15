@@ -1,0 +1,18 @@
+var KANN_DIR := file("kann")
+var KANN_SOURCE := file("kann.c") => fun() do
+	KANN_DIR:rmdir
+	execute("git clone https://github.com/attractivechaos/kann")
+	(KANN_DIR / "kann.c"):copy(BUILDDIR / "kann.c")
+	(KANN_DIR / "kann.h"):copy(BUILDDIR / "kann.h")
+	(KANN_DIR / "kautodiff.c"):copy(BUILDDIR / "kautodiff.c")
+	(KANN_DIR / "kautodiff.h"):copy(BUILDDIR / "kautodiff.h")
+end
+
+CFLAGS := old + ["-I", file("include")]
+LDFLAGS := old + ["Riva/Memory.rlib"]
+file("Kann.o")[KANN_SOURCE]
+
+file("kann.o")[KANN_SOURCE] => c_compile
+file("kautodiff.o")[KANN_SOURCE] => c_compile
+
+riva_module("ML/Kann", [file("RivaKann.o"), file("kann.o"), file("kautodiff.o")])
