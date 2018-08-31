@@ -1,5 +1,6 @@
 include("Std.rlib")
 include("Riva.rlib")
+include("Agg/StringTable.rlib")
 include("Html/Entities.rlink")
 
 export("T")

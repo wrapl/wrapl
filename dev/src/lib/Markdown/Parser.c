@@ -15,6 +15,22 @@ typedef struct parser_t {
 
 TYPE(T);
 
+static Std$Object$t *attribute_to_string(MD_ATTRIBUTE *Attribute) {
+	for (int I = 0; I < Attribute->size; ++I) {
+		switch (Attribute->substr_types[I]) {
+		case MD_TEXT_NORMAL:
+		case MD_TEXT_ENTITY: {
+				int Offset = Attribute->substr_offsets[I];
+				int Length = Attribute->substr_offsets[I + 1] - Offset;
+				Std$String$t *Entity = Agg$StringTable$get(Html$Entities$ByName, Attribute->text + Offset, Length);
+			break;
+		}
+		case MD_TEXT_NULLCHAR:
+			break;
+		}
+	}
+
+}
 
 static int enter_block_fn(MD_BLOCKTYPE BlockType, void *Detail, parser_t *Parser) {
 	Std$Function$result Result[1];
@@ -45,19 +61,8 @@ static int enter_block_fn(MD_BLOCKTYPE BlockType, void *Detail, parser_t *Parser
 	 * instead of explicit MD_TEXT_BR. */
 	case MD_BLOCK_CODE: {
 		MD_BLOCK_CODE_DETAIL *CodeDetail = (MD_BLOCK_CODE_DETAIL *)Detail;
-		for (int I = 0; I < CodeDetail->info.size; ++I) {
-			switch (CodeDetail->info.substr_types[I]) {
-			case MD_TEXT_NORMAL:
-			case MD_TEXT_ENTITY: {
-				int Offset = CodeDetail->info.substr_offsets[I];
-				int Length = CodeDetail->info.substr_offsets[I + 1] - Offset;
-				Std$String$t *Entity = Agg$StringTable$get(Html$Entities$ByName, CodeDetail->info.text + Offset, Length);
-				break;
-			}
-			case MD_TEXT_NULLCHAR:
-				break;
-			}
-		}
+		Std$Object$t *Info = attribute_to_string(&CodeDetail->info);
+		Std$Object$t *Lang = attribute_to_string(&CodeDetail->lang);
 		break;
 	}
 
