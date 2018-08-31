@@ -1,0 +1,6 @@
+include("Std.rlib")
+include("Riva.rlib")
+include("Html/Entities.rlink")
+
+export("T")
+export("New")

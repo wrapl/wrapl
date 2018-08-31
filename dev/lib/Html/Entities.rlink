@@ -1,0 +1,3 @@
+module("Html", "Entities")
+
+import("ByName")
