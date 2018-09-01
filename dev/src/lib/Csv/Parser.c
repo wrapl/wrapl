@@ -1,5 +1,6 @@
 #include <Std.h>
 #include <Riva/Memory.h>
+#include <IO/Stream.h>
 #include <setjmp.h>
 #include "csv.h"
 
@@ -12,7 +13,7 @@ typedef struct parser_t {
 	Std$Object_t *RecordHandler;
 } parser_t;
 
-TYPE(T);
+TYPE(T, IO$Stream$WriterT, IO$Stream$T);
 
 GLOBAL_FUNCTION(New, 0) {
 	parser_t *Parser = new(parser_t);
