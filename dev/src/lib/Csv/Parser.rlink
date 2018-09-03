@@ -1,6 +1,7 @@
 include("Std.rlib")
 include("Riva.rlib")
 include("IO/Stream.rlib")
+include("Util/TypedFunction.rlib")
 
 export("T")
 export("New")

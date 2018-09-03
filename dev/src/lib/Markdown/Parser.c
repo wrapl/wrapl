@@ -2,6 +2,7 @@
 #include <Riva.h>
 #include <Html/Entities.h>
 #include <IO/Stream.h>
+#include <Util/TypedFunction.h>
 #include <setjmp.h>
 #include <md4c.h>
 
@@ -480,6 +481,12 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 		Result->Arg = Args[0];
 		return SUCCESS;
 	}
+}
+
+TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Parser, const char *Source, int Length, int Block) {
+	int Status = md_parse(Source, Length, Parser->Renderer, Parser);
+	if (Status == -1) return -1;
+	return Length;
 }
 
 METHOD("enter_block", TYP, T) {

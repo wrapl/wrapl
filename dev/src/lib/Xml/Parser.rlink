@@ -3,6 +3,7 @@ include("Riva.rlib")
 include("Agg/Table.rlib")
 include("libexpat.so")
 include("IO/Stream.rlib")
+include("Util/TypedFunction.rlib")
 
 export("T")
 export("New")
