@@ -23,6 +23,7 @@ static Std$Object$t *attributes_to_string(MD_ATTRIBUTE *Attributes) {
 	int NumParts = 0;
 	while (Attributes->substr_offsets[NumParts] != Attributes->size) ++NumParts;
 	char *Parts[NumParts];
+	int Lengths[NumParts];
 	const char *Text = Attributes->text;
 	for (int I = 0; I < NumParts; ++I) {
 		int Offset = Attributes->substr_offsets[I];
@@ -30,24 +31,27 @@ static Std$Object$t *attributes_to_string(MD_ATTRIBUTE *Attributes) {
 		switch (Attributes->substr_types[I]) {
 		case MD_TEXT_NORMAL: {
 			Parts[I] = Text + Offset;
-			Total += Length;
+			Total += (Lengths[I] = Length);
 			break;
 		}
 		case MD_TEXT_ENTITY: {
 			Std$String$t *Entity = Agg$StringTable$get(Html$Entities$ByName, Text + Offset, Length);
 			Parts[I] = Std$String$flatten(Entity);
-			Total += Std$String$get_length(Entity);
+			Total += (Lengths[I] = Std$String$get_length(Entity));
 			break;
 		}
 		case MD_TEXT_NULLCHAR:
 			Parts[I] = "\xEF\xBF\xBD";
-			Total += strlen("\xEF\xBF\xBD");
+			Total += (Lengths[I] = strlen("\xEF\xBF\xBD"));
 			break;
 		}
 	}
 	char *Chars = Riva$Memory$alloc_atomic(Total + 1);
 	char *P = Chars;
-	for (int I = 0; I < NumParts; ++I) P = stpcpy(P, Parts[I]);
+	for (int I = 0; I < NumParts; ++I) {
+		memcpy(P, Parts[I], Lengths[I]);
+		P += Lengths[I];
+	}
 	return Std$String$new_length(Chars, Total);
 }
 
@@ -484,10 +488,17 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 }
 
 TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Parser, const char *Source, int Length, int Block) {
+	printf("md_parse(%.*s)\n", Length, Source);
 	int Status = md_parse(Source, Length, Parser->Renderer, Parser);
 	if (Status == -1) return -1;
 	return Length;
 }
+
+METHOD("user_data", TYP, T) {
+	parser_t *Parser = Args[0].Val;
+	Result->Val = *(Result->Ref = &Parser->UserData);
+	return SUCCESS;
+};
 
 METHOD("enter_block", TYP, T) {
 	parser_t *Parser = Args[0].Val;

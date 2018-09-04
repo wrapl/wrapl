@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
  Author: Raja Mukherji
@@ -18,10 +18,10 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 -->
-<language id="rhtml" _name="rHtml" version="2.0" _section="Markup">
+<language id="rmd" _name="rmd" version="2.0" _section="Markup">
   <metadata>
-    <property name="mimetypes">text/x-rhtml</property>
-    <property name="globs">*.rhtml;*.rinc</property>
+    <property name="mimetypes">text/x-rmd</property>
+    <property name="globs">*.rmd</property>
   </metadata>
 
   <styles>
@@ -34,18 +34,30 @@
       <keyword>end</keyword>
 	</context>
 	<context id="wrapl-code">
-	  <start>(\\)(begin)(\()code(\);)</start>
-	  <end>(\\)(end)(\()code(\);)</end>
+	  <start>``` wrapl</start>
+	  <end>```</end>
 	  <include>
-	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
-		<context sub-pattern="2" where="start" style-ref="def:function"/>
-		<context sub-pattern="3" where="start" style-ref="def:operator"/>
-		<context sub-pattern="4" where="start" style-ref="def:operator"/>
-        <context sub-pattern="1" where="end" style-ref="def:operator"/>
-		<context sub-pattern="2" where="end" style-ref="def:function"/>
-		<context sub-pattern="3" where="end" style-ref="def:operator"/>
-		<context sub-pattern="4" where="end" style-ref="def:operator"/>
-	    <context ref="wrapl:wrapl"/>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="wrapl:wrapl"/>
+	  </include>
+	</context>
+	<context id="minilang-code">
+	  <start>``` mini</start>
+	  <end>```</end>
+	  <include>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="minilang:minilang"/>
+	  </include>
+	</context>
+	<context id="rabs-code">
+	  <start>``` rabs</start>
+	  <end>```</end>
+	  <include>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="_minibuild_:_minibuild_"/>
 	  </include>
 	</context>
     <context id="wrapl-block">
@@ -61,18 +73,20 @@
           <include>
             <context sub-pattern="0" where="start" style-ref="def:operator"/>
             <context sub-pattern="0" where="end" style-ref="def:operator"/>
-            <context ref="rhtml"/>
+            <context ref="rmd"/>
           </include>
         </context>
 		<context ref="builtins"/>
 	  </include>
     </context>
     <replace id="html:embedded-lang-hook" ref="wrapl-block"/>
-    <context id="rhtml">
+    <context id="rmd">
       <include>
 	    <context ref="wrapl-code"/>
+		<context ref="minilang-code"/>
+		<context ref="rabs-code"/>
         <context ref="wrapl-block"/>
-        <context ref="html:html"/>
+        <context ref="markdown:markdown"/>
       </include>
     </context>
   </definitions>

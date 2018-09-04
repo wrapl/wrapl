@@ -1,3 +1,4 @@
 subdir("Loader")
 
 wrapl_module("Wrapl")
+wrapl_module("Wrapl/Preproc")
