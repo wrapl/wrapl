@@ -46,7 +46,7 @@ TO :process(t @ T) (
 		(pos <- line:find(escape)) => (
 			pos > 1 => out:write(line[1, pos]);
 			line[pos + 1] = ";" ⇒ (
-				out:write(";");
+				out:write("\\");
 				inputs[1]:line <- line[pos + 2, 0];
 			) // (
 				inputs[1]:line <- line[pos + 1, 0];

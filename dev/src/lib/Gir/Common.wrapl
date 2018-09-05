@@ -744,4 +744,42 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 	Type.Define("return-GObject.Value", gvalue);
 );
 
+(VAR gvalue <- Type.T("GValue");
+	TO :headers(=gvalue) {"Gir/GObject/Riva.h"};
+	TO :libraries(=gvalue) {"Gir/GObject/Riva.rlib"};
+	TO :ctype(=gvalue) "GValue";
+	TO :rtype(=gvalue) FAIL;
+	TO :c_argcount(=gvalue) 0;
+	TO :c_to_riva(=gvalue, in, out, tmp) ['{out} = Gir$GObject$Riva$value_to_riva(&{in});'];
+	TO :c_precall(=gvalue, argindex, paramindex) [
+		'GValue param{paramindex}_value = \{0,};',
+		'Gir$GObject$Riva$riva_to_value(Args[{argindex}].Val, &param{paramindex}_value);',
+		'GValue *param{paramindex} = &param{paramindex}_value;'
+	];
+	TO :c_postcall(=gvalue, argindex, paramindex) [
+		'Args[{argindex}].Ref[0] = Gir$GObject$Riva$value_to_riva(&param{paramindex}_value);'
+	];
+	Type.Define("inout-GObject.Value", gvalue);
+);
+
+(VAR gvalue <- Type.T("GValue");
+	TO :headers(=gvalue) {"Gir/GObject/Riva.h"};
+	TO :libraries(=gvalue) {"Gir/GObject/Riva.rlib"};
+	TO :ctype(=gvalue) "GValue";
+	TO :rtype(=gvalue) FAIL;
+	TO :c_argcount(=gvalue) 0;
+	TO :c_to_riva(=gvalue, in, out, tmp) ['{out} = Gir$GObject$Riva$value_to_riva(&{in});'];
+	TO :c_precall(=gvalue, argindex, paramindex) [
+		'GValue param{paramindex}_value = \{0,};',
+		'GValue *param{paramindex} = &param{paramindex}_value;',
+		'GObjectClass *ObjectClass = G_OBJECT_GET_CLASS(paramS);',
+		'GParamSpec *ParamSpec = g_object_class_find_property(ObjectClass, param0);',
+		'g_value_init(param{paramindex}, ParamSpec->value_type);'
+	];
+	TO :c_postcall(=gvalue, argindex, paramindex) [
+		'Result->Val = Gir$GObject$Riva$value_to_riva(&param{paramindex}_value);'
+	];
+	Type.Define("g_object_get_property_return", gvalue);
+);
+
 END Common.
