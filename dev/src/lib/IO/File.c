@@ -17,11 +17,13 @@ TYPE(TextReaderT, ReaderT, T, NATIVE($TextReaderT), NATIVE($ReaderT), NATIVE($Se
 TYPE(TextWriterT, WriterT, T, NATIVE($TextWriterT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 TYPE(TextReaderWriterT, ReaderT, WriterT, T, NATIVE($TextReaderT), NATIVE($TextWriterT), NATIVE($ReaderT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
-Std$Integer_smallt READ[] = {{Std$Integer$SmallT, IO$File$OPEN_READ}};
-Std$Integer_smallt WRITE[] = {{Std$Integer$SmallT, IO$File$OPEN_WRITE}};
-Std$Integer_smallt APPEND[] = {{Std$Integer$SmallT, IO$File$OPEN_APPEND}};
-Std$Integer_smallt TEXT[] = {{Std$Integer$SmallT, IO$File$OPEN_TEXT}};
-Std$Integer_smallt NOBLOCK[] = {{Std$Integer$SmallT, IO$File$OPEN_NOBLOCK}};
+Std$Integer$smallt READ[] = {{Std$Integer$SmallT, IO$File$OPEN_READ}};
+Std$Integer$smallt WRITE[] = {{Std$Integer$SmallT, IO$File$OPEN_WRITE}};
+Std$Integer$smallt TEXT[] = {{Std$Integer$SmallT, IO$File$OPEN_TEXT}};
+Std$Integer$smallt APPEND[] = {{Std$Integer$SmallT, IO$File$OPEN_APPEND}};
+Std$Integer$smallt NOBLOCK[] = {{Std$Integer$SmallT, IO$File$OPEN_NOBLOCK}};
+Std$Integer$smallt EXCL[] = {{Std$Integer$SmallT, IO$File$OPEN_EXCLUSIVE}};
+Std$Integer$smallt TRUNC[] = {{Std$Integer$SmallT, IO$File$OPEN_TRUNCATE}};
 
 SUBMODULE(Flag);
 //@Read : Std$Integer$SmallT
@@ -87,7 +89,9 @@ GLOBAL_FUNCTION(Open, 2) {
 	Std$String$flatten_to(Args[0].Val, FileName);
 	openmode_t OpenMode = OpenModes[Flags % 8];
 	int Flags0 = OpenMode.Flags;
-	if (Flags & IO$File$OPEN_NOBLOCK) Flags0 += O_NONBLOCK;
+	if (Flags & IO$File$OPEN_NOBLOCK) Flags0 |= O_NONBLOCK;
+	if (Flags & IO$File$OPEN_EXCLUSIVE) Flags0 |= O_EXCL;
+	if (Flags & IO$File$OPEN_TRUNCATE) Flags0 |= O_TRUNC;
 	int Handle = open64(FileName, Flags0, 0644);
 	if (Handle < 0) {
 		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);

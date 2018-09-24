@@ -115,6 +115,7 @@ subdir("ML")
 subdir("DB")
 subdir("Yaml")
 subdir("Markdown")
+subdir("Net")
 
 if PLATFORM = "Linux" then
 	subdir("Gir")
