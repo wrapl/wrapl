@@ -126,6 +126,8 @@ var LILV_LIB := file("lib/liblilv-0.a")[SERD_LIB, SORD_LIB, SRATOM_LIB, SNDFILE_
 end
 
 file("Lilv.c"):scan("INCLUDES", :true)[LILV_LIB]
+file("SampleRate.c"):scan("INCLUDES", :true)[SAMPLERATE_LIB]
+file("SndFile.c"):scan("INCLUDES", :true)[SNDFILE_LIB]
 
 CFLAGS := old + ["-Iinclude", "-Iinclude/lilv-0"]
 

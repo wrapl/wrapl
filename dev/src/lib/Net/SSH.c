@@ -736,4 +736,128 @@ METHOD("lsdir", TYP, SFTPSessionT, TYP, Std$String$T) {
 	return SUSPEND;
 }
 
+typedef struct sftp_attributes_t {
+	const Std$Type$t *Type;
+	sftp_attributes Handle;
+} sftp_attributes_t;
 
+TYPE(SFTPAttributesT);
+
+METHOD("name", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$String$copy(Attributes->Handle->name);
+	return SUCCESS;
+}
+
+METHOD("flags", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Attributes->Handle->flags);
+	return SUCCESS;
+}
+
+typedef struct sftp_file_type_t {
+	const Std$Type$t *Type;
+	const char *Name;
+	int Value;
+} sftp_file_type_t;
+
+TYPE(SFTPFileTypeT);
+
+sftp_file_type_t SFTPFileTypeRegular[] = {{SFTPFileTypeT, "regular", SSH_FILEXFER_TYPE_REGULAR}};
+sftp_file_type_t SFTPFileTypeDirectory[] = {{SFTPFileTypeT, "directory", SSH_FILEXFER_TYPE_DIRECTORY}};
+sftp_file_type_t SFTPFileTypeSymLink[] = {{SFTPFileTypeT, "symlink", SSH_FILEXFER_TYPE_SYMLINK}};
+sftp_file_type_t SFTPFileTypeSpecial[] = {{SFTPFileTypeT, "special", SSH_FILEXFER_TYPE_SPECIAL}};
+sftp_file_type_t SFTPFileTypeUnknown[] = {{SFTPFileTypeT, "unknown", SSH_FILEXFER_TYPE_UNKNOWN}};
+
+METHOD("@", TYP, SFTPFileTypeT, VAL, Std$String$T) {
+	sftp_file_type_t *FileType = (sftp_file_type_t *)Args[0].Val;
+	Result->Val = Std$String$new(FileType->Name);
+	return SUCCESS;
+}
+
+METHOD("type", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	switch (Attributes->Handle->type) {
+	case SSH_FILEXFER_TYPE_REGULAR:
+		Result->Val = (Std$Object$t *)SFTPFileTypeRegular;
+		break;
+	case SSH_FILEXFER_TYPE_DIRECTORY:
+		Result->Val = (Std$Object$t *)SFTPFileTypeDirectory;
+		break;
+	case SSH_FILEXFER_TYPE_SYMLINK:
+		Result->Val = (Std$Object$t *)SFTPFileTypeSymLink;
+		break;
+	case SSH_FILEXFER_TYPE_SPECIAL:
+		Result->Val = (Std$Object$t *)SFTPFileTypeSpecial;
+		break;
+	case SSH_FILEXFER_TYPE_UNKNOWN:
+		Result->Val = (Std$Object$t *)SFTPFileTypeUnknown;
+		break;
+	}
+	return SUCCESS;
+}
+METHOD("size", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_u64(Attributes->Handle->size);
+	return SUCCESS;
+}
+METHOD("uid", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Attributes->Handle->uid);
+	return SUCCESS;
+}
+METHOD("gid", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$Integer$new_small(Attributes->Handle->gid);
+	return SUCCESS;
+}
+METHOD("owner", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$String$copy(Attributes->Handle->owner);
+	return SUCCESS;
+}
+METHOD("group", TYP, SFTPAttributesT) {
+	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
+	Result->Val = Std$String$copy(Attributes->Handle->group);
+	return SUCCESS;
+}
+
+static long listdirinfo_resume(listdir_resume_data *Data) {
+	listdir_generator *Generator = Data->Generator;
+	sftp_attributes_t *Attributes = new(sftp_attributes_t);
+	Attributes->Type = SFTPAttributesT;
+	if (!(Attributes->Handle = sftp_readdir(Generator->Session, Generator->Dir))) {
+		sftp_closedir(Generator->Dir);
+		Generator->Dir = 0;
+		Riva$Memory$register_finalizer(Generator, 0, 0, 0, 0);
+		return FAILURE;
+	}
+	Data->Result.Val = (Std$Object$t *)Attributes;
+	return SUSPEND;
+}
+
+METHOD("lsdirinfo", TYP, SFTPSessionT, TYP, Std$String$T) {
+	sftp_session_t *Session = (sftp_session_t *)Args[0].Val;
+	const char *Path = Std$String$flatten(Args[1].Val);
+	sftp_dir *Dir = sftp_opendir(Session->Handle, Path);
+	if (!Dir) {
+		Result->Val = Std$String$copy(sftp_get_error(Session->Handle));
+		return MESSAGE;
+	}
+	sftp_attributes_t *Attributes = new(sftp_attributes_t);
+	Attributes->Type = SFTPAttributesT;
+	if (!(Attributes->Handle = sftp_readdir(Session->Handle, Dir))) {
+		closedir(Dir);
+		return FAILURE;
+	}
+	Result->Val = (Std$Object$t *)Attributes;
+	listdir_generator *Generator = new(listdir_generator);
+	Riva$Memory$register_finalizer(Generator, listdir_finalize, 0, 0, 0);
+	if (Generator->State.Chain) Riva$Memory$register_disappearing_link(&Generator->State.Chain, Generator->State.Chain);
+	Generator->State.Run = Std$Function$resume_c;
+	Generator->State.Invoke = listdirinfo_resume;
+	Generator->Session = Session->Handle;
+	Generator->Dir = Dir;
+	Result->State = Generator;
+	return SUSPEND;
+}
