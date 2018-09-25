@@ -119,5 +119,5 @@ subdir("Net")
 
 if PLATFORM = "Linux" then
 	subdir("Gir")
-	--subdir("Snd")
+	subdir("Snd")
 end

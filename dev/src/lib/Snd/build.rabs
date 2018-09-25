@@ -1,0 +1,134 @@
+SERD_VERSION := "0.30.0"
+SORD_VERSION := "0.16.2"
+SRATOM_VERSION := "0.6.2"
+LILV_VERSION := "0.24.4"
+SAMPLERATE_VERSION := "0.1.9"
+SNDFILE_VERSION := "1.0.28"
+OGG_VERSION := "1.3.3"
+VORBIS_VERSION := "1.3.6"
+FLAC_VERSION := "1.3.2"
+
+var OGG_LIB := file("lib/libogg.a") => fun() do
+	file("ogg"):rmdir:mkdir:chdir
+	execute('wget http://downloads.xiph.org/releases/ogg/libogg-{OGG_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var VORBIS_LIB := file("lib/libvorbis.a") => fun() do
+	file("vorbis"):rmdir:mkdir:chdir
+	execute('wget http://downloads.xiph.org/releases/vorbis/libvorbis-{VORBIS_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var FLAC_LIB := file("lib/libFLAC.a") => fun() do
+	file("flac"):rmdir:mkdir:chdir
+	execute('wget http://downloads.xiph.org/releases/flac/flac-{FLAC_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var SAMPLERATE_LIB := file("lib/libsamplerate.a") => fun() do
+	file("samplerate"):rmdir:mkdir:chdir
+	execute('wget http://www.mega-nerd.com/SRC/libsamplerate-{SAMPLERATE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var SNDFILE_LIB := file("lib/libsndfile.a") => fun() do
+	file("sndfile"):rmdir:mkdir:chdir
+	execute('wget http://www.mega-nerd.com/libsndfile/files/libsndfile-{SNDFILE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var SERD_LIB := file("lib/libserd-0.a") => fun() do
+	file("serd"):rmdir:mkdir:chdir
+	execute('wget http://download.drobilla.net/serd-{SERD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
+		"./waf configure --no-shared --static",
+		'--prefix={BUILDDIR}'
+	)
+	execute("./waf")
+	execute('./waf install')
+end
+
+var SORD_LIB := file("lib/libsord-0.a")[SERD_LIB] => fun() do
+	file("sord"):rmdir:mkdir:chdir
+	execute('wget http://download.drobilla.net/sord-{SORD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
+		"./waf configure --no-shared --static",
+		'--prefix={BUILDDIR}'
+	)
+	execute("./waf")
+	execute('./waf install')
+end
+
+var SRATOM_LIB := file("lib/libsratom-0.a") => fun() do
+	file("sratom"):rmdir:mkdir:chdir
+	execute('wget http://download.drobilla.net/sratom-{SRATOM_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
+		"./waf configure --no-shared --static",
+		'--prefix={BUILDDIR}'
+	)
+	execute("./waf")
+	execute('./waf install')
+end
+
+var LILV_LIB := file("lib/liblilv-0.a")[SERD_LIB, SORD_LIB, SRATOM_LIB, SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB] => fun() do
+	file("lilv"):rmdir:mkdir:chdir
+	execute('wget http://download.drobilla.net/lilv-{LILV_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS} -ldl -lsndfile -logg -lvorbis -lvorbisenc -lFLAC\"',
+		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
+		"./waf configure --no-shared --static --static-progs",
+		'--prefix={BUILDDIR}'
+	)
+	execute("./waf")
+	execute('./waf install')
+end
+
+file("Lilv.c"):scan("INCLUDES", :true)[LILV_LIB]
+
+CFLAGS := old + ["-Iinclude", "-Iinclude/lilv-0"]
+
+riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
+riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
+riva_module("Snd/SndFile", [file("SndFile.o")])

@@ -1,20 +1,8 @@
 include("Sys/Module.rlib")
-include("libserd-0.a", true)
-include("libsord-0.a", true)
-include("libsratom-0.a", true)
-include("liblilv-0.a", true)
+include("Std.rlib")
+include("Agg.rlib")
+include("Riva/Memory.rlib")
 include("libdl.so")
-
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-	_subexport = subexport
-	subexport = function(Module, Internal, External)
-		_subexport(Module, "_" .. Internal, External)
-	end
-end
 
 export("LoadAll")
 export("GetAllPlugins")
