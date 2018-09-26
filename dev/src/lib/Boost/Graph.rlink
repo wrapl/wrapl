@@ -1,4 +1,4 @@
-include("libboost_graph.a", true)
+include("libboost_graph.a", :true)
 include("libstdc++.rlib")
 include("libpthread.rlib")
 include("Boost/Regex.rlink")
