@@ -57,7 +57,7 @@ void _posix_register_finalizer(IO$Posix_t *Stream) {
 };
 
 void _posix_unregister_finalizer(IO$Posix_t *Stream) {
-	Riva$Memory$register_finalizer((void *)Stream, (void *)posix_finalize, 0, 0, 0);
+	Riva$Memory$register_finalizer((void *)Stream, 0, 0, 0, 0);
 };
 
 IO$Posix_t *_posix_new(const Std$Type_t *Type, int Handle) {

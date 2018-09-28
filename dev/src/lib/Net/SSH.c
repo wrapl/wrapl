@@ -1,8 +1,12 @@
 #include <Std.h>
 #include <Riva/Memory.h>
+#include <IO/Stream.h>
 #include <IO/File.h>
+#include <Util/TypedFunction.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
+
+SYMBOL($block, "block");
 
 typedef struct ssh_session_t {
 	const Std$Type$t *Type;
@@ -621,6 +625,10 @@ static openmode_t OpenModes[] = {
 	{SFTPFileT, 0}, {SFTPFileTextReaderT, O_RDONLY}, {SFTPFileTextWriterT, O_WRONLY | O_CREAT}, {SFTPFileTextReaderWriterT, O_RDWR | O_CREAT}
 };
 
+static void sftp_file_finalize(sftp_file_t *Stream, void *Data) {
+	sftp_close(Stream->Handle);
+}
+
 METHOD("open", TYP, SFTPSessionT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	sftp_session_t *Session = (sftp_session_t *)Args[0].Val;
 	const char *FileName = Std$String$flatten(Args[1].Val);
@@ -629,55 +637,131 @@ METHOD("open", TYP, SFTPSessionT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	int AccessType = OpenMode->Flags;
 	if (Flags & IO$File$OPEN_EXCLUSIVE) AccessType |= O_EXCL;
 	if (Flags & IO$File$OPEN_TRUNCATE) AccessType |= O_TRUNC;
-	sftp_file_t *File = new(sftp_file_t);
-	File->Type = OpenMode->Type;
-	if (!(File->Handle = sftp_open(Session->Handle, FileName, AccessType, 0644))) {
+	sftp_file_t *Stream = new(sftp_file_t);
+	Stream->Type = OpenMode->Type;
+	if (!(Stream->Handle = sftp_open(Session->Handle, FileName, AccessType, 0644))) {
 		Result->Val = Std$String$copy(sftp_get_error(Session->Handle));
 		return MESSAGE;
 	}
 	if (Flags & IO$File$OPEN_NOBLOCK) {
-		sftp_file_set_nonblocking(File->Handle);
+		sftp_file_set_nonblocking(Stream->Handle);
 	}
 	if (Flags & IO$File$OPEN_APPEND) {
 		sftp_attributes Attributes = sftp_stat(Session->Handle, FileName);
 		if (Attributes) {
-			sftp_seek64(File->Handle, Attributes->size);
+			sftp_seek64(Stream->Handle, Attributes->size);
 			sftp_attributes_free(Attributes);
 		}
 	}
-	Result->Val = (Std$Object$t *)File;
+	Result->Val = (Std$Object$t *)Stream;
+	Riva$Memory$register_finalizer((void *)Stream, (void *)sftp_file_finalize, 0, 0, 0);
 	return SUCCESS;
 }
 
+TYPED_INSTANCE(int, IO$Stream$read, SFTPFileReaderT, sftp_file_t *Stream, char * restrict Buffer, int Count, int Block) {
+	if (Block) {
+		int Total = 0;
+		while (Count) {
+			int Bytes = sftp_read(Stream->Handle, Buffer, Count);
+			if (Bytes == 0) return Total;
+			if (Bytes == -1) return -1;
+			Total += Bytes;
+			Buffer += Bytes;
+			Count -= Bytes;
+		}
+		return Total;
+	} else {
+		return sftp_read(Stream->Handle, Buffer, Count);
+	}
+}
+
+TYPED_INSTANCE(int, IO$Stream$write, SFTPFileWriterT, sftp_file_t *Stream, const char *Buffer, int Count, int Blocks) {
+	if (Blocks) {
+		int Total = 0;
+		while (Count) {
+			int Bytes = sftp_write(Stream->Handle, Buffer, Count);
+			if (Bytes == -1) return -1;
+			if (Bytes == 0) return Total;
+			Total += Bytes;
+			Buffer += Bytes;
+			Count -= Bytes;
+		}
+		return Total;
+	} else {
+		return sftp_write(Stream->Handle, Buffer, Count);
+	}
+}
+
 METHOD("close", TYP, SFTPFileT) {
-	sftp_file_t *File = (sftp_file_t *)Args[0].Val;
-	sftp_close(File->Handle);
+	sftp_file_t *Stream = (sftp_file_t *)Args[0].Val;
+	sftp_close(Stream->Handle);
+	Riva$Memory$register_finalizer((void *)Stream, 0, 0, 0, 0);
 	return SUCCESS;
 }
 
 METHOD("read", TYP, SFTPFileReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	sftp_file_t *File = (sftp_file_t *)Args[0].Val;
+	sftp_file_t *Stream = (sftp_file_t *)Args[0].Val;
 	char *Buffer = Std$Address$get_value(Args[1].Val);
 	int Size = Std$Integer$get_small(Args[2].Val);
-	int BytesRead = sftp_read(File->Handle, Buffer, Size);
+	int BytesRead = sftp_read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
 		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
 		return MESSAGE;
-	};
+	}
+	Result->Val = Std$Integer$new_small(BytesRead);
+	return SUCCESS;
+}
+
+METHOD("read", TYP, SFTPFileReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+	sftp_file_t *Stream = (sftp_file_t *)Args[0].Val;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Integer$get_small(Args[2].Val);
+	int BytesRead = 0;
+	while (Size) {
+		int Bytes = sftp_read(Stream->Handle, Buffer, Size);
+		if (BytesRead < 0) {
+			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			return MESSAGE;
+		}
+		if (Bytes == 0) break;
+		BytesRead += Bytes;
+		Buffer += Bytes;
+		Size -= Bytes;
+	}
 	Result->Val = Std$Integer$new_small(BytesRead);
 	return SUCCESS;
 }
 
 METHOD("write", TYP, SFTPFileWriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+	sftp_file_t *Stream = (sftp_file_t *)Args[0].Val;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Integer$get_small(Args[2].Val);
+	int BytesWritten = sftp_write(Stream->Handle, Buffer, Size);
+	if (BytesWritten < 0) {
+		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+		return MESSAGE;
+	}
+	Result->Val = Std$Integer$new_small(BytesWritten);
+	return SUCCESS;
+}
+
+METHOD("write", TYP, SFTPFileWriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
 	sftp_file_t *File = (sftp_file_t *)Args[0].Val;
 	char *Buffer = Std$Address$get_value(Args[1].Val);
 	int Size = Std$Integer$get_small(Args[2].Val);
-	int BytesRead = sftp_write(File->Handle, Buffer, Size);
-	if (BytesRead < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
-		return MESSAGE;
-	};
-	Result->Val = Std$Integer$new_small(BytesRead);
+	int BytesWritten = 0;
+	while (Size) {
+		int Bytes = sftp_write(File->Handle, Buffer, Size);
+		if (Bytes < 0) {
+			Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+			return MESSAGE;
+		}
+		if (Bytes == 0) break;
+		BytesWritten += Bytes;
+		Buffer += Bytes;
+		Size -= Bytes;
+	}
+	Result->Val = Std$Integer$new_small(BytesWritten);
 	return SUCCESS;
 }
 
