@@ -4,8 +4,7 @@ var LIBSSH_LIB := file("lib/libssh.a") => fun() do
 	file("libssh"):rmdir:mkdir:chdir
 	execute('wget -nv https://www.libssh.org/files/{(LIBSSH_VERSION /".")[1]}.{(LIBSSH_VERSION / ".")[2]}/libssh-{LIBSSH_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
 	file("libssh/build"):mkdir:chdir
-	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} -DBUILD_SHARED_LIBS=OFF -DWITH_STATIC_LIB=ON -DWITH_GCRYPT=ON ..')
-	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
+	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} -DBUILD_SHARED_LIBS=OFF -DWITH_STATIC_LIB=ON -DWITH_GCRYPT=OFF ..')	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 
 CFLAGS := old + ["-DLIBSSH_STATIC=1", '-I{file("include")}']

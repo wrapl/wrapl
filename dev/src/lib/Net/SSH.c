@@ -8,6 +8,10 @@
 
 SYMBOL($block, "block");
 
+INITIAL() {
+	ssh_threads_init();
+}
+
 typedef struct ssh_session_t {
 	const Std$Type$t *Type;
 	ssh_session Handle;
@@ -156,7 +160,7 @@ METHOD("disconnect", TYP, SSHSessionT) {
 METHOD("parse_config", TYP, SSHSessionT, TYP, Std$String$T) {
 	ssh_session_t *Session = (ssh_session_t *)Args[0].Val;
 	const char *FileName = Std$String$flatten(FileName);
-	if (ssh_parse_config(Session->Handle, FileName) != SSH_OK) {
+	if (ssh_options_parse_config(Session->Handle, FileName) != SSH_OK) {
 		Result->Val = Std$String$copy(ssh_get_error(Session->Handle));
 		return MESSAGE;
 	} else {
@@ -612,6 +616,13 @@ METHOD("init", TYP, SFTPSessionT) {
 		return MESSAGE;
 	}
 	Result->Arg = Args[0];
+	return SUCCESS;
+}
+
+METHOD("free", TYP, SFTPSessionT) {
+	sftp_session_t *Session = (sftp_session_t *)Args[0].Val;
+	sftp_free(Session->Handle);
+	Session->Handle = 0;
 	return SUCCESS;
 }
 

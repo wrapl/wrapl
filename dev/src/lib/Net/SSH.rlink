@@ -1,7 +1,7 @@
 include("Riva.rlib")
 include("Std.rlib")
 include("IO/Stream.rlib")
-include("libgcrypt.so")
+include("libcrypto.so")
 include("libz.so")
 include("libgssapi_krb5.so")
 include("librt.so")
