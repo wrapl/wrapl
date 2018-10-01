@@ -153,6 +153,18 @@ METHOD("disconnect", TYP, SSHSessionT) {
 	return SUCCESS;
 }
 
+METHOD("parse_config", TYP, SSHSessionT, TYP, Std$String$T) {
+	ssh_session_t *Session = (ssh_session_t *)Args[0].Val;
+	const char *FileName = Std$String$flatten(FileName);
+	if (ssh_parse_config(Session->Handle, FileName) != SSH_OK) {
+		Result->Val = Std$String$copy(ssh_get_error(Session->Handle));
+		return MESSAGE;
+	} else {
+		Result->Arg = Args[0];
+		return SUCCESS;
+	}
+}
+
 typedef struct ssh_key_t {
 	const Std$Type$t *Type;
 	ssh_key Handle;

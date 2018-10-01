@@ -1,0 +1,13 @@
+include("Std.rlib")
+include("Agg/Table.rlib")
+include("Agg/Buffer.rlib")
+include("Riva/Memory.rlib")
+include("Sys/Module.rlib")
+include("Util/TypedFunction.rlib")
+include("IO/Stream.rlib")
+
+export("New")
+
+submodule("Effect")
+subexport("Effect", "EffectCreate", "Create")
+subexport("Effect", "EffectFind", "Find")
