@@ -1,7 +1,7 @@
 ASFLAGS := old + ["-I", DEV_INC/"nasm/"]
 CFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
 CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
-LDFLAGS := old + ["-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/i386-linux-gnu/", "-L/usr/lib/"]
+LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/"]
 RDOCFLAGS := []
 
 rlink_includes := fun(Target) do

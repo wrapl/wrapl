@@ -132,6 +132,7 @@ var SOX_LIB := file("lib/libsox.a") => fun() do
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
+		"--without-pulseaudio",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
@@ -149,4 +150,4 @@ CFLAGS := old + ["-Iinclude", "-Iinclude/lilv-0"]
 riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
 riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
 riva_module("Snd/SndFile", [file("SndFile.o")])
-riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
+--riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])

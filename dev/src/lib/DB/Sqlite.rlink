@@ -1,6 +1,7 @@
 include("Gcc.rlink")
 include("libpthread.rlib")
 include("libdl.rlib")
+include("libsqlite3.so")
 
 export("T")
 export("Open")
