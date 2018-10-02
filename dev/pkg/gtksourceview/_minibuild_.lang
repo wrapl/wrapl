@@ -21,7 +21,7 @@
 <language id="_minibuild_" _name="Minibuild" version="2.0" _section="Sources">
   <metadata>
     <property name="mimetypes">text/x-minibuild</property>
-    <property name="globs">_minibuild_</property>
+    <property name="globs">_minibuild_;*.rabs</property>
     <property name="line-comment-start">--</property>
   </metadata>
   <styles>

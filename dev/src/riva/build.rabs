@@ -87,7 +87,6 @@ RIVA_CONF => fun(FileName) do
 	/lib,
 	/usr/lib,
 	/usr/lib32,
-	/usr/lib/i386-linux-gnu,
 	/usr/local/lib,
 	{OUT_LIB}
 }

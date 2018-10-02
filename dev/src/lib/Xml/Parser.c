@@ -77,7 +77,7 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 //@string
 //:T
 //  Parses string and calls the appropiate event handlers
-	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
+	parser_t *Parser = ((parser_t *)Args[0].Val)->Handle;
 	Std$String_t *String = Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		XML_Parse(Parser, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 0);
@@ -91,14 +91,14 @@ METHOD("parse", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 //@string
 //:T
 //  Parses string and calls the appropiate event handlers
-	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
+	parser_t *Parser = ((parser_t *)Args[0].Val)->Handle;
 	XML_Parse(Parser, Std$Address$get_value(Args[1].Val), Std$Integer$get_small(Args[2].Val), 0);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };
 
 METHOD("finish", TYP, T) {
-	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
+	parser_t * *Parser = ((parser_t *)Args[0].Val)->Handle;
 	XML_Parse(Parser, 0, 0, 1);
 	Result->Arg = Args[0];
 	return SUCCESS;

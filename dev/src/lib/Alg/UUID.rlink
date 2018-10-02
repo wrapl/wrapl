@@ -1,4 +1,4 @@
-include("libuuid.a", true)
+include("libuuid.a", :true)
 include("IO/Stream.rlib")
 
 export("T")

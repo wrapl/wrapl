@@ -7,6 +7,7 @@
 #include <Riva/System.h>
 #include <Sys/Time.h>
 #include <Util/TypedFunction.h>
+#include <pthread.h>
 
 int LogLevel = 1;
 
@@ -26,6 +27,7 @@ typedef struct {
 	Std$Object$t *Stream;
 	IO$Stream_writefn write;
 	const char *LoggerName;
+	pthread_mutex_t Mutex[1];
 	int Level;
 } stream_writer_t;
 
@@ -82,6 +84,7 @@ static inline write_json_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stre
 static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	stream_writer_t *StreamWriter = (stream_writer_t *)Fun;
 	if (StreamWriter->Level < LogLevel) return SUCCESS;
+	pthread_mutex_lock(StreamWriter->Mutex);
 	Std$Object$t *Stream = StreamWriter->Stream;
 	IO$Stream_writefn write = StreamWriter->write;
 	write(Stream, "{\"@timestamp\":\"", strlen("{\"@timestamp\":\""), 1);
@@ -139,6 +142,7 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 		}
 	}
 	StreamWriter->write(Stream, "}\n", 2, 1);
+	pthread_mutex_unlock(StreamWriter->Mutex);
 	return SUCCESS;
 }
 
@@ -157,6 +161,7 @@ GLOBAL_FUNCTION(JsonStream, 2) {
 	StreamWriter->LoggerName = Std$String$flatten(Args[1].Val);
 	StreamWriter->Stream = Stream;
 	StreamWriter->write = Util$TypedFunction$get(IO$Stream$write, Stream->Type);
+	pthread_mutex_init(StreamWriter->Mutex, 0);
 	Result->Val = (Std$Object$t *)StreamWriter;
 	return SUCCESS;
 }
@@ -174,6 +179,7 @@ static inline write_text_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stre
 static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 	stream_writer_t *StreamWriter = (stream_writer_t *)Fun;
 	if (StreamWriter->Level < LogLevel) return SUCCESS;
+	pthread_mutex_lock(StreamWriter->Mutex);
 	Std$Object$t *Stream = StreamWriter->Stream;
 	IO$Stream_writefn write = StreamWriter->write;
 	write(Stream, "[", 1, 1);
@@ -225,6 +231,7 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 		}
 	}
 	StreamWriter->write(Stream, "\n", 1, 1);
+	pthread_mutex_unlock(StreamWriter->Mutex);
 	return SUCCESS;
 }
 
@@ -243,6 +250,7 @@ GLOBAL_FUNCTION(TextStream, 2) {
 	StreamWriter->LoggerName = Std$String$flatten(Args[1].Val);
 	StreamWriter->Stream = Stream;
 	StreamWriter->write = Util$TypedFunction$get(IO$Stream$write, Stream->Type);
+	pthread_mutex_init(StreamWriter->Mutex, 0);
 	Result->Val = (Std$Object$t *)StreamWriter;
 	return SUCCESS;
 }

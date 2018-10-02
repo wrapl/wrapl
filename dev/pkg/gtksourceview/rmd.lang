@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Raja Mukherji
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="rmd" _name="rmd" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-rmd</property>
+    <property name="globs">*.rmd</property>
+  </metadata>
+
+  <styles>
+    <style id="function" _name="Function" map-to="def:function"/>
+  </styles>
+
+  <definitions>
+    <context id="builtins" style-ref="function">
+      <keyword>begin</keyword>
+      <keyword>end</keyword>
+	</context>
+	<context id="wrapl-code">
+	  <start>``` wrapl</start>
+	  <end>```</end>
+	  <include>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="wrapl:wrapl"/>
+	  </include>
+	</context>
+	<context id="minilang-code">
+	  <start>``` mini</start>
+	  <end>```</end>
+	  <include>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="minilang:minilang"/>
+	  </include>
+	</context>
+	<context id="rabs-code">
+	  <start>``` rabs</start>
+	  <end>```</end>
+	  <include>
+	    <context sub-pattern="0" where="start" style-ref="def:identifier"/>
+		<context sub-pattern="0" where="end" style-ref="def:identifier"/>
+		<context ref="_minibuild_:_minibuild_"/>
+	  </include>
+	</context>
+    <context id="wrapl-block">
+      <start>\\</start>
+      <end>;</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="def:operator"/>
+        <context sub-pattern="0" where="end" style-ref="def:operator"/>
+        <context ref="wrapl:wrapl"/>
+        <context id="html-block">
+          <start>(do\(&gt;&gt;)(.*)$</start>
+          <end>^\s*(\%{2@start})\)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="def:operator"/>
+            <context sub-pattern="0" where="end" style-ref="def:operator"/>
+            <context ref="rmd"/>
+          </include>
+        </context>
+		<context ref="builtins"/>
+	  </include>
+    </context>
+    <replace id="html:embedded-lang-hook" ref="wrapl-block"/>
+    <context id="rmd">
+      <include>
+	    <context ref="wrapl-code"/>
+		<context ref="minilang-code"/>
+		<context ref="rabs-code"/>
+        <context ref="wrapl-block"/>
+        <context ref="markdown:markdown"/>
+      </include>
+    </context>
+  </definitions>
+</language>

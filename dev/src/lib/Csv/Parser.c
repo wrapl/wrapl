@@ -1,5 +1,7 @@
 #include <Std.h>
 #include <Riva/Memory.h>
+#include <IO/Stream.h>
+#include <Util/TypedFunction.h>
 #include <setjmp.h>
 #include "csv.h"
 
@@ -12,7 +14,7 @@ typedef struct parser_t {
 	Std$Object_t *RecordHandler;
 } parser_t;
 
-TYPE(T);
+TYPE(T, IO$Stream$WriterT, IO$Stream$T);
 
 GLOBAL_FUNCTION(New, 0) {
 	parser_t *Parser = new(parser_t);
@@ -57,6 +59,15 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 		return SUCCESS;
 	};
 };
+
+TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Parser, const char *Source, int Length, int Block) {
+	size_t Parsed = csv_parse(Parser->Handle, Source, Length, field_callback, record_callback, Parser);
+	if (Parsed < Length) {
+		return -1;
+	} else {
+		return Parsed;
+	}
+}
 
 METHOD("finish", TYP, T) {
 	parser_t *Parser = Args[0].Val;

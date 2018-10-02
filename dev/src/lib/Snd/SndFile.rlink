@@ -6,17 +6,6 @@ include("Util/TypedFunction.rlib")
 include("IO/Stream.rlib")
 include("libsndfile.so")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-	_subexport = subexport
-	subexport = function(Module, Internal, External)
-		_subexport(Module, "_" .. Internal, External)
-	end
-end
-
 export("Mode")
 export("Format")
 export("Endian")

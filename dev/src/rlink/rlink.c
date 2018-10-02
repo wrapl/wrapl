@@ -123,6 +123,7 @@ static stringmap_t *RlibGlobals;
 
 static define_t *Defines = 0;
 static int DependencyMode = 0;
+static int TestingMode = 0;
 
 static uint32_t NoOfSections = 0, NoOfExports = 0, NoOfRequires = 0;
 
@@ -656,6 +657,9 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			reloc_howto_type *Type = Relocs[I]->howto;
 			Relocation->Position = Relocs[I]->address;
 			Relocation->Size = bfd_get_reloc_size(Type);
+			if (TestingMode) {
+				printf("Looking for symbol %s with flags %d\n", Sym->name, Sym->flags);
+			}
 			if (!strcmp(Type->name, "R_386_GOT32")) {
 				Relocation->Flags = RELOC_IND;
 			} else if (!strcmp(Type->name, "R_386_TLS_IE")) {
@@ -1341,6 +1345,9 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 		bfd_map_over_sections(Bfd, (bfd_map)add_bfd_section, BfdInfo);
 		for (int I = NoOfSymbols - 1; I >= 0; --I) {
 			asymbol *Sym = BfdInfo->Symbols[I];
+			if (TestingMode) {
+				printf("Found symbol %s in %s with flags %d\n", Sym->name, Bfd->filename, Sym->flags);
+			}
 			if (Sym->flags & BSF_GLOBAL) {
 				const char *Name = GC_strdup(Sym->name);
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
@@ -1800,6 +1807,9 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 		//printf("NoOfSymbols = %d\n", NoOfSymbols);
 		for (int I = NoOfSymbols - 1; I >= 0; --I) {
 			asymbol *Sym = BfdInfo->Symbols[I];
+			if (TestingMode) {
+				printf("Found symbol %s in %s with flags %d\n", Sym->name, Bfd->filename, Sym->flags);
+			}
 			//printf("Sym->name = %s\n", Sym->name);
 #ifdef WINDOWS
 			if (Sym->flags & BSF_GLOBAL && Sym->flags & BSF_FUNCTION)
@@ -2115,7 +2125,7 @@ int main(int Argc, char **Argv) {
 				DelayedLink = 0;
 				break;
 			case 'Z':
-				StopOnUnknown = 0;
+				StopOnUnknown = 1;
 				break;
 			case 'D': {
 				char *Equals = strchr(Argv[I] + 2, '=');
@@ -2133,6 +2143,10 @@ int main(int Argc, char **Argv) {
 			}
 			case 't': {
 				GC_disable();
+				break;
+			}
+			case 'T': {
+				TestingMode = 1;
 				break;
 			}
 			}

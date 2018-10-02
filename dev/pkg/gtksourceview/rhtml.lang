@@ -23,7 +23,31 @@
     <property name="mimetypes">text/x-rhtml</property>
     <property name="globs">*.rhtml;*.rinc</property>
   </metadata>
+
+  <styles>
+    <style id="function" _name="Function" map-to="def:function"/>
+  </styles>
+
   <definitions>
+    <context id="builtins" style-ref="function">
+      <keyword>begin</keyword>
+      <keyword>end</keyword>
+	</context>
+	<context id="wrapl-code">
+	  <start>(\\)(begin)(\()code(\);)</start>
+	  <end>(\\)(end)(\()code(\);)</end>
+	  <include>
+	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
+		<context sub-pattern="2" where="start" style-ref="def:function"/>
+		<context sub-pattern="3" where="start" style-ref="def:operator"/>
+		<context sub-pattern="4" where="start" style-ref="def:operator"/>
+        <context sub-pattern="1" where="end" style-ref="def:operator"/>
+		<context sub-pattern="2" where="end" style-ref="def:function"/>
+		<context sub-pattern="3" where="end" style-ref="def:operator"/>
+		<context sub-pattern="4" where="end" style-ref="def:operator"/>
+	    <context ref="wrapl:wrapl"/>
+	  </include>
+	</context>
     <context id="wrapl-block">
       <start>\\</start>
       <end>;</end>
@@ -40,11 +64,13 @@
             <context ref="rhtml"/>
           </include>
         </context>
-      </include>
+		<context ref="builtins"/>
+	  </include>
     </context>
     <replace id="html:embedded-lang-hook" ref="wrapl-block"/>
     <context id="rhtml">
       <include>
+	    <context ref="wrapl-code"/>
         <context ref="wrapl-block"/>
         <context ref="html:html"/>
       </include>

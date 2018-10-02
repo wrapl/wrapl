@@ -128,6 +128,13 @@ DEF Opaque {
 		"ClientContext",
 		"Multipart",
 		"XMLRPCParams"
+	],
+	"Poppler" IS [
+		"IndexIter",
+		"FontsIter",
+		"StructureElementIter",
+		"TextSpan",
+		"Rectangle"
 	]
 };
 
@@ -181,12 +188,16 @@ api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS "SignalQuery"}][:fiel
 EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'Closure'}][:field]:detach;
 EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'TypeInstance'}][:field]:detach;
 api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "Object"}][:constructor, {"cname" IS "g_object_newv"}][:parameters][:parameter, {"name" IS "parameters"}].type <- 'sized-1-!GObject.Parameter';
+api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "Object"}][:method, {"cname" IS "g_object_get_property"}][:parameters][:parameter, {"name" IS "value"}].type <- 'g_object_get_property_return';
 
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "OutputMessage"}][:field, {"name" IS "control_messages"}]:detach;
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "vectors"}]:detach;
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "control_messages"}]:detach;
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "StaticResource"}][:field, {"name" IS "resource"}].type <- $:after("!");
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "StaticResource"}][:field, {"name" IS "next"}].type <- $:after("!");
+api[:namespace, {"name" IS "Gio"}][:object, {"name" IS "IOModule"}][:method, {"cname" IS "g_io_module_query"}]:detach;
+api[:namespace, {"name" IS "Gio"}][:object, {"name" IS "IOModule"}][:method, {"cname" IS "g_io_module_load"}]:detach;
+api[:namespace, {"name" IS "Gio"}][:object, {"name" IS "IOModule"}][:method, {"cname" IS "g_io_module_unload"}]:detach;
 
 api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Scanner"}][:field, {"name" IS "value"}].type <- '!{$}';
 api[:namespace, {"name" IS "GLib"}][:struct, {"name" IS "Scanner"}][:field, {"name" IS "next_value"}].type <- '!{$}';

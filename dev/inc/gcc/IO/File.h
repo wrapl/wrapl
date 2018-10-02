@@ -11,7 +11,9 @@ typedef enum {
 	IO$File$OPEN_WRITE		= 2,
 	IO$File$OPEN_TEXT		= 4,
 	IO$File$OPEN_APPEND		= 8,
-	IO$File$OPEN_NOBLOCK	= 16
+	IO$File$OPEN_NOBLOCK	= 16,
+	IO$File$OPEN_EXCLUSIVE	= 32,
+	IO$File$OPEN_TRUNCATE	= 64
 } IO$File_openflag;
 
 RIVA_CFUN(NATIVE(_t) *, open, const char *, IO$File_openflag);

@@ -36,6 +36,7 @@ DEF AppendNew(parent, child) (
 
 METH New(parent @ NodeT, tag @ Symbol.T) AppendNew(parent, NodeT(NIL, tag, {}, []));
 METH New(parent @ NodeT, tag @ Symbol.T, attrs @ Table.T) AppendNew(parent, NodeT(NIL, tag, attrs, []));
+METH New(parent @ NodeT, tag @ Symbol.T, content @ List.T) AppendNew(parent, NodeT(NIL, tag, {}, content));
 METH New(parent @ NodeT, tag @ Symbol.T, attrs @ Table.T, content @ List.T) AppendNew(parent, NodeT(NIL, tag, attrs, content));
 METH New(parent @ NodeT, xml @ String.T) AppendNew(parent, LoadString(xml));
 

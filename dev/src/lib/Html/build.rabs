@@ -26,3 +26,11 @@ scope("html";) do
 	riva_module("Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])
 	wrapl_module("Html")
 end
+
+var EntitiesGen := riva_program(file("EntitiesGen.riva"), [file("EntitiesGen.o")])
+
+file("Entities.c")[RIVA, file("Entities.json"), EntitiesGen] => fun() do
+	execute(RIVA, "-L. EntitiesGen", file("Entities.json"))
+end
+
+riva_module("Html/Entities", [file("Entities.o")])

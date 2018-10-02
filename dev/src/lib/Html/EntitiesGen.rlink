@@ -1,0 +1,3 @@
+include("Riva.rlib")
+include("Agg/StringTable.rlib")
+include("libjansson.so")

@@ -2,7 +2,6 @@ include("Std.rlib")
 include("Riva/Memory.rlib")
 include("Agg/Buffer.rlib")
 include("Gmp.rlib")
-include("libsamplerate.a")
 
 export("New")
 export("Convert")

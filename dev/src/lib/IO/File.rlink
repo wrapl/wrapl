@@ -11,6 +11,8 @@ subexport("Flag", "WRITE", "Write")
 subexport("Flag", "TEXT", "Text")
 subexport("Flag", "APPEND", "Append")
 subexport("Flag", "NOBLOCK", "NoBlock")
+subexport("Flag", "EXCL", "Exclusive")
+subexport("Flag", "TRUNC", "Truncate")
 
 export("READ")
 export("WRITE")

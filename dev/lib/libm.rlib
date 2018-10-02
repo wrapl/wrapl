@@ -321,4 +321,5 @@ if LINUX then
 	export("cacosh")
 	export("fegetexceptflag")
 	export("lgammaf_r")
+	export("__pow_finite")
 end
