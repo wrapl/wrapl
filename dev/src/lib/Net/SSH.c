@@ -905,7 +905,7 @@ METHOD("type", TYP, SFTPAttributesT) {
 }
 METHOD("size", TYP, SFTPAttributesT) {
 	sftp_attributes_t *Attributes = (sftp_attributes_t *)Args[0].Val;
-	Result->Val = Std$Integer$new_u64(Attributes->Handle->size);
+	Result->Val = Std$Integer$new_small(Attributes->Handle->size);
 	return SUCCESS;
 }
 METHOD("uid", TYP, SFTPAttributesT) {
