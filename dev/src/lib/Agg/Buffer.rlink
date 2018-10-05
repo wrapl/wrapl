@@ -5,6 +5,7 @@ export("Nil")
 export("New")
 export("NewAtomic")
 export("NewLarge")
+export("NewAtomicLarge")
 export("_alloc")
 export("_new")
 
