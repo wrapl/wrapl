@@ -40,6 +40,9 @@ var VORBIS_LIB := file("lib/libvorbis.a")[OGG_LIB] => fun() do
 	execute("make install")
 end
 
+var VORBISENC_LIB := file("lib/libvorbisenc.a")[VORBIS_LIB]
+var VORBISFILE_LIB := file("lib/libvorbisfile.a")[VORBIS_LIB] 
+
 var FLAC_LIB := file("lib/libFLAC.a") => fun() do
 	file("flac"):rmdir:mkdir:chdir
 	execute('wget http://downloads.xiph.org/releases/flac/flac-{FLAC_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
@@ -158,5 +161,5 @@ CFLAGS := old + ["-Iinclude", "-Iinclude/lilv-0"]
 
 riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
 riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
-riva_module("Snd/SndFile", [file("SndFile.o")], [SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB])
+riva_module("Snd/SndFile", [file("SndFile.o")], [SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB, VORBISENC_LIB, VORBISFILE_LIB])
 --riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
