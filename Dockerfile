@@ -41,9 +41,11 @@ RUN rm -rf dev/src/rabs
 RUN rm -rf dev/src/rlink/minilang
 RUN git submodule update --init --recursive
 
-RUN linux32 make -C dev/src/rabs
+RUN linux32 make -C dev/src/rabs install
 
-RUN linux32 dev/src/rabs/rabs -c
+WORKDIR /tmp/wrapl
+
+RUN linux32 rabs -c
 
 FROM i386/debian:sid-slim
 
