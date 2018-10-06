@@ -19,7 +19,8 @@ var OGG_LIB := file("lib/libogg.a") => fun() do
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -32,7 +33,8 @@ var VORBIS_LIB := file("lib/libvorbis.a")[OGG_LIB] => fun() do
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -45,7 +47,8 @@ var FLAC_LIB := file("lib/libFLAC.a") => fun() do
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -58,7 +61,8 @@ var SAMPLERATE_LIB := file("lib/libsamplerate.a") => fun() do
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -71,7 +75,8 @@ var SNDFILE_LIB := file("lib/libsndfile.a")[OGG_LIB, VORBIS_LIB, FLAC_LIB] => fu
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -137,7 +142,8 @@ var SOX_LIB := file("lib/libsox.a") => fun() do
 		"--without-man-pages",
 		"--without-pulseaudio",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
