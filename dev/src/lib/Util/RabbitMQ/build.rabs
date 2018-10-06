@@ -1,6 +1,12 @@
 RABBITMQ_URL := "https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz"
 var RABBITMQ_DIR := file("rabbitmq")
-var RABBITMQ_LIB := file("lib/librabbitmq.a") => fun() do
+var RABBITMQ_LIB := if OS = "debian" then
+	file("lib/i386-linux-gnu/librabbitmq.a")
+else
+	file("lib/librabbitmq.a")
+end
+
+RABBITMQ_LIB => fun() do
 	RABBITMQ_DIR:rmdir:mkdir
 	execute("cd", RABBITMQ_DIR, "&&",
 		"wget --user-agent=\"Firefox/3.6.12\" -nv", RABBITMQ_URL, "-O- | tar xvzP --strip-components=1"
@@ -13,4 +19,4 @@ end
 CFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
 file("RabbitMQ.c"):scan("INCLUDES", :true)[RABBITMQ_LIB]
-riva_module("Util/RabbitMQ", [file("RabbitMQ.o")])
+riva_module("Util/RabbitMQ", [file("RabbitMQ.o")], [RABBITMQ_LIB])

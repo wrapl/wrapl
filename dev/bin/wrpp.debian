@@ -1,0 +1,135 @@
+#!/usr/bin/riva -tWrapl
+MOD Mark;
+
+IMP Sys.FileSys;
+IMP Sys.Config;
+IMP Sys.Program USE Args;
+IMP Sys.Module;
+IMP IO.Terminal USE Out;
+IMP IO.File;
+IMP IO.Buffer;
+IMP IO.Stream;
+IMP Wrapl.Loader;
+IMP Std.Function;
+IMP Std.String;
+IMP Std.Integer;
+
+DEF Defines <- {};
+DEF Includes <- [""];
+
+DEF SourceT <- <[Stream.ReaderT]>;
+DEF buffer <- [];
+
+VAR in <- Terminal.In, out <- Terminal.Out, line;
+
+TO :readi(src@SourceT, n@Integer.SmallT, t@String.T) buffer:pop | in:readi(n, t);
+
+VAR source <- SourceT();
+VAR session <- Loader.SessionNew(source);
+
+session:var("out", out);
+
+VAR stack <- [];
+session:def("stack", stack);
+session:def("push", <b> stack:push(out <- (NIL ~== b) | Buffer.New()));
+session:def("pop", <> stack:pop \ (out <- stack[1]));
+session:def("begin", :?);
+session:def("end", :?);
+session:def("buffer", Buffer.New);
+session:def("include", Include);
+session:def("_include_", <filename> Include(filename, 1));
+session:def("write", <text> out:write(text));
+session:def("defines", Defines);
+session:def("includes", Includes);
+session:def("dbg", Out);
+
+VAR escape <- "\\";
+session:var("escape", escape);
+
+DEF Process(strip) (
+    VAR pos;
+    line <- in:readi(0, "\n");
+    REP (
+		pos <- 1;
+        REP (WHILE pos <- line:find(escape, pos);
+		    line[pos + 1] = ";" => (
+				line <- line[1, pos + 1] + (line[pos + 2, 0] | "");
+				pos <- pos + 1;
+		    ) // (
+				out:write(line[1, pos]);
+				buffer:put(line[pos + 1, 0]);
+				line <- NIL;
+				pos <- 1;
+				session:eval;
+				(NIL == line) <- session:line;
+		    );
+		);
+		(NIL ~== strip) & (line = "\n") => line <- "";
+        out:write(line);
+        WHILE line <- in:readi(0, "\n");
+    );
+);
+
+DEF Include(filename, strip) (
+    VAR oldline <- session:line;
+    VAR oldin <- in;
+	VAR path;
+	FileSys.Exists(path <- Includes:values + filename) // (
+		Out:write('Error: file "{filename}" not found.\n');
+		FAIL;
+	);
+    in <- File.Open(path, File.Flag.Read + File.Flag.Text);
+    Process(strip);
+    in:close;
+    in <- oldin;
+    line <- oldline;
+);
+
+DEF ParseArgs() (
+    VAR i <- 1, arg;
+    REP (WHILE i <= Args:length;
+		arg <- Args[i];
+		arg[1] = '-' => (
+			WHEN arg[2] IS "u" DO (
+            	Config.Set("Wrapl.AllowUndeclared");
+	        ) IS "D" DO (
+				arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				Defines:insert(arg:before("="), arg:after("="));
+	        ) IS "o" DO (
+	            arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				out <- File.Open(arg, File.Flag.Write + File.Flag.Text);
+			) IS "I" DO (
+				arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				arg <- arg + (arg[-1] ~= "/");
+				Includes:put(arg);
+			) IS "L" DO (
+				arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				Module.AddDirectory(arg);
+			) IS "p" DO (
+				arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				Include(arg);
+			) IS "P" DO (
+				arg <- arg[3, 0] | Args[i <- i + 1] | SEND "Missing argument";
+				Include(arg, 1);
+	        ) DO (
+	        	SEND 'Unknown argument: {arg}';
+	        );
+		) // (
+			in <- File.Open(arg, File.Flag.Read + File.Flag.Text);
+		);
+		i <- i + 1;
+    );
+	--(in == NIL) => in <- Terminal.In;
+	--(out == NIL) => out <- Terminal.Out;
+	stack:put(out);
+	RECV msg DO (
+		Out:write('Error[125]: {msg}\n');
+		Program.Exit(1);
+	);
+);
+
+ParseArgs();
+Process();
+Program.Exit(0);
+
+END Mark.

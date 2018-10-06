@@ -1,0 +1,212 @@
+#!/usr/bin/riva -tWrapl
+MOD Main;
+
+IMP Std.String;
+IMP Std.Symbol;
+IMP Std.Address;
+IMP Std.Integer;
+IMP IO.Terminal USE In, Out;
+IMP IO.Socket;
+IMP IO.Stream;
+IMP IO.File;
+IMP Wrapl.Loader;
+IMP Sys.Module;
+IMP Sys.Program USE Args;
+IMP Sys.Config;
+IMP Sys.Log;
+IMP Sys.Thread;
+IMP Util.Editline;
+
+DEF _exit <- :?;
+DEF _help <- :?;
+
+DEF clients <- [];
+VAR global;
+
+DEF Init() (
+	VAR i <- 0, client, address;
+	REP (WHILE i <= Args:length;
+		WHEN Args[i] IS "-v" DO (
+			Log.Enable();
+		) IS "-sf" DO (
+			i <- i + 1;
+			CreateServerFile(Args[i]);
+		) IS "-sp" DO (
+			i <- i + 1;
+			CreateServerOnPort(Args[i]@Integer.T);
+		) IS "-cf" DO (
+			i <- i + 1;
+			client <- Socket.New(Socket.Flag.Local, Socket.Flag.Stream);
+			client:connect(Args[i]);
+			In:link(client);
+			client:link(Out);
+			RET;
+		) IS "-cp" DO (
+			i <- i + 1;
+			client <- Socket.New(Socket.Flag.Inet, Socket.Flag.Stream);
+			address <- ALL Args[i]:split(":");
+			client:connect(address[1], address[2]@Integer.T);
+			Program.OnInt(<> (
+				Out:write('Trying to send urgent data...\n');
+				client:urge("!");
+			));
+			In:link(client);
+			client:link(Out);
+			RET;
+		) IS "-L" DO (
+			i <- i + 1;
+			Module.AddDirectory(Args[i]);
+		) DO (
+			Out:writes("Warning: unknown argument: ", Args[i], ".\n")
+		);
+		i <- i + 1;
+	);
+	VAR editline <- Editline.New("wrapl");
+	editline:prompt(<> prompt);
+	VAR stack <- [], prompt;
+	VAR in <- <[Stream.ReaderT]>();
+	TO :readi(=in, n@Integer.SmallT, t@String.T) (
+		REP (stack[1]:readi(n, t) \ RET $; WHILE stack:pop:close);
+		VAR s <- editline:read();
+		prompt <- '... ';
+		editline:continue(:true);
+		RET s;
+	);
+	stack:push(File.Open(Args[i], File.Flag.Read + File.Flag.Text));
+	global <- Loader.SessionNew(in);
+	Loader.SessionDef(global, "exit", _exit);
+	Loader.SessionDef(global, "help", _help);
+	Loader.SessionDef(global, "load", <filename> stack:push(File.Open(filename, File.Flag.Read + File.Flag.Text)));
+	clients:put(Out);
+	Out:writes("Interactive Wrapl [", Config.Get("version"), "]\n");
+	VAR result, details, exec <- Loader.ExecNew();
+	Program.OnInt(exec);
+	Loader.SessionVar(global, "_", result);
+	Loader.SessionDef(global, "image", Loader.Image);
+	REP (
+		exec:mark => (Out:write("Interrupted\n"); STEP;);
+		prompt <- '--> ';
+		editline:continue(:false);
+		(result <- Loader.SessionEval(global)) => (
+			WHEN result IS _exit DO (
+				EVERY clients:values:write("Exiting.\n");
+				EVERY clients:values:close;
+				Program.Exit(0);
+			) IS _help DO (
+				Out:write("Commands: exit\n");
+			) DO (
+				Out:writes(Loader.Image(result), "\n");
+				RECV msg DO msg IN Symbol.NoMethodMessageT => (
+					Out:writes(result, "\n");
+					RECV msg DO msg IN Symbol.NoMethodMessageT => (
+						(details <- Module.FromVal(result)) => (
+							Out:writes(details[1], ".", details[2], "\n");
+						) // (details <- Module.FromVal(?result)) => (
+							Out:write('<{details[1]}.{details[2]}:{Address.FromVal(result)}>\n');
+						) // (
+							Out:write("<value>\n");
+						);
+					) // (
+						SEND msg;
+					);
+				);
+			);
+		) // (
+			Out:write("failure\n");
+		);
+		RECV msg DO msg IN Loader.ErrorMessageT => (
+			Out:writes("console", msg, "\n");
+		) // (
+			Out:write("Unhandled message: ");
+			Out:writes(msg, "\n");
+			RECV msg2 DO Out:write("<value>\n");
+		);
+	);
+);
+
+DEF ClientFunc(session, out) (
+	clients:put(out);
+	VAR thread <- 'thread{clients:size}';
+	out:writes('Interactive Wrapl [{Config.Get("version")}] <{thread}>');
+	global:def(thread, Thread.Self());
+	VAR result, type;
+	Loader.SessionVar(session, "_", result);
+	REP (
+		out:write("\n--> ");
+		(result <- Loader.SessionEval(session)) => (
+			WHEN result IS _exit DO (
+				session == global => (
+					EVERY clients:values:write("Exiting.\n");
+					EVERY clients:values:close;
+					Program.Exit(0);
+				);
+				clients:remove(out);
+				RET out:close;
+			) IS _help DO (
+				out:write("Commands: exit\n");
+			) DO (
+				out:write(result);
+				RECV msg DO msg IN Symbol.NoMethodMessageT => (
+					(result <- Module.FromVal(result)) => (
+						out:writes(result[1], ".", result[2]);
+					) // (type <- Module.FromVal(?result)) => (
+						out:write('<{type[1]}.{type[2]}:{Address.FromVal(result)}>');
+					) // (
+						out:write("<value>");
+					);
+				) // (
+					SEND msg;
+				);
+			);
+	) // (
+			out:write("failure");
+	);
+		RECV msg DO msg IN Loader.ErrorMessageT => (
+			out:writes("console", msg);
+			RECV msg DO (
+				clients:remove(out);
+				RET Out:write("Client disconnected.\n");
+			);
+		) // (
+			out:write("Unhandled message: ");
+			out:write(msg);
+			RECV msg2 DO out:write("<value>");
+	);
+	);
+);
+
+DEF CreateServerFile(filename) (
+	Out:writes("Creating server file: ", filename, "\n");
+	VAR server <- Socket.New(Socket.Flag.Local, Socket.Flag.Stream);
+	server:bind(filename);
+	server:listen(10);
+	Thread.New(<> (
+		VAR client, session;
+		REP (
+			client <- server:accept;
+			session <- Loader.SessionNew(client, global);
+			Thread.New(ClientFunc, session, client);
+			client <- NIL;
+			session <- NIL;
+		);
+	));
+);
+
+DEF CreateServerOnPort(port) (
+	Out:writes("Creating server on port: ", port, "\n");
+	VAR server <- Socket.New(Socket.Flag.Inet, Socket.Flag.Stream);
+	server:bind(port);
+	server:listen(10);
+	Thread.New(<> (
+		VAR client, session;
+		REP (
+			client <- server:accept;
+			session <- Loader.SessionNew(client, global);
+			Thread.New(ClientFunc, session, client);
+		);
+	));
+);
+
+Init();
+
+END Main.

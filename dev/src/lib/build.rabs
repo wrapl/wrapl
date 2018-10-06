@@ -4,6 +4,10 @@ CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections"
 LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/"]
 RDOCFLAGS := []
 
+if OS = "debian" then
+	LDFLAGS := old + ["-L/usr/lib/i386-linux-gnu/"]
+end
+
 rlink_includes := fun(Target) do
 	var Files := []
 	var Lines := shell(RLINK, "-M", LDFLAGS, Target:source, "-v0")
