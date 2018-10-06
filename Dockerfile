@@ -45,6 +45,8 @@ RUN linux32 make -C dev/src/rabs install
 
 WORKDIR /tmp/wrapl
 
+RUN ls -lah
+
 RUN linux32 rabs -c
 
 FROM i386/debian:sid-slim
