@@ -29,7 +29,10 @@ RUN apt-get update && apt-get install -y \
 	lv2-dev \
 	libgtksourceview-3.0-dev \
 	liblmdb-dev \
-	libkrb5-dev
+	libkrb5-dev \
+	libsoup2.4-dev \
+	libpq-dev \
+	libgoocanvas-2.0-dev
 
 RUN apt-get clean
 
