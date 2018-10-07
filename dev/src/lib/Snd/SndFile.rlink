@@ -4,7 +4,6 @@ include("Riva/Memory.rlib")
 include("Sys/Module.rlib")
 include("Util/TypedFunction.rlib")
 include("IO/Stream.rlib")
-include("libsndfile.so")
 
 export("Mode")
 export("Format")

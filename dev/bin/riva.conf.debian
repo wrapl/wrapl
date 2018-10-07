@@ -1,0 +1,15 @@
+library = {
+	/lib/i386-linux-gnu,
+	/lib,
+	/usr/lib/i386-linux-gnu,
+	/usr/lib,
+	/usr/lib32,
+	/usr/local/lib,
+	/usr/lib/riva
+}
+
+parseargs = true
+
+modules = {
+	Wrapl/Loader
+}

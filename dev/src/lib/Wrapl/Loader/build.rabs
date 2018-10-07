@@ -42,7 +42,11 @@ var Files := [
 file("assembler.o")[UDIS_LIB, file("assembler-internal.c")]
 
 file("assembler-internal.c")[file("assembler-internal.dasc")] => fun(Target) do
-	execute("lua", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", Target)
+	if OS = "debian" then
+		execute("lua5.1", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", Target)
+	else
+		execute("lua", DEV_BIN/"dynasm.lua", file("assembler-internal.dasc"), ">", Target)
+	end
 end
 
 --file("scanner.o"){file("keywords.c")}

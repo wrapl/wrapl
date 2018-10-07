@@ -626,6 +626,12 @@ METHOD("line", TYP, SessionT) {
 	return SUCCESS;
 }
 
+GLOBAL_METHOD(SessionPeek, 1, "peek", TYP, SessionT) {
+	session_t *Session = (session_t *)Args[0].Val;
+	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
+	return SUCCESS;
+}
+
 METHOD("def", TYP, SessionT, TYP, Std$String$T, ANY) {
 //@session
 //@name

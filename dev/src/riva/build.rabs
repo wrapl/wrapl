@@ -84,7 +84,9 @@ RIVA_CONF => fun(FileName) do
 	var File := open(FileName:string, "w")
 	File:write(
 'library = \{
+	/lib/i386-linux-gnu,
 	/lib,
+	/usr/lib/i386-linux-gnu,
 	/usr/lib,
 	/usr/lib32,
 	/usr/local/lib,

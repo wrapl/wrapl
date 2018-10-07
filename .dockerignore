@@ -1,0 +1,13 @@
+!.git
+!.gitmodules
+bin
+dev/obj
+dev/gen
+dev/pkg
+dev/tst
+dev/web*
+dev/src/rabs
+dev/src/rlink/minilang
+web*
+tst
+build.rabs.db

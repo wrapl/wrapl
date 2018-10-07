@@ -170,6 +170,7 @@ void memory_init(void) {
 	module_export(Module, "_alloc_uncollectable", 0, GC_malloc_uncollectable);
 	module_export(Module, "_alloc_atomic_uncollectable", 0, GC_malloc_atomic_uncollectable);
 	module_export(Module, "_alloc_large", 0, GC_malloc_ignore_off_page);
+	module_export(Module, "_alloc_atomic_large", 0, GC_malloc_atomic_ignore_off_page);
 	module_export(Module, "_realloc", 0, GC_realloc);
 	module_export(Module, "_free", 0, GC_free);
 #endif

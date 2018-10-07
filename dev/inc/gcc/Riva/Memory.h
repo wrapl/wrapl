@@ -16,6 +16,7 @@ RIVA_CFUN(char *, alloc_uncollectable, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, alloc_large, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, alloc_atomic, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, alloc_atomic_uncollectable, unsigned int) __attribute__ ((malloc));
+RIVA_CFUN(char *, alloc_atomic_large, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, alloc_code, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, calloc, unsigned int, unsigned int) __attribute__ ((malloc));
 RIVA_CFUN(char *, realloc, void *, unsigned int);
