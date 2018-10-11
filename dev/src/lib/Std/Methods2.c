@@ -302,6 +302,62 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 	return FAILURE;
 };
 
+STRING_METHOD("~", TYP, Std$String$T, TYP, Std$String$T) {
+//@a
+//@b
+//:Std.Integer.T
+// Returns the Levenshtein distance between <var>a</var> and <var>b</var>.
+	const Std$String_t *A = (Std$String_t *)Args[0].Val;
+	const Std$String_t *B = (Std$String_t *)Args[1].Val;
+	int LengthA = A->Length.Value;
+	int LengthB = B->Length.Value;
+	int Cache[LengthA];
+	if (A == B) {
+		Result->Val = Std$Integer$Zero;
+		return SUCCESS;
+	}
+	if (LengthA == 0) {
+		Result->Val = Std$Integer$new_small(LengthB);
+		return SUCCESS;
+	}
+	if (LengthB == 0) {
+		Result->Val = Std$Integer$new_small(LengthA);
+		return SUCCESS;
+	}
+	for (int Index = 0; Index < LengthA; ++Index) Cache[Index] = Index + 1;
+	int PosB = 0, R;
+	for (Std$String$block *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
+		int BlockLengthB = BlockB->Length.Value;
+		char *BlockCharsB = BlockB->Chars.Value;
+		for (int IndexB = 0; IndexB < BlockLengthB; ++IndexB) {
+			char C = BlockCharsB[IndexB];
+			int DistanceA = PosB;
+			R = PosB;
+			++PosB;
+			int PosA = 0;
+			for (Std$String$block *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
+				int BlockLengthA = BlockA->Length.Value;
+				char *BlockCharsA = BlockA->Chars.Value;
+				for (int IndexA = 0; IndexA < BlockLengthA; ++IndexA) {
+					int DistanceB = C == BlockCharsA[IndexA] ? DistanceA : DistanceA + 1;
+					DistanceA = Cache[PosA];
+					Cache[PosA] = R = DistanceA > R
+						? DistanceB > R
+							? R + 1
+							: DistanceB
+						: DistanceB > DistanceA
+							? DistanceA + 1
+							: DistanceB;
+					++PosA;
+				}
+			}
+
+		}
+	}
+	Result->Val = Std$Integer$new_small(R);
+	return SUCCESS;
+}
+
 /*
 STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 //@a
