@@ -358,6 +358,56 @@ STRING_METHOD("~", TYP, Std$String$T, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
+STRING_METHOD("distance", TYP, Std$String$T, TYP, Std$String$T) {
+	Std$String$t *A = (Std$String$t *)Args[0].Val;
+	Std$String$t *B = (Std$String$t *)Args[1].Val;
+	int LenA = A->Length.Value;
+	int LenB = B->Length.Value;
+	if (LenA < LenB) {
+		Std$String$t *C = A;
+		A = B;
+		B = C;
+		int LenC = LenA;
+		LenA = LenB;
+		LenB = LenC;
+	}
+	int *Row0 = alloca((LenB + 1) * sizeof(int));
+	int *Row1 = alloca((LenB + 1) * sizeof(int));
+	int *Row2 = alloca((LenB + 1) * sizeof(int));
+	int Insert = 1;
+	int Replace = 1;
+	int Swap = 1;
+	int Delete = 1;
+	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
+	int I = 0;
+	char PrevA, PrevB;
+	for (Std$String$block *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
+		for (char *PtrA = BlockA->Chars.Value, *EndA = PtrA + BlockA->Length.Value; PtrA < EndA; ++PtrA, ++I) {
+			Row2[0] = (I + 1) * Delete;
+			int J = 0;
+			for (Std$String$block *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
+				for (char *PtrB = BlockB->Chars.Value, *EndB = PtrB + BlockB->Length.Value; PtrB < EndB; ++PtrB, ++J) {
+					int Min = Row1[J] + Replace * (*PtrA != *PtrB);
+					if (I > 0 && J > 0 && PrevA == *PtrB && *PtrA == PrevB && Min > Row0[J - 1] + Swap) {
+						Min = Row0[J - 1] + Swap;
+					}
+					if (Min > Row1[J + 1] + Delete) Min = Row1[J + 1] + Delete;
+					if (Min > Row2[J] + Insert) Min = Row2[J] + Insert;
+					Row2[J + 1] = Min;
+					PrevB = *PtrB;
+				}
+			}
+			int *Dummy = Row0;
+			Row0 = Row1;
+			Row1 = Row2;
+			Row2 = Dummy;
+			PrevA = *PtrA;
+		}
+	}
+	Result->Val = Std$Integer$new_small(Row1[LenB]);
+	return SUCCESS;
+}
+
 /*
 STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 //@a
