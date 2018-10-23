@@ -618,13 +618,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 						if (Symbol) break;
 					}
 #endif
-					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s[%x].\n", Bfd->filename, Sym->name, Sym->flags);
 					if (StopOnUnknown) exit(1);
 					Symbol = new_symbol(Sym->name, (section_t *)new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
-					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s[%x].\n", Bfd->filename, Sym->name, Sym->flags);
 					if (StopOnUnknown) exit(1);
 					Section2 = (section_t *)new_import_section(UnknownSymbols, Sym->name, 0);
 				}
@@ -702,13 +702,13 @@ static void bfd_section_setup(bfd_section_t *Section) {
 						if (Symbol) break;
 					}
 #endif
-					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s[%x].\n", Bfd->filename, Sym->name, Sym->flags);
 					if (StopOnUnknown) exit(1);
 					Symbol = new_symbol(Sym->name, (section_t *)new_import_section(UnknownSymbols, Sym->name, 0), 0);
 				} while (0);
 				section_t *Section2 = Symbol->Section;
 				if (Section2 == 0) {
-					fprintf(stderr, "%s: unresolved symbol %s.\n", Bfd->filename, Sym->name);
+					fprintf(stderr, "%s: unresolved symbol %s[%x].\n", Bfd->filename, Sym->name, Sym->flags);
 					if (StopOnUnknown) exit(1);
 					Section2 = (section_t *)new_import_section(UnknownSymbols, Sym->name, 0);
 				}
@@ -1327,7 +1327,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strncmp(Sect->name, ".gnu.warning", 12) == 0) {
 	} else if (strncmp(Sect->name, ".gnu.glibc-stub", 15) == 0) {
 	} else {
-		fprintf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
+		printf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
 	}
 }
 
@@ -1395,7 +1395,7 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 			} else if (Sym->flags & BSF_DEBUGGING) {
 				// This may be supported later
 			} else {
-				fprintf(stderr, "%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
+				printf(stderr, "%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
 				//exit(1);
 			}
 		}
@@ -1491,9 +1491,6 @@ static module_section_t *new_module_section(const char *Name) {
 	return Section;
 }
 
-static const char EXPORT_CONSTANT[] = "CONSTANT";
-static const char EXPORT_VARIABLE[] = "VARIABLE";
-
 typedef struct export_type_t {
 	ml_type_t *Type;
 	const char *Name;
@@ -1503,10 +1500,12 @@ typedef struct export_type_t {
 static ml_type_t *ExportTypeT = 0;
 
 static export_type_t ExportTypes[] = {
-	{0, EXPORT_CONSTANT, 0},
-	{0, EXPORT_VARIABLE, 1},
+	{0, "CONSTANT", 0},
+	{0, "VARIABLE", 1},
 	{0, 0, 0}
 };
+
+static ml_value_t *WeakSymbol = 0;
 
 static const char *Platforms[] = {
 	"WINDOWS",
@@ -1581,6 +1580,7 @@ static ml_value_t *script_file_import(void *Data, int Count, ml_value_t **Args) 
 	int Flags = 0;
 	const char *Internal = 0;
 	const char *External = 0;
+	int Weak = 0;
 	for (int I = 0; I < Count; ++I) {
 		if (Args[I]->Type == MLStringT) {
 			if (Internal == 0) {
@@ -1591,6 +1591,8 @@ static ml_value_t *script_file_import(void *Data, int Count, ml_value_t **Args) 
 		} else if (Args[I]->Type == ExportTypeT) {
 			export_type_t *E = (export_type_t *)Args[I];
 			Flags = E->Flags;
+		} else if (Args[I] == WeakSymbol) {
+			Weak = 1;
 		}
 	}
 	if (External == 0) asprintf((char **)&External, "%s%s", CurrentLibrary->Prefix, Internal);
@@ -1602,7 +1604,7 @@ static ml_value_t *script_file_import(void *Data, int Count, ml_value_t **Args) 
 		ImportSection = new_import_section(CurrentLibrary->Section, Internal, Flags);
 	}
 	symbol_t *Symbol = new_symbol(External, (section_t *)ImportSection, 0);
-	stringmap_insert(GlobalTable, External, Symbol);
+	stringmap_insert(Weak ? WeakTable : GlobalTable, External, Symbol);
 	return MLNil;
 }
 
@@ -2003,6 +2005,7 @@ int main(int Argc, char **Argv) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RlinkGlobals, E->Name, E);
 	}
+	WeakSymbol = ml_method("weak");
 	for (define_t *Define = Defines; Define; Define = Define->Next) {
 		stringmap_insert(RlinkGlobals, Define->Name, ml_string(Define->Value, -1));
 	}

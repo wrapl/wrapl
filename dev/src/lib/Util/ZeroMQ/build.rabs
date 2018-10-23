@@ -1,0 +1,35 @@
+ZEROMQ_VERSION := "4.2.5"
+CZMQ_VERSION := "4.1.1"
+
+var ZEROMQ_LIB := file("lib/libzmq.a") => fun() do
+	file("zeromq"):rmdir:mkdir:chdir
+	execute('wget https://github.com/zeromq/libzmq/releases/download/v{ZEROMQ_VERSION}/zeromq-{ZEROMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		"--disable-libunwind",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var CZMQ_LIB := file("lib/libczmq.a")[ZEROMQ_LIB] => fun() do
+	file("czmq"):rmdir:mkdir:chdir
+	execute('wget https://github.com/zeromq/czmq/releases/download/v{CZMQ_VERSION}/czmq-{CZMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make")
+	execute("make install")
+end
+
+file("ZeroMQ.c"):scan("INCLUDES", :true)[CZMQ_LIB]
+
+CFLAGS := old + ['-I{file("include")}']
+
+riva_module("Util/ZeroMQ", [file("ZeroMQ.o")], [CZMQ_LIB, ZEROMQ_LIB])
