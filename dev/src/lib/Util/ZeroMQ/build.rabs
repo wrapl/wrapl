@@ -9,7 +9,8 @@ var ZEROMQ_LIB := file("lib/libzmq.a") => fun() do
 		"--without-man-pages",
 		"--disable-libunwind",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")
@@ -22,7 +23,8 @@ var CZMQ_LIB := file("lib/libczmq.a")[ZEROMQ_LIB] => fun() do
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
-		'LDFLAGS=\"{LIBLDFLAGS}\"'
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
 	)
 	execute("make")
 	execute("make install")

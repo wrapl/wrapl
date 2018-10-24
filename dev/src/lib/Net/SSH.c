@@ -741,7 +741,8 @@ METHOD("read", TYP, SFTPFileReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT
 	int Size = Std$Integer$get_small(Args[2].Val);
 	int BytesRead = 0;
 	while (Size) {
-		int Bytes = sftp_read(Stream->Handle, Buffer, Size);
+		int Request = Size <= 16384 ? Size : 16384;
+		int Bytes = sftp_read(Stream->Handle, Buffer, Request);
 		if (BytesRead < 0) {
 			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
 			return MESSAGE;
@@ -774,7 +775,8 @@ METHOD("write", TYP, SFTPFileWriterT, TYP, Std$Address$T, TYP, Std$Integer$Small
 	int Size = Std$Integer$get_small(Args[2].Val);
 	int BytesWritten = 0;
 	while (Size) {
-		int Bytes = sftp_write(File->Handle, Buffer, Size);
+		int Request = Size <= 16384 ? Size : 16384;
+		int Bytes = sftp_write(File->Handle, Buffer, Request);
 		if (Bytes < 0) {
 			Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
 			return MESSAGE;
