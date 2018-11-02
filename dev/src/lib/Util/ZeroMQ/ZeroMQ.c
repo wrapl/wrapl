@@ -3,6 +3,20 @@
 #include <Agg/Buffer.h>
 #include <czmq.h>
 
+typedef struct ctx_t {
+	const Std$Type$t *Type;
+	void *Handle;
+} ctx_t;
+
+TYPE(CtxT);
+
+GLOBAL_FUNCTION(CtxNew, 0) {
+	ctx_t *Ctx = new(ctx_t);
+	Ctx->Type = CtxT;
+	Ctx->Handle = zmq_ctx_new();
+	RETURN(Ctx);
+}
+
 typedef struct sock_t {
 	const Std$Type$t *Type;
 	zsock_t *Handle;
@@ -24,6 +38,41 @@ TYPE(StreamSockT, SockT);
 
 static void sock_finalize(sock_t *Sock, void *Data) {
 	if (Sock->Handle) zsock_destroy(&Sock->Handle);
+}
+
+GLOBAL_FUNCTION(SockNew, 1) {
+	int Type = 0;
+	if (Args[0].Val == PubSockT) {
+		Type = ZMQ_PUB;
+	} else if (Args[0].Val == SubSockT) {
+		Type = ZMQ_SUB;
+	} else if (Args[0].Val == ReqSockT) {
+		Type = ZMQ_REQ;
+	} else if (Args[0].Val == RepSockT) {
+		Type = ZMQ_REP;
+	} else if (Args[0].Val == DealerSockT) {
+		Type = ZMQ_DEALER;
+	} else if (Args[0].Val == RouterSockT) {
+		Type = ZMQ_ROUTER;
+	} else if (Args[0].Val == PushSockT) {
+		Type = ZMQ_PUSH;
+	} else if (Args[0].Val == PullSockT) {
+		Type = ZMQ_PULL;
+	} else if (Args[0].Val == XPubSockT) {
+		Type = ZMQ_XPUB;
+	} else if (Args[0].Val == XSubSockT) {
+		Type = ZMQ_XSUB;
+	} else if (Args[0].Val == PairSockT) {
+		Type = ZMQ_PAIR;
+	} else if (Args[0].Val == StreamSockT) {
+		Type = ZMQ_STREAM;
+	} else {
+		SEND(Std$String$new("Invalid socket type"));
+	}
+	sock_t *Sock = new(sock_t);
+	Sock->Type = Args[0].Val;
+	Sock->Handle = zsock_new(Type);
+	RETURN(Sock);
 }
 
 GLOBAL_FUNCTION(PubNew, 1) {
@@ -151,6 +200,42 @@ GLOBAL_FUNCTION(StreamNew, 1) {
 	RETURN(Sock);
 }
 
+METHOD("bind", TYP, SockT, TYP, Std$String$T) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	const char *Endpoint = Std$String$flatten(Args[1].Val);
+	if (zsock_bind(Sock->Handle, "%s", Endpoint)) {
+		SEND(Std$String$new("Bind error"));
+	}
+	RETURN0;
+}
+
+METHOD("unbind", TYP, SockT, TYP, Std$String$T) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	const char *Endpoint = Std$String$flatten(Args[1].Val);
+	if (zsock_unbind(Sock->Handle, "%s", Endpoint)) {
+		SEND(Std$String$new("Unbind error"));
+	}
+	RETURN0;
+}
+
+METHOD("connect", TYP, SockT, TYP, Std$String$T) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	const char *Endpoint = Std$String$flatten(Args[1].Val);
+	if (zsock_connect(Sock->Handle, "%s", Endpoint)) {
+		SEND(Std$String$new("Connect error"));
+	}
+	RETURN0;
+}
+
+METHOD("disconnect", TYP, SockT, TYP, Std$String$T) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	const char *Endpoint = Std$String$flatten(Args[1].Val);
+	if (zsock_disconnect(Sock->Handle, "%s", Endpoint)) {
+		SEND(Std$String$new("Disconnect error"));
+	}
+	RETURN0;
+}
+
 METHOD("attach", TYP, SockT, TYP, Std$String$T, TYP, Std$Symbol$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	const char *Endpoints = Std$String$flatten(Args[1].Val);
@@ -159,7 +244,6 @@ METHOD("attach", TYP, SockT, TYP, Std$String$T, TYP, Std$Symbol$T) {
 		SEND(Std$String$new("Syntax error"));
 	}
 	RETURN0;
-
 }
 
 METHOD("type", TYP, SockT) {
