@@ -10,6 +10,18 @@ subexport("Ctx", "CtxNew", "New")
 
 submodule("Sock")
 subexport("Sock", "SockT", "T")
+subexport("Sock", "PubSockT", "PubT");
+subexport("Sock", "SubSockT", "SubT");
+subexport("Sock", "ReqSockT", "ReqT");
+subexport("Sock", "RepSockT", "RepT");
+subexport("Sock", "DealerSockT", "DealerT");
+subexport("Sock", "RouterSockT", "RouterT");
+subexport("Sock", "PushSockT", "PushT");
+subexport("Sock", "PullSockT", "PullT");
+subexport("Sock", "XPubSockT", "XPubT");
+subexport("Sock", "XSubSockT", "XSubT");
+subexport("Sock", "PairSockT", "PairT");
+subexport("Sock", "StreamSockT", "StreamT");
 subexport("Sock", "SockNew", "New")
 subexport("Sock", "PubNew")
 subexport("Sock", "SubNew")

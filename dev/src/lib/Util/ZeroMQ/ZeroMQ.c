@@ -72,6 +72,7 @@ GLOBAL_FUNCTION(SockNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = Args[0].Val;
 	Sock->Handle = zsock_new(Type);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	RETURN(Sock);
 }
 
@@ -203,10 +204,9 @@ GLOBAL_FUNCTION(StreamNew, 1) {
 METHOD("bind", TYP, SockT, TYP, Std$String$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	const char *Endpoint = Std$String$flatten(Args[1].Val);
-	if (zsock_bind(Sock->Handle, "%s", Endpoint)) {
-		SEND(Std$String$new("Bind error"));
-	}
-	RETURN0;
+	int Port = zsock_bind(Sock->Handle, "%s", Endpoint);
+	if (Port == -1) SEND(Std$String$new("Bind error"));
+	RETURN(Std$Integer$new_small(Port));
 }
 
 METHOD("unbind", TYP, SockT, TYP, Std$String$T) {
@@ -264,7 +264,9 @@ METHOD("recv", TYP, SockT, VAL, Std$String$T) {
 METHOD("send", TYP, SockT, TYP, Std$String$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	const char *String = Std$String$flatten(Args[1].Val);
-	zstr_send(Sock->Handle, String);
+	if (zstr_send(Sock->Handle, String) == -1) {
+		SEND(Std$String$new("Send error"));
+	}
 	RETURN0;
 }
 
@@ -304,7 +306,9 @@ METHOD("send", TYP, SockT, TYP, FrameT, TYP, Std$Integer$SmallT) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	frame_t *Frame = (frame_t *)Args[1].Val;
 	int Flags = Std$Integer$get_small(Args[2].Val);
-	zframe_send(&Frame->Handle, Sock->Handle, Flags);
+	if (zframe_send(&Frame->Handle, Sock->Handle, Flags) == -1) {
+		SEND(Std$String$new("Send error"));
+	}
 	RETURN0;
 }
 
@@ -348,7 +352,9 @@ METHOD("recv", TYP, SockT, VAL, MsgT) {
 METHOD("send", TYP, SockT, TYP, MsgT) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	msg_t *Msg = (msg_t *)Args[1].Val;
-	zmsg_send(&Msg->Handle, Sock);
+	if (zmsg_send(&Msg->Handle, Sock) == -1) {
+		SEND(Std$String$new("Send error"));
+	}
 	RETURN0;
 }
 
