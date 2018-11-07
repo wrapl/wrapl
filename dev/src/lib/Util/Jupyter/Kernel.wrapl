@@ -1,0 +1,76 @@
+MOD Kernel;
+
+IMP IO.Terminal USE Out;
+IMP Std, Sys, Agg, Util, Json;
+
+Out:write('Starting wrapl kernel\n');
+
+VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
+
+Out:write('connection = {connection}\n');
+
+VAR heartbeat <- Util.ZeroMQ.Sock.RepNew('{connection.transport}://{connection.ip}:{connection.hb_port}');
+VAR shell <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.shell_port}');
+VAR control <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.control_port}');
+VAR stdin <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.stdin_port}');
+VAR iopub <- Util.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{connection.iopub_port}');
+
+VAR loop <- Util.ZeroMQ.Loop.New();
+
+loop:reader(heartbeat;) (
+	VAR msg <- heartbeat:recv(Std.String.T);
+	Out:write('Received {msg} on heartbeat\n');
+);
+
+loop:reader(shell;) (
+	VAR ids <- [];
+	REP (
+		VAR id <- shell:recv(Std.String.T);
+		WHILE id ~= "<IDS|MSG>";
+		ids:put(id);
+	);
+	VAR req_signature <- shell:recv(Std.String.T);
+	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
+	Out:write('Received {req_header}, {req_parent}, {req_metadata}, {req_content} on shell\n');
+	WHEN req_header.msg_type IS "kernel_info_request" DO (
+		VAR rep_header <- {
+			"msg_id" IS req_header.msg_id,
+			"username" IS req_header.username,
+			"session" IS req_header.session,
+			"msg_type" IS "kernel_info_reply",
+			"version" IS "5.2"
+		};
+		VAR rep_parent <- {};
+		VAR rep_metadata <- {};
+		VAR rep_content <- {
+
+		};
+	);
+);
+
+loop:reader(control;) (
+	VAR ids <- [];
+	REP (
+		VAR id <- shell:recv(Std.String.T);
+		WHILE id ~= "<IDS|MSG>";
+		ids:put(id);
+	);
+	VAR signature <- shell:recv(Std.String.T);
+	VAR header <- Json.LoadString(shell:recv(Std.String.T));
+	VAR parent_header <- Json.LoadString(shell:recv(Std.String.T));
+	VAR metadata <- Json.LoadString(shell:recv(Std.String.T));
+	VAR content <- Json.LoadString(shell:recv(Std.String.T));
+	Out:write('Received {header}, {parent_header}, {metadata}, {content} on control\n');
+);
+
+loop:reader(stdin;) (
+	VAR msg <- stdin:recv(Std.String.T);
+	Out:write('Received {msg} on stdin\n');
+);
+
+loop:start;
+
+END Kernel.

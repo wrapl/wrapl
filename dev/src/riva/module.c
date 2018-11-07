@@ -122,6 +122,7 @@ module_provider_t *module_find_loaders(const char *Name, module_loader_t *Loader
 	if (Loader->TimeStamp > TimeStamp) {
 		void *LoadInfo = Loader->_Find(Name);
 		if (LoadInfo) {
+			log_writef("Found loader %s for %s.\n", Loader->Name, Name);
 			module_provider_t *Provider = new(module_provider_t);
 			Provider->Loader = Loader;
 			Provider->LoadInfo = LoadInfo;

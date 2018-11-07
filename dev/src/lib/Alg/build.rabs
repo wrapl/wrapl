@@ -26,3 +26,4 @@ file("UUID.o")[UUID_LIB]
 riva_module("Alg/Digest", [file("Digest.o"), file("crypt_blowfish.o"), file("crypt_gensalt.o"), file("wrapper.o"), file("x86.o")])
 riva_module("Alg/Sign", [file("Sign.o")])
 riva_module("Alg/UUID", [file("UUID.o")])
+riva_module("Alg/HMAC", [file("HMAC.o")])

@@ -64,48 +64,67 @@ RIVA_TYPE(ArrayT);
 #define VAL (void *)2
 #define TYP (void *)3
 
-#define METHOD(SYMBOL, SIGNATURE...)\
-	static const char __concat(__symbol, __LINE__)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, __LINE__)(FUNCTION_PARAMS);\
-	static const Std$Function_ct __concat(__method, __LINE__) = {Std$Function$CT, &__concat(__invoke, __LINE__)};\
-	const void *__concat(__instance, __LINE__)[] __attribute__ ((section (".methods"))) = {\
-		__concat(__symbol, __LINE__), SIGNATURE, 0, &__concat(__method, __LINE__)\
+#define _METHOD(TOKEN, SYMBOL, SIGNATURE...)\
+	static const char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
+	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static const Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, &__concat(__invoke, TOKEN)};\
+	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
+		__concat(__symbol, TOKEN), SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, __LINE__)(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
 
-#define GLOBAL_METHOD(NAME, COUNT, SYMBOL, SIGNATURE...)\
+#define _GLOBAL_METHOD(TOKEN, NAME, COUNT, SYMBOL, SIGNATURE...)\
 	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS);\
 	Std$Function_checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
-	static const char __concat(__symbol, __LINE__)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, __LINE__)(FUNCTION_PARAMS);\
-	static Std$Function_ct __concat(__method, __LINE__) = {Std$Function$CT, invoke_ ## NAME};\
-	const void *__concat(__instance, __LINE__)[] __attribute__ ((section (".methods"))) = {\
-		__concat(__symbol, __LINE__), SIGNATURE, 0, &__concat(__method, __LINE__)\
+	static const char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
+	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, invoke_ ## NAME};\
+	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
+		__concat(__symbol, TOKEN), SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
 	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS)
 
-#define ASYMBOL(NAME)\
+#define _ASYMBOL(TOKEN, NAME)\
 	extern Std$Object_t NAME[];\
 	char __symbol ## NAME[] __asmify(NAME) __attribute__ ((section (".asymbol"))) = "";
 
-#define AMETHOD(SYMBOL, SIGNATURE...)\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, __LINE__)(FUNCTION_PARAMS);\
-	static Std$Function_ct __concat(__method, __LINE__) = {Std$Function$CT, __concat(__invoke, __LINE__)};\
-	const void *__concat(__instance, __LINE__)[] __attribute__ ((section (".methods"))) = {\
-		SYMBOL, SIGNATURE, 0, &__concat(__method, __LINE__)\
+#define _AMETHOD(TOKEN, SYMBOL, SIGNATURE...)\
+	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, __concat(__invoke, TOKEN)};\
+	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
+		SYMBOL, SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, __LINE__)(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
 
-#define SET_METHOD(SYMBOL, FUNCTION, SIGNATURE...)\
-	static char __concat(__symbol, __LINE__)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
-	const void *__concat(__instance, __LINE__)[] __attribute__ ((section (".methods"))) = {\
-		__concat(__symbol, __LINE__), SIGNATURE, 0, &FUNCTION\
+#define _SET_METHOD(TOKEN, SYMBOL, FUNCTION, SIGNATURE...)\
+	static char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
+	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
+		__concat(__symbol, TOKEN), SIGNATURE, 0, &FUNCTION\
 	};
 
-#define SET_AMETHOD(SYMBOL, FUNCTION, SIGNATURE...)\
-	const void *__concat(__instance, __LINE__)[] __attribute__ ((section (".methods"))) = {\
+#define _SET_AMETHOD(TOKEN, SYMBOL, FUNCTION, SIGNATURE...)\
+	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
 		SYMBOL, SIGNATURE, 0, &FUNCTION\
 	};
+
+
+#define METHOD(SYMBOL, SIGNATURE...)\
+	_METHOD(__concat3(__LINE__, _, __COUNTER__), SYMBOL, SIGNATURE)
+
+#define GLOBAL_METHOD(NAME, COUNT, SYMBOL, SIGNATURE...)\
+	_GLOBAL_METHOD(__concat3(__LINE__, _, __COUNTER__), NAME, COUNT, SYMBOL, SIGNATURE)
+
+#define ASYMBOL(NAME)\
+	_ASYMBOL(__concat3(__LINE__, _, __COUNTER__), NAME)
+
+#define AMETHOD(SYMBOL, SIGNATURE...)\
+	_AMETHOD(__concat3(__LINE__, _, __COUNTER__), SYMBOL, SIGNATURE)
+
+#define SET_METHOD(SYMBOL, FUNCTION, SIGNATURE...)\
+	_SET_METHOD(__concat3(__LINE__, _, __COUNTER__), SYMBOL, FUNCTION, SIGNATURE)
+
+#define SET_AMETHOD(SYMBOL, FUNCTION, SIGNATURE...)\
+	_SET_AMETHOD(__concat3(__LINE__, _, __COUNTER__), SYMBOL, FUNCTION, SIGNATURE)
 
 #endif
 

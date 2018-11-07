@@ -1,0 +1,5 @@
+{
+	"argv": ["riva", "Util/Jupyter/Kernel", "{connection_file}"],
+	"display_name": "Wrapl",
+	"language": "wrapl"
+}
