@@ -1,11 +1,12 @@
 MOD Kernel;
 
 IMP IO.Terminal USE Out;
-IMP Std, Sys, Agg, Util, Json;
+IMP Std, Sys, Agg, Util, Json, Alg;
 
 Out:write('Starting wrapl kernel\n');
 
 VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
+VAR key <- connection.key;
 
 Out:write('connection = {connection}\n');
 
@@ -34,20 +35,48 @@ loop:reader(shell;) (
 	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
 	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
 	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
-	Out:write('Received {req_header}, {req_parent}, {req_metadata}, {req_content} on shell\n');
-	WHEN req_header.msg_type IS "kernel_info_request" DO (
-		VAR rep_header <- {
+	Out:write('Received {ids}, {req_signature}, {req_header}, {req_parent}, {req_metadata}, {req_content} on shell\n');
+	Out:write('msg_type = {req_header.msg_type | "?"}\n');
+	req_header.msg_type = "kernel_info_request" => (
+		Out:write('kernel_info_request 1\n');
+		VAR rep_header <- Json.EncodeString({
 			"msg_id" IS req_header.msg_id,
 			"username" IS req_header.username,
 			"session" IS req_header.session,
 			"msg_type" IS "kernel_info_reply",
 			"version" IS "5.2"
-		};
-		VAR rep_parent <- {};
-		VAR rep_metadata <- {};
-		VAR rep_content <- {
-
-		};
+		});
+		VAR rep_parent <- "{}";
+		VAR rep_metadata <- "{}";
+		VAR rep_content <- Json.EncodeString({
+			"status" IS "ok",
+			"protocol_version" IS "5.2.0",
+			"implementation" IS "wrapl",
+			"implementation_version" IS "0.0.1",
+			"language_info" IS {
+				"name" IS "wrapl",
+				"version" IS "0.0.0",
+				"mimetype" IS "text/x-wrapl",
+				"file_extension" IS ".wrapl"
+			},
+			"banner" IS "Wrapl in Jupyter :)"
+		});
+		Out:write('kernel_info_request 2\n');
+		VAR hmac <- Alg.HMAC.SHA256.New(key);
+		Out:write('kernel_info_request 3\n');
+		hmac:update(rep_header);
+		hmac:update(rep_parent);
+		hmac:update(rep_metadata);
+		hmac:update(rep_content);
+		Out:write('kernel_info_request 4\n');
+		VAR rep_signature <- Util.Base16.Encode(hmac:digest):lower;
+		Out:write('Replying {rep_signature}, {rep_header}, {rep_parent}, {rep_metadata}, {rep_content} on shell\n');
+		shell:send("<IDS|MSG>");
+		shell:send(rep_signature);
+		shell:send(rep_header);
+		shell:send(rep_parent);
+		shell:send(rep_metadata);
+		shell:send(rep_content);
 	);
 );
 
@@ -58,11 +87,11 @@ loop:reader(control;) (
 		WHILE id ~= "<IDS|MSG>";
 		ids:put(id);
 	);
-	VAR signature <- shell:recv(Std.String.T);
-	VAR header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR parent_header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR metadata <- Json.LoadString(shell:recv(Std.String.T));
-	VAR content <- Json.LoadString(shell:recv(Std.String.T));
+	VAR signature <- control:recv(Std.String.T);
+	VAR header <- Json.LoadString(control:recv(Std.String.T));
+	VAR parent_header <- Json.LoadString(control:recv(Std.String.T));
+	VAR metadata <- Json.LoadString(control:recv(Std.String.T));
+	VAR content <- Json.LoadString(control:recv(Std.String.T));
 	Out:write('Received {header}, {parent_header}, {metadata}, {content} on control\n');
 );
 
