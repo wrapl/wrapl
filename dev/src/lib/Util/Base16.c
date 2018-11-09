@@ -12,7 +12,7 @@ GLOBAL_FUNCTION(Encode, 1) {
 		char *CP = Block->Chars.Value;
 		for (int I = Block->Length.Value; --I >= 0;) {
 			char C = *CP++;
-			*HP++ = HexDigits[C >> 4];
+			*HP++ = HexDigits[(C >> 4) & 15];
 			*HP++ = HexDigits[C & 15];
 		}
 	}

@@ -270,6 +270,15 @@ METHOD("send", TYP, SockT, TYP, Std$String$T) {
 	RETURN0;
 }
 
+METHOD("sendm", TYP, SockT, TYP, Std$String$T) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	const char *String = Std$String$flatten(Args[1].Val);
+	if (zstr_sendm(Sock->Handle, String) == -1) {
+		SEND(Std$String$new("Send error"));
+	}
+	RETURN0;
+}
+
 typedef struct frame_t {
 	const Std$Type$t *Type;
 	zframe_t *Handle;
