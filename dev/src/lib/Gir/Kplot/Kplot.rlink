@@ -1,0 +1,39 @@
+include("Std.rlib")
+include("Riva/Memory.rlib")
+include("Agg/List.rlib")
+include("Gir/GObject/Object.rlib")
+include("Gir/Cairo/Cairo.rlib")
+
+submodule("Array")
+subexport("Array", "ArrayAlloc", "Alloc")
+
+submodule("Vector")
+subexport("Vector", "VectorAlloc", "Alloc") 
+
+submodule("Stddev")
+subexport("Stddev", "StddevAlloc", "Alloc")
+
+submodule("Mean")
+subexport("Mean", "MeanAlloc", "Alloc")
+
+submodule("Hist")
+subexport("Hist", "HistAlloc", "Alloc")
+
+submodule("Buffer")
+subexport("Buffer", "BufferAlloc", "Alloc")
+
+submodule("Bucket")
+subexport("Bucket", "BucketAlloc", "Alloc")
+
+submodule("Plot")
+subexport("Plot", "PlotT", "T")
+subexport("Plot", "PlotAlloc", "Alloc")
+
+submodule("PlotType")
+subexport("PlotType", "PlotTypePoints", "Points")
+subexport("PlotType", "PlotTypeMarks", "Marks")
+subexport("PlotType", "PlotTypeLines", "Lines")
+subexport("PlotType", "PlotTypeLinesPoints", "LinesPoints")
+subexport("PlotType", "PlotTypeLinesMarks", "LinesMarks")
+
+submodule("PlotsType")

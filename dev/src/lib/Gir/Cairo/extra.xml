@@ -590,6 +590,14 @@
       <return-type type="cairo_hint_metrics_t"/>
     </method>
   </struct>
+  <callback name="WriteFunc" cname="cairo_write_func_t" gname="CairoWriteFunc">
+    <return-type type="Cairo.Status"/>
+    <parameters>
+      <parameter name="closure" type="any"/>
+      <parameter name="data" type="void*"/>
+      <parameter name="length" type="unsigned int"/>
+    </parameters>
+  </callback>
   <struct cname="cairo_surface_t" opaque="true">
     <method name="ImageSurfaceCreate" cname="cairo_image_surface_create" shared="true">
       <return-type type="cairo_surface_t"/>
@@ -619,6 +627,13 @@
       <return-type type="void"/>
       <parameters>
         <parameter name="filename" type="const-char*"/>
+      </parameters>
+    </method>
+    <method name="WriteToPngStream" cname="cairo_surface_write_to_png_stream">
+      <return-type type="Cairo.Status"/>
+      <parameters>
+        <parameter name="write_func" type="cairo_write_func_t"/>
+        <parameter name="closure" type="any"/>
       </parameters>
     </method>
     <method name="GetWidth" cname="cairo_image_surface_get_width">
@@ -796,25 +811,6 @@
   <struct cname="cairo_path_t"></struct>
   <struct cname="cairo_region_t" opaque="true"></struct>
   <struct cname="cairo_text_cluster_t"></struct>
-  <enum cname="cairo_status_t" type="enum"></enum>
-  <enum cname="cairo_antialias_t" type="enum"></enum>
-  <enum cname="cairo_fill_rule_t" type="enum"></enum>
-  <enum cname="cairo_line_cap_t" type="enum"></enum>
-  <enum cname="cairo_line_join_t" type="enum"></enum>
-  <enum cname="cairo_operator_t" type="enum"></enum>
-  <enum cname="cairo_format_t" type="enum">
-    <member cname="CAIRO_FORMAT_ARGB32" name="Argb32"/>
-    <member cname="CAIRO_FORMAT_RGB24" name="Rgb24"/>
-    <member cname="CAIRO_FORMAT_A8" name="A8"/>
-    <member cname="CAIRO_FORMAT_A1" name="A1"/>
-    <member cname="CAIRO_FORMAT_RGB16_565" name="Rgb16_565"/>
-  </enum>
-  <enum cname="cairo_pattern_type_t" type="enum"></enum>
-  <enum cname="cairo_font_type_t" type="enum"></enum>
-  <enum cname="cairo_font_slant_t" type="enum"></enum>
-  <enum cname="cairo_font_weight_t" type="enum"></enum>
-  <enum cname="cairo_hint_style_t" type="enum"></enum>
-  <enum cname="cairo_hint_metrics_t" type="enum"></enum>
   <enum cname="cairo_subpixel_order_t" type="enum"></enum>
   <enum cname="cairo_region_overlap_t" type="enum"></enum>
 </metadata>

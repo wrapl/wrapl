@@ -626,6 +626,12 @@ METHOD("line", TYP, SessionT) {
 	return SUCCESS;
 }
 
+METHOD("lineno", TYP, SessionT, TYP, Std$Integer$SmallT) {
+	session_t *Session = (session_t *)Args[0].Val;
+	Session->Scanner->NextToken.LineNo = Std$Integer$get_small(Args[1].Val);
+	RETURN0;
+}
+
 GLOBAL_METHOD(SessionPeek, 1, "peek", TYP, SessionT) {
 	session_t *Session = (session_t *)Args[0].Val;
 	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);

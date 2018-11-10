@@ -10,7 +10,8 @@ VAR log <- IO.File.Open("convert.log", IO.File.Flag.Write + IO.File.Flag.Text);
 
 VAR gir_dirs <- [
 	"/usr/lib/girepository-1.0",
-	"/usr/lib/i386-linux-gnu/girepository-1.0"
+	"/usr/lib/i386-linux-gnu/girepository-1.0",
+	"Arrow/arrow/lib"
 ];
 
 VAR gir_file, gir_dir, gir;
