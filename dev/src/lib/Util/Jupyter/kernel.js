@@ -63,10 +63,7 @@ CodeMirror.defineMode("wrapl", function () {
 					return "string";
 				}
 				if (Stream.eat("\\")) {
-					if (Stream.eat("x")) {
-						if (!Stream.next()) return "error";
-						if (!Stream.next()) return "error";
-					}
+					if (Stream.eat("x")) if (!Stream.next()) return "error";
 					if (!Stream.next()) return "error";
 				} else if (!Stream.next()) {
 					State.InsideString = true;
@@ -111,10 +108,7 @@ CodeMirror.defineMode("wrapl", function () {
 		if (Stream.eat("\"")) {
 			while (!Stream.eat("\"")) {
 				if (Stream.eat("\\")) {
-					if (Stream.eat("x")) {
-						if (!Stream.next()) return "error";
-						if (!Stream.next()) return "error";
-					}
+					if (Stream.eat("x")) if (!Stream.next()) return "error";
 				}
 				if (!Stream.next()) return "error";
 			}
@@ -125,10 +119,7 @@ CodeMirror.defineMode("wrapl", function () {
 			if (Stream.eat("\"")) {
 				while (!Stream.eat("\"")) {
 					if (Stream.eat("\\")) {
-						if (Stream.eat("x")) {
-							if (!Stream.next()) return "error";
-							if (!Stream.next()) return "error";
-						}
+						if (Stream.eat("x")) if (!Stream.next()) return "error";
 					}
 					if (!Stream.next()) return "error";
 				}
