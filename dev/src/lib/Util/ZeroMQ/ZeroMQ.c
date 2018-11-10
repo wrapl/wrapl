@@ -253,9 +253,11 @@ METHOD("type", TYP, SockT) {
 
 METHOD("recv", TYP, SockT, VAL, Std$String$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
-	char *String = zstr_recv(Sock->Handle);
-	if (String) {
-		RETURN(Std$String$new(String));
+	zframe_t *Frame = zframe_recv(Sock->Handle);
+	if (Frame) {
+		Std$Object$t *String = Std$String$copy_length(zframe_data(Frame), zframe_size(Frame));
+		zframe_destroy(&Frame);
+		RETURN(String);
 	} else {
 		FAIL;
 	}
@@ -263,8 +265,14 @@ METHOD("recv", TYP, SockT, VAL, Std$String$T) {
 
 METHOD("send", TYP, SockT, TYP, Std$String$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
-	const char *String = Std$String$flatten(Args[1].Val);
-	if (zstr_send(Sock->Handle, String) == -1) {
+	int Length = Std$String$get_length(Args[1].Val);
+	zframe_t *Frame = zframe_new(0, Length);
+	char *Data = zframe_data(Frame);
+	for (Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
+		memcpy(Data, Block->Chars.Value, Block->Length.Value);
+		Data += Block->Length.Value;
+	}
+	if (zframe_send(&Frame, Sock->Handle, 0) == -1) {
 		SEND(Std$String$new("Send error"));
 	}
 	RETURN0;
@@ -272,8 +280,14 @@ METHOD("send", TYP, SockT, TYP, Std$String$T) {
 
 METHOD("sendm", TYP, SockT, TYP, Std$String$T) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
-	const char *String = Std$String$flatten(Args[1].Val);
-	if (zstr_sendm(Sock->Handle, String) == -1) {
+	int Length = Std$String$get_length(Args[1].Val);
+	zframe_t *Frame = zframe_new(0, Length);
+	char *Data = zframe_data(Frame);
+	for (Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
+		memcpy(Data, Block->Chars.Value, Block->Length.Value);
+		Data += Block->Length.Value;
+	}
+	if (zframe_send(&Frame, Sock->Handle, ZFRAME_MORE) == -1) {
 		SEND(Std$String$new("Send error"));
 	}
 	RETURN0;

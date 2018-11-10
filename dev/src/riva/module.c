@@ -366,6 +366,16 @@ void module_provider_export(module_provider_t *Provider, const char *Symbol, int
 	pthread_mutex_unlock(LibRivaMutex);
 };
 
+module_provider_t *module_provider_new(module_t *Module) {
+	module_provider_t *Provider = new(module_provider_t);
+	Provider->Module = Module;
+	Provider->HasImports = 0;
+	module_provider_t **Slot = &Module->Providers;
+	while (Slot[0]->Next) Slot = &Slot[0]->Next;
+	Slot[0] = Provider;
+	return Provider;
+}
+
 void module_importer_set(module_provider_t *Provider, void *ImportInfo, module_import_func ImportFunc) {
 	if (ImportFunc) {
 		Provider->ImportInfo = ImportInfo;

@@ -1,4 +1,4 @@
-module("Gcc")
+module("libgcc")
 prefix("")
 import("__muldi3")
 import("__negdi2")
