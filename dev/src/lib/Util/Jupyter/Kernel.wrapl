@@ -11,6 +11,9 @@ VAR Log <- Util.Logger.New(Kernel);
 
 Log.INFO('Starting wrapl kernel');
 
+DEF InT <[IO.Stream.TextReaderT, IO.Stream.ReaderT, IO.Stream.T] parent>;
+DEF OutT <[IO.Stream.TextWriterT, IO.Stream.WriterT, IO.Stream.T] type, parent>;
+
 VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
 VAR key <- connection.key;
 
@@ -21,11 +24,16 @@ VAR control <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.
 VAR stdin <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.stdin_port}');
 VAR iopub <- Util.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{connection.iopub_port}');
 
+METH :write(stream @ OutT, text @ Std.String.T) (
+	Send(iopub, NIL, "stream", stream:parent, {}, {"name" IS stream:type, "text" IS text});
+);
+
 VAR execution_count <- 0;
 VAR input <- IO.Buffer.New();
 VAR wrapl <- Wrapl.Session.New(input);
 VAR session <- '{Alg.UUID.New()}';
 VAR loop <- Util.ZeroMQ.Loop.New();
+VAR in, out, err;
 
 wrapl:def("Image", Image);
 
@@ -58,10 +66,13 @@ loop:reader(shell;) (
 			},
 			"banner" IS "Wrapl in Jupyter :)"
 		});
+		Terminal:export("Out", out <- OutT("stdout", {}));
+		Terminal:export("Err", err <- OutT("stderr", {}));
 	) IS "execute_request" DO (
 		execution_count <- $ + 1;
 		input:write(req_content.code);
 		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "busy"});
+		out:parent <- req_header;
 		VAR status <- "ok";
 		REP (WHILE input:length > 0;
 			VAR result <- wrapl:eval;
@@ -127,7 +138,7 @@ DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	hmac:update(metadata);
 	hmac:update(content);
 	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
-	Log.DEBUG('send\n\t{ids}\n\t{signature}\n\t{header}\n\t{parent}\n\t{metadata}\n\t{content}');
+	Log.DEBUG('send\n\t{ids}\n\t{signature}\n\t{header}\n\t{parent}\n\t{metadata}\n\t{content}\n');
 	ids ~== NIL => EVERY socket:sendm(ids:values);
 	socket:sendm("<IDS|MSG>");
 	socket:sendm(signature);
