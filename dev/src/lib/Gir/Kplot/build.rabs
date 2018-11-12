@@ -15,10 +15,10 @@ CFLAGS := old + ['-I{file("include")}']
 CFLAGS := old + ["-std=gnu99", pkg_config("--cflags gobject-2.0"), "-include glib-object.h -include gobject/gvaluecollector.h"]
 LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0")]
 
-CFLAGS := old + ["-std=gnu99", pkg_config("--cflags --cflags cairo glib-2.0"),
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags --cflags cairo glib-2.0 gdk-3.0"),
 	"-include cairo.h -include cairo-svg.h -include cairo-ps.h -include cairo-script-interpreter.h -include cairo-pdf.h",
 	"-include cairo-ft.h -include cairo-script.h"
 ]
-LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l --cflags cairo glib-2.0")]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l --cflags cairo glib-2.0 gdk-3.0")]
 
 riva_module("Gir/Kplot", [file("Kplot.o")], [KPLOT_LIB])

@@ -1,33 +1,39 @@
 include("Std.rlib")
 include("Riva/Memory.rlib")
 include("Agg/List.rlib")
+include("Agg/Table.rlib")
 include("Gir/GObject/Object.rlib")
 include("Gir/Cairo/Cairo.rlib")
+include("Gir/Cairo/Pattern.rlib")
+include("Gir/Cairo/LineJoin.rlib")
+include("Gir/Cairo/FontSlant.rlib")
+include("Gir/Cairo/FontWeight.rlib")
+include("Gir/Gdk/RGBA.rlib")
 
 submodule("Array")
-subexport("Array", "ArrayAlloc", "Alloc")
+subexport("Array", "ArrayNew", "New")
 
 submodule("Vector")
-subexport("Vector", "VectorAlloc", "Alloc") 
+subexport("Vector", "VectorNew", "New") 
 
 submodule("Stddev")
-subexport("Stddev", "StddevAlloc", "Alloc")
+subexport("Stddev", "StddevNew", "New")
 
 submodule("Mean")
-subexport("Mean", "MeanAlloc", "Alloc")
+subexport("Mean", "MeanNew", "New")
 
 submodule("Hist")
-subexport("Hist", "HistAlloc", "Alloc")
+subexport("Hist", "HistNew", "New")
 
 submodule("Buffer")
-subexport("Buffer", "BufferAlloc", "Alloc")
+subexport("Buffer", "BufferNew", "New")
 
 submodule("Bucket")
-subexport("Bucket", "BucketAlloc", "Alloc")
+subexport("Bucket", "BucketNew", "New")
 
 submodule("Plot")
 subexport("Plot", "PlotT", "T")
-subexport("Plot", "PlotAlloc", "Alloc")
+subexport("Plot", "PlotNew", "New")
 
 submodule("PlotType")
 subexport("PlotType", "PlotTypePoints", "Points")
@@ -37,3 +43,8 @@ subexport("PlotType", "PlotTypeLinesPoints", "LinesPoints")
 subexport("PlotType", "PlotTypeLinesMarks", "LinesMarks")
 
 submodule("PlotsType")
+subexport("PlotsType", "PlotsTypeYErrorLine", "YErrorLine")
+subexport("PlotsType", "PlotsTypeYErrorBar", "YErrorBar")
+
+submodule("PlotSet")
+subexport("PlotSet", "PlotSetNew", "New")
