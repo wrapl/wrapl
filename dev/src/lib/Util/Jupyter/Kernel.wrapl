@@ -26,6 +26,7 @@ VAR iopub <- Util.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{
 
 METH :write(stream @ OutT, text @ Std.String.T) (
 	Send(iopub, NIL, "stream", stream:parent, {}, {"name" IS stream:type, "text" IS text});
+	RET stream;
 );
 
 VAR execution_count <- 0;
@@ -82,10 +83,9 @@ loop:reader(shell;) (
 				input:rest;
 				status <- "error";
 				Send(iopub, NIL, "execute_result", req_header, {}, {
+					"line" IS 85,
 					"execution_count" IS execution_count,
-					"data" IS {
-						"text/plain" IS '{msg}' RECV msg2 DO "Unknown error"
-					}
+					"data" IS {"text/plain" IS 'Error: {msg}' RECV msg2 DO "Unknown error"}
 				});
 				Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
 				RET;
@@ -94,6 +94,7 @@ loop:reader(shell;) (
 		VAR data <- {};
 		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
 		Send(iopub, NIL, "execute_result", req_header, {}, {
+			"line" IS 96,
 			"execution_count" IS execution_count,
 			"data" IS data
 		});
