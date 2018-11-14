@@ -1,7 +1,7 @@
 MOD Main;
 
 IMP IO.Terminal USE Out, Err;
-IMP Std, Sys, IO, Xml;
+IMP Std, Sys, IO, Fmt.Xml;
 
 VAR api <- Xml.New(:api);
 VAR namespace, prefix, main, values;

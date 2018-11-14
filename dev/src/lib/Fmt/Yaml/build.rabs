@@ -27,5 +27,5 @@ end
 CFLAGS := old + ["-I", file("include")]
 
 file("Parser.o")[YAML_LIB]
-riva_module("Yaml/Parser", [file("Parser.o")])
-wrapl_module("Yaml")
+riva_module("Fmt/Yaml/Parser", [file("Parser.o")])
+wrapl_module("Fmt/Yaml")

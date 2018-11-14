@@ -3,7 +3,8 @@ MOD Xml;
 IMP Std USE String, Symbol, Address;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Escaped;
-IMP Xml.Parser;
+
+DEF Parser Xml.Parser;
 
 DEF SpecialChars ["<", ">", "&", "\"", "\'"];
 DEF HtmlEntities ["&lt;", "&gt;", "&amp;", "&quot;", "&apos;"];

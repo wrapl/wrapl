@@ -1,3 +1,7 @@
+CFLAGS := old + ["-std=gnu99"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib"]
+RDOCFLAGS := old + ["-I", file("")]
+
 LIBSSH_VERSION := "0.8.3"
 
 var LIBSSH_LIB := file("lib/libssh.a") => fun() do
@@ -11,3 +15,6 @@ CFLAGS := old + ["-DLIBSSH_STATIC=1", '-I{file("include")}']
 file("SSH.c"):scan("INCLUDES", :true)[LIBSSH_LIB]
 
 riva_module("Net/SSH", [file("SSH.o")])
+
+subdir("RabbitMQ")
+subdir("ZeroMQ")

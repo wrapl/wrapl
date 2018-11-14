@@ -12,5 +12,5 @@ end
 CFLAGS := old + ["-I", file("include")]
 
 file("Parser.o")[YAJL_LIB]
-riva_module("Json/Parser", [file("Parser.o")])
-wrapl_module("Json")
+riva_module("Fmt/Json/Parser", [file("Parser.o")])
+wrapl_module("Fmt/Json")

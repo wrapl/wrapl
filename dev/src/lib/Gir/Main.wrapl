@@ -6,7 +6,7 @@ IMP Sys.Program USE Args;
 IMP Sys.FileSys;
 IMP Sys.Time;
 IMP IO.File;
-IMP Xml.Parser;
+IMP Fmt.Xml.Parser;
 
 IMP .Type, .API, .Log;
 

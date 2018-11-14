@@ -44,4 +44,4 @@ file("ZeroMQ.c"):scan("INCLUDES", :true)[CZMQ_LIB]
 
 CFLAGS := old + ['-I{file("include")}']
 
-riva_module("Util/ZeroMQ", [file("ZeroMQ.o")], [CZMQ_LIB, ZEROMQ_LIB, LZ4_LIB])
+riva_module("Net/ZeroMQ", [file("ZeroMQ.o")], [CZMQ_LIB, ZEROMQ_LIB, LZ4_LIB])

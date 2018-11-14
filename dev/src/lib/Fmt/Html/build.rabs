@@ -33,4 +33,4 @@ file("Entities.c")[RIVA, file("Entities.json"), EntitiesGen] => fun() do
 	execute(RIVA, "-L. EntitiesGen", file("Entities.json"))
 end
 
-riva_module("Html/Entities", [file("Entities.o")])
+riva_module("Fmt/Html/Entities", [file("Entities.o")])

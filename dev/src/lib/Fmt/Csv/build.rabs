@@ -12,4 +12,4 @@ file("csv.h") => fun() do
 	execute("cp", CSV_DIR/"csv.h", ".")
 end
 
-riva_module("Csv/Parser", [file("Parser.o"), file("libcsv.o")])
+riva_module("Fmt/Csv/Parser", [file("Parser.o"), file("libcsv.o")])

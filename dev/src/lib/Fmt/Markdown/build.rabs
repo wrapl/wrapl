@@ -9,5 +9,5 @@ var MD4C_HEADER := file("md4c.h")[MD4C_SOURCE] => fun(Target) nil
 
 CFLAGS := old + ['-I{PATH}']
 
-riva_module("Markdown/Parser", [file("Parser.o"), file("md4c.o")])
+riva_module("Fmt/Markdown/Parser", [file("Parser.o"), file("md4c.o")])
 --wrapl_module("Markdown")
