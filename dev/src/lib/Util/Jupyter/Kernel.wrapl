@@ -1,7 +1,8 @@
 MOD Kernel;
 
 IMP IO.Terminal USE Out;
-IMP Std, Sys, Agg, Util, Json, Alg, IO, Wrapl;
+IMP Std, Sys, Agg, Util, Alg, IO, Wrapl;
+IMP Fmt.Json;
 
 DEF Display! :?;
 
