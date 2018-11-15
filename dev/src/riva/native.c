@@ -212,7 +212,7 @@ void native_init(void) {
 	module_export(Module, "pthread_sigmask", 0, GC_pthread_sigmask);
 	module_export(Module, "pthread_cancel", 0, GC_pthread_cancel);
 	module_export(Module, "pthread_exit", 0, GC_pthread_exit);
-	
+
 	Module = module_new("libdl");
 	module_add_alias(Module, "library:/libdl");
 	module_importer_set(Module->Providers, Handle, (module_import_func)native_import);

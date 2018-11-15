@@ -1,7 +1,7 @@
 MOD Kernel;
 
 IMP IO.Terminal USE Out;
-IMP Std, Sys, Agg, Util, Alg, IO, Wrapl;
+IMP Std, Sys, Agg, Util, Alg, IO, Net, Wrapl;
 IMP Fmt.Json;
 
 DEF Display! :?;
@@ -19,11 +19,11 @@ VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
 VAR key <- connection.key;
 
 Log.INFO('Connection info = ', connection);
-VAR heartbeat <- Util.ZeroMQ.Sock.RepNew('{connection.transport}://{connection.ip}:{connection.hb_port}');
-VAR shell <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.shell_port}');
-VAR control <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.control_port}');
-VAR stdin <- Util.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.stdin_port}');
-VAR iopub <- Util.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{connection.iopub_port}');
+VAR heartbeat <- Net.ZeroMQ.Sock.RepNew('{connection.transport}://{connection.ip}:{connection.hb_port}');
+VAR shell <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.shell_port}');
+VAR control <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.control_port}');
+VAR stdin <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.stdin_port}');
+VAR iopub <- Net.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{connection.iopub_port}');
 
 METH :write(stream @ OutT, text @ Std.String.T) (
 	Send(iopub, NIL, "stream", stream:parent, {}, {"name" IS stream:type, "text" IS text});
@@ -34,7 +34,7 @@ VAR execution_count <- 0;
 VAR input <- IO.Buffer.New();
 VAR wrapl <- Wrapl.Session.New(input);
 VAR session <- '{Alg.UUID.New()}';
-VAR loop <- Util.ZeroMQ.Loop.New();
+VAR loop <- Net.ZeroMQ.Loop.New();
 VAR in, out, err;
 
 wrapl:def("Jupyter", Kernel);

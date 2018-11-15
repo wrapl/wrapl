@@ -7,7 +7,7 @@
 #include <Riva/Memory.h>
 #include <libpq-fe.h>
 #include <postgres_fe.h>
-#include <catalog/pg_type.h>
+#include <catalog/pg_type_d.h>
 
 typedef struct {
 	const Std$Type$t *Type;

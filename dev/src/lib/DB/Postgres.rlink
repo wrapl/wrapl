@@ -1,16 +1,10 @@
-include('libpq.so')
+include('lib/libpq.a')
 include('Alg/UUID.rlib')
 include('Sys/Time.rlib')
 include('Agg.rlib')
 include('Std.rlib')
 include('Riva.rlib')
-
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
+include("libpthread.rlib")
 
 export("Open")
 export("SendT")

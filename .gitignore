@@ -12,6 +12,7 @@ dev/bin/rlink
 dev/doc
 dev/rst/*
 dev/gen
+dev/obj
 /.project
 /.anjuta/*
 **/*.bz2

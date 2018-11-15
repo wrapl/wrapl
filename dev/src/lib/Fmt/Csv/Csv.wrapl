@@ -1,0 +1,49 @@
+MOD Csv;
+
+IMP Std.Address;
+IMP IO.Stream;
+DEF Parser Csv.Parser;
+
+DEF T! <[] parser, input, buffer, _header, _rows>;
+
+DEF New!(input @ Stream.Reader, options, values*) (
+	VAR parser <- Parser.New();
+	options ~== NIL => (
+		VAR option, value;
+		EVERY PAR option <- options:values, value <- values:values DO (
+			option(parser, value); 
+		);
+	);
+	VAR t <- T(parser, input, Address.New(256), NIL, []);
+	parser:userdata <- [];
+	parser:fieldhandler <- :put;
+	parser:recordhandler <- <header+> (
+		t:_header <- header;
+		header <- [];
+		parser:recordhandler <- <record+> (
+			t:_rows:put(record);
+			record <- [];
+		);
+	);
+	RET t;
+);
+
+METH :header(t @ T) (
+	VAR header IS t:_header;
+	REP (WHILE header == NIL;
+		VAR n <- t:input:read(t:buffer, 256);
+		t:parser:write(t:buffer, n);
+	);
+	RET header;
+);
+
+METH :rows(t @ T) (
+	VAR rows IS t:_rows;
+	REP (REP WHILE SUSP rows:pop;
+		WHILE t:parser:write(t:buffer, 0 < t:input:read(t:buffer, 256));
+	);
+	t:parser:finish;
+	REP WHILE SUSP rows:pop;
+);
+
+END Csv.

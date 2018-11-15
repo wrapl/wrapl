@@ -13,3 +13,4 @@ file("csv.h") => fun() do
 end
 
 riva_module("Fmt/Csv/Parser", [file("Parser.o"), file("libcsv.o")])
+wrapl_module("Fmt/Csv")
