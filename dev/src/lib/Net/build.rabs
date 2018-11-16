@@ -1,5 +1,5 @@
 CFLAGS := old + ["-std=gnu99"]
-LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib"]
 RDOCFLAGS := old + ["-I", file("")]
 
 LIBSSH_VERSION := "0.8.3"

@@ -1,5 +1,5 @@
 CFLAGS := old + ["-std=gnu99"]
-LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib"]
 RDOCFLAGS := old + ["-I", file("")]
 
 WRAPL_MODULES[riva_module("Util/TypedFunction", [file("TypedFunction.o")])]

@@ -1,4 +1,3 @@
-include("libstdc++.rlib")
 include("libgcc.rlib")
 include("Math/Vector.rlink")
 include("Agg/List.rlib")

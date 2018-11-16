@@ -1,6 +1,6 @@
-var MAPGEN := file("Mapgen.riva")
-var AUTOGEN := file("Autogen.log")
-var API_XML := file("api.xml")
+MAPGEN := file("Mapgen.riva")
+AUTOGEN := file("Autogen.log")
+API_XML := file("api.xml")
 
 riva_program(MAPGEN, [file("Mapgen.o")])
 

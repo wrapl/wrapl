@@ -1384,13 +1384,11 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 				symbol_t *Symbol = new_symbol(Name, (section_t *)Sym->section->userdata, Sym->value);
 				if (Sym->section->userdata && Sym->value == 0) ((section_t *)Sym->section->userdata)->Name = Name;
 				stringmap_insert(WeakTable, Name, Symbol);
-/*
 #ifdef WINDOWS
 				if (AutoExport) new_export(Name, Name + 1, 0);
 #else
 				if (AutoExport) new_export(Name, Name, 0);
 #endif
-*/
 			} else if (Sym->section == bfd_und_section_ptr) {
 			} else if (Sym->flags & BSF_DEBUGGING) {
 				// This may be supported later

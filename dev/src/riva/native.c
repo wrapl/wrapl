@@ -185,9 +185,9 @@ void native_init(void) {
 	module_add_alias(Module, "library:/libc");
 	module_add_alias(Module, "library:/libgcc");
 	module_importer_set(Module->Providers, Handle, (module_import_func)native_import);
-	module_provider_t *Stdcpp = module_provider_new(Module);
-	void *StdcppHandle = GC_dlopen("libstdc++.so", RTLD_LOCAL| RTLD_LAZY);
-	module_importer_set(Stdcpp, StdcppHandle, (module_import_func)native_import);
+	//module_provider_t *Stdcpp = module_provider_new(Module);
+	//void *StdcppHandle = GC_dlopen("libstdc++.so", RTLD_LOCAL| RTLD_LAZY);
+	//module_importer_set(Stdcpp, StdcppHandle, (module_import_func)native_import);
 //#include "libc_exports.c"
 	module_export(Module, "atexit", 0, &atexit);
 	module_export(Module, "stat", 0, &stat);

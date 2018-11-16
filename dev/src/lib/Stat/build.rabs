@@ -1,5 +1,3 @@
-LDFLAGS := old + ["libstdc++.rlib"]
-
 riva_module("Stat/Dist", [file("Dist.o")])
 
 subdir("Dist")

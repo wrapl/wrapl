@@ -2,7 +2,7 @@ IGRAPH_VERSION := "0.7.1"
 var IGRAPH_DIR := file('igraph-{IGRAPH_VERSION}')
 
 CFLAGS := old + ["-std=gnu99", "-Iinclude"]
-LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Agg.rlib"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Agg.rlib"]
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
 var IGRAPH_LIB := file("libigraph.a") => fun() do

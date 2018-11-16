@@ -2,7 +2,7 @@ UUID_VERSION := "1.0.3"
 var UUID_DIR := file('libuuid-{UUID_VERSION}')
 
 CFLAGS := old + ["-std=gnu99", "-Iinclude"]
-LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib"]
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
 var UUID_LIB := file("libuuid.a") => fun() do

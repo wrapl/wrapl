@@ -144,6 +144,7 @@ void debug_init(void) {
 	sigemptyset(&Action.sa_mask);
 	Action.sa_flags = SA_RESTART;
 	sigaction(SIGSEGV, &Action, NULL);
+	sigaction(SIGABRT, &Action, NULL);
 #endif
 	GC_set_warn_proc(debug_gc_warn);
 	module_t *Module = module_new("Riva/Debug");

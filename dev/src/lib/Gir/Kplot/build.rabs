@@ -8,7 +8,7 @@ var KPLOT_LIB := file("lib/libkplot.a") => fun() do
 	execute('make install CFLAGS=\"{LIBCFLAGS}\" PREFIX={BUILDDIR}')
 end
 
-file("Kplot.c"):scan("INCLUDES", :true)[KPLOT_LIB, AUTOGEN]
+PREBUILDS := old + [KPLOT_LIB, AUTOGEN]
 
 CFLAGS := old + ['-I{file("include")}']
 
