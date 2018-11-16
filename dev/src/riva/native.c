@@ -174,6 +174,10 @@ static int native_load(module_provider_t *Provider, const char *FileName) {
 extern void *__dso_handle;
 extern void __stack_chk_fail();
 
+void *GC_calloc(size_t Count, size_t Size) {
+	return GC_malloc(Count * Size);
+}
+
 void native_init(void) {
 	module_add_loader("Native", 90, native_find, native_load);
 	void *Handle = GC_dlopen(0, RTLD_LOCAL| RTLD_LAZY);
@@ -194,14 +198,14 @@ void native_init(void) {
 	module_export(Module, "__dso_handle", 0, &__dso_handle);
 	module_export(Module, "__stack_chk_fail_local", 0, &__stack_chk_fail);
 	
-	/*module_export(Module, "malloc", 0, malloc);
-	module_export(Module, "calloc", 0, calloc);
-	module_export(Module, "realloc", 0, realloc);
-	module_export(Module, "free", 0, free);
-	module_export(Module, "strdup", 0, strdup);
+	/*module_export(Module, "malloc", 0, GC_malloc);
+	module_export(Module, "calloc", 0, GC_calloc);
+	module_export(Module, "realloc", 0, GC_realloc);
+	module_export(Module, "free", 0, GC_free);
+	module_export(Module, "strdup", 0, GC_strdup);
 	module_export(Module, "malloc_usable_size", 0, GC_size);
-	module_export(Module, "memalign", 0, memalign);
-	module_export(Module, "posix_memalign", 0, posix_memalign);*/
+	module_export(Module, "memalign", 0, GC_memalign);
+	module_export(Module, "posix_memalign", 0, GC_posix_memalign);*/
 
 	Module = module_new("libpthread");
 	module_add_alias(Module, "library:/libpthread");

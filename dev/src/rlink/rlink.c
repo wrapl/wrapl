@@ -580,6 +580,8 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			Relocation->Size = bfd_get_reloc_size(Type);
 			if (!strcmp(Type->name, "R_386_GOT32")) {
 				Relocation->Flags = RELOC_IND;
+			} else if (!strcmp(Type->name, "R_386_GOT32X")) {
+				Relocation->Flags = RELOC_IND;
 			} else if (!strcmp(Type->name, "R_386_TLS_IE")) {
 				Relocation->Flags = RELOC_IND;
 			} else {
@@ -661,6 +663,8 @@ static void bfd_section_setup(bfd_section_t *Section) {
 				printf("Looking for symbol %s with flags %d\n", Sym->name, Sym->flags);
 			}
 			if (!strcmp(Type->name, "R_386_GOT32")) {
+				Relocation->Flags = RELOC_IND;
+			} else if (!strcmp(Type->name, "R_386_GOT32X")) {
 				Relocation->Flags = RELOC_IND;
 			} else if (!strcmp(Type->name, "R_386_TLS_IE")) {
 				Relocation->Flags = RELOC_IND;
