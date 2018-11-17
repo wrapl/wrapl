@@ -5,7 +5,7 @@ var LINENOISE_HEADER := file("linenoise.h") => fun() do
 	var LINENOISE_URL := 'https://github.com/antirez/linenoise/archive/{LINENOISE_VERSION}.tar.gz'
 	LINENOISE_DIR:mkdir
 	execute("cd", LINENOISE_DIR, "&&",
-		"wget --user-agent=\"Firefox/3.6.12\" -nv", LINENOISE_URL, "-O- | tar xvzP --strip-components=1"
+		"wget -nv", LINENOISE_URL, "-O- | tar xvzP --strip-components=1"
 	)
 	file("linenoise/linenoise.h"):copy(LINENOISE_HEADER)
 end

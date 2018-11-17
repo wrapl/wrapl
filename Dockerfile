@@ -33,7 +33,10 @@ RUN apt-get update && apt-get install -y \
 	libsoup2.4-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
-	liblz4-dev
+	liblz4-dev \
+	flex \
+	bison \
+	libreadline-dev
 
 RUN apt-get clean
 

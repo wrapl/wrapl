@@ -4,14 +4,14 @@ LZ4_VERSION := "1.8.3"
 
 var LZ4_LIB := file("lib/liblz4.a") => fun() do
 	file("lz4"):rmdir:mkdir:chdir
-	execute('wget https://github.com/lz4/lz4/archive/v{LZ4_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute('wget -nv https://github.com/lz4/lz4/archive/v{LZ4_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
 	execute('make CFLAGS=\"{LIBCFLAGS}\"')
 	execute('make install PREFIX={BUILDDIR}')
 end
 
 var ZEROMQ_LIB := file("lib/libzmq.a")[LZ4_LIB] => fun() do
 	file("zeromq"):rmdir:mkdir:chdir
-	execute('wget https://github.com/zeromq/libzmq/releases/download/v{ZEROMQ_VERSION}/zeromq-{ZEROMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute('wget -nv https://github.com/zeromq/libzmq/releases/download/v{ZEROMQ_VERSION}/zeromq-{ZEROMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -27,7 +27,7 @@ end
 
 var CZMQ_LIB := file("lib/libczmq.a")[ZEROMQ_LIB] => fun() do
 	file("czmq"):rmdir:mkdir:chdir
-	execute('wget https://github.com/zeromq/czmq/releases/download/v{CZMQ_VERSION}/czmq-{CZMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute('wget -nv https://github.com/zeromq/czmq/releases/download/v{CZMQ_VERSION}/czmq-{CZMQ_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",

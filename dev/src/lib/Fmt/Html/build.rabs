@@ -6,7 +6,7 @@ GUMBO_LIB := file("libgumbo.a")
 GUMBO_LIB => fun() do
 	execute("mkdir -p", GUMBO_DIR)
 	execute("cd", GUMBO_DIR, "&&",
-		"wget --user-agent=\"Firefox/3.6.12\" -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
+		"wget -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
 	)
 	execute("cd", GUMBO_DIR, "&&", "./autogen.sh")
 	execute("cd", GUMBO_DIR, "&&", "./configure",

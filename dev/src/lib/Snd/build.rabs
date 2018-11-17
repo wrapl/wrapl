@@ -14,7 +14,7 @@ LIBLDFLAGS := old + ['-L{file("lib")}']
 
 var OGG_LIB := file("lib/libogg.a") => fun() do
 	file("ogg"):rmdir:mkdir:chdir
-	execute('wget http://downloads.xiph.org/releases/ogg/libogg-{OGG_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute('wget -nv http://downloads.xiph.org/releases/ogg/libogg-{OGG_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -28,7 +28,7 @@ end
 
 var VORBIS_LIB := file("lib/libvorbis.a")[OGG_LIB] => fun() do
 	file("vorbis"):rmdir:mkdir:chdir
-	execute('wget http://downloads.xiph.org/releases/vorbis/libvorbis-{VORBIS_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute('wget -nv http://downloads.xiph.org/releases/vorbis/libvorbis-{VORBIS_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -45,7 +45,7 @@ var VORBISFILE_LIB := file("lib/libvorbisfile.a")[VORBIS_LIB]
 
 var FLAC_LIB := file("lib/libFLAC.a") => fun() do
 	file("flac"):rmdir:mkdir:chdir
-	execute('wget http://downloads.xiph.org/releases/flac/flac-{FLAC_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute('wget -nv http://downloads.xiph.org/releases/flac/flac-{FLAC_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -59,7 +59,7 @@ end
 
 var SAMPLERATE_LIB := file("lib/libsamplerate.a") => fun() do
 	file("samplerate"):rmdir:mkdir:chdir
-	execute('wget http://www.mega-nerd.com/SRC/libsamplerate-{SAMPLERATE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
+	execute('wget -nv http://www.mega-nerd.com/SRC/libsamplerate-{SAMPLERATE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -73,7 +73,7 @@ end
 
 var SNDFILE_LIB := file("lib/libsndfile.a")[OGG_LIB, VORBIS_LIB, FLAC_LIB] => fun() do
 	file("sndfile"):rmdir:mkdir:chdir
-	execute('wget http://www.mega-nerd.com/libsndfile/files/libsndfile-{SNDFILE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
+	execute('wget -nv http://www.mega-nerd.com/libsndfile/files/libsndfile-{SNDFILE_VERSION}.tar.gz  -O- | tar xvzP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",
@@ -87,7 +87,7 @@ end
 
 var SERD_LIB := file("lib/libserd-0.a") => fun() do
 	file("serd"):rmdir:mkdir:chdir
-	execute('wget http://download.drobilla.net/serd-{SERD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv http://download.drobilla.net/serd-{SERD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
@@ -100,7 +100,7 @@ end
 
 var SORD_LIB := file("lib/libsord-0.a")[SERD_LIB] => fun() do
 	file("sord"):rmdir:mkdir:chdir
-	execute('wget http://download.drobilla.net/sord-{SORD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv http://download.drobilla.net/sord-{SORD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
@@ -113,7 +113,7 @@ end
 
 var SRATOM_LIB := file("lib/libsratom-0.a")[SORD_LIB] => fun() do
 	file("sratom"):rmdir:mkdir:chdir
-	execute('wget http://download.drobilla.net/sratom-{SRATOM_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv http://download.drobilla.net/sratom-{SRATOM_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
@@ -126,7 +126,7 @@ end
 
 var LILV_LIB := file("lib/liblilv-0.a")[SERD_LIB, SORD_LIB, SRATOM_LIB, SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB] => fun() do
 	file("lilv"):rmdir:mkdir:chdir
-	execute('wget http://download.drobilla.net/lilv-{LILV_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv http://download.drobilla.net/lilv-{LILV_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS} -ldl -lsndfile -logg -lvorbis -lvorbisenc -lFLAC\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{file("lib/pkgconfig")}',
@@ -139,7 +139,7 @@ end
 
 var SOX_LIB := file("lib/libsox.a") => fun() do
 	file("sox"):rmdir:mkdir:chdir
-	execute('wget https://downloads.sourceforge.net/project/sox/sox/{SOX_VERSION}/sox-{SOX_VERSION}.tar.bz2 -O- | tar xvjP --strip-components=1')
+	execute('wget -nv https://downloads.sourceforge.net/project/sox/sox/{SOX_VERSION}/sox-{SOX_VERSION}.tar.bz2 -O- | tar xvjP --strip-components=1')
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
 		"--without-man-pages",

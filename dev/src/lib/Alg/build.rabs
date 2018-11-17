@@ -7,7 +7,7 @@ RDOCFLAGS := old + ["-I", BUILDDIR]
 
 var UUID_LIB := file("libuuid.a") => fun() do
 	UUID_DIR:rmdir
-	execute('wget --user-agent=\"Firefox/3.6.12\" -nv https://downloads.sourceforge.net/project/libuuid/libuuid-{UUID_VERSION}.tar.gz -O- | tar xvzP')
+	execute('wget -nv https://downloads.sourceforge.net/project/libuuid/libuuid-{UUID_VERSION}.tar.gz -O- | tar xvzP')
 	UUID_DIR:chdir
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={BUILDDIR}',
