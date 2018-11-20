@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 	cmake \
 	libssl-dev \
 	libjansson-dev \
-	libomp-dev \
+	libgcc-8-dev \
 	gir1.2-freedesktop \
 	gir1.2-gtk-3.0 \
 	gir1.2-gtksource-3.0 \

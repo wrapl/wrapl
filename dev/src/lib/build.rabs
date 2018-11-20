@@ -6,7 +6,10 @@ PREBUILDS := []
 RDOCFLAGS := []
 
 if OS = "debian" then
-	LDFLAGS := old + ["-L/usr/lib/i386-linux-gnu/"]
+	LDFLAGS := old + [
+		"-L/usr/lib/i386-linux-gnu/",
+		"/usr/lib/gcc/i686-linux-gnu/8/"
+	]
 end
 
 rlink_includes := fun(Target) do
