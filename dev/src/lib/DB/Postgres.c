@@ -57,8 +57,11 @@ GLOBAL_FUNCTION(Open, 1) {
 	connection_t *Conn = new(connection_t);
 	Conn->Type = T;
 	Conn->Handle = PQconnectdbParams(Options.Keywords, Options.Values, 1);
-	Result->Val = (Std$Object_t *)Conn;
-	return SUCCESS;
+	if (PQstatus(Conn->Handle) == CONNECTION_BAD) {
+		SEND(Std$String$copy(PQerrorMessage(Conn->Handle)));
+	} else {
+		RETURN(Conn);
+	}
 }
 
 METHOD("close", TYP, T) {

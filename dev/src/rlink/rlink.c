@@ -42,6 +42,7 @@ enum {
 #define RELOC_REL	1
 #define RELOC_IND	2
 #define RELOC_GOT	3
+#define RELOC_INDX	4
 
 #define LIBRARY_ABS	0
 #define LIBRARY_REL	1
@@ -581,7 +582,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			if (!strcmp(Type->name, "R_386_GOT32")) {
 				Relocation->Flags = RELOC_IND;
 			} else if (!strcmp(Type->name, "R_386_GOT32X")) {
-				Relocation->Flags = RELOC_IND;
+				Relocation->Flags = RELOC_INDX;
 			} else if (!strcmp(Type->name, "R_386_TLS_IE")) {
 				Relocation->Flags = RELOC_IND;
 			} else {
@@ -665,7 +666,7 @@ static void bfd_section_setup(bfd_section_t *Section) {
 			if (!strcmp(Type->name, "R_386_GOT32")) {
 				Relocation->Flags = RELOC_IND;
 			} else if (!strcmp(Type->name, "R_386_GOT32X")) {
-				Relocation->Flags = RELOC_IND;
+				Relocation->Flags = RELOC_INDX;
 			} else if (!strcmp(Type->name, "R_386_TLS_IE")) {
 				Relocation->Flags = RELOC_IND;
 			} else {
