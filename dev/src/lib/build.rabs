@@ -9,7 +9,7 @@ if OS = "debian" then
 	GCC_VERSION := shell("gcc -dumpversion"):trim
 	LDFLAGS := old + [
 		"-L/usr/lib/i386-linux-gnu/",
-		"-L/usr/lib/gcc/i686-linux-gnu/{GCC_VERSION}/"
+		'-L/usr/lib/gcc/i686-linux-gnu/{GCC_VERSION}/'
 	]
 end
 
