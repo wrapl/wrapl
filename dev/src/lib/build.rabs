@@ -6,9 +6,10 @@ PREBUILDS := []
 RDOCFLAGS := []
 
 if OS = "debian" then
+	GCC_VERSION := shell("gcc -dumpversion"):trim
 	LDFLAGS := old + [
 		"-L/usr/lib/i386-linux-gnu/",
-		"/usr/lib/gcc/i686-linux-gnu/8/"
+		"-L/usr/lib/gcc/i686-linux-gnu/{GCC_VERSION}/"
 	]
 end
 
