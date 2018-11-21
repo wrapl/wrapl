@@ -22,12 +22,12 @@ RIVA_STRUCT(result) {
 	void *State;
 };
 
-typedef enum {
-	SUSPEND = -1,
-	SUCCESS = 0,
-	FAILURE = 1,
-	MESSAGE = 2
-} Std$Function$status;
+#define SUSPEND -1
+#define SUCCESS 0
+#define FAILURE 1
+#define MESSAGE 2
+
+typedef int Std$Function$status;
 
 typedef Std$Function$status Std$Function_status;
 
@@ -158,6 +158,25 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 		NAME ## _fields, \
 		NAME ## _levels\
 	}}
+
+#define RETURN(X) {\
+	Result->Val = (Std$Object$t *)X;\
+	return SUCCESS;\
+}
+
+#define RETURN0 {\
+	Result->Arg = Args[0];\
+	return SUCCESS;\
+}
+
+#define FAIL {\
+	return FAILURE;\
+}
+
+#define SEND(X) {\
+	Result->Val = (Std$Object$t *)X;\
+	return MESSAGE;\
+}
 
 #undef RIVA_MODULE
 

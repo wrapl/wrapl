@@ -1,11 +1,16 @@
 ASFLAGS := old + ["-I", DEV_INC/"nasm/"]
 CFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
 CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
-LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "Gcc.rlink", "libc.rlink", "libm.rlib", "-L/usr/lib/"]
+LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "libc.rlink", "libm.rlib", "-L/usr/lib/"]
+PREBUILDS := []
 RDOCFLAGS := []
 
 if OS = "debian" then
-	LDFLAGS := old + ["-L/usr/lib/i386-linux-gnu/"]
+	GCC_VERSION := shell("gcc -dumpversion"):trim
+	LDFLAGS := old + [
+		"-L/usr/lib/i386-linux-gnu/",
+		'-L/usr/lib/gcc/i686-linux-gnu/{GCC_VERSION}/'
+	]
 end
 
 rlink_includes := fun(Target) do
@@ -31,21 +36,21 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", :true) => Functions[1]
+				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Module:basename) % "rlink"):exists or (file(Module:basename) % "rdef"):exists
-	var ScriptIncludes := Script:scan("INCLUDES", :true)[RLINK] => rlink_includes
+	var ScriptIncludes := Script:scan("INCLUDES", :true)[RLINK, PREBUILDS] => rlink_includes
 	if AutoExport then
 		var ImportFile := GEN_LIB/Name % "rlink"
 		ImportFile:dir:mkdir
 		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module) do
 			execute(RLINK, LDFLAGS, "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst", "-X", ImportFile, "-N", Name)
 		end
-		ImportFile{Module}
+		ImportFile[Module]
 	else
 		Module[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Module) do
 			execute(RLINK, LDFLAGS, '-L{Script:dirname}', "-o", Module, Objects, Libraries, Script, "-v0", "-?", Script % "lst")
@@ -82,14 +87,14 @@ riva_program := fun(Executable, Objects, Libraries) do
 		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
-				var Scan := Source:scan("INCLUDES", :true) => Functions[1]
+				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Executable:basename) % "rlink"):exists or (file(Executable:basename) % "rdef"):exists
-	var ScriptIncludes := Script and Script:scan("INCLUDES", :true)[RLINK] => rlink_includes
+	var ScriptIncludes := Script and Script:scan("INCLUDES", :true)[RLINK, PREBUILDS] => rlink_includes
 	Executable[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Executable) do
 		execute(RLINK, LDFLAGS, "-o", Executable, Objects, Libraries, Script, "-v0", "-?", Executable % "lst")
 	end
@@ -97,31 +102,32 @@ end
 
 pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):trim
 
-subdir("Lib")
-subdir("Std")
-subdir("Sys")
-subdir("IO")
-subdir("Util")
-subdir("Agg")
-subdir("Alg")
-subdir("Wrapl")
---subdir("Web")
-subdir("Json")
-subdir("Xml")
-subdir("Csv")
---subdir("DB")
-subdir("Math")
---subdir("Boost")
-subdir("Stat")
-subdir("Html")
---subdir("OpenCV")
-subdir("ML")
-subdir("DB")
-subdir("Yaml")
-subdir("Markdown")
-subdir("Net")
+GCC_RLINK := GEN_LIB / "Gcc.rlink"
+GMP_RLINK := GEN_LIB / "Gmp.rlink"
 
-if PLATFORM = "Linux" then
-	subdir("Gir")
-	subdir("Snd")
+subdir("Lib")
+
+scope("lib";) do
+	PREBUILDS := old + [GCC_RLINK, GMP_RLINK]
+	subdir("Std")
+	subdir("Sys")
+	subdir("IO")
+	subdir("Util")
+	subdir("Agg")
+	subdir("Alg")
+	subdir("Wrapl")
+	subdir("Fmt")
+	--subdir("Web")
+	subdir("Math")
+	--subdir("Boost")
+	subdir("Stat")
+	--subdir("OpenCV")
+	subdir("ML")
+	subdir("DB")
+	subdir("Net")
+	
+	if PLATFORM = "Linux" then
+		subdir("Gir")
+		subdir("Snd")
+	end
 end

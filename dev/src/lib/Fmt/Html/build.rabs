@@ -6,7 +6,7 @@ GUMBO_LIB := file("libgumbo.a")
 GUMBO_LIB => fun() do
 	execute("mkdir -p", GUMBO_DIR)
 	execute("cd", GUMBO_DIR, "&&",
-		"wget --user-agent=\"Firefox/3.6.12\" -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
+		"wget -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
 	)
 	execute("cd", GUMBO_DIR, "&&", "./autogen.sh")
 	execute("cd", GUMBO_DIR, "&&", "./configure",
@@ -33,4 +33,4 @@ file("Entities.c")[RIVA, file("Entities.json"), EntitiesGen] => fun() do
 	execute(RIVA, "-L. EntitiesGen", file("Entities.json"))
 end
 
-riva_module("Html/Entities", [file("Entities.o")])
+riva_module("Fmt/Html/Entities", [file("Entities.o")])

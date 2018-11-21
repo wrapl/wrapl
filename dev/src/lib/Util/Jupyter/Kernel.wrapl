@@ -1,0 +1,162 @@
+MOD Kernel;
+
+IMP IO.Terminal USE Out;
+IMP Std, Sys, Agg, Util, Alg, IO, Net, Wrapl;
+IMP Fmt.Json;
+
+DEF Display! :?;
+
+METH Display(x) '{x}';
+
+VAR Log <- Util.Logger.New(Kernel);
+
+Log.INFO('Starting wrapl kernel');
+
+DEF InT <[IO.Stream.TextReaderT, IO.Stream.ReaderT, IO.Stream.T] parent>;
+DEF OutT <[IO.Stream.TextWriterT, IO.Stream.WriterT, IO.Stream.T] type, parent>;
+
+VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
+VAR key <- connection.key;
+
+Log.INFO('Connection info = ', connection);
+VAR heartbeat <- Net.ZeroMQ.Sock.RepNew('{connection.transport}://{connection.ip}:{connection.hb_port}');
+VAR shell <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.shell_port}');
+VAR control <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.control_port}');
+VAR stdin <- Net.ZeroMQ.Sock.RouterNew('{connection.transport}://{connection.ip}:{connection.stdin_port}');
+VAR iopub <- Net.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{connection.iopub_port}');
+
+METH :write(stream @ OutT, text @ Std.String.T) (
+	Send(iopub, NIL, "stream", stream:parent, {}, {"name" IS stream:type, "text" IS text});
+	RET stream;
+);
+
+VAR execution_count <- 0;
+VAR input <- IO.Buffer.New();
+VAR wrapl <- Wrapl.Session.New(input);
+VAR session <- '{Alg.UUID.New()}';
+VAR loop <- Net.ZeroMQ.Loop.New();
+VAR in, out, err;
+VAR exec <- Wrapl.Loader.ExecNew();
+Sys.Program.OnInt(exec);
+
+wrapl:def("Jupyter", Kernel);
+
+loop:reader(heartbeat;) (
+	VAR msg <- heartbeat:recv(Std.String.T);
+	Log.DEBUG('Received {msg} on heartbeat');
+);
+
+loop:reader(shell;) (
+	VAR ids <- [];
+	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
+	VAR req_signature <- shell:recv(Std.String.T);
+	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
+	Log.DEBUG("Received", req_header, req_content);
+	WHEN req_header.msg_type IS "kernel_info_request" DO (
+		Send(shell, ids, "kernel_info_reply", req_header, {}, {
+			"status" IS "ok",
+			"protocol_version" IS "5.2.0",
+			"implementation" IS "wrapl",
+			"implementation_version" IS "0.0.1",
+			"language_info" IS {
+				"name" IS "wrapl",
+				"version" IS "0.0.0",
+				"mimetype" IS "text/x-wrapl",
+				"file_extension" IS ".wrapl"
+			},
+			"banner" IS "Wrapl in Jupyter :)"
+		});
+		Terminal:export("Out", out <- OutT("stdout", {}));
+		Terminal:export("Err", err <- OutT("stderr", {}));
+	) IS "execute_request" DO (
+		execution_count <- $ + 1;
+		input:write(req_content.code);
+		wrapl:lineno(0);
+		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "busy"});
+		out:parent <- req_header;
+		VAR result <- NIL;
+		VAR status <- "ok";
+		REP (WHILE input:length > 0;
+			Log.DEBUG("Evaluating Wrapl code");
+			exec:mark => (
+				Log.INFO("Interrupted!");
+				input:rest;
+				result <- "Interrupted";
+				EXIT;
+			);
+			result <- wrapl:eval;
+			RECV msg DO (
+				input:rest;
+				status <- "error";
+				result <- 'Error: {msg}' RECV msg2 DO "Unknown error";
+				EXIT;
+			);
+		);
+		VAR data <- {};
+		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
+		Send(iopub, NIL, "execute_result", req_header, {}, {
+			"execution_count" IS execution_count,
+			"data" IS data
+		});
+		Send(shell, ids, "execute_reply", req_header, {}, {
+			"status" IS status,
+			"execution_count" IS execution_count
+		});
+		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
+	);
+);
+
+loop:reader(control;) (
+	VAR ids <- [];
+	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
+	VAR req_signature <- shell:recv(Std.String.T);
+	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
+	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
+	Log.DEBUG("Received", req_header, req_content);
+);
+
+loop:reader(stdin;) (
+	VAR msg <- stdin:recv(Std.String.T);
+	Log.DEBUG('Received {msg} on stdin');
+);
+
+loop:start;
+
+DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
+	VAR msg_id <- '{Alg.UUID.New()}';
+	VAR header <- Json.EncodeString({
+		"msg_id" IS msg_id,
+		"username" IS "kernel",
+		"session" IS session,
+		"msg_type" IS msg_type,
+		"version" IS "5.2",
+		"date" IS '{Sys.Time.Now()}':before("+"):map(" ", "T") + 'Z'
+	});
+	parent <- Json.EncodeString(parent);
+	metadata <- Json.EncodeString(metadata);
+	content <- Json.EncodeString(content);
+	VAR hmac <- Alg.HMAC.SHA256.New(key);
+	hmac:update(header);
+	hmac:update(parent);
+	hmac:update(metadata);
+	hmac:update(content);
+	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
+	Log.DEBUG("Sending", header, content);
+	ids ~== NIL => EVERY socket:sendm(ids:values);
+	socket:sendm("<IDS|MSG>");
+	socket:sendm(signature);
+	socket:sendm(header);
+	socket:sendm(parent);
+	socket:sendm(metadata);
+	socket:sendm(content);
+	EVERY socket:sendm(extra:values);
+	socket:send("");
+	RET msg_id;
+);
+
+END Kernel.

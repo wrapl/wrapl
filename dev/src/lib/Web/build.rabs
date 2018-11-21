@@ -1,5 +1,5 @@
 CFLAGS := old + ["-std=gnu99", "-Iinclude"]
-LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Gmp.rlib", "Agg.rlib"]
+LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Agg.rlib"]
 RDOCFLAGS := old + ["-I", file("")]
 
 scope("curl") do

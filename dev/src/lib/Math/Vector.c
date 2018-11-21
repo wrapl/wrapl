@@ -8,10 +8,10 @@ typedef Math$Vector_t vector_t;
 
 TYPE(T);
 
-STRING(LeftBracket, "(");
-STRING(RightBracket, ")");
+STRING(LeftBracket, "[");
+STRING(RightBracket, "]");
 STRING(CommaSpace, ", ");
-STRING(LeftRightBracket, "()");
+STRING(LeftRightBracket, "[]");
 STRING(ValueString, "<value>");
 
 SYMBOL($AT, "@");

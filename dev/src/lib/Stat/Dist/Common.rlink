@@ -2,7 +2,6 @@ include("Stat/Dist.rlink")
 include("Math/Random.rlink")
 include("Std.rlib")
 include("Riva/Memory.rlib")
-include("libstdc++.rlib")
 
 export("T")
 export("New")

@@ -1,26 +1,11 @@
-include('libpq.so')
+include('lib/libpq.a')
 include('Alg/UUID.rlib')
 include('Sys/Time.rlib')
 include('Agg.rlib')
 include('Std.rlib')
 include('Riva.rlib')
-
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
+include("libpthread.rlib")
 
 export("Open")
 export("SendT")
 export("Send")
-
-submodule("Type")
-subexport("Type", "NULLTYPE", "NULL")
-subexport("Type", "INT4TYPE", "INT4")
-subexport("Type", "FLOAT8TYPE", "FLOAT8")
-subexport("Type", "VARCHARTYPE", "VARCHAR")
-subexport("Type", "BOOLTYPE", "BOOL")
-subexport("Type", "TIMESTAMPTYPE", "TIMESTAMP")
-subexport("Type", "UUIDTYPE", "UUID")

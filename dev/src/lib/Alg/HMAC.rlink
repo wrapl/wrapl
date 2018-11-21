@@ -1,0 +1,15 @@
+include("libnettle.rlib")
+
+var HMAC := fun(Name) do
+	submodule(Name)
+	subexport(Name, '{Name}T', 'T')
+	subexport(Name, '{Name}New', 'New')
+end
+
+HMAC("MD5")
+HMAC("Ripemd160")
+HMAC("SHA1")
+HMAC("SHA224")
+HMAC("SHA256")
+HMAC("SHA384")
+HMAC("SHA512")

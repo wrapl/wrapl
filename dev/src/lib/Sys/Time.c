@@ -22,12 +22,30 @@ GLOBAL_FUNCTION(Now, 0) {
 };
 
 GLOBAL_FUNCTION(New, 1) {
-	CHECK_ARG_TYPE(0, Std$Integer$SmallT);
-	Sys$Time_t *Time = new(Sys$Time_t);
-	Time->Type = T;
-	Time->Value = Std$Integer$get_small(Args[0].Val);
-	Result->Val = Time;
-	return SUCCESS;
+	if (Args[0].Val->Type == Std$Integer$SmallT) {
+		Sys$Time_t *Time = new(Sys$Time_t);
+		Time->Type = T;
+		Time->Value = Std$Integer$get_small(Args[0].Val);
+		RETURN(Time);
+	} else if (Args[0].Val->Type == Std$Real$T) {
+		Sys$Time_t *Time = new(Sys$Time_t);
+		Time->Type = T;
+		Time->Value = Std$Real$get_value(Args[0].Val);
+		RETURN(Time);
+	} else if (Args[0].Val->Type == Std$String$T) {
+		CHECK_EXACT_ARG_TYPE(1, Std$String$T);
+		const char *String = Std$String$flatten(Args[0].Val);
+		const char *Format = Std$String$flatten(Args[1].Val);
+		struct tm Tm[1];
+		if (!strptime(String, Format, Tm)) {
+			SEND(Std$String$new("Error parsing time"));
+		}
+		Sys$Time_t *Time = new(Sys$Time_t);
+		Time->Type = T;
+		Time->Value = mktime(Tm);
+		RETURN(Time);
+	}
+	SEND(Std$String$new("Invalid parameter type"));
 };
 
 Sys$Time_t *_new(time_t Value) {
@@ -298,3 +316,117 @@ METHOD("?", TYP, PreciseT, TYP, PreciseT) {
 	};
 	return SUCCESS;
 };
+
+METHOD("sec", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_sec));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("min", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_min));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("hour", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_hour));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("mday", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_mday));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("mon", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_mon));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("year", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_year));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("wday", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_wday));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("yday", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_yday));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("isdst", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		if (LocalTime->tm_isdst) {
+			RETURN0;
+		} else {
+			FAIL;
+		}
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("gmtoff", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$Integer$new_small(LocalTime->tm_gmtoff));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}
+
+METHOD("zone", TYP, T) {
+	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
+	struct tm LocalTime[1];
+	if (localtime_r(&Time->Value, LocalTime)) {
+		RETURN(Std$String$new(LocalTime->tm_zone));
+	} else {
+		SEND(Std$String$new("Time conversion error"));
+	}
+}

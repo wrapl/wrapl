@@ -21,15 +21,35 @@ file("Gmp.o")[GMP_LIB]
 
 scope("gmp";) do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", "-xlibgmp.a", "-XGmp.exports"]
-	WRAPL_MODULES[riva_module("Gmp", [file("Gmp.o")])]
+	GMP_RLINK[riva_module("Gmp", [file("Gmp.o")])] => fun() do
+		var Out := GMP_RLINK:open("w")
+		Out:write('module(\"Gmp\")\nprefix(\"\")\n')
+		var In := file("Gmp.exports"):open("r")
+		loop
+			var Line := while In:read
+			Out:write(Line)
+		end
+		In:close
+		Out:close
+	end
 end
 
 scope("libc";) do
-	GCC_HOST := shell("gcc -dumpmachine")[1, -1]
-	GCC_VERSION := shell("gcc -dumpversion")[1, -1]
+	GCC_HOST := shell("gcc -dumpmachine"):trim
+	GCC_VERSION := shell("gcc -dumpversion"):trim
 	LDFLAGS := old + ['-L/usr/lib/gcc/{GCC_HOST}/{GCC_VERSION}/', "-Z -d",
 		"-xlibgcc.a", "-xlibgcc_eh.a", "-xlibc_nonshared.a", "-xlibstdc++.a",
 		"-xlibsupc++.a", "libpthread.rlib", "-XGcc.exports"
 	]
-	WRAPL_MODULES[riva_module("Gcc", [file("Gcc.o")])]
+	GCC_RLINK[riva_module("Gcc", [file("Gcc.o")])] => fun() do
+		var Out := GCC_RLINK:open("w")
+		Out:write('module(\"Gcc\")\nprefix(\"\")\n')
+		var In := file("Gcc.exports"):open("r")
+		loop
+			var Line := while In:read
+			Out:write(Line)
+		end
+		In:close
+		Out:close
+	end
 end

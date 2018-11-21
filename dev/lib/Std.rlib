@@ -1,3 +1,6 @@
+include("Gcc.rlink")
+include("Gmp.rlink")
+
 module("Std")
 include("Std/Address.rlib")
 include("Std/Array.rlib")

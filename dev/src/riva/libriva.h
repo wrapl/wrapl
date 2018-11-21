@@ -87,6 +87,7 @@ struct module_t {
 
 extern int module_provider_import(module_provider_t *Provider, const char *Name, int *IsRef, void **Data);
 extern void module_provider_export(module_provider_t *Provider, const char *Name, int IsRef, void *Data);
+extern module_provider_t *module_provider_new(module_t *Module);
 extern void module_importer_set(module_provider_t *Provider, void *ImportInfo, module_import_func ImportFunc);
 
 extern module_t *module_load(const char *Path, const char *Name);

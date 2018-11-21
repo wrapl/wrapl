@@ -1,5 +1,5 @@
 module("Alg", "UUID")
-
+prefix("")
 export("uuid_clear")
 export("uuid_compare")
 export("uuid_copy")

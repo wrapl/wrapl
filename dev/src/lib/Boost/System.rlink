@@ -1,3 +1,2 @@
 include("libboost_system.a", :true)
-include("libstdc++.rlib")
 include("libpthread.rlib")

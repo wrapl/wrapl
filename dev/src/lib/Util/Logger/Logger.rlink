@@ -2,6 +2,7 @@ include("IO/Stream.rlib")
 include("Sys/Module.rlib")
 include("Util/TypedFunction.rlib")
 include("IO/Terminal.rlib")
+include("libpthread.rlib")
 
 export("SetLevel")
 export("New")

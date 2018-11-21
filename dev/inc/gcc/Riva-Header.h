@@ -7,10 +7,14 @@
 #	define __EXTERN	extern
 #endif
 
-#define __concat2(A, B) A ## B
-#define __concat(A, B) __concat2(A, B)
-#define __stringify2(A) #A
-#define __stringify(A) __stringify2(A)
+#define ___concat(A, B) A ## B
+#define __concat(A, B) ___concat(A, B)
+
+#define ___concat3(A, B, C) A ## B ## C
+#define __concat3(A, B, C) ___concat3(A, B, C)
+
+#define ___stringify(A) #A
+#define __stringify(A) ___stringify(A)
 
 #ifdef WINDOWS
 #define __asmify(A) asm(__stringify(__concat(_, A)))

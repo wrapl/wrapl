@@ -8,6 +8,7 @@ ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
 GOFLAGS := []
 LDFLAGS := []
 LIBCFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-ftls-model=global-dynamic", "-w", "-O2"]
+LIBCXXFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-ftls-model=global-dynamic", "-w", "-O2"]
 LIBLDFLAGS := []
 LIBHOST := ""
 
@@ -27,6 +28,7 @@ if MACHINE = "i686" then
 	ASFLAGS := old + ["-DX86", "-felf32"]
 	LDFLAGS := old + ["-m32"]
 	LIBCFLAGS := old + ["-fno-pic", "-m32"]
+	LIBCXXFLAGS := old + ["-fno-pic", "-m32"]
 	LIBLDFLAGS := old + ["-m32"]
 	LIBHOST := "i686-linux-gnu"
 elseif MACHINE = "x86_64" then

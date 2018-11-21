@@ -37,6 +37,7 @@ enum {
 #define RELOC_REL	1
 #define RELOC_IND	2
 #define RELOC_GOT	3
+#define RELOC_INDX	4
 
 #define LIBRARY_ABS	0
 #define LIBRARY_REL	1
@@ -110,7 +111,7 @@ static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 		while (Section->NoOfFixups) {
 			int Index = Section->NoOfRelocs - Section->NoOfFixups--;
 			const reloc_t *Reloc = &Section->Relocs[Index];
-			uint32_t Value;
+			int32_t Value;
 			if (Reloc->Section == Section) {
 				Value = (uint32_t)Data;
 			} else {
@@ -124,18 +125,30 @@ static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 				*(uint32_t *)(Data + Reloc->Position) = 0;
 				Header->Links[Index] += Offset;
 				Value = (uint32_t)&Header->Links[Index];
+			} else if (Reloc->Flags == RELOC_INDX) {
+				uint32_t Offset = *(uint32_t *)(Data + Reloc->Position);
+				*(uint32_t *)(Data + Reloc->Position) = 0;
+				Header->Links[Index] += Offset;
+//				if (Data[Reloc->Position - 2] == 0xFF) {
+//					Data[Reloc->Position - 2] = 0x90;
+//					Data[Reloc->Position - 1] = 0xE8;
+//					Value += Offset;
+//					Value -= (int32_t)(Data + Reloc->Position + 4);
+//				} else {
+					Value = (uint32_t)&Header->Links[Index];
+//				}
 			} else if (Reloc->Flags == RELOC_GOT) {
 				Value = -Value;
 			};
 			switch (Reloc->Size) {
 			case 1:
-				*(uint8_t *)(Data + Reloc->Position) += Value;
+				*(int8_t *)(Data + Reloc->Position) += Value;
 				break;
 			case 2:
-				*(uint16_t *)(Data + Reloc->Position) += Value;
+				*(int16_t *)(Data + Reloc->Position) += Value;
 				break;
 			case 4:
-				*(uint32_t *)(Data + Reloc->Position) += Value;
+				*(int32_t *)(Data + Reloc->Position) += Value;
 				break;
 			};
 		};
@@ -200,7 +213,7 @@ static uint32_t fixup_text_section_delayed(section_t *Section, jmp_buf OnError) 
 		Header->Restore[0] = ((uint32_t *)Data)[0];
 		Header->Restore[1] = ((uint32_t *)Data)[1];
 		Data[0] = 0xE8;
-		*(uint32_t *)(Data + 1) = ((unsigned char *)init_text_section - Data) - 5;
+		*(uint32_t *)(Data + 1) = (uint8_t *)init_text_section - (Data + 5);
 		Section->NoOfFixups = 0;
 	};
 	return (uint32_t)Data;

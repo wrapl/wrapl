@@ -7,10 +7,8 @@ else
 end
 
 RABBITMQ_LIB => fun() do
-	RABBITMQ_DIR:rmdir:mkdir
-	execute("cd", RABBITMQ_DIR, "&&",
-		"wget --user-agent=\"Firefox/3.6.12\" -nv", RABBITMQ_URL, "-O- | tar xvzP --strip-components=1"
-	)
+	RABBITMQ_DIR:rmdir:mkdir:chdir
+	execute('wget -nv {RABBITMQ_URL} -O- | tar xvzP --strip-components=1')
 	(RABBITMQ_DIR / "build"):mkdir:chdir
 	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
 	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
@@ -19,4 +17,4 @@ end
 CFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
 file("RabbitMQ.c"):scan("INCLUDES", :true)[RABBITMQ_LIB]
-riva_module("Util/RabbitMQ", [file("RabbitMQ.o")], [RABBITMQ_LIB])
+riva_module("Net/RabbitMQ", [file("RabbitMQ.o")], [RABBITMQ_LIB])

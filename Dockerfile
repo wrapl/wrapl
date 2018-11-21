@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 	cmake \
 	libssl-dev \
 	libjansson-dev \
-	libomp-dev \
+	libgcc-8-dev \
 	gir1.2-freedesktop \
 	gir1.2-gtk-3.0 \
 	gir1.2-gtksource-3.0 \
@@ -32,7 +32,11 @@ RUN apt-get update && apt-get install -y \
 	libkrb5-dev \
 	libsoup2.4-dev \
 	libpq-dev \
-	libgoocanvas-2.0-dev
+	libgoocanvas-2.0-dev \
+	liblz4-dev \
+	flex \
+	bison \
+	libreadline-dev
 
 RUN apt-get clean
 

@@ -31,9 +31,15 @@ DEF ProcessA(input, output, path, prefix) (
     VAR exports <- {};
     REP (WHILE line <- dump:read;
         line <- ALL line:split(" \t");
-        (line:length = 6) & (line[2] = "g") => exports:insert(line[6]);
-    );
-    EVERY outfile:writes('export("{exports:keys}")\n');
+        line:length = 6 => exports:missing(line[6]) => (
+        	line[2] = "g" => (
+        		outfile:writes('export("{line[6]}")\n');
+        		exports:insert(line[6]);
+        	) // line[2] = "w" => (
+        		outfile:writes('export("{line[6]}", :weak)\n');
+        	);
+    	);
+    ); 
     outfile:close;
     dump:close;
     dump:wait;

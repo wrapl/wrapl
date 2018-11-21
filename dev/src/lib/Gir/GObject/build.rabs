@@ -1,5 +1,6 @@
 CFLAGS := old + ["-std=gnu99", pkg_config("--cflags gobject-2.0"), "-include glib-object.h -include gobject/gvaluecollector.h"]
 LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0")]
+PREBUILDS := old + [AUTOGEN]
 
 var DetectedModules := detect_modules("Gir/GObject")
 
@@ -30,21 +31,17 @@ scope("fontconfig";) do
 	
 	FONTCONFIG_SO[FCFIX_SO] => fun() do
 		execute("wget -nv", FONTCONFIG_URL, "-O-", "|", "tar", "xvjP")
-		execute("cd", FONTCONFIG_DIR, "&&",
-			"./configure --enable-shared",
+		FONTCONFIG_DIR:chdir
+		execute("./configure --enable-shared",
 			"--prefix=/usr",
 			"--sysconfdir=/etc",
 			'CFLAGS=\"{LIBCFLAGS} -O2\"',
 			--'LDFLAGS=\"-L{FCFIX_SO:dirname} -lfcfix\"',
 			"--disable-docs"
 		)
-		execute("cd", FONTCONFIG_DIR/"src", "&&",
-			"make clean"
-		)
-		execute("cd", FONTCONFIG_DIR/"src", "&&",
-			"make -k"
-		)
-		execute("cp", FONTCONFIG_DIR/"src/.libs/libfontconfig.so", FONTCONFIG_SO)
+		execute("make clean")
+		execute("make -k")
+		execute("cp src/.libs/libfontconfig.so", FONTCONFIG_SO)
 	end
 
 	DEFAULT[FONTCONFIG_SO]

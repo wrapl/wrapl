@@ -1,6 +1,27 @@
-CFLAGS := old + ["-std=gnu99"]
+POSTGRES_VERSION := "11_1"
+
+POSTGRES_LIB := file("lib/libpq.a") => fun() do
+	file("postgres"):rmdir:mkdir:chdir
+	execute('wget -nv https://github.com/postgres/postgres/archive/REL_{POSTGRES_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={BUILDDIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'CXXFLAGS=\"{LIBCXXFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{BUILDDIR / "lib/pkgconfig"}\"'
+	)
+	file("postgres/src/interfaces/libpq"):chdir
+	execute('make CFLAGS=\"{LIBCFLAGS}\"')
+	execute('make install PREFIX={BUILDDIR}')
+end
+
+CFLAGS := old + ["-std=gnu99", '-I{file("include")}', '-I{file("postgres/src/include")}']
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
 RDOCFLAGS := old + ["-I", BUILDDIR]
 
+file("Postgres.c"):scan("INCLUDES", :true)[POSTGRES_LIB]
+
 riva_module("DB/Sqlite", [file("SqliteRiva.o")])
 riva_module("DB/LMDB", [file("LMDB.o")])
+riva_module("DB/Postgres", [file("Postgres.o")], [POSTGRES_LIB])

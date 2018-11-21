@@ -69,6 +69,25 @@ TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Parser, const char *Source, in
 	}
 }
 
+METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+	parser_t *Parser = Args[0].Val;
+	char *String = Std$Address$get_value(Args[1].Val);
+	int Length = Std$Integer$get_small(Args[2].Val);
+	Std$Object_t *Message = setjmp(Parser->OnError);
+	if (Message) {
+		Result->Val = Message;
+		return MESSAGE;
+	};
+	size_t Parsed = csv_parse(Parser->Handle, String, Length, field_callback, record_callback, Parser);
+	if (Parsed < Length) {
+		Result->Val = Std$String$new(csv_strerror(csv_error(Parser->Handle)));
+		return MESSAGE;
+	} else {
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+}
+
 METHOD("finish", TYP, T) {
 	parser_t *Parser = Args[0].Val;
 	if (csv_fini(Parser->Handle, field_callback, record_callback, Parser)) {
@@ -98,7 +117,7 @@ METHOD("recordhandler", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("set_delim", TYP, T, TYP, Std$String$T) {
+METHOD("delim", TYP, T, TYP, Std$String$T) {
 	parser_t *Parser = Args[0].Val;
 	Std$String_t *String = Args[1].Val;
 	csv_set_delim(Parser->Handle, ((char *)String->Blocks->Chars.Value)[0]);
@@ -106,7 +125,7 @@ METHOD("set_delim", TYP, T, TYP, Std$String$T) {
 	return SUCCESS;
 };
 
-METHOD("set_quote", TYP, T, TYP, Std$String$T) {
+METHOD("quote", TYP, T, TYP, Std$String$T) {
 	parser_t *Parser = Args[0].Val;
 	Std$String_t *String = Args[1].Val;
 	csv_set_quote(Parser->Handle, ((char *)String->Blocks->Chars.Value)[0]);

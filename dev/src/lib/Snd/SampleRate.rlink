@@ -1,7 +1,6 @@
 include("Std.rlib")
 include("Riva/Memory.rlib")
 include("Agg/Buffer.rlib")
-include("Gmp.rlib")
 
 export("New")
 export("Convert")

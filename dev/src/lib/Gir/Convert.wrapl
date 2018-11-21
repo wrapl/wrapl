@@ -1,7 +1,7 @@
 MOD Main;
 
 IMP IO.Terminal USE Out, Err;
-IMP Std, Sys, IO, Xml;
+IMP Std, Sys, IO, Fmt.Xml;
 
 VAR api <- Xml.New(:api);
 VAR namespace, prefix, main, values;
@@ -10,7 +10,8 @@ VAR log <- IO.File.Open("convert.log", IO.File.Flag.Write + IO.File.Flag.Text);
 
 VAR gir_dirs <- [
 	"/usr/lib/girepository-1.0",
-	"/usr/lib/i386-linux-gnu/girepository-1.0"
+	"/usr/lib/i386-linux-gnu/girepository-1.0",
+	"Arrow/arrow/lib"
 ];
 
 VAR gir_file, gir_dir, gir;

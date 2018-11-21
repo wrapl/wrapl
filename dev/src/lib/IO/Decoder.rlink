@@ -1,4 +1,3 @@
-include("Gmp.rlib")
 include("IO/Stream.rlib")
 include("Riva/System.rlib")
 

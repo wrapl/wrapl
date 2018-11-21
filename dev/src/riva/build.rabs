@@ -1,5 +1,5 @@
-GC_VERSION := "7.6.6"
-ATOMIC_OPS_VERSION := "7.6.4"
+GC_VERSION := "8.0.0"
+ATOMIC_OPS_VERSION := "7.6.6"
 CONFUSE_VERSION := "3.2"
 
 var CONFUSE_LIB := file("libconfuse.a") => fun() do
@@ -23,6 +23,7 @@ CFG_OPTS := {
 	"--enable-large-config",
 	"--enable-shared" is :false,
 	"--enable-static" is :true,
+	"--with-libatomic-ops=none",
 	"--enable-parallel-mark",
 	"--disable-gcj-support",
 	"--prefix" is "/tmp",
@@ -103,6 +104,9 @@ modules = \{
 end
 
 WRAPL_MODULES[RIVA_CONF]
+
+CFLAGS := old + ["-g"]
+LDFLAGS := old + ["-g"]
 
 c_program(RIVA, RIVA_FILES, [GC_LIB, CONFUSE_LIB])
 

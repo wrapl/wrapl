@@ -1,6 +1,6 @@
-var MAPGEN := file("Mapgen.riva")
-var AUTOGEN := file("Autogen.log")
-var API_XML := file("api.xml")
+MAPGEN := file("Mapgen.riva")
+AUTOGEN := file("Autogen.log")
+API_XML := file("api.xml")
 
 riva_program(MAPGEN, [file("Mapgen.o")])
 
@@ -12,7 +12,7 @@ var TYPEMAP := riva_module("Gir/TypeMap", [file("TypeMap.o")])
 
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util.rlib", "Sys/Module.rlib", "Agg.rlib", "-L/usr/lib/", "-L/lib/"]
 
-API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl")] => fun() do
+API_XML[RIVA, WRAPL_MODULES, file("api.gir_list"), file("Convert.wrapl"), file("Cairo/extra.xml")] => fun() do
 	execute(RIVA, "-L", file("Convert.wrapl"):dirname, "Convert", file("api.gir_list"), "api.xml")
 end
 
@@ -73,3 +73,5 @@ subdir("GooCanvas")
 subdir("Atk")
 --subdir("Poppler")
 --subdir("Lasem")
+--subdir("Arrow")
+subdir("Kplot")
