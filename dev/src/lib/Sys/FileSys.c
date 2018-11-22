@@ -322,6 +322,7 @@ typedef struct listdir_generator {
 #endif
 	char *PathName, *FileName;
 } listdir_generator;
+
 typedef struct listdir_resume_data {
 	listdir_generator *Generator;
 	Std$Function_argument Result;
@@ -333,7 +334,7 @@ static void listdir_finalize(listdir_generator *Generator, void *Arg) {
 #endif
 };
 
-static long listdir_resume(listdir_resume_data *Data) {
+static Std$Function$status listdir_resume(listdir_resume_data *Data) {
 #ifdef WINDOWS
 #else
 	listdir_generator *Generator = Data->Generator;

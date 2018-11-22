@@ -258,7 +258,7 @@ typedef struct library_section_t {
 } library_section_t;
 
 static void library_section_debug(library_section_t *Section, FILE *File) {
-	fprintf(File, "%d: library section: %s\n", ((section_t *)Section)->Index, Section->Path);
+	fprintf(File, "%d: library section: %s%s\n", ((section_t *)Section)->Index, Section->Path, Section->Flags & LIBRARY_REL ? " Relative" : "");
 }
 
 static uint32_t library_section_size(library_section_t *Section) {
@@ -275,6 +275,10 @@ static void library_section_write(library_section_t *Section, gzFile File) {
 		Temp = LIBRARY_REL; gzwrite(File, &Temp, 1);
 		Temp = strlen(Section->Path); gzwrite(File, &Temp, 4);
 		gzwrite(File, Section->Path + 1, Temp);
+	} else if (Section->Flags & LIBRARY_REL) {
+		Temp = LIBRARY_REL; gzwrite(File, &Temp, 1);
+		Temp = strlen(Section->Path) + 1; gzwrite(File, &Temp, 4);
+		gzwrite(File, Section->Path, Temp);
 	} else {
 		Temp = LIBRARY_ABS; gzwrite(File, &Temp, 1);
 		Temp = strlen(Section->Path) + 1; gzwrite(File, &Temp, 4);
@@ -1332,14 +1336,14 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strncmp(Sect->name, ".gnu.warning", 12) == 0) {
 	} else if (strncmp(Sect->name, ".gnu.glibc-stub", 15) == 0) {
 	} else {
-		printf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
+		fprintf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
 	}
 }
 
 
 typedef void (*bfd_map)(bfd *, asection *, void *);
 
-static void add_bfd(bfd *Bfd, int AutoExport) {
+static void add_bfd(bfd *Bfd, int AutoExport, int Relative) {
 	if (bfd_check_format(Bfd, bfd_object)) {
 		bfd_info_t *BfdInfo = new(bfd_info_t);
 		BfdInfo->FileName = Bfd->filename;
@@ -1398,17 +1402,17 @@ static void add_bfd(bfd *Bfd, int AutoExport) {
 			} else if (Sym->flags & BSF_DEBUGGING) {
 				// This may be supported later
 			} else {
-				printf(stderr, "%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
+				fprintf(stderr, "%s: unknown symbol type: %8x.\n", Bfd->filename, Sym->flags);
 				//exit(1);
 			}
 		}
 	} else if (bfd_check_format(Bfd, bfd_archive)) {
 		bfd *Bfd2 = 0;
-		while ((Bfd2 = bfd_openr_next_archived_file(Bfd, Bfd2))) add_bfd(Bfd2, AutoExport);
+		while ((Bfd2 = bfd_openr_next_archived_file(Bfd, Bfd2))) add_bfd(Bfd2, AutoExport, 0);
 	}
 }
 
-static void add_object_file(const char *FileName, int AutoExport) {
+static void add_object_file(const char *FileName, int AutoExport, int Relative) {
 	if (DependencyMode) {
 		stringmap_insert(Dependencies, strdup(FileName), 0);
 		return;
@@ -1418,10 +1422,10 @@ static void add_object_file(const char *FileName, int AutoExport) {
 		fprintf(stderr, "%s: error reading file.\n", FileName);
 		return;
 	}
-	add_bfd(Bfd, AutoExport);
+	add_bfd(Bfd, AutoExport, 0);
 }
 
-static void add_dependency_file(const char *FileName, int AutoExport) {
+static void add_dependency_file(const char *FileName, int AutoExport, int Relative) {
 	stringmap_insert(Dependencies, strdup(FileName), 0);
 }
 
@@ -1611,11 +1615,17 @@ static ml_value_t *script_file_import(void *Data, int Count, ml_value_t **Args) 
 	return MLNil;
 }
 
-static void add_file(const char *FileName, int AutoExport);
+static void add_file(const char *FileName, int AutoExport, int Relative);
+static ml_value_t *ExportMethod = 0;
+static ml_value_t *RelativeMethod = 0;
 
 static ml_value_t *script_file_include(void *Data, int Count, ml_value_t **Args) {
-	int AutoExport = Count > 1 ? (Args[1] != MLNil) : 0;
-	add_file(ml_string_value(Args[0]), AutoExport);
+	int Export = 0, Relative = 0;
+	for (int I = 1; I < Count; ++I) {
+		if (Args[I] == ExportMethod) Export = 1;
+		if (Args[I] == RelativeMethod) Relative = 1;
+	}
+	add_file(ml_string_value(Args[0]), Export, Relative);
 	return MLNil;
 }
 
@@ -1708,7 +1718,7 @@ static ml_value_t *global_get(stringmap_t *Globals, const char *Name) {
 	return stringmap_search(Globals, Name) ?: MLNil;
 }
 
-static void add_script_file(const char *FileName, int AutoExport) {
+static void add_script_file(const char *FileName, int AutoExport, int Relative) {
 	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	//printf("add_script_file(%s, %d)\n", FileName, AutoExport);
 	library_file_t *Library = new(library_file_t);
@@ -1736,7 +1746,7 @@ static void add_script_file(const char *FileName, int AutoExport) {
 	CurrentLibrary = PreviousLibrary;
 }
 
-static void add_library_file(const char *FileName, int AutoExport) {
+static void add_library_file(const char *FileName, int AutoExport, int Relative) {
 	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	//printf("add_script_file(%s, %d)\n", FileName, AutoExport);
 	library_file_t *Library = new(library_file_t);
@@ -1774,7 +1784,7 @@ static ml_value_t *definition_file_symbol(void *Data, int Count, ml_value_t **Ar
 	return MLNil;
 }
 
-static void add_definition_file(const char *FileName, int AutoExport) {
+static void add_definition_file(const char *FileName, int AutoExport, int Relative) {
 	if (DependencyMode) stringmap_insert(Dependencies, strdup(FileName), 0);
 	ml_value_t *Closure = ml_load((ml_getter_t)global_get, RdefGlobals, FileName);
 	if (Closure->Type == MLErrorT) {
@@ -1844,7 +1854,7 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 	}
 }
 
-static void add_shared_lib(const char *FileName, int AutoExport) {
+static void add_shared_lib(const char *FileName, int AutoExport, int Relative) {
 	if (DependencyMode) {
 		stringmap_insert(Dependencies, strdup(FileName), 0);
 		return;
@@ -1861,6 +1871,7 @@ static void add_shared_lib(const char *FileName, int AutoExport) {
 	library_section_t *LibrarySection = (library_section_t *)stringmap_search(LibraryTable, Module);
 	if (LibrarySection == 0) {
 		LibrarySection = new_library_section(Module);
+		if (Relative) LibrarySection->Flags |= LIBRARY_REL;
 		bfd *Bfd = bfd_openr(FileName, 0);
 		if (Bfd == 0) {
 			fprintf(stderr, "%s: error reading file.\n", FileName);
@@ -1872,7 +1883,7 @@ static void add_shared_lib(const char *FileName, int AutoExport) {
 
 static stringmap_t *SupportedFiles;
 
-typedef void (*file_adder)(const char *, int);
+typedef void (*file_adder)(const char *, int, int);
 
 typedef struct search_path_t {
 	const char *Path;
@@ -1890,7 +1901,7 @@ static void add_path(const char *Path) {
 	SearchPathTail = Node;
 }
 
-static void add_file(const char *FileName, int AutoExport) {
+static void add_file(const char *FileName, int AutoExport, int Relative) {
 	//printf("add_file(%s, %d)\n", FileName, AutoExport);
 	const char *Extension = strrchr(FileName, '.');
 	if (Extension == 0) {
@@ -1907,12 +1918,12 @@ static void add_file(const char *FileName, int AutoExport) {
 	for (search_path_t *Node = &SearchPath; Node; Node = Node->Next) {
 		sprintf(FullFileName, "%s%s", Node->Path, FileName);
 		if (stat(FullFileName, &Stat) == 0) {
-			_add(FullFileName, AutoExport);
+			_add(FullFileName, AutoExport, Relative);
 			return;
 		}
 		sprintf(FullFileName, "%s/%s", Node->Path, FileName);
 		if (stat(FullFileName, &Stat) == 0) {
-			_add(FullFileName, AutoExport);
+			_add(FullFileName, AutoExport, Relative);
 			return;
 		}
 	}
@@ -1934,12 +1945,12 @@ static void find_shared_lib(const char *Name) {
 #ifdef WINDOWS
 		sprintf(FullFileName, "%s%s.rlib", Node->Path, Name);
 		if (stat(FullFileName, &Stat) == 0) {
-			add_file(FullFileName, 1);
+			add_file(FullFileName, 1, 0);
 			return;
 		}
 		sprintf(FullFileName, "%s/%s.rlib", Node->Path, Name);
 		if (stat(FullFileName, &Stat) == 0) {
-			add_file(FullFileName, 1);
+			add_file(FullFileName, 1, 0);
 			return;
 		}
 		
@@ -1966,7 +1977,7 @@ static void find_shared_lib(const char *Name) {
 	fprintf(stderr, "%s: shared library not found.\n", Name);
 	exit(1);
 found:
-	add_shared_lib(FullFileName, 1);
+	add_shared_lib(FullFileName, 1, 0);
 }
 
 static int print_dependency(const char *Key, void *Data, void *Arg) {
@@ -2012,6 +2023,9 @@ int main(int Argc, char **Argv) {
 	for (define_t *Define = Defines; Define; Define = Define->Next) {
 		stringmap_insert(RlinkGlobals, Define->Name, ml_string(Define->Value, -1));
 	}
+
+	RelativeMethod = ml_method("relative");
+	ExportMethod = ml_method("export");
 
 	stringmap_insert(RlibGlobals, "module", ml_function(0, script_file_module));
 	stringmap_insert(RlibGlobals, "prefix", ml_function(0, script_file_prefix));
@@ -2081,7 +2095,7 @@ int main(int Argc, char **Argv) {
 				find_shared_lib(Argv[I] + 2);
 				break;
 			case 'x':
-				add_file(Argv[I] + 2, 1);
+				add_file(Argv[I] + 2, 1, 0);
 				break;
 			case 'L':
 				if (Argv[I][2]) {
@@ -2157,7 +2171,7 @@ int main(int Argc, char **Argv) {
 			}
 			}
 		} else {
-			add_file(Argv[I], 0);
+			add_file(Argv[I], 0, 0);
 		}
 	}
 	if (DependencyMode) {

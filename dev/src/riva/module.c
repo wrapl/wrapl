@@ -214,6 +214,7 @@ static module_t *module_load_internal(const char *Path, const char *File, const 
 };
 
 module_t *module_load(const char *Path, const char *File) {
+	log_writef("Loading %s, path = %s.\n", File, Path);
 	if (Path) return module_load_internal(Path, File, 0);
 	//pthread_t Thread = pthread_self();
 	//printf("<thread @ %x> Entering module_load:%d(%s, %s)\n", Thread, __LINE__, Path, File);
