@@ -302,6 +302,18 @@ int module_import0(module_t *Module, const char *Symbol, int *IsRef, void **Data
 	return 0;
 };
 
+int module_suggest(module_t *Module, const char *Prefix, module_suggest_callback Callback, void *Data) {
+	int Length = strlen(Prefix);
+	stringtable_node *Entry = Module->Symbols->Entries;
+	for (int I = Module->Symbols->Size; --I >= 0; ++Entry) {
+		if (Entry->Key && !memcmp(Entry->Key, Prefix, Length)) Callback(Entry->Key, Data);
+	}
+	for (module_provider_t *Provider = Module->Providers; Provider; Provider = Provider->Next) {
+		if (Provider->SuggestFunc) Provider->SuggestFunc(Provider->ImportInfo, Prefix, Callback, Data);
+	}
+	return 0;
+}
+
 void module_export(module_t *Module, const char *Name, int IsRef, void *Data) {
 	export_t *Export = new(export_t);
 	Export->IsRef = IsRef;
@@ -387,6 +399,10 @@ void module_importer_set(module_provider_t *Provider, void *ImportInfo, module_i
 	};
 };
 
+void module_suggest_set(module_provider_t *Provider, module_suggest_func SuggestFunc) {
+	Provider->SuggestFunc = SuggestFunc;
+}
+
 #include <sys/stat.h>
 
 module_t *module_load_file(const char *File, const char *Type) {
@@ -421,6 +437,7 @@ void module_init(void) {
 	module_export(Module, "_get_name", 0, module_get_name);
 	module_export(Module, "_import", 0, module_import);
 	module_export(Module, "_lookup", 0, module_lookup);
+	module_export(Module, "_suggest", 0, module_suggest);
 	module_export(Module, "_new", 0, module_new);
 	module_export(Module, "_add_alias", 0, module_add_alias);
 	module_export(Module, "_set_path", 0, module_set_path);
@@ -428,6 +445,7 @@ void module_init(void) {
 	module_export(Module, "_add_directory", 0, module_add_directory);
 	module_export(Module, "_add_loader", 0, module_add_loader);
 	module_export(Module, "_set_import_func", 0, module_importer_set);
+	module_export(Module, "_set_suggest_func", 0, module_suggest_set);
 	module_export(Module, "_get_default_provider", 0, module_get_default_provider);
 	module_export(Module, "_set_version", 0, module_set_version);
 	module_export(Module, "_get_version", 0, module_get_version);

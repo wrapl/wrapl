@@ -87,7 +87,7 @@ loop:reader(shell;) (
 				result <- "Interrupted";
 				EXIT;
 			);
-			result <- wrapl:eval;
+			result <- wrapl:eval | "failure";
 			RECV msg DO (
 				input:rest;
 				status <- "error";
@@ -106,6 +106,25 @@ loop:reader(shell;) (
 			"execution_count" IS execution_count
 		});
 		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
+	) IS "complete_request" DO (
+		VAR pos IS req_content.cursor_pos;
+		VAR code <- req_content.code;
+		Log.INFO('pos = ', pos, ' code = ', code);
+		VAR i <- (pos:to(1, -1) \ code[$] <= " ") | 0;
+		code <- code[i, pos + 1];
+		Log.INFO('i = ', i, 'pos = ', pos, ' code = ', code);
+		VAR parts <- ALL code:split(".");
+		code[-1] = "." => parts:put("");
+		VAR scope <- wrapl;
+		REP (WHILE parts:length > 1; scope <- scope.(parts:pop));
+		VAR suggestions <- scope:suggest(parts[1]);
+		Send(shell, ids, "complete_reply", req_header, {}, {
+			"matches" IS suggestions,
+			"cursor_start" IS pos - parts[1]:length,
+			"cursor_end" IS pos,
+			"metadata" IS {},
+			"status" IS "ok"
+		});
 	);
 );
 

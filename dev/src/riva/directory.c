@@ -1,6 +1,7 @@
 #include "libriva.h"
 #include <stdio.h>
 #include <sys/stat.h>
+#include <dirent.h>
 #include "log.h"
 #include "path.h"
 
@@ -21,6 +22,18 @@ int directory_import(const char *Path, const char *Name, int *IsRef, void **Data
 	};
 };
 
+int directory_suggest(const char *Path, const char *Prefix, module_suggest_callback Callback, void *Data) {
+	int Length = strlen(Prefix);
+	DIR *Dir = opendir(Path);
+	if (Dir) for (;;) {
+		struct dirent *Entry = readdir(Dir);
+		if (Entry) break;
+		if (!memcmp(Entry->d_name, Prefix, Length)) Callback(GC_strdup(Entry->d_name), Data);
+	}
+	closedir(Dir);
+	return 0;
+}
+
 void *directory_find(const char *Base) {
 	struct stat Stat[1];
 	if (stat(Base, Stat)) return 0;
@@ -33,6 +46,7 @@ static int directory_load(module_provider_t *Provider, const char *FileName) {
 	stat(FileName, Stat);
 	if (S_ISDIR(Stat->st_mode)) {
 		module_importer_set(Provider, path_fixup(FileName), (module_import_func)directory_import);
+		module_suggest_set(Provider, (module_suggest_func)directory_suggest);
 		return 1;
 	} else {
 		return 0;

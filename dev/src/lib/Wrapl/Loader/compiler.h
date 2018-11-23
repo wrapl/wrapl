@@ -79,7 +79,7 @@ struct compiler_t {
 		scope_t *Up;
 		int LastIndex;
 		function_t *Function;
-		stringtable_t NameTable;
+		stringtable_t NameTable[1];
 		scope_t(type_t Type, scope_t *Up = 0) {
 			this->Type = Type;
 			this->Up = Up;
@@ -713,7 +713,7 @@ struct module_expr_t : expr_t {CLASSID
 	globalvar_t *Vars;
 	expr_t *Body;
 	const char *Name;
-	stringtable_t Exports;
+	stringtable_t Exports[1];
 
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);

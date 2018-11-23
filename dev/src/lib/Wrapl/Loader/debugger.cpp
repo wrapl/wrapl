@@ -33,7 +33,7 @@ struct debugger_t {
 	pthread_mutex_t Lock[1];
 	debug_thread_t Threads[1];
 	debug_module_t *Modules;
-	stringtable_t Commands;
+	stringtable_t Commands[1];
 	int Socket;
 	uint32_t NextThreadId, NextModuleId;
 	const char *SocketPath;

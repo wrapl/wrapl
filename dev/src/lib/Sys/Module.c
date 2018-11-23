@@ -213,6 +213,19 @@ METHOD("import", TYP, T, TYP, Std$String$T) {
 	};
 }
 
+static int suggest_callback(const char *Name, Std$Object$t *Matches) {
+	Agg$List$put(Matches, Std$String$new(Name));
+	return 0;
+}
+
+METHOD("suggest", TYP, T, TYP, Std$String$T) {
+	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	const char *Prefix = Std$String$flatten(Args[1].Val);
+	Std$Object$t *Matches = Agg$List$new0();
+	Riva$Module$suggest(Module, Prefix, suggest_callback, Matches);
+	RETURN(Matches);
+}
+
 METHOD("export", TYP, T, TYP, Std$String$T, ANY) {
 //@module
 //@id
