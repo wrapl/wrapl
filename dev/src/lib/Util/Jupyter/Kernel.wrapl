@@ -108,16 +108,16 @@ loop:reader(shell;) (
 		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
 	) IS "complete_request" DO (
 		VAR pos IS req_content.cursor_pos;
-		VAR code <- req_content.code;
-		Log.INFO('pos = ', pos, ' code = ', code);
-		VAR i <- (pos:to(1, -1) \ code[$] <= " ") | 0;
-		code <- code[i, pos + 1];
-		Log.INFO('i = ', i, 'pos = ', pos, ' code = ', code);
+		VAR line <- req_content.code;
+		VAR i <- (pos:to(1, -1) \ line[$] <= " ") | 0;
+		VAR code <- line[i + 1, pos + 1];
 		VAR parts <- ALL code:split(".");
 		code[-1] = "." => parts:put("");
 		VAR scope <- wrapl;
-		REP (WHILE parts:length > 1; scope <- scope.(parts:pop));
-		VAR suggestions <- scope:suggest(parts[1]);
+		line[i - 3, i] = "IMP" => scope <- Sys.Module.Load(NIL, parts:pop);
+		REP (WHILE parts:length > 1; scope <- scope.(parts:pop) | FAIL);
+		VAR suggestions <- ALL (UNIQ scope:suggest(parts[1]):values):keys;
+		Log.INFO('i = ', i, ' pos = ', pos, ' line = ', line, ' code = ', code, ' parts = ', parts, ' suggestions = ', suggestions);
 		Send(shell, ids, "complete_reply", req_header, {}, {
 			"matches" IS suggestions,
 			"cursor_start" IS pos - parts[1]:length,

@@ -512,21 +512,17 @@ GLOBAL_FUNCTION(SessionVar, 3) {
 GLOBAL_FUNCTION(SessionGet, 2) {
 	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
 	session_t *Session = (session_t *)Args[0].Val;
-	const char *Name = Std$String$flatten(Args[1].Val);
-	operand_t *Operand = stringtable_get(Session->Compiler->Global->NameTable, Name);
-	if (Operand) {
-		switch (Operand->Type) {
-		case operand_t::CNST:
-			RETURN(Operand->Value);
-		case operand_t::GVAR:
-			Result->Ref = Operand->Address;
-			Result->Val = Operand->Address[0];
-			return SUCCESS;
-		default:
-			FAIL;
-		}
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
+	if (Operand->Type == operand_t::GVAR) {
+		Result->Val = *(Result->Ref = Operand->Address);
+		return SUCCESS;
+	} else if (Operand->Type == operand_t::CNST) {
+		Result->Val = Operand->Value;
+		Result->Ref = 0;
+		return SUCCESS;
 	} else {
-		FAIL;
+		return FAILURE;
 	}
 }
 
@@ -707,7 +703,8 @@ METHOD("get", TYP, SessionT, TYP, Std$String$T) {
 //@name
 //:ANY
 	session_t *Session = (session_t *)Args[0].Val;
-	operand_t *Operand = Session->Compiler->lookup(0, Std$String$flatten(Args[1].Val));
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
 	if (Operand->Type == operand_t::GVAR) {
 		Result->Val = *(Result->Ref = Operand->Address);
 		return SUCCESS;
@@ -725,7 +722,8 @@ METHOD(".", TYP, SessionT, TYP, Std$String$T) {
 //@name
 //:ANY
 	session_t *Session = (session_t *)Args[0].Val;
-	operand_t *Operand = Session->Compiler->lookup(0, Std$String$flatten(Args[1].Val));
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
 	if (Operand->Type == operand_t::GVAR) {
 		Result->Val = *(Result->Ref = Operand->Address);
 		return SUCCESS;

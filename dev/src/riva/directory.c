@@ -27,8 +27,16 @@ int directory_suggest(const char *Path, const char *Prefix, module_suggest_callb
 	DIR *Dir = opendir(Path);
 	if (Dir) for (;;) {
 		struct dirent *Entry = readdir(Dir);
-		if (Entry) break;
-		if (!memcmp(Entry->d_name, Prefix, Length)) Callback(GC_strdup(Entry->d_name), Data);
+		if (!Entry) break;
+		if (!memcmp(Entry->d_name, Prefix, Length)) {
+			char *End = Entry->d_name;
+			while (*End && *End != '.') ++End;
+			int Length2 = End - Entry->d_name;
+			char *Name = GC_malloc_atomic(Length2 + 1);
+			memcpy(Name, Entry->d_name, Length2);
+			Name[Length2] = 0;
+			Callback(Name, Data);
+		}
 	}
 	closedir(Dir);
 	return 0;

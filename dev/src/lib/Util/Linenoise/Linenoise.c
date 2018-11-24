@@ -75,7 +75,8 @@ static void riva_completion(const char *Buffer, linenoiseCompletions *Completion
 }
 
 GLOBAL_FUNCTION(CompletionSet, 1) {
-	if (Args[0].Val == $true) {
+	if (Args[0].Val != Std$Object$Nil) {
+		CompletionCallback = Args[0].Val;
 		linenoiseSetCompletionCallback(riva_completion);
 	} else {
 		linenoiseSetCompletionCallback(0);
