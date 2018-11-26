@@ -48,6 +48,7 @@ loop:reader(heartbeat;) (
 
 loop:reader(shell;) (
 	VAR ids <- [];
+	Log.DEBUG("Received", req_header, req_content);
 	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
 	VAR req_signature <- shell:recv(Std.String.T);
 	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
