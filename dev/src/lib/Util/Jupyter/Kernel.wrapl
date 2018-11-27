@@ -47,21 +47,74 @@ loop:reader(heartbeat;) (
 );
 
 loop:reader(shell;) (
+	Handle(shell, shell:recv(Net.ZeroMQ.Msg.T));
+);
+
+loop:reader(control;) (
+	Handle(control, control:recv(Net.ZeroMQ.Msg.T));
+);
+
+loop:reader(stdin;) (
+	VAR msg <- stdin:recv(Std.String.T);
+	Log.DEBUG('Received {msg} on stdin');
+);
+
+loop:start RECV msg DO (
+	loop:destroy;
+	heartbeat:destroy;
+	shell:destroy;
+	control:destroy;
+	stdin:destroy;
+	iopub:destroy;
+);
+
+DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
+	VAR msg_id <- '{Alg.UUID.New()}';
+	VAR header <- Json.EncodeString({
+		"msg_id" IS msg_id,
+		"username" IS "kernel",
+		"session" IS session,
+		"msg_type" IS msg_type,
+		"version" IS "5.2",
+		"date" IS '{Sys.Time.Now()}':before("+"):map(" ", "T") + 'Z'
+	});
+	parent <- Json.EncodeString(parent);
+	metadata <- Json.EncodeString(metadata);
+	content <- Json.EncodeString(content);
+	VAR hmac <- Alg.HMAC.SHA256.New(key);
+	hmac:update(header);
+	hmac:update(parent);
+	hmac:update(metadata);
+	hmac:update(content);
+	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
+	Log.DEBUG("Sending", header, content);
+	ids ~== NIL => EVERY socket:sendm(ids:values);
+	socket:sendm("<IDS|MSG>");
+	socket:sendm(signature);
+	socket:sendm(header);
+	socket:sendm(parent);
+	socket:sendm(metadata);
+	socket:sendm(content);
+	EVERY socket:sendm(extra:values);
+	socket:send("");
+	RET msg_id;
+);
+
+DEF Handle(socket, msg) (
 	VAR ids <- [];
-	Log.DEBUG("Received", req_header, req_content);
-	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
-	VAR req_signature <- shell:recv(Std.String.T);
-	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
+	REP WHILE ids:put("<IDS|MSG>" ~= msg:pop(Std.String.T));
+	VAR req_signature <- msg:pop(Std.String.T);
+	VAR req_header <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_parent <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_metadata <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_content <- Json.LoadString(msg:pop(Std.String.T));
 	Log.DEBUG("Received", req_header, req_content);
 	WHEN req_header.msg_type IS "kernel_info_request" DO (
 		Send(shell, ids, "kernel_info_reply", req_header, {}, {
 			"status" IS "ok",
 			"protocol_version" IS "5.2.0",
 			"implementation" IS "wrapl",
-			"implementation_version" IS "0.0.1",
+			"implementation_version" IS "0.0.2",
 			"language_info" IS {
 				"name" IS "wrapl",
 				"version" IS "0.0.0",
@@ -110,7 +163,7 @@ loop:reader(shell;) (
 	) IS "complete_request" DO (
 		VAR pos IS req_content.cursor_pos;
 		VAR line <- req_content.code;
-		VAR i <- (pos:to(1, -1) \ line[$] <= " ") | 0;
+		VAR i <- (pos:to(1, -1) \ line[$] IN " ()[]{}\t") | 0;
 		VAR code <- line[i + 1, pos + 1];
 		VAR parts <- ALL code:split(".");
 		code[-1] = "." => parts:put("");
@@ -126,57 +179,11 @@ loop:reader(shell;) (
 			"metadata" IS {},
 			"status" IS "ok"
 		});
+		RECV msg DO Log.ERROR("Complete Request ", msg);
+	) IS "shutdown_request" DO (
+		Log.INFO("Shutting down");
+		SEND "Shutdown";
 	);
-);
-
-loop:reader(control;) (
-	VAR ids <- [];
-	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
-	VAR req_signature <- shell:recv(Std.String.T);
-	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
-	Log.DEBUG("Received", req_header, req_content);
-);
-
-loop:reader(stdin;) (
-	VAR msg <- stdin:recv(Std.String.T);
-	Log.DEBUG('Received {msg} on stdin');
-);
-
-loop:start;
-
-DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
-	VAR msg_id <- '{Alg.UUID.New()}';
-	VAR header <- Json.EncodeString({
-		"msg_id" IS msg_id,
-		"username" IS "kernel",
-		"session" IS session,
-		"msg_type" IS msg_type,
-		"version" IS "5.2",
-		"date" IS '{Sys.Time.Now()}':before("+"):map(" ", "T") + 'Z'
-	});
-	parent <- Json.EncodeString(parent);
-	metadata <- Json.EncodeString(metadata);
-	content <- Json.EncodeString(content);
-	VAR hmac <- Alg.HMAC.SHA256.New(key);
-	hmac:update(header);
-	hmac:update(parent);
-	hmac:update(metadata);
-	hmac:update(content);
-	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
-	Log.DEBUG("Sending", header, content);
-	ids ~== NIL => EVERY socket:sendm(ids:values);
-	socket:sendm("<IDS|MSG>");
-	socket:sendm(signature);
-	socket:sendm(header);
-	socket:sendm(parent);
-	socket:sendm(metadata);
-	socket:sendm(content);
-	EVERY socket:sendm(extra:values);
-	socket:send("");
-	RET msg_id;
 );
 
 END Kernel.

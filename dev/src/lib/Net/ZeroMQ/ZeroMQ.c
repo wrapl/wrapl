@@ -82,6 +82,7 @@ GLOBAL_FUNCTION(PubNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = PubSockT;
 	Sock->Handle = zsock_new_pub(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -97,6 +98,7 @@ GLOBAL_FUNCTION(SubNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = SubSockT;
 	Sock->Handle = zsock_new_sub(Endpoint, Subscribe);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -107,6 +109,7 @@ GLOBAL_FUNCTION(ReqNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = ReqSockT;
 	Sock->Handle = zsock_new_req(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -117,6 +120,7 @@ GLOBAL_FUNCTION(RepNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = RepSockT;
 	Sock->Handle = zsock_new_rep(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -127,6 +131,7 @@ GLOBAL_FUNCTION(DealerNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = DealerSockT;
 	Sock->Handle = zsock_new_dealer(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -137,6 +142,7 @@ GLOBAL_FUNCTION(RouterNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = RouterSockT;
 	Sock->Handle = zsock_new_router(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -147,6 +153,7 @@ GLOBAL_FUNCTION(PushNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = PushSockT;
 	Sock->Handle = zsock_new_push(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -157,6 +164,7 @@ GLOBAL_FUNCTION(PullNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = PullSockT;
 	Sock->Handle = zsock_new_pull(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -167,6 +175,7 @@ GLOBAL_FUNCTION(XPubNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = XPubSockT;
 	Sock->Handle = zsock_new_xpub(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -177,6 +186,7 @@ GLOBAL_FUNCTION(XSubNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = XSubSockT;
 	Sock->Handle = zsock_new_xsub(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -187,6 +197,7 @@ GLOBAL_FUNCTION(PairNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = PairSockT;
 	Sock->Handle = zsock_new_pair(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
 }
@@ -197,8 +208,15 @@ GLOBAL_FUNCTION(StreamNew, 1) {
 	sock_t *Sock = new(sock_t);
 	Sock->Type = StreamSockT;
 	Sock->Handle = zsock_new_stream(Endpoint);
+	if (!Sock->Handle) SEND(Std$String$new("Socket creation error"));
 	Riva$Memory$register_finalizer(Sock, sock_finalize, 0, 0, 0);
 	RETURN(Sock);
+}
+
+METHOD("destroy", TYP, SockT) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	zsock_destroy(&Sock->Handle);
+	RETURN(Std$Object$Nil);
 }
 
 METHOD("bind", TYP, SockT, TYP, Std$String$T) {
@@ -453,6 +471,18 @@ METHOD("append", TYP, MsgT, TYP, Agg$Buffer$T) {
 	RETURN0;
 }
 
+METHOD("pop", TYP, MsgT, VAL, Std$String$T) {
+	msg_t *Msg = (msg_t *)Args[0].Val;
+	zframe_t *Frame = zmsg_pop(Msg->Handle);
+	if (Frame) {
+		Std$Object$t *String = Std$String$copy_length(zframe_data(Frame), zframe_size(Frame));
+		zframe_destroy(&Frame);
+		RETURN(String);
+	} else {
+		FAIL;
+	}
+}
+
 METHOD("pop", TYP, MsgT, VAL, MsgT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	zmsg_t *Handle = zmsg_popmsg(Msg->Handle);
@@ -606,4 +636,10 @@ METHOD("start", TYP, LoopT) {
 	} else {
 		RETURN0;
 	}
+}
+
+METHOD("destroy", TYP, LoopT) {
+	loop_t *Loop = (loop_t *)Args[0].Val;
+	zloop_destroy(&Loop->Handle);
+	RETURN(Std$Object$Nil);
 }
