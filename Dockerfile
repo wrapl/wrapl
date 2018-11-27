@@ -56,19 +56,21 @@ RUN ls -lah
 
 RUN linux32 rabs -c
 
-FROM i386/debian:sid-slim
+FROM debian:sid-slim
+
+RUN dpkg --add-architecture i386
 
 RUN apt-get update && apt-get install -y \
-	libgssapi-krb5-2 \
-	libgtk-3-0 \
-	libgtksourceview-3.0-1 \
-	libncursesw6 \
-	libjansson4 \
-	libexpat1 \
-	libpq5 \
-	libssl1.1 \
-	libgcrypt20 \
-	libesmtp6
+	libgssapi-krb5-2:i386 \
+	libgtk-3-0:i386 \
+	libgtksourceview-3.0-1:i386 \
+	libncursesw6:i386 \
+	libjansson4:i386 \
+	libexpat1:i386 \
+	libpq5:i386 \
+	libssl1.1:i386 \
+	libgcrypt20:i386 \
+	libesmtp6:i386
 
 RUN apt-get clean
 

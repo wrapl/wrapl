@@ -47,77 +47,11 @@ loop:reader(heartbeat;) (
 );
 
 loop:reader(shell;) (
-	VAR ids <- [];
-	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
-	VAR req_signature <- shell:recv(Std.String.T);
-	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
-	Log.DEBUG("Received", req_header, req_content);
-	WHEN req_header.msg_type IS "kernel_info_request" DO (
-		Send(shell, ids, "kernel_info_reply", req_header, {}, {
-			"status" IS "ok",
-			"protocol_version" IS "5.2.0",
-			"implementation" IS "wrapl",
-			"implementation_version" IS "0.0.1",
-			"language_info" IS {
-				"name" IS "wrapl",
-				"version" IS "0.0.0",
-				"mimetype" IS "text/x-wrapl",
-				"file_extension" IS ".wrapl"
-			},
-			"banner" IS "Wrapl in Jupyter :)"
-		});
-		Terminal:export("Out", out <- OutT("stdout", {}));
-		Terminal:export("Err", err <- OutT("stderr", {}));
-	) IS "execute_request" DO (
-		execution_count <- $ + 1;
-		input:write(req_content.code);
-		wrapl:lineno(0);
-		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "busy"});
-		out:parent <- req_header;
-		VAR result <- NIL;
-		VAR status <- "ok";
-		REP (WHILE input:length > 0;
-			Log.DEBUG("Evaluating Wrapl code");
-			exec:mark => (
-				Log.INFO("Interrupted!");
-				input:rest;
-				result <- "Interrupted";
-				EXIT;
-			);
-			result <- wrapl:eval;
-			RECV msg DO (
-				input:rest;
-				status <- "error";
-				result <- 'Error: {msg}' RECV msg2 DO "Unknown error";
-				EXIT;
-			);
-		);
-		VAR data <- {};
-		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
-		Send(iopub, NIL, "execute_result", req_header, {}, {
-			"execution_count" IS execution_count,
-			"data" IS data
-		});
-		Send(shell, ids, "execute_reply", req_header, {}, {
-			"status" IS status,
-			"execution_count" IS execution_count
-		});
-		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
-	);
+	Handle(shell, shell:recv(Net.ZeroMQ.Msg.T));
 );
 
 loop:reader(control;) (
-	VAR ids <- [];
-	REP WHILE ids:put("<IDS|MSG>" ~= shell:recv(Std.String.T));
-	VAR req_signature <- shell:recv(Std.String.T);
-	VAR req_header <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_parent <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_metadata <- Json.LoadString(shell:recv(Std.String.T));
-	VAR req_content <- Json.LoadString(shell:recv(Std.String.T));
-	Log.DEBUG("Received", req_header, req_content);
+	Handle(control, control:recv(Net.ZeroMQ.Msg.T));
 );
 
 loop:reader(stdin;) (
@@ -125,7 +59,14 @@ loop:reader(stdin;) (
 	Log.DEBUG('Received {msg} on stdin');
 );
 
-loop:start;
+loop:start RECV msg DO (
+	loop:destroy;
+	heartbeat:destroy;
+	shell:destroy;
+	control:destroy;
+	stdin:destroy;
+	iopub:destroy;
+);
 
 DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	VAR msg_id <- '{Alg.UUID.New()}';
@@ -157,6 +98,92 @@ DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	EVERY socket:sendm(extra:values);
 	socket:send("");
 	RET msg_id;
+);
+
+DEF Handle(socket, msg) (
+	VAR ids <- [];
+	REP WHILE ids:put("<IDS|MSG>" ~= msg:pop(Std.String.T));
+	VAR req_signature <- msg:pop(Std.String.T);
+	VAR req_header <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_parent <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_metadata <- Json.LoadString(msg:pop(Std.String.T));
+	VAR req_content <- Json.LoadString(msg:pop(Std.String.T));
+	Log.DEBUG("Received", req_header, req_content);
+	WHEN req_header.msg_type IS "kernel_info_request" DO (
+		Send(shell, ids, "kernel_info_reply", req_header, {}, {
+			"status" IS "ok",
+			"protocol_version" IS "5.2.0",
+			"implementation" IS "wrapl",
+			"implementation_version" IS "0.0.2",
+			"language_info" IS {
+				"name" IS "wrapl",
+				"version" IS "0.0.0",
+				"mimetype" IS "text/x-wrapl",
+				"file_extension" IS ".wrapl"
+			},
+			"banner" IS "Wrapl in Jupyter :)"
+		});
+		Terminal:export("Out", out <- OutT("stdout", {}));
+		Terminal:export("Err", err <- OutT("stderr", {}));
+	) IS "execute_request" DO (
+		execution_count <- $ + 1;
+		input:write(req_content.code);
+		wrapl:lineno(0);
+		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "busy"});
+		out:parent <- req_header;
+		VAR result <- NIL;
+		VAR status <- "ok";
+		REP (WHILE input:length > 0;
+			Log.DEBUG("Evaluating Wrapl code");
+			exec:mark => (
+				Log.INFO("Interrupted!");
+				input:rest;
+				result <- "Interrupted";
+				EXIT;
+			);
+			result <- wrapl:eval | "failure";
+			RECV msg DO (
+				input:rest;
+				status <- "error";
+				result <- 'Error: {msg}' RECV msg2 DO "Unknown error";
+				EXIT;
+			);
+		);
+		VAR data <- {};
+		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
+		Send(iopub, NIL, "execute_result", req_header, {}, {
+			"execution_count" IS execution_count,
+			"data" IS data
+		});
+		Send(shell, ids, "execute_reply", req_header, {}, {
+			"status" IS status,
+			"execution_count" IS execution_count
+		});
+		Send(iopub, NIL, "status", req_header, {}, {"execution_state" IS "idle"});
+	) IS "complete_request" DO (
+		VAR pos IS req_content.cursor_pos;
+		VAR line <- req_content.code;
+		VAR i <- (pos:to(1, -1) \ line[$] IN " ()[]{}\t") | 0;
+		VAR code <- line[i + 1, pos + 1];
+		VAR parts <- ALL code:split(".");
+		code[-1] = "." => parts:put("");
+		VAR scope <- wrapl;
+		line[i - 3, i] = "IMP" => scope <- Sys.Module.Load(NIL, parts:pop);
+		REP (WHILE parts:length > 1; scope <- scope.(parts:pop) | FAIL);
+		VAR suggestions <- ALL (UNIQ scope:suggest(parts[1]):values):keys;
+		Log.INFO('i = ', i, ' pos = ', pos, ' line = ', line, ' code = ', code, ' parts = ', parts, ' suggestions = ', suggestions);
+		Send(shell, ids, "complete_reply", req_header, {}, {
+			"matches" IS suggestions,
+			"cursor_start" IS pos - parts[1]:length,
+			"cursor_end" IS pos,
+			"metadata" IS {},
+			"status" IS "ok"
+		});
+		RECV msg DO Log.ERROR("Complete Request ", msg);
+	) IS "shutdown_request" DO (
+		Log.INFO("Shutting down");
+		SEND "Shutdown";
+	);
 );
 
 END Kernel.

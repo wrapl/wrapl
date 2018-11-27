@@ -58,6 +58,9 @@ typedef void *(*module_find_func)(const char *Path);
 typedef int (*module_load_func)(module_provider_t *Module, void *Data);
 typedef int (*module_import_func)(const void *Handle, const char *Name, int *IsRef, void **Data);
 
+typedef int (*module_suggest_callback)(const char *Name, void *Data);
+typedef int (*module_suggest_func)(const void *Handle, const char *Prefix, module_suggest_callback Callback, void *Data);
+
 struct module_provider_t {
 	const struct Std$Type_t *Type;
 	module_t *Module;
@@ -72,6 +75,7 @@ struct module_provider_t {
 			module_loader_t *Loader;
 		};
 	};
+	module_suggest_func SuggestFunc;
 	int HasImports;
 };
 
@@ -98,6 +102,9 @@ extern const char *module_get_path(module_t *);
 extern int module_import(module_t *, const char *Name, int *IsRef, void **Data);
 extern int module_import0(module_t *, const char *Name, int *IsRef, void **Data);
 extern int module_lookup(void *, const char **, const char **);
+
+extern int module_suggest(module_t *, const char *, module_suggest_callback, void *);
+extern void module_suggest_set(module_provider_t *Provider, module_suggest_func);
 
 extern module_t *module_new(const char *Name);
 extern void module_add_alias(module_t *Module, const char *Alias);

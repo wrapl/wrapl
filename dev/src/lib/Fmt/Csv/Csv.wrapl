@@ -44,6 +44,7 @@ METH :rows(t @ T) (
 	);
 	t:parser:finish;
 	REP WHILE SUSP rows:pop;
+	FAIL;
 );
 
 END Csv.

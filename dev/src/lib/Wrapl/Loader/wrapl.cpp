@@ -509,6 +509,38 @@ GLOBAL_FUNCTION(SessionVar, 3) {
 	return SUCCESS;
 }
 
+GLOBAL_FUNCTION(SessionGet, 2) {
+	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
+	session_t *Session = (session_t *)Args[0].Val;
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
+	if (Operand->Type == operand_t::GVAR) {
+		Result->Val = *(Result->Ref = Operand->Address);
+		return SUCCESS;
+	} else if (Operand->Type == operand_t::CNST) {
+		Result->Val = Operand->Value;
+		Result->Ref = 0;
+		return SUCCESS;
+	} else {
+		return FAILURE;
+	}
+}
+
+GLOBAL_FUNCTION(SessionSuggest, 2) {
+	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
+	session_t *Session = (session_t *)Args[0].Val;
+	const char *Prefix = Std$String$flatten(Args[1].Val);
+	int Length = Std$String$get_length(Args[1].Val);
+	Std$Object$t *Matches = Agg$List$new0();
+	stringtable_node *Entry = Session->Compiler->Global->NameTable->Entries;
+	for (int I = Session->Compiler->Global->NameTable->Size; --I >= 0; ++Entry) {
+		if (Entry->Key && !memcmp(Entry->Key, Prefix, Length)) {
+			Agg$List$put(Matches, Std$String$new(Entry->Key));
+		}
+	}
+	RETURN(Matches);
+}
+
 #ifndef DOCUMENTING
 GLOBAL_FUNCTION(SetMissingIDFunc, 2) {
 	session_t *Session = (session_t *)Args[0].Val;
@@ -671,7 +703,8 @@ METHOD("get", TYP, SessionT, TYP, Std$String$T) {
 //@name
 //:ANY
 	session_t *Session = (session_t *)Args[0].Val;
-	operand_t *Operand = Session->Compiler->lookup(0, Std$String$flatten(Args[1].Val));
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
 	if (Operand->Type == operand_t::GVAR) {
 		Result->Val = *(Result->Ref = Operand->Address);
 		return SUCCESS;
@@ -682,6 +715,39 @@ METHOD("get", TYP, SessionT, TYP, Std$String$T) {
 	} else {
 		return FAILURE;
 	}
+}
+
+METHOD(".", TYP, SessionT, TYP, Std$String$T) {
+//@session
+//@name
+//:ANY
+	session_t *Session = (session_t *)Args[0].Val;
+	operand_t *Operand = Session->Compiler->try_lookup(0, Std$String$flatten(Args[1].Val));
+	if (!Operand) return FAILURE;
+	if (Operand->Type == operand_t::GVAR) {
+		Result->Val = *(Result->Ref = Operand->Address);
+		return SUCCESS;
+	} else if (Operand->Type == operand_t::CNST) {
+		Result->Val = Operand->Value;
+		Result->Ref = 0;
+		return SUCCESS;
+	} else {
+		return FAILURE;
+	}
+}
+
+METHOD("suggest", TYP, SessionT, TYP, Std$String$T) {
+	session_t *Session = (session_t *)Args[0].Val;
+	const char *Prefix = Std$String$flatten(Args[1].Val);
+	int Length = Std$String$get_length(Args[1].Val);
+	Std$Object$t *Matches = Agg$List$new0();
+	stringtable_node *Entry = Session->Compiler->Global->NameTable->Entries;
+	for (int I = Session->Compiler->Global->NameTable->Size; --I >= 0; ++Entry) {
+		if (Entry->Key && !memcmp(Entry->Key, Prefix, Length)) {
+			Agg$List$put(Matches, Std$String$new(Entry->Key));
+		}
+	}
+	RETURN(Matches);
 }
 
 extern Std$Type_t ScopeT[];

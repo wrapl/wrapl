@@ -1,4 +1,15 @@
 include("Std.rlib")
 include("Riva.rlib")
+include("Agg/List.rlib")
 
 export("Read")
+export("SetMultiLine")
+
+submodule("History")
+subexport("History", "HistoryAdd", "Add")
+subexport("History", "HistorySetMaxLen", "SetMaxLen")
+subexport("History", "HistorySave", "Save")
+subexport("History", "HistoryLoad", "Load")
+
+submodule("Completion")
+subexport("Completion", "CompletionSet", "Set")

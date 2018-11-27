@@ -1,0 +1,11 @@
+include("Sys/Module.rlib")
+include("Agg.rlib")
+--include("libeclipse.so", :relative)
+include("libpthread.rlib")
+include("libdl.rlib")
+
+export("Did")
+export("Var")
+export("Ref")
+export("Resume")
+export("Cut")

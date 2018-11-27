@@ -391,6 +391,15 @@ static int riva_import(riva_t *Riva, const char *Symbol, int *IsRef, void **Data
 	};
 };
 
+int riva_suggest(riva_t *Riva, const char *Prefix, module_suggest_callback Callback, void *Data) {
+	int Length = strlen(Prefix);
+	stringtable_node *Entry = Riva->Exports->Entries;
+	for (int I = Riva->Exports->Size; --I >= 0; ++Entry) {
+		if (Entry->Key && !memcmp(Entry->Key, Prefix, Length)) Callback(Entry->Key, Data);
+	}
+	return 0;
+}
+
 static void *riva_find(const char *Base) {
 	char Buffer[strlen(Base) + 6];
 	strcpy(stpcpy(Buffer, Base), ".riva");
@@ -411,6 +420,7 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 	Riva->FileName = FileName;
 
 	module_importer_set(Provider, Riva, (module_import_func)riva_import);
+	module_suggest_set(Provider, (module_suggest_func)riva_suggest);
 
 	int Fd = open(FileName, O_RDONLY);
 	if (Fd < 0) return 0;

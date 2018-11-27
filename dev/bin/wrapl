@@ -15,7 +15,8 @@ IMP Sys.Program USE Args;
 IMP Sys.Config;
 IMP Sys.Log;
 IMP Sys.Thread;
-IMP Util.Editline;
+--IMP Util.Editline;
+IMP Util.Linenoise;
 
 DEF _exit <- :?;
 DEF _help <- :?;
@@ -61,21 +62,26 @@ DEF Init() (
 		);
 		i <- i + 1;
 	);
-	VAR editline <- Editline.New("wrapl");
-	editline:prompt(<> prompt);
 	VAR stack <- [], prompt;
 	VAR in <- <[Stream.ReaderT]>();
+	Linenoise.SetMultiLine(:true);
+	Linenoise.History.SetMaxLen(100);
+	--VAR editline <- Editline.New("wrapl");
+	--editline:prompt(<> prompt);
 	TO :readi(=in, n@Integer.SmallT, t@String.T) (
 		REP (stack[1]:readi(n, t) \ RET $; WHILE stack:pop:close);
-		VAR s <- editline:read();
+		VAR s <- Linenoise.Read(prompt);
+		Linenoise.History.Add(s);
+		--VAR s <- editline:read();
 		prompt <- '... ';
-		editline:continue(:true);
+		--editline:continue(:true);
 		RET s;
 	);
 	stack:push(File.Open(Args[i], File.Flag.Read + File.Flag.Text));
 	global <- Loader.SessionNew(in);
 	Loader.SessionDef(global, "exit", _exit);
 	Loader.SessionDef(global, "help", _help);
+	Loader.SessionDef(global, "session", global);
 	Loader.SessionDef(global, "load", <filename> stack:push(File.Open(filename, File.Flag.Read + File.Flag.Text)));
 	clients:put(Out);
 	Out:writes("Interactive Wrapl [", Config.Get("version"), "]\n");
@@ -83,10 +89,20 @@ DEF Init() (
 	Program.OnInt(exec);
 	Loader.SessionVar(global, "_", result);
 	Loader.SessionDef(global, "image", Loader.Image);
+	Linenoise.Completion.Set(; line) (
+		VAR i <- (line:length:to(1, -1) \ line[$] <= " ") | 0;
+		VAR code <- line[i + 1, 0];
+		VAR parts <- ALL code:split(".");
+		code[-1] = "." => parts:put("");
+		VAR scope <- global;
+		line[i - 3, i] = "IMP" => scope <- Module.Load(NIL, parts:pop);
+		REP (WHILE parts:length > 1; scope <- scope.(parts:pop) | FAIL);
+		RET ALL line[1, -parts[1]:length] + scope:suggest(parts[1]):values;
+	);
 	REP (
 		exec:mark => (Out:write("Interrupted\n"); STEP;);
 		prompt <- '--> ';
-		editline:continue(:false);
+		--editline:continue(:false);
 		(result <- Loader.SessionEval(global)) => (
 			WHEN result IS _exit DO (
 				EVERY clients:values:write("Exiting.\n");
