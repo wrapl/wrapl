@@ -59,14 +59,21 @@ loop:reader(stdin;) (
 	Log.DEBUG('Received {msg} on stdin');
 );
 
-loop:start RECV msg DO (
-	loop:destroy;
-	heartbeat:destroy;
-	shell:destroy;
-	control:destroy;
-	stdin:destroy;
-	iopub:destroy;
+
+loop:verbose(:true);
+VAR msg <- REP (
+	Log.INFO('Starting loop');
+	loop:start RECV msg DO UNTIL msg ~= "Interrupted";
 );
+
+Log.INFO('Ending loop: ', msg);
+loop:destroy;
+heartbeat:destroy;
+shell:destroy;
+control:destroy;
+stdin:destroy;
+iopub:destroy;
+Log.INFO('After loop');
 
 DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	VAR msg_id <- '{Alg.UUID.New()}';
@@ -87,7 +94,7 @@ DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	hmac:update(metadata);
 	hmac:update(content);
 	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
-	Log.DEBUG("Sending", header, content);
+	Log.DEBUG("Sending ", header, content);
 	ids ~== NIL => EVERY socket:sendm(ids:values);
 	socket:sendm("<IDS|MSG>");
 	socket:sendm(signature);
@@ -108,7 +115,7 @@ DEF Handle(socket, msg) (
 	VAR req_parent <- Json.LoadString(msg:pop(Std.String.T));
 	VAR req_metadata <- Json.LoadString(msg:pop(Std.String.T));
 	VAR req_content <- Json.LoadString(msg:pop(Std.String.T));
-	Log.DEBUG("Received", req_header, req_content);
+	Log.DEBUG("Received ", req_header, req_content);
 	WHEN req_header.msg_type IS "kernel_info_request" DO (
 		Send(shell, ids, "kernel_info_reply", req_header, {}, {
 			"status" IS "ok",

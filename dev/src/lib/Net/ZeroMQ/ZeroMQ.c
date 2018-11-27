@@ -631,8 +631,13 @@ METHOD("nonstop", TYP, LoopT, TYP, Std$Symbol$T) {
 
 METHOD("start", TYP, LoopT) {
 	loop_t *Loop = (loop_t *)Args[0].Val;
-	if (zloop_start(Loop->Handle) == -1) {
+	int Status = zloop_start(Loop->Handle);
+	if (Status == -1) {
 		SEND(Loop->Message);
+	} else if (Status == 0) {
+		SEND(Std$String$new("Loop interrupted"));
+	} else if (Status > 0) {
+		SEND(Std$String$new("Loop error"));
 	} else {
 		RETURN0;
 	}
