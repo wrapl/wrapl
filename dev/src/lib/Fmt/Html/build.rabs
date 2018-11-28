@@ -1,27 +1,19 @@
 GUMBO_VERSION := "0.10.1"
 GUMBO_URL := 'https://github.com/google/gumbo-parser/archive/v{GUMBO_VERSION}.tar.gz'
-GUMBO_DIR := file("gumbo")
-GUMBO_LIB := file("libgumbo.a")
 
-GUMBO_LIB => fun() do
-	execute("mkdir -p", GUMBO_DIR)
-	execute("cd", GUMBO_DIR, "&&",
-		"wget -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1"
-	)
-	execute("cd", GUMBO_DIR, "&&", "./autogen.sh")
-	execute("cd", GUMBO_DIR, "&&", "./configure",
-		'--prefix={file("")}',
-		'--libdir={file("")}',
+var GUMBO_LIB := EXT_DIR / "lib/libgumbo.a" => fun() do
+	file("gumbo"):rmdir:mkdir:chdir
+	execute("wget -nv", GUMBO_URL, "-O- | tar xvzP --strip-components=1")
+	execute("./autogen.sh")
+	execute("./configure",
+		'--prefix={EXT_DIR}',
 		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
 		"--without-man-pages"
 	)
-	execute("cd", GUMBO_DIR, "&&",
-		"make install"
-	)
+	execute("make install")
 end
 
 scope("html";) do
-	CFLAGS := old + ["-I", file("include")]
 	file("Gumbo.c"):scan("INCLUDES", :true)[GUMBO_LIB]
 	WRAPL_MODULES[riva_module("Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])]
 	WRAPL_MODULES[wrapl_module("Html")]

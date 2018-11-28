@@ -9,7 +9,6 @@ include("libkrb5.so")
 include("libk5crypto.so")
 include("librt.so")
 include("libpthread.rlib")
-include("lib/libssh.a")
 
 export("New")
 

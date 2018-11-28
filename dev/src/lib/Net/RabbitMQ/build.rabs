@@ -1,16 +1,16 @@
 RABBITMQ_URL := "https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz"
 var RABBITMQ_DIR := file("rabbitmq")
 var RABBITMQ_LIB := if OS = "debian" then
-	file("lib/i386-linux-gnu/librabbitmq.a")
+	EXT_DIR / "lib/i386-linux-gnu/librabbitmq.a"
 else
-	file("lib/librabbitmq.a")
+	EXT_DIR / "lib/librabbitmq.a"
 end
 
 RABBITMQ_LIB => fun() do
 	RABBITMQ_DIR:rmdir:mkdir:chdir
 	execute('wget -nv {RABBITMQ_URL} -O- | tar xvzP --strip-components=1')
 	(RABBITMQ_DIR / "build"):mkdir:chdir
-	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
 	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 

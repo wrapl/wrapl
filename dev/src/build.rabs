@@ -2,6 +2,12 @@ RLINK := DEV_BIN/"rlink"
 RDOC := DEV_BIN/"rdoc"
 WRAPL_MODULES := meta("WraplModules")
 
+EXT_DIR := file("ext"):mkdir
+(EXT_DIR / "lib"):mkdir
+(EXT_DIR / "include"):mkdir
+(EXT_DIR / "share"):mkdir
+(EXT_DIR / "man"):mkdir
+
 CFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
 CXXFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
 ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
@@ -167,8 +173,8 @@ c_program := fun(Executable, Objects, Libraries) do
 	DEFAULT[Executable]
 end
 
-UDIS_LIB := file("rlink/libudis86.a")
-GC_LIB := file("riva/libgc.a")
+UDIS_LIB := EXT_DIR / "lib/libudis86.a"
+GC_LIB := EXT_DIR / "lib/libgc.a"
 
 subdir("rlink")
 subdir("riva")

@@ -1,6 +1,5 @@
 CFLAGS := old + ["-std=gnu99"]
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib"]
-RDOCFLAGS := old + ["-I", BUILDDIR]
 
 riva_module("Math/Matrix", [file("Matrix.o")])
 riva_module("Math/Methods", [file("Methods.o")])

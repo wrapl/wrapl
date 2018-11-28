@@ -1,17 +1,16 @@
 var FANN_DIR := file("fann")
-var FANN_LIB := file("lib/libdoublefann.a") => fun() do
+var FANN_LIB := EXT_DIR / "lib/libdoublefann.a" => fun() do
 	FANN_DIR:rmdir
 	execute("git clone https://github.com/libfann/fann.git")
 	FANN_DIR:chdir
 	execute(
 		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\" cmake .",
-		'-DCMAKE_INSTALL_PREFIX:PATH={BUILDDIR}'
+		'-DCMAKE_INSTALL_PREFIX:PATH={EXT_DIR}'
 	)
 	execute("make")
 	execute("make install")
 end
 
-CFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
 file("Fann.c"):scan("INCLUDES", :true)[FANN_LIB]
 riva_module("ML/Fann", [file("Fann.o")], [FANN_LIB])

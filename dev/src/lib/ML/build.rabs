@@ -3,3 +3,4 @@ LDFLAGS := old + ["Std.rlib", "Riva.rlib"]
 RDOCFLAGS := old + ["-I", file("")]
 
 subdir("Fann")
+subdir("Lis")

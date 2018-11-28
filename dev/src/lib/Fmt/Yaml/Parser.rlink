@@ -1,4 +1,3 @@
-include("libyaml.a")
 include("Std.rlib")
 include("Riva/Memory.rlib")
 include("Riva/Module.rlib")

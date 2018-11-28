@@ -1,10 +1,10 @@
 YAJL_VERSION := "2.1.0"
 YAJL_URL := 'http://github.com/lloyd/yajl/tarball/{YAJL_VERSION}'
 var YAJL_DIR := file('libyajl-{YAJL_VERSION}')
-var YAJL_LIB := file("lib/libyajl_s.a") => fun() do
+var YAJL_LIB := EXT_DIR / "lib/libyajl_s.a" => fun() do
 	YAJL_DIR:rmdir:mkdir:chdir
 	execute('wget -nv {YAJL_URL} -O- | tar xvzP --strip-components=1')
-	execute("./configure", "-p", file(""))
+	execute("./configure", "-p", EXT_DIR)
 	execute("make TARGET_LIBS=\"static\"")
 	execute("make install")
 end
