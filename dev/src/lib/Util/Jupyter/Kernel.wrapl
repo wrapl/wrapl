@@ -63,7 +63,7 @@ loop:reader(stdin;) (
 loop:verbose(:true);
 VAR msg <- REP (
 	Log.INFO('Starting loop');
-	loop:start RECV msg DO UNTIL msg ~= "Interrupted";
+	loop:start RECV msg DO msg ~= "Interrupted" => EXIT msg;
 );
 
 Log.INFO('Ending loop: ', msg);
