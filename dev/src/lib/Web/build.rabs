@@ -1,8 +1,7 @@
 CFLAGS := old + ["-std=gnu99", "-Iinclude"]
 LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Agg.rlib"]
-RDOCFLAGS := old + ["-I", file("")]
 
-scope("curl") do
+scope("curl";) do
 	CFLAGS := old + [pkg_config("--cflags libcurl")]
 	LDFLAGS := old + [pkg_config("--libs-only-l libcurl"), "Sys/Module.rlib"]
 	riva_module("Web/Curl", [file("Curl.o")])
@@ -10,7 +9,7 @@ end
 
 riva_module("Web/Smtp", [file("Smtp.o")])
 
-subdir("FastCGI")
-subdir("CivetWeb")
+--subdir("FastCGI")
+--subdir("CivetWeb")
 --subdir("NoPoll")
 --subdir("WebSocket")

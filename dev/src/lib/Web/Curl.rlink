@@ -2,13 +2,6 @@
 include("IO/Stream.rlib")
 include("Sys/Time.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("Option")
 export("Info")
 export("New")

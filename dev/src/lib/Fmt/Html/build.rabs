@@ -21,7 +21,7 @@ end
 
 var EntitiesGen := riva_program(file("EntitiesGen.riva"), [file("EntitiesGen.o")])
 
-file("Entities.c")[RIVA, file("Entities.json"), EntitiesGen] => fun() do
+file("Entities.c")[RIVA, file("Entities.json"), EntitiesGen, WRAPL_MODULES] => fun() do
 	execute(RIVA, "-L. EntitiesGen", file("Entities.json"))
 end
 
