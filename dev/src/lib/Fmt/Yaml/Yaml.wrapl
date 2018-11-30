@@ -1,7 +1,19 @@
 MOD Yaml;
 
+IMP IO.File;
 IMP Yaml.Parser USE Event;
 
+DEF LoadFile!(file_name) (
+	VAR file <- File.Open(file_name, File.Flag.Read);
+	VAR parser <- Parser.New(file);
+	VAR event;
+	REP (WHILE event <- parser:next;
+		
+	);
+);
 
+DEF LoadString!(string) (
+
+);
 
 END Yaml.

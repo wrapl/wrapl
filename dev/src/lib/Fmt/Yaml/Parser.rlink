@@ -20,13 +20,3 @@ subexport("Event", "SequenceStartEventT", "SequenceStartT")
 subexport("Event", "SequenceEndEventT", "SequenceEndT")
 subexport("Event", "MappingStartEventT", "MappingStartT")
 subexport("Event", "MappingEndEventT", "MappingEndT")
-
---[[
-module("Riva/Memory")
-import("_alloc", "malloc")
-import("_realloc", "realloc")
-import("_free", "free")
-import("_calloc", "calloc")
-import("_strdup", "strdup")
-import("_strdup", "__strdup")
---]]
