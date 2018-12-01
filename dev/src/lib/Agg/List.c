@@ -1529,13 +1529,8 @@ typedef struct find_generator {
 	const Std$Object_t *Value;
 } find_generator;
 
-typedef struct find_resume_data {
-	find_generator *Generator;
-	Std$Function_argument Result;
-} find_resume_data;
-
-static long resume_find_list(find_resume_data *Data) {
-	find_generator *Generator = Data->Generator;
+static long resume_find_list(Std$Function$result *Result) {
+	find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
@@ -1543,7 +1538,7 @@ static long resume_find_list(find_resume_data *Data) {
 		Std$Function_result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Generator->Value, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Next) {
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
@@ -1554,7 +1549,7 @@ static long resume_find_list(find_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -1597,14 +1592,14 @@ METHOD("find", TYP, T, ANY) {
 	return FAILURE;
 };
 
-static long resume_find_object_list(find_resume_data *Data) {
-	find_generator *Generator = Data->Generator;
+static long resume_find_object_list(Std$Function$result *Result) {
+	find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
 		++Index;
 		if (Node->Value == Generator->Value) {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Next) {
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
@@ -1644,8 +1639,8 @@ static long resume_find_object_list(find_resume_data *Data) {
 	return FAILURE;
 };
 
-static long resume_rfind_list(find_resume_data *Data) {
-	find_generator *Generator = Data->Generator;
+static long resume_rfind_list(Std$Function$result *Result) {
+	find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
@@ -1653,7 +1648,7 @@ static long resume_rfind_list(find_resume_data *Data) {
 		Std$Function_result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Generator->Value, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Prev) {
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
@@ -1664,7 +1659,7 @@ static long resume_rfind_list(find_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -1707,14 +1702,14 @@ METHOD("rfind", TYP, T, ANY) {
 	return FAILURE;
 };
 
-static long resume_rfind_object_list(find_resume_data *Data) {
-	find_generator *Generator = Data->Generator;
+static long resume_rfind_object_list(Std$Function$result *Result) {
+	find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
 		--Index;
 		if (Node->Value == Generator->Value) {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Prev) {
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
@@ -1763,13 +1758,8 @@ typedef struct applied_find_generator {
 	const Std$Object_t *Functions[];
 } applied_find_generator;
 
-typedef struct applied_find_resume_data {
-	applied_find_generator *Generator;
-	Std$Function_argument Result;
-} applied_find_resume_data;
-
-static long resume_applied_find_list(applied_find_resume_data *Data) {
-	applied_find_generator *Generator = Data->Generator;
+static long resume_applied_find_list(Std$Function$result *Result) {
+	applied_find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
@@ -1784,13 +1774,13 @@ static long resume_applied_find_list(applied_find_resume_data *Data) {
 			case FAILURE:
 				goto failed;
 			case MESSAGE:
-				Data->Result.Val = Result0.Val;
+				Result->Val = Result0.Val;
 				return MESSAGE;
 			};
 		};
 		switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, Result0.Ref, Generator->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Next) {
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
@@ -1801,7 +1791,7 @@ static long resume_applied_find_list(applied_find_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -1863,8 +1853,8 @@ METHOD("find", TYP, T, ANY, ANY) {
 	return FAILURE;
 };
 
-static long resume_applied_rfind_list(applied_find_resume_data *Data) {
-	applied_find_generator *Generator = Data->Generator;
+static long resume_applied_rfind_list(Std$Function$result *Result) {
+	applied_find_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
@@ -1879,13 +1869,13 @@ static long resume_applied_rfind_list(applied_find_resume_data *Data) {
 			case FAILURE:
 				goto failed;
 			case MESSAGE:
-				Data->Result.Val = Result0.Val;
+				Result->Val = Result0.Val;
 				return MESSAGE;
 			};
 		};
 		switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, Result0.Ref, Generator->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Prev) {
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
@@ -1896,7 +1886,7 @@ static long resume_applied_rfind_list(applied_find_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -1996,13 +1986,8 @@ typedef struct where_generator {
 	const Std$Object_t *Test;
 } where_generator;
 
-typedef struct where_resume_data {
-	where_generator *Generator;
-	Std$Function_argument Result;
-} where_resume_data;
-
-static long resume_where_list(where_resume_data *Data) {
-	where_generator *Generator = Data->Generator;
+static long resume_where_list(Std$Function$result *Result) {
+	where_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
@@ -2010,7 +1995,7 @@ static long resume_where_list(where_resume_data *Data) {
 		Std$Function_result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Next) {
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
@@ -2021,7 +2006,7 @@ static long resume_where_list(where_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -2067,8 +2052,8 @@ METHOD("where", TYP, T, TYP, Std$Function$T) {
 	return FAILURE;
 };
 
-static long resume_rwhere_list(where_resume_data *Data) {
-	where_generator *Generator = Data->Generator;
+static long resume_rwhere_list(Std$Function$result *Result) {
+	where_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
@@ -2076,7 +2061,7 @@ static long resume_rwhere_list(where_resume_data *Data) {
 		Std$Function_result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
-			Data->Result.Val = Std$Integer$new_small(Index);
+			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Prev) {
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
@@ -2087,7 +2072,7 @@ static long resume_rwhere_list(where_resume_data *Data) {
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -2140,13 +2125,8 @@ typedef struct where_value_generator {
 	const Std$Object_t *Test, *Value;
 } where_value_generator;
 
-typedef struct where_value_resume_data {
-	where_value_generator *Generator;
-	Std$Function_argument Result;
-} where_value_resume_data;
-
-static long resume_where_value_list(where_value_resume_data *Data) {
-	where_value_generator *Generator = Data->Generator;
+static long resume_where_value_list(Std$Function$result *Result) {
+	where_value_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
@@ -2156,7 +2136,7 @@ static long resume_where_value_list(where_value_resume_data *Data) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Generator->Value, 0)) {
 			case SUSPEND: case SUCCESS: {
-				Data->Result.Val = Std$Integer$new_small(Index);
+				Result->Val = Std$Integer$new_small(Index);
 				if (Node->Next) {
 					Generator->Current = Node->Next;
 					Generator->Index = Index;
@@ -2167,14 +2147,14 @@ static long resume_where_value_list(where_value_resume_data *Data) {
 			};
 			case FAILURE: continue;
 			case MESSAGE: {
-				Data->Result.Val = Result0.Val;
+				Result->Val = Result0.Val;
 				return MESSAGE;
 			};
 			};
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -2231,8 +2211,8 @@ METHOD("where", TYP, T, TYP, Std$Function$T, ANY) {
 	return FAILURE;
 };
 
-static long resume_rwhere_value_list(where_resume_data *Data) {
-	where_value_generator *Generator = Data->Generator;
+static long resume_rwhere_value_list(Std$Function$result *Result) {
+	where_value_generator *Generator = Result->State;
 	const _node *Node = Generator->Current;
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
@@ -2242,7 +2222,7 @@ static long resume_rwhere_value_list(where_resume_data *Data) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Generator->Value, 0)) {
 			case SUSPEND: case SUCCESS: {
-				Data->Result.Val = Std$Integer$new_small(Index);
+				Result->Val = Std$Integer$new_small(Index);
 				if (Node->Prev) {
 					Generator->Current = Node->Prev;
 					Generator->Index = Index;
@@ -2253,14 +2233,14 @@ static long resume_rwhere_value_list(where_resume_data *Data) {
 			};
 			case FAILURE: continue;
 			case MESSAGE: {
-				Data->Result.Val = Result0.Val;
+				Result->Val = Result0.Val;
 				return MESSAGE;
 			};
 			};
 		};
 		case FAILURE: continue;
 		case MESSAGE: {
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -2462,13 +2442,8 @@ typedef struct filter_generator {
 	const Std$Object_t *Function;
 } filter_generator;
 
-typedef struct filter_resume_data {
-	filter_generator *Generator;
-	Std$Function_argument Result;
-} filter_resume_data;
-
-static long resume_filter_list(filter_resume_data *Data) {
-	filter_generator *Generator = Data->Generator;
+static long resume_filter_list(Std$Function$result *Result) {
+	filter_generator *Generator = Result->State;
 	_list *List = Generator->List;
 	WRLOCK(List);
 	for (_node *Node = Generator->Current; Node; Node = Node->Next) {
@@ -2477,7 +2452,7 @@ static long resume_filter_list(filter_resume_data *Data) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Data->Result.Val = delete_node(List, Node);
+					Result->Val = delete_node(List, Node);
 				} else {
 					(List->Head = Node->Next)->Prev = 0;
 					--List->Length;
@@ -2487,7 +2462,7 @@ static long resume_filter_list(filter_resume_data *Data) {
 					};
 					List->Index = 1; List->Cache = List->Head;
 					List->Access = 4;
-					Data->Result.Val = Node->Value;
+					Result->Val = Node->Value;
 				};
 			} else {
 				if (Node->Prev) {
@@ -2498,14 +2473,14 @@ static long resume_filter_list(filter_resume_data *Data) {
 					};
 					List->Index = 1; List->Cache = List->Head;
 					List->Access = 4;
-					Data->Result.Val = Node->Value;
+					Result->Val = Node->Value;
 				} else {
 					List->Head = List->Tail = List->Cache = 0;
 					List->Index = List->Lower = List->Upper = 0;
 					List->Array = 0;
 					List->Length = 0;
 					List->Access = 4;
-					Data->Result.Val = Node->Value;
+					Result->Val = Node->Value;
 				};
 			};
 			UNLOCK(List);
@@ -2519,7 +2494,7 @@ static long resume_filter_list(filter_resume_data *Data) {
 		case FAILURE: continue;
 		case MESSAGE: {
 			UNLOCK(List);
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 		};
@@ -2652,55 +2627,6 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 
 SYMBOL($to, "to");
 
-/*
-METHOD("keys", TYP, T) {
-//@list
-//:Std$Integer$SmallT
-// Equivalent to <code>1:to(list:length)</code>.
-	Std$Integer_smallt To = {Std$Integer$SmallT, ((_list *)Args[0].Val)->Length};
-	return Std$Function$call(Std$Integer$ToSmallSmall, 2, Result, Std$Integer$new_small(1), 0, &To, 0);
-};
-
-typedef struct list_generator {
-	Std$Function_cstate State;
-	_node *Current;
-} list_generator;
-
-typedef struct list_resume_data {
-	list_generator *Generator;
-	Std$Function_argument Result;
-} list_resume_data;
-
-static long resume_values_list(list_resume_data *Data) {
-	_node *Node = Data->Generator->Current->Next;
-	if (Node != 0) {
-		Data->Generator->Current = Node;
-		Data->Result.Val = *(Data->Result.Ref = &Node->Value);
-		return SUSPEND;
-	} else {
-		return FAILURE;
-	};
-};
-
-METHOD("values", TYP, T) {
-//@list
-//:ANY
-// Generates the values in <var>list</var>.
-	_node *Node = ((_list *)Args[0].Val)->Head;
-	if (Node != 0) {
-		list_generator *Generator = new(list_generator);
-		Generator->State.Run = Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_values_list;
-		Generator->Current = Node;
-		Result->Val = *(Result->Ref = &Node->Value);
-		Result->State = Generator;
-		return SUSPEND;
-	} else {
-		return FAILURE;
-	};
-};
-*/
-
 typedef struct list_loop_generator {
 	Std$Function_cstate State;
 	Std$Object_t **Key, **Value;
@@ -2708,13 +2634,8 @@ typedef struct list_loop_generator {
 	_node *Current;
 } list_loop_generator;
 
-typedef struct list_loop_resume_data {
-	list_loop_generator *Generator;
-	Std$Function$argument Result;
-} list_loop_resume_data;
-
-static Std$Function$status resume_list_loop(list_loop_resume_data *Data) {
-	list_loop_generator *Generator = Data->Generator;
+static Std$Function$status resume_list_loop(Std$Function$result *Result) {
+	list_loop_generator *Generator = Result->State;
 	_node *Current = Generator->Current;
 	Generator->Key[0] = Std$Integer$new_small(Generator->Index);
 	Generator->Value[0] = Current->Value;
@@ -2751,13 +2672,8 @@ typedef struct list_fill_generator {
 	Std$Object_t **Refs[];
 } list_fill_generator;
 
-typedef struct list_fill_resume_data {
-	list_fill_generator *Generator;
-	Std$Function_argument Result;
-} list_fill_resume_data;
-
-static long resume_fill_list(list_fill_resume_data *Data) {
-	list_fill_generator *Gen = Data->Generator;
+static long resume_fill_list(Std$Function$result *Result) {
+	list_fill_generator *Gen = Result->State;
 	_node *Current = Gen->Current;
 	for (unsigned long I = 0; I < Gen->NoOfRefs; ++I) {
 		if (Current == 0) return FAILURE;

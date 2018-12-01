@@ -323,21 +323,16 @@ typedef struct listdir_generator {
 	char *PathName, *FileName;
 } listdir_generator;
 
-typedef struct listdir_resume_data {
-	listdir_generator *Generator;
-	Std$Function_argument Result;
-} listdir_resume_data;
-
 static void listdir_finalize(listdir_generator *Generator, void *Arg) {
 #ifdef LINUX
 	if (Generator) closedir(Generator->Dir);
 #endif
 };
 
-static Std$Function$status listdir_resume(listdir_resume_data *Data) {
+static Std$Function$status listdir_resume(Std$Function$result *Result) {
 #ifdef WINDOWS
 #else
-	listdir_generator *Generator = Data->Generator;
+	listdir_generator *Generator = (listdir_generator *)Result->State;
 	struct dirent *Entry = readdir(Generator->Dir);
 	if (Entry == 0) {
 		closedir(Generator->Dir);
@@ -345,7 +340,7 @@ static Std$Function$status listdir_resume(listdir_resume_data *Data) {
 		Riva$Memory$register_finalizer(Generator, 0, 0, 0, 0);
 		return FAILURE;
 	};
-	Data->Result.Val = Std$String$copy(Entry->d_name);
+	Result->Val = Std$String$copy(Entry->d_name);
 	return SUSPEND;
 #endif
 };
@@ -381,10 +376,10 @@ GLOBAL_FUNCTION(ListDir, 1) {
 #endif
 };
 
-static long listdirinfo_resume(listdir_resume_data *Data) {
+static long listdirinfo_resume(Std$Function$result *Result) {
 #ifdef WINDOWS
 #else
-	listdir_generator *Generator = Data->Generator;
+	listdir_generator *Generator = (listdir_generator *)Result->State;
 	struct dirent *Entry = readdir(Generator->Dir);
 	if (Entry == 0) {
 		closedir(Generator->Dir);
@@ -427,7 +422,7 @@ static long listdirinfo_resume(listdir_resume_data *Data) {
 		Info->Size = Std$Object$Nil;
 		Info->Modified = Std$Object$Nil;
 	};
-	Data->Result.Val = Info;
+	Result->Val = Info;
 	return SUSPEND;
 #endif
 };

@@ -326,20 +326,15 @@ typedef struct presets_generator {
 	fluid_preset_t Preset[1];
 } presets_generator;
 
-typedef struct presets_resume_data {
-	presets_generator *Generator;
-	Std$Function_argument Result;
-} presets_resume_data;
-
-static Std$Function$status resume_presets(presets_resume_data *Data) {
-	presets_generator *Generator = Data->Generator;
+static Std$Function$status resume_presets(Std$Function$result *Result) {
+	presets_generator *Generator = Result->State;
 	if (Generator->SFont->iteration_next(Generator->SFont, Generator->Preset)) {
 		preset_t *Preset = new(preset_t);
 		Preset->Type = PresetT;
 		Preset->Name = Std$String$new(Generator->Preset->get_name(Generator->Preset));
 		Preset->Bank = Std$Integer$new_small(Generator->Preset->get_banknum(Generator->Preset));
 		Preset->Program = Std$Integer$new_small(Generator->Preset->get_num(Generator->Preset));
-		Data->Result.Val = (Std$Object$t *)Preset;
+		Result->Val = (Std$Object$t *)Preset;
 		return SUSPEND;
 	} else {
 		return FAILURE;

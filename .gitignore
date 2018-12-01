@@ -43,3 +43,7 @@ dev/src/Wredit
 dev/src/Plugin
 tst
 /Debug/
+/.settings/
+/.vscode/
+/bin/
+/.externalToolBuilders/

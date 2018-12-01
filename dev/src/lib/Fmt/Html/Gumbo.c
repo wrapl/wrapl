@@ -347,15 +347,11 @@ typedef struct vector_values_generator {
 	int Index;
 } vector_values_generator;
 
-typedef struct vector_values_resume_data {
-	vector_values_generator *Generator;
-	Std$Function_argument Result;
-} vector_values_resume_data;
-
-static Std$Function$status resume_vector_values(vector_values_resume_data *Data) {
-	int Index = Data->Generator->Index;
+static Std$Function$status resume_vector_values(Std$Function$result *Result) {
+	vector_values_generator *Generator = (vector_values_generator *)Result->State;
+	int Index = Generator->Index;
 	gumbo_node_t *Node = new(gumbo_node_t);
-	Node->Handle = Data->Generator->Vector->data[Index];
+	Node->Handle = Generator->Vector->data[Index];
 	switch (Node->Handle->type) {
 	case GUMBO_NODE_DOCUMENT: Node->Type = DocumentNodeT; break;
 	case GUMBO_NODE_ELEMENT: Node->Type = ElementNodeT; break;
@@ -367,10 +363,10 @@ static Std$Function$status resume_vector_values(vector_values_resume_data *Data)
 	default: Node->Type = NodeT; break;
 	}
 	++Index;
-	Data->Result.Val = (Std$Object$t *)Node;
-	Data->Result.Ref = 0;
-	if (Index < Data->Generator->Vector->length) {
-		Data->Generator->Index = Index;
+	Result->Val = (Std$Object$t *)Node;
+	Result->Ref = 0;
+	if (Index < Generator->Vector->length) {
+		Generator->Index = Index;
 		return SUSPEND;
 	} else {
 		return SUCCESS;
@@ -469,8 +465,8 @@ typedef struct element_find_generator {
 	Std$Object$t *Filter;
 } element_find_generator;
 
-static Std$Function$status resume_element_find(Std$Function$cresumedata *Data) {
-	element_find_generator *Generator = (element_find_generator *)Data->State;
+static Std$Function$status resume_element_find(Std$Function$result *Result) {
+	element_find_generator *Generator = (element_find_generator *)Result->State;
 	find_node_t *FindNode = Generator->FindNode;
 	for (;;) {
 		if (!FindNode) return FAILURE;
@@ -506,10 +502,10 @@ static Std$Function$status resume_element_find(Std$Function$cresumedata *Data) {
 		case GUMBO_NODE_TEMPLATE: Node->Type = TemplateNodeT; break;
 		default: Node->Type = NodeT; break;
 		}
-		Std$Function$result Result;
-		switch (Std$Function$call(Generator->Filter, 2, &Result, Node, 0, InfoVal, InfoRef)) {
+		Std$Function$result Result0;
+		switch (Std$Function$call(Generator->Filter, 2, &Result0, Node, 0, InfoVal, InfoRef)) {
 		case SUSPEND: case SUCCESS:
-			Data->Result = Result.Arg;
+			Result->Arg = Result0.Arg;
 			Generator->FindNode = FindNode;
 			return SUSPEND;
 		case FAILURE:

@@ -148,15 +148,17 @@ struct cstate, Std$Function_state
 endstruct
 
 cfunction _resume_c
+	push eax
 	push byte 0
 	push dword Std$Object$Nil
-	push eax
-	push esp
+	mov ebx, esp
+	and esp, byte 0xF0
+	push ebx
 	call [cstate(eax).Invoke]
-	add esp, byte 4
-	pop ebx
+	pop esp
 	pop ecx
 	pop edx
+	pop ebx
 	ret
 
 cfunction _call

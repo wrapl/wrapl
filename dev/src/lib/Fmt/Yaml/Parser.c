@@ -125,21 +125,20 @@ GLOBAL_FUNCTION(New, 1) {
 	return SUCCESS;
 };
 
-static const Std$Type_t *EventTypes[] = {
-	[YAML_NO_EVENT] = NoEventT,
-	[YAML_STREAM_START_EVENT] = StreamStartEventT,
-	[YAML_STREAM_END_EVENT] = StreamEndEventT,
-	[YAML_DOCUMENT_START_EVENT] = DocumentStartEventT,
-	[YAML_DOCUMENT_END_EVENT] = DocumentEndEventT,
-	[YAML_ALIAS_EVENT] = AliasEventT,
-	[YAML_SCALAR_EVENT] = ScalarEventT,
-	[YAML_SEQUENCE_START_EVENT] = SequenceStartEventT,
-	[YAML_SEQUENCE_END_EVENT] = SequenceEndEventT,
-	[YAML_MAPPING_START_EVENT] = MappingStartEventT,
-	[YAML_MAPPING_END_EVENT] = MappingEndEventT
-};
-
 METHOD("next", TYP, T) {
+	static const Std$Type_t *EventTypes[] = {
+		[YAML_NO_EVENT] = NoEventT,
+		[YAML_STREAM_START_EVENT] = StreamStartEventT,
+		[YAML_STREAM_END_EVENT] = StreamEndEventT,
+		[YAML_DOCUMENT_START_EVENT] = DocumentStartEventT,
+		[YAML_DOCUMENT_END_EVENT] = DocumentEndEventT,
+		[YAML_ALIAS_EVENT] = AliasEventT,
+		[YAML_SCALAR_EVENT] = ScalarEventT,
+		[YAML_SEQUENCE_START_EVENT] = SequenceStartEventT,
+		[YAML_SEQUENCE_END_EVENT] = SequenceEndEventT,
+		[YAML_MAPPING_START_EVENT] = MappingStartEventT,
+		[YAML_MAPPING_END_EVENT] = MappingEndEventT
+	};
 	parser_t *Parser = Args[0].Val;
 	event_t *Event = new(event_t);
 	if (Parser->Handle->eof) return FAILURE;

@@ -85,18 +85,13 @@ typedef struct chars_generator {
 	const unsigned char *Next;
 } chars_generator;
 
-typedef struct chars_resume_data {
-	chars_generator * restrict Generator;
-	Std$Function_argument Result;
-} chars_resume_data;
-
-static long resume_chars_string(chars_resume_data * restrict Data) {
-	chars_generator *Gen = Data->Generator;
+static long resume_chars_string(Std$Function$result *Result) {
+	chars_generator *Gen = Result->State;
 	if (--Gen->Left < 0) {
 		if ((Gen->Left = (++Gen->Subject)->Length.Value - 1) < 0) return FAILURE;
 		Gen->Next = Gen->Subject->Chars.Value;
 	};
-	Data->Result.Val = Std$String$new_char(*Gen->Next++);
+	Result->Val = Std$String$new_char(*Gen->Next++);
 	return SUSPEND;
 };
 
@@ -605,17 +600,13 @@ typedef struct find_generator {
 	unsigned long Start, Position, Limit;
 } find_generator;
 
-typedef struct find_resume_data {
-	find_generator * restrict Generator;
-	Std$Function_argument Result;
-} find_resume_data;
-
-static long resume_find_string_string(find_resume_data * restrict Data) {
+static long resume_find_string_string(Std$Function$result *Result) {
 	// Search for occurences of Pattern in Subject starting at Index
-	const Std$String_block *Subject = Data->Generator->Subject;
-	const Std$String_block *Pattern = Data->Generator->Pattern;
-	unsigned long Position = Data->Generator->Position, Start = Data->Generator->Start;
-	unsigned long Limit = Data->Generator->Limit;
+	find_generator *Generator = Result->State;
+	const Std$String_block *Subject = Generator->Subject;
+	const Std$String_block *Pattern = Generator->Pattern;
+	unsigned long Position = Generator->Position, Start = Generator->Start;
+	unsigned long Limit = Generator->Limit;
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
@@ -634,10 +625,10 @@ static long resume_find_string_string(find_resume_data * restrict Data) {
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
-				Data->Generator->Start = Start;
-				Data->Generator->Position = Position;
-				Data->Generator->Subject = Subject;
-				Data->Result.Val = Std$Integer$new_small(Position);
+				Generator->Start = Start;
+				Generator->Position = Position;
+				Generator->Subject = Subject;
+				Result->Val = Std$Integer$new_small(Position);
 				return SUSPEND;
 			};
 			if (SL == 0) return FAILURE;
@@ -664,13 +655,8 @@ typedef struct find_char_generator {
 	unsigned long Start, Index, Limit;
 } find_char_generator;
 
-typedef struct find_char_resume_data {
-	find_char_generator * restrict Generator;
-	Std$Function_argument Result;
-} find_char_resume_data;
-
-static long resume_find_char_string(find_char_resume_data * restrict Data) {
-	find_char_generator *Generator = Data->Generator;
+static long resume_find_char_string(Std$Function$result *Result) {
+	find_char_generator *Generator = Result->State;
 	const Std$String_block *Subject = Generator->Subject;
 	unsigned char Char = Generator->Char;
 	unsigned long Index = Generator->Index;
@@ -683,7 +669,7 @@ static long resume_find_char_string(find_char_resume_data * restrict Data) {
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
-			Data->Result.Val = Std$Integer$new_small(Index + Last);
+			Result->Val = Std$Integer$new_small(Index + Last);
 			return SUSPEND;
 		};
 		Index += Subject->Length.Value;
@@ -937,34 +923,29 @@ typedef struct to_real_state {
 	double Current, Limit, Increment;
 } to_real_state;
 
-typedef struct to_real_resume_data {
-	to_real_state * restrict State;
-	Std$Function_argument Result;
-} to_real_resume_data;
-
-static long resume_to_real_inc(to_real_resume_data * restrict Data) {
-	to_real_state *State = Data->State;
+static long resume_to_real_inc(Std$Function$result * restrict Result) {
+	to_real_state *State = Result->State;
 	double Current = State->Current + State->Increment;
 	if (Current > State->Limit) return FAILURE;
 	if (Current == State->Limit) {
-		Data->Result.Val = Std$Real$new(Current);
+		Result->Val = Std$Real$new(Current);
 		return SUCCESS;
 	};
 	State->Current = Current;
-	Data->Result.Val = Std$Real$new(Current);
+	Result->Val = Std$Real$new(Current);
 	return SUSPEND;
 };
 
-static long resume_to_real_dec(to_real_resume_data *Data) {
-	to_real_state *State = Data->State;
+static long resume_to_real_dec(Std$Function$result *Result) {
+	to_real_state *State = Result->State;
 	double Current = State->Current + State->Increment;
 	if (Current < State->Limit) return FAILURE;
 	if (Current == State->Limit) {
-		Data->Result.Val = Std$Real$new(Current);
+		Result->Val = Std$Real$new(Current);
 		return SUCCESS;
 	};
 	State->Current = Current;
-	Data->Result.Val = Std$Real$new(Current);
+	Result->Val = Std$Real$new(Current);
 	return SUSPEND;
 };
 
@@ -1260,11 +1241,6 @@ typedef struct any_char_generator {
 	unsigned long Start, Index, Limit;
 } any_char_generator;
 
-typedef struct any_char_resume_data {
-	any_char_generator * restrict Generator;
-	Std$Function_argument Result;
-} any_char_resume_data;
-
 static inline const unsigned char *findcset(const unsigned char *Chars, uint8_t *Mask, int Length) {
     while (Length) {
     	--Length;
@@ -1275,8 +1251,8 @@ static inline const unsigned char *findcset(const unsigned char *Chars, uint8_t 
     return 0;
 };
 
-static long resume_any_char_string(any_char_resume_data * restrict Data) {
-	any_char_generator *Generator = Data->Generator;
+static long resume_any_char_string(Std$Function$result * restrict Result) {
+	any_char_generator *Generator = Result->State;
 	const Std$String_block *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
 	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
@@ -1288,7 +1264,7 @@ static long resume_any_char_string(any_char_resume_data * restrict Data) {
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
-			Data->Result.Val = Std$Integer$new_small(Index + Last);
+			Result->Val = Std$Integer$new_small(Index + Last);
 			return SUSPEND;
 		};
 		Index += Subject->Length.Value;
@@ -1406,17 +1382,12 @@ typedef struct split_char_generator {
 	unsigned long SL, SI;
 } split_char_generator;
 
-typedef struct split_char_resume_data {
-	split_char_generator * restrict Generator;
-	Std$Function_argument Result;
-} split_char_resume_data;
-
 static inline int charcset(unsigned char Char, uint8_t *CSet) {
     return CSet[Char >> 3] & (1 << (Char & 7));
 };
 
-static long resume_split_char_string(split_char_resume_data * restrict Data) {
-	split_char_generator *Generator = Data->Generator;
+static long resume_split_char_string(Std$Function$result *Result) {
+	split_char_generator *Generator = Result->State;
 	uint8_t *Mask = Generator->Mask;
 	unsigned long SI = Generator->SI;
 	const Std$String_block *SB = Generator->SB;
@@ -1450,7 +1421,7 @@ static long resume_split_char_string(split_char_resume_data * restrict Data) {
 				Slice->Blocks[0].Length.Value = SL0;
 				Slice->Blocks[0].Chars.Value = SC0;
 				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
-				Data->Result.Val = Std$String$freeze(Slice);
+				Result->Val = Std$String$freeze(Slice);
 				return SUCCESS;
 			};
 		} else {
@@ -1464,7 +1435,7 @@ static long resume_split_char_string(split_char_resume_data * restrict Data) {
 		Slice->Blocks[0].Length.Value = SL0;
 		Slice->Blocks[0].Chars.Value = SC0;
 		if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
-		Data->Result.Val = Std$String$freeze(Slice);
+		Result->Val = Std$String$freeze(Slice);
 	} else {
 		int NoOfBlocks = (SB - SB0) + 1;
 		Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
@@ -1479,7 +1450,7 @@ static long resume_split_char_string(split_char_resume_data * restrict Data) {
 			Slice->Blocks[0].Length.Value = SL0 - SL;
 			Slice->Blocks[0].Chars.Value = SC0;
 		};
-		Data->Result.Val = Std$String$freeze(Slice);
+		Result->Val = Std$String$freeze(Slice);
 	};
 	Generator->SC = SC;
 	Generator->SL = SL;
@@ -1600,11 +1571,6 @@ typedef struct skip_char_generator {
 	unsigned long Start, Index, Limit;
 } skip_char_generator;
 
-typedef struct skip_char_resume_data {
-	skip_char_generator * restrict Generator;
-	Std$Function_argument Result;
-} skip_char_resume_data;
-
 static inline const unsigned char *skipcset(const unsigned char *Chars, uint8_t *Mask, int Length) {
     while (Length) {
     	--Length;
@@ -1615,8 +1581,8 @@ static inline const unsigned char *skipcset(const unsigned char *Chars, uint8_t 
     return 0;
 };
 
-static long resume_skip_char_string(skip_char_resume_data * restrict Data) {
-	skip_char_generator *Generator = Data->Generator;
+static long resume_skip_char_string(Std$Function$result *Result) {
+	skip_char_generator *Generator = Result->State;
 	const Std$String_block *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
 	const unsigned char *SC = Subject->Chars.Value + Generator->Start;
@@ -1628,7 +1594,7 @@ static long resume_skip_char_string(skip_char_resume_data * restrict Data) {
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
-			Data->Result.Val = Std$Integer$new_small(Index + Last);
+			Result->Val = Std$Integer$new_small(Index + Last);
 			return SUSPEND;
 		};
 		Index += Subject->Length.Value;
@@ -2529,13 +2495,8 @@ typedef struct scanner_restore_generator {
 	scanner_position Position;
 } scanner_restore_generator;
 
-typedef struct scanner_restore_resume_data {
-	scanner_restore_generator *Generator;
-	Std$Function_argument Result;
-} scanner_restore_resume_data;
-
-static long resume_scanner_restore(scanner_restore_resume_data *Data) {
-	scanner_restore_generator *Generator = Data->Generator;
+static long resume_scanner_restore(Std$Function$result *Result) {
+	scanner_restore_generator *Generator = Result->State;
 	Generator->Scanner->Cur = Generator->Position;
 	return FAILURE;
 };

@@ -236,13 +236,8 @@ typedef struct result_generator {
 	statement_t *Statement;
 } result_generator;
 
-typedef struct result_resume_data {
-	result_generator *Generator;
-	Std$Function_argument Result;
-} result_resume_data;
-
-static Std$Function_status resume_result_generator(result_resume_data *Data) {
-	result_generator *Generator = Data->Generator;
+static Std$Function_status resume_result_generator(Std$Function$result *Result) {
+	result_generator *Generator = Result->State;
 	statement_t *S = Generator->Statement;
 	sqlite3_stmt *Handle = S->Handle;
 	int Code = sqlite3_step(Handle);
@@ -273,11 +268,11 @@ static Std$Function_status resume_result_generator(result_resume_data *Data) {
 			}
 			Agg$List$put(Results, Value);
 		}
-		Data->Result.Val = Results;
+		Result->Val = Results;
 		return SUSPEND;
 	}
 	default:
-		Data->Result.Val = Std$Integer$new_small(Code);
+		Result->Val = Std$Integer$new_small(Code);
 		return MESSAGE;
 	}
 }
