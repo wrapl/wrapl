@@ -35,8 +35,13 @@ VAR input <- IO.Buffer.New();
 VAR wrapl <- Wrapl.Session.New(input);
 VAR session <- '{Alg.UUID.New()}';
 VAR loop <- Net.ZeroMQ.Loop.New();
-VAR in, out, err;
+VAR in;
+VAR out <- OutT("stdout", {});
+VAR err <- OutT("stderr", {});
 VAR exec <- Wrapl.Loader.ExecNew();
+
+Terminal:export("Out", out);
+Terminal:export("Err", err);
 Sys.Program.OnInt(exec);
 
 wrapl:def("Jupyter", Kernel);

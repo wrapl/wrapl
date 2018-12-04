@@ -4,6 +4,7 @@
 //#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <limits.h>
 #include <pthread.h>
 
 typedef struct export_t {
@@ -239,6 +240,10 @@ module_t *module_load(const char *Path, const char *File) {
 	return 0;
 };
 
+void module_refresh(module_t *Module) {
+	Module->TimeStamp = -1;
+}
+
 int module_import(module_t *Module, const char *Symbol, int *IsRef, void **Data) {
 	//pthread_t Thread = pthread_self();
 	//printf("<thread @ %x> Entering module_import:%d(%s, %s)\n", Thread, __LINE__, Module->Name, Symbol);
@@ -355,7 +360,7 @@ module_t *module_new(const char *Name) {
 	Module->Name = Name;
 	Module->Path = path_dir(Name);
 	Module->Lock[0] = RecursiveMutex;
-	Module->TimeStamp = 9999;
+	Module->TimeStamp = INT_MAX;
 	Module->Providers = new(module_provider_t);
 	Module->Providers->Module = Module;
 	Module->Providers->HasImports = 0;
@@ -432,6 +437,7 @@ void module_init(void) {
 	module_t *Module = module_new("Riva/Module");
 	module_add_alias(Module, "library:/Riva/Module");
 	module_export(Module, "_load", 0, module_load);
+	module_export(Module, "_refresh", 0, module_refresh);
 	module_export(Module, "_load_file", 0, module_load_file);
 	module_export(Module, "_get_path", 0, module_get_path);
 	module_export(Module, "_get_name", 0, module_get_name);

@@ -1,15 +1,51 @@
 MOD Yaml;
 
+IMP IO.Terminal USE Out;
 IMP IO.File;
-IMP Yaml.Parser USE Event;
+DEF Parser Yaml.Parser;
+DEF Event Yaml.Event;
 
 DEF LoadFile!(file_name) (
 	VAR file <- File.Open(file_name, File.Flag.Read);
 	VAR parser <- Parser.New(file);
-	VAR event;
+	VAR documents <- [], actions <- [], aliases <- {}, event;
 	REP (WHILE event <- parser:next;
-		
+		WHEN ?event IS Event.NoT DO (
+		) IS Event.StreamStartT DO (
+		) IS Event.StreamEndT DO (
+		) IS Event.DocumentStartT DO (
+			actions:push(; value) documents:put(value);
+		) IS Event.DocumentEndT DO (
+			actions:pop;
+		) IS Event.AliasT DO (
+			actions[1](aliases[event:anchor]);
+		) IS Event.ScalarT DO (
+			Out:write('Scalar {event:tag}, {event:value} @ {event:anchor}\n');
+			actions[1](event:value);
+			aliases:insert(event:anchor, event:value);
+		) IS Event.SequenceStartT DO (
+			VAR list <- [];
+			actions[1](list);
+			actions:push(; value) list:put(value);
+			aliases:insert(event:anchor, list);
+		) IS Event.SequenceEndT DO (
+			actions:pop;
+		) IS Event.MappingStartT DO (
+			VAR table <- {};
+			VAR key_action <- <key> (
+				actions[1] <- <value> (
+					table:insert(key, value);
+					actions[1] <- key_action;
+				);
+			);
+			actions[1](table);
+			actions:push(key_action);
+			aliases:insert(event:anchor, table);
+		) IS Event.MappingEndT DO (
+			actions:pop;
+		);
 	);
+	RET documents;
 );
 
 DEF LoadString!(string) (

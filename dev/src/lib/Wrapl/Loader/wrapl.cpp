@@ -60,7 +60,7 @@ static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 	if (setjmp(Scanner->Error.Handler)) {
 		IO$Stream$close(Source, IO$Stream$CLOSE_READ);
 		fprintf(stderr, "%s(%d): %s\n", Path, Scanner->Error.LineNo, Scanner->Error.Message);
-		if (!Riva$Config$get("Wrapl/Loader/ContinueOnError")) exit(1);
+		if (Riva$Config$get("Wrapl/Loader/StopOnWraplError")) exit(1);
 		return 0;
 	}
 	module_expr_t *Expr;
@@ -86,7 +86,7 @@ static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 	if (setjmp(Compiler->Error.Handler)) {
 		fprintf(stderr, "%s(%d): %s\n", Path, Compiler->Error.LineNo, Compiler->Error.Message);
 		for (int I = 0; I < Compiler->Error.Count; ++I) fprintf(stderr, "\t%s\n", Compiler->Error.Stack[I]);
-		if (!Riva$Config$get("Wrapl/Loader/ContinueOnError")) exit(1);
+		if (Riva$Config$get("Wrapl/Loader/StopOnWraplError")) exit(1);
 		return 0;
 	}
 	Expr->compile(Compiler);
