@@ -2,11 +2,40 @@ MOD Kernel;
 
 IMP IO.Terminal USE Out;
 IMP Std, Sys, Agg, Util, Alg, IO, Net, Wrapl;
-IMP Fmt.Json;
+IMP Fmt USE Json, Xml;
 
 DEF Display! :?;
 
 METH Display(x) '{x}';
+
+METH Display(list @ Agg.List.T, data @ Agg.Table.T) (
+	VAR html <- Xml.New(:ol);
+	VAR value, value_text, value_data;
+	EVERY value <- list:values DO (
+		value_text <- Display(value, value_data <- {});
+		html:append(Xml.New(html, :li, [
+			Xml.LoadString(value_data["text/html"]) | value_text
+		]));
+	);
+	data:insert('text/html', '{html}');
+	RET '{list}';
+);
+
+METH Display(table @ Agg.Table.T, data @ Agg.Table.T) (
+	VAR html <- Xml.New(:ul);
+	VAR key, key_text, key_data;
+	VAR value, value_text, value_data;
+	EVERY table:loop(key, value) DO (
+		key_text <- Display(key, key_data <- {});
+		value_text <- Display(value, value_data <- {});
+		html:append(Xml.New(:li, [
+			Xml.New(:b, [Xml.LoadString(key_data["text/html"]) | key_text, ": "]),
+			Xml.LoadString(value_data["text/html"]) | value_text
+		]));
+	);
+	data:insert('text/html', '{html}');
+	RET '{table}';
+);
 
 VAR Log <- Util.Logger.New(Kernel);
 
@@ -28,6 +57,10 @@ VAR iopub <- Net.ZeroMQ.Sock.PubNew('{connection.transport}://{connection.ip}:{c
 METH :write(stream @ OutT, text @ Std.String.T) (
 	Send(iopub, NIL, "stream", stream:parent, {}, {"name" IS stream:type, "text" IS text});
 	RET stream;
+);
+
+METH :suggest(table @ Agg.Table.T, prefix @ Std.String.T) (
+	RET ALL table:keys \ ($ IN Std.String.T & $:begins(prefix));
 );
 
 VAR execution_count <- 0;
