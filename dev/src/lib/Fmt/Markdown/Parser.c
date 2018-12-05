@@ -1,6 +1,6 @@
 #include <Std.h>
 #include <Riva.h>
-#include <Html/Entities.h>
+#include <Fmt/Html/Entities.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
 #include <setjmp.h>
@@ -35,7 +35,7 @@ static Std$Object$t *attributes_to_string(MD_ATTRIBUTE *Attributes) {
 			break;
 		}
 		case MD_TEXT_ENTITY: {
-			Std$String$t *Entity = Agg$StringTable$get(Html$Entities$ByName, Text + Offset, Length);
+			Std$String$t *Entity = Agg$StringTable$get(Fmt$Html$Entities$ByName, Text + Offset, Length);
 			Parts[I] = Std$String$flatten(Entity);
 			Total += (Lengths[I] = Std$String$get_length(Entity));
 			break;
@@ -427,7 +427,7 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 	case MD_TEXT_ENTITY: {
 		NumArguments = 3;
 		Arguments[1].Val = $text;
-		Arguments[2].Val = Agg$StringTable$get(Html$Entities$ByName, Text, Size);
+		Arguments[2].Val = Agg$StringTable$get(Fmt$Html$Entities$ByName, Text, Size);
 		break;
 	}
 	case MD_TEXT_CODE: {

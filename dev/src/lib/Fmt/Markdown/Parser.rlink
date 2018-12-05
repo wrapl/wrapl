@@ -1,7 +1,7 @@
 include("Std.rlib")
 include("Riva.rlib")
 include("Agg/StringTable.rlib")
-include("Html/Entities.rlink")
+include("Fmt/Html/Entities.rlink")
 include("IO/Stream.rlib")
 include("Util/TypedFunction.rlib")
 
