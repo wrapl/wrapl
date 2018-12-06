@@ -100,8 +100,7 @@ METHOD("prepare", TYP, T, TYP, Std$String$T) {
 		S->Handle = Handle;
 		S->NoOfFields = NoOfFields;
 		for (int I = 0; I < NoOfFields; ++I) S->Fields[I] = Std$String$copy(sqlite3_column_name(Handle, I));
-		Result->Val = S;
-		return SUCCESS;
+		RETURN(S);
 	} else {
 		Result->Val = Std$String$new("Error: Sqlite statement prepare failed");
 		return MESSAGE;
@@ -117,7 +116,7 @@ METHOD("finalize", TYP, StatementT) {
 METHOD("reset", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
 	sqlite3_reset(S->Handle);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
@@ -128,7 +127,7 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T, TYP
 		((Std$Integer_smallt *)Args[3].Val)->Value,
 		SQLITE_STATIC
 	);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
@@ -137,7 +136,7 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
 		((Std$Integer_smallt *)Args[1].Val)->Value,
 		((Std$Real_t *)Args[2].Val)->Value
 	);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
@@ -146,7 +145,7 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT
 		((Std$Integer_smallt *)Args[1].Val)->Value,
 		((Std$Integer_smallt *)Args[2].Val)->Value
 	);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, VAL, Std$Object$Nil) {
@@ -154,7 +153,7 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, VAL, Std$Object$Nil) {
 	sqlite3_bind_null(S->Handle,
 		((Std$Integer_smallt *)Args[1].Val)->Value
 	);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
@@ -165,7 +164,7 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		((Std$String_t *)Args[2].Val)->Length.Value,
 		SQLITE_STATIC
 	);
-	return SUCCESS;
+	RETURN0;
 }
 
 METHOD("step", TYP, StatementT) {

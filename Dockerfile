@@ -38,7 +38,8 @@ RUN apt-get update && apt-get install -y \
 	bison \
 	libreadline-dev \
 	unzip \
-	libcurl4-openssl-dev
+	libcurl4-openssl-dev \
+	libesmtp-dev
 
 RUN apt-get clean
 
