@@ -36,7 +36,8 @@ RUN apt-get update && apt-get install -y \
 	liblz4-dev \
 	flex \
 	bison \
-	libreadline-dev
+	libreadline-dev \
+	unzip
 
 RUN apt-get clean
 
@@ -54,7 +55,7 @@ WORKDIR /tmp/wrapl
 
 RUN ls -lah
 
-RUN linux32 rabs -p4
+RUN linux32 rabs -p8
 
 FROM debian:sid-slim
 
