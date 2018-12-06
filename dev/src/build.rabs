@@ -150,7 +150,7 @@ SourceTypes := {
 	"cpp" is [cpp_includes, cpp_compile],
 	"asm" is [asm_includes, asm_compile],
 	"S" is [as_includes, as_compile]
-}e
+}
 
 c_program := fun(Executable, Objects, Libraries) do
 	Objects := Objects or []
