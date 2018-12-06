@@ -37,7 +37,8 @@ RUN apt-get update && apt-get install -y \
 	flex \
 	bison \
 	libreadline-dev \
-	unzip
+	unzip \
+	libcurl4-openssl-dev
 
 RUN apt-get clean
 
@@ -71,7 +72,8 @@ RUN apt-get update && apt-get install -y \
 	libpq5:i386 \
 	libssl1.1:i386 \
 	libgcrypt20:i386 \
-	libesmtp6:i386
+	libesmtp6:i386 \
+	libcurl4:i386
 
 RUN apt-get clean
 
