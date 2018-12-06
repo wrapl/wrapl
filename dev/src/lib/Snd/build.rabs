@@ -152,11 +152,6 @@ var SOX_LIB := (EXT_DIR / "lib/libsox.a") => fun() do
 	execute("make install")
 end
 
-file("Lilv.c"):scan("INCLUDES", :true)[LILV_LIB]
-file("SampleRate.c"):scan("INCLUDES", :true)[SAMPLERATE_LIB]
-file("SndFile.c"):scan("INCLUDES", :true)[SNDFILE_LIB]
-file("Sox.c"):scan("INCLUDES", :true)[SOX_LIB]
-
 CFLAGS := old + ['-I{EXT_DIR / "include/lilv-0"}']
 
 riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
