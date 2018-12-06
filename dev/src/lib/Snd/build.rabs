@@ -9,8 +9,8 @@ VORBIS_VERSION := "1.3.6"
 FLAC_VERSION := "1.3.2"
 SOX_VERSION := "14.4.2"
 
-LIBCFLAGS := old + ['-I{file("include")}']
-LIBLDFLAGS := old + ['-L{file("lib")}']
+LIBCFLAGS := old + ['-I{EXT_DIR / "include"}']
+LIBLDFLAGS := old + ['-L{EXT_DIR / "lib"}']
 
 var OGG_LIB := EXT_DIR / "lib/libogg.a" => fun() do
 	file("ogg"):rmdir:mkdir:chdir

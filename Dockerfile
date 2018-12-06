@@ -55,7 +55,7 @@ WORKDIR /tmp/wrapl
 
 RUN ls -lah
 
-RUN linux32 rabs -p8 -c
+RUN linux32 rabs -p8 -c -s
 
 FROM debian:sid-slim
 
