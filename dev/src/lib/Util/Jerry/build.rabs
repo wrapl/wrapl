@@ -1,0 +1,27 @@
+var JERRY_CORE_LIB := EXT_DIR / "lib/libjerry-core.a" => fun() do
+	file("jerryscript"):rmdir
+	execute('git clone https://github.com/jerryscript-project/jerryscript.git')
+	file("jerryscript"):chdir
+	execute(
+		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\" cmake .",
+		'-DCMAKE_INSTALL_PREFIX:PATH={EXT_DIR}',
+		'-DFEATURE_CPOINTER_32_BIT=ON',
+		'-DENABLE_LTO=OFF'
+	)
+	execute("make")
+	execute("make install")
+end
+
+var JERRY_EXT_LIB := (EXT_DIR / "lib/libjerry-ext.a")[JERRY_CORE_LIB]
+var JERRY_LIBM_LIB := (EXT_DIR / "lib/libjerry-libm.a")[JERRY_CORE_LIB]
+var JERRY_PORT_LIB := (EXT_DIR / "lib/libjerry-port-default.a")[JERRY_CORE_LIB]
+
+riva_module("Util/Jerry", [
+	file("Jerry.o"),
+	file("Jerry2.o")
+], [
+	JERRY_CORE_LIB,
+	JERRY_EXT_LIB,
+	JERRY_LIBM_LIB,
+	JERRY_PORT_LIB
+])

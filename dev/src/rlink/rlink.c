@@ -1335,6 +1335,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strcmp(Sect->name, ".note.GNU-no-split-stack") == 0) {
 	} else if (strncmp(Sect->name, ".gnu.warning", 12) == 0) {
 	} else if (strncmp(Sect->name, ".gnu.glibc-stub", 15) == 0) {
+	} else if (strncmp(Sect->name, ".gnu.lto_", 9) == 0) {
 	} else {
 		fprintf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
 	}
