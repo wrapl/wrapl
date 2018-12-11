@@ -3,3 +3,4 @@ include("Util/TypedFunction.rlib")
 
 export("Parse")
 export("Eval")
+export("Global")

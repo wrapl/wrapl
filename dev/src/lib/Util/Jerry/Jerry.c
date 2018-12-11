@@ -105,6 +105,14 @@ METHOD(".", TYP, ValueT, TYP, Std$String$T) {
 	return from_jerry(Return, Result);
 }
 
+METHOD("[]", TYP, ValueT, TYP, Std$String$T) {
+	value_t *Value = (value_t *)Args[0].Val;
+	jerry_value_t Property = jerry_create_string_sz(Std$String$flatten(Args[1].Val), Std$String$get_length(Args[1].Val));
+	jerry_value_t *Return = jerry_get_property(Value->Handle, Property);
+	jerry_release_value(Property);
+	return from_jerry(Return, Result);
+}
+
 METHOD("[]", TYP, ValueT, TYP, Std$Integer$SmallT) {
 	value_t *Value = (value_t *)Args[0].Val;
 	jerry_value_t *Return = jerry_get_property_by_index(Value->Handle, Std$Integer$get_small(Args[1].Val));
@@ -151,6 +159,13 @@ GLOBAL_FUNCTION(Eval, 1) {
 		Options
 	);
 	return from_jerry(Value, Result);
+}
+
+CONSTANT(Global, ValueT) {
+	value_t *Value = new(value_t);
+	Value->Type = ValueT;
+	Value->Handle = jerry_get_global_object();
+	return (Std$Object$t *)Value;
 }
 
 INITIAL() {

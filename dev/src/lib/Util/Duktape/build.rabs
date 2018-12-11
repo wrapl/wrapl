@@ -1,0 +1,28 @@
+DUKTAPE_VERSION := "2.3.0"
+
+var DUKTAPE_CONFIG_H := EXT_DIR / "include/duk_config.h" => fun(Target) do
+	file("duktape"):rmdir:mkdir:chdir
+	execute('wget -nv https://duktape.org/duktape-{DUKTAPE_VERSION}.tar.xz -O- | tar xJP --strip-components=1')
+	execute('python2 tools/configure.py',
+		'-DDUK_USE_REFERENCE_COUNTING=0',
+		'--output-directory=src-configured'
+	)
+	file("duktape/src-configured/duk_config.h"):copy(Target)
+end
+
+var DUKTAPE_H := (EXT_DIR / "include/duktape.h")[DUKTAPE_CONFIG_H] => fun(Target) do
+	file("duktape/src-configured/duktape.h"):copy(Target)
+end
+
+var DUKTAPE_C := file("duktape.c")[DUKTAPE_CONFIG_H] => fun(Target) do
+	file("duktape/src-configured/duktape.c"):copy(Target)
+end
+
+CFLAGS := old + ['-I{BUILDDIR}']
+PREBUILDS := old + [DUKTAPE_H, DUKTAPE_C]
+
+riva_module("Util/Duktape", [
+	file("Duktape.o"),
+	file("Duktape2.o"),
+	file("duktape.o")
+])
