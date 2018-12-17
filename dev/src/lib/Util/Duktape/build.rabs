@@ -18,11 +18,20 @@ var DUKTAPE_C := file("duktape.c")[DUKTAPE_CONFIG_H] => fun(Target) do
 	file("duktape/src-configured/duktape.c"):copy(Target)
 end
 
+var DUKTAPE_NODE_H := file("duk_module_node.h")[DUKTAPE_CONFIG_H] => fun(Target) do
+	execute("wget -nv https://raw.githubusercontent.com/svaarala/duktape/master/extras/module-node/duk_module_node.h")
+end
+
+var DUKTAPE_NODE_C := file("duk_module_node.c")[DUKTAPE_CONFIG_H] => fun(Target) do
+	execute("wget -nv https://raw.githubusercontent.com/svaarala/duktape/master/extras/module-node/duk_module_node.c")
+end
+
 CFLAGS := old + ['-I{BUILDDIR}']
-PREBUILDS := old + [DUKTAPE_H, DUKTAPE_C]
+PREBUILDS := old + [DUKTAPE_H, DUKTAPE_C, DUKTAPE_NODE_H, DUKTAPE_NODE_C]
 
 riva_module("Util/Duktape", [
 	file("Duktape.o"),
 	file("Duktape2.o"),
-	file("duktape.o")
+	file("duktape.o"),
+	file("duk_module_node.o")
 ])

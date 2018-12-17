@@ -39,7 +39,8 @@ RUN apt-get update && apt-get install -y \
 	libreadline-dev \
 	unzip \
 	libcurl4-openssl-dev \
-	libesmtp-dev
+	libesmtp-dev \
+	python-yaml
 
 RUN apt-get clean
 
