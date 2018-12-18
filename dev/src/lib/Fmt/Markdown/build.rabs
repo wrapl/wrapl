@@ -2,12 +2,15 @@ MD4C_VERSION := "0.2.7"
 
 var MD4C_SOURCE := file("md4c.c") => fun(Target) do
 	execute('wget -nv https://github.com/mity/md4c/archive/release-{MD4C_VERSION}.tar.gz -O- | tar xvzP')
-	execute('cp md4c-release-{MD4C_VERSION}/md4c/md4c.* .')
+	file('md4c-release-{MD4C_VERSION}/md4c/md4c.c'):copy(Target)
 end 
 
-var MD4C_HEADER := file("md4c.h")[MD4C_SOURCE] => fun(Target) nil
+var MD4C_HEADER := file("md4c.h")[MD4C_SOURCE] => fun(Target) do
+	file('md4c-release-{MD4C_VERSION}/md4c/md4c.h'):copy(Target)
+end
 
 CFLAGS := old + ['-I{PATH}']
+PREBUILDS := old + [MD4C_HEADER]
 
 riva_module("Fmt/Markdown/Parser", [file("Parser.o"), file("md4c.o")])
 --wrapl_module("Markdown")

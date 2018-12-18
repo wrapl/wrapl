@@ -71,7 +71,7 @@ cpp_includes := fun(Target) do
 end
 
 cpp_compile := fun(Object) do
-	var Source := Object % "cpp"
+	var Source := (Object % "cpp"):exists or (Object % "cc")
 	execute('gcc -c', CXXFLAGS, '-o', Object, Source)
 end
 
@@ -147,6 +147,7 @@ end
 
 SourceTypes := {
 	"c" is [c_includes, c_compile],
+	"cc" is [cpp_includes, cpp_compile],
 	"cpp" is [cpp_includes, cpp_compile],
 	"asm" is [asm_includes, asm_compile],
 	"S" is [as_includes, as_compile]
