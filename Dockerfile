@@ -41,7 +41,8 @@ RUN apt-get update && apt-get install -y \
 	libcurl4-openssl-dev \
 	libesmtp-dev \
 	python-yaml \
-	gettext
+	gettext \
+	libtool
 
 RUN apt-get clean
 
