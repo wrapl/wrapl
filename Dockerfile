@@ -42,7 +42,8 @@ RUN apt-get update && apt-get install -y \
 	libesmtp-dev \
 	python-yaml \
 	gettext \
-	libtool
+	libtool \
+	autopoint
 
 RUN apt-get clean
 
