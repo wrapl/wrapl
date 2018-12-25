@@ -43,7 +43,9 @@ RUN apt-get update && apt-get install -y \
 	python-yaml \
 	gettext \
 	libtool \
-	autopoint
+	autopoint \
+	flex \
+	bison
 
 RUN apt-get clean
 
