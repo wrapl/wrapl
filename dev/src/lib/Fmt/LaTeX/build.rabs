@@ -16,6 +16,8 @@ var ITEX_LEX := file("lex.yy.c")[ITEX_SOURCE] => fun(Target) do
 	file("itexToMML/itex-src/lex.yy.c"):copy(Target)
 end
 
+file("y.tab.c")[ITEX_LEX] => fun(Target) nil
+
 CFLAGS := old + ['-I{PATH}']
 PREBUILDS := old + [ITEX_HEADER, ITEX_LEX]
 
