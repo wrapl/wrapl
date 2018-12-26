@@ -36,7 +36,7 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS] => Functions[1]
+				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS, Libraries] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
