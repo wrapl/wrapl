@@ -56,12 +56,16 @@ METH :prepend(node+ @ NodeT, child @ NodeT) (
 );
 
 METH :append(node+ @ NodeT, text @ String.T) (
-	node:content:put(text);
+	(node:content[-1] <- ($ IN String.T) + text) // (
+		node:content:put(text);
+	);
 	RET node;
 );
 
 METH :prepend(node+ @ NodeT, text @ String.T) (
-	node:content:push(text);
+	(node:content[1] <- text + ($ IN String.T)) // (
+		node:content:put(text);
+	);
 	RET node;
 );
 

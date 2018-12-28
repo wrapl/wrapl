@@ -1,6 +1,50 @@
 CFLAGS := old + ["-std=gnu99"]
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib"]
 
+var GVC_LIB := EXT_DIR / "lib/libgvc.a" => fun() do
+	file("graphviz"):rmdir:mkdir:chdir
+	execute("wget -nv https://graphviz.gitlab.io/pub/graphviz/stable/SOURCES/graphviz.tar.gz -O- | tar xzP --strip-components=1")
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={EXT_DIR}',
+		"--without-man-pages",
+		"--disable-dependency-tracking",
+		"--disable-ltdl",
+		"--with-qt=no",
+		"--enable-java=no",
+		"--enable-lua=no",
+		"--enable-python=no",
+		"--enable-r=no",
+		"--enable-ruby=no",
+		"--enable-swig=no",
+		"--enable-ocaml=no",
+		"--enable-perl=no",
+		"--enable-php=no",
+		"--enable-tcl=no",
+		"--enable-sharp=no",
+		"--with-sfdp=yes",
+		"--with-libgd=no",
+		"--with-pangocairo=yes",
+		"--with-gts=no",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"',
+		'PKG_CONFIG_LIBDIR=\"{EXT_DIR / "lib/pkgconfig"}:/usr/lib/pkgconfig:/usr/share/pkgconfig\"'
+	)
+	execute("make -j8")
+	execute("make install")
+end
+
+var CGRAPH_LIB := (EXT_DIR / "lib/libcgraph.a")[GVC_LIB]
+var CDT_LIB := (EXT_DIR / "lib/libcdt.a")[GVC_LIB]
+var LTDL_LIB := (EXT_DIR / "lib/libltdl.a")[GVC_LIB]
+var CORE_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_core.a")[GVC_LIB]
+var PANGO_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_pango.a")[GVC_LIB]
+var RSVG_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_rsvg.a")[GVC_LIB]
+var DOT_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_dot_layout.a")[GVC_LIB]
+var NEATO_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_neato_layout.a")[GVC_LIB]
+var PATHPLAN_LIB := (EXT_DIR / "lib/libpathplan.a")[GVC_LIB]
+
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0 pangocairo pangoft2 librsvg-2.0 ")]
+
 riva_module("Math/Matrix", [file("Matrix.o")])
 riva_module("Math/Methods", [file("Methods.o")])
 riva_module("Math/Constant", [file("Constant.o")])
@@ -9,4 +53,8 @@ riva_module("Math/Vector", [file("Vector.o")])
 riva_module("Math/Complex", [file("Complex.o")])
 riva_module("Math/Random", [file("Random.o")])
 --riva_module("Math/Special", [file("Special.o")])
---riva_module("Math/Graphviz", [file("Graphviz.o")])
+riva_module("Math/Graphviz", [file("Graphviz.o")], [
+	GVC_LIB, CGRAPH_LIB, CDT_LIB, LTDL_LIB,
+	DOT_LIB, NEATO_LIB, PATHPLAN_LIB, CORE_LIB,
+	PANGO_LIB, RSVG_LIB
+])
