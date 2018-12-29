@@ -25,12 +25,14 @@ RUN apt-get update && apt-get install -y \
 	gir1.2-freedesktop \
 	gir1.2-gtk-3.0 \
 	gir1.2-gtksource-3.0 \
+	gir1.2-rsvg-2.0 \
 	gobject-introspection \
 	lv2-dev \
 	libgtksourceview-3.0-dev \
 	liblmdb-dev \
 	libkrb5-dev \
 	libsoup2.4-dev \
+	librsvg2-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
 	liblz4-dev \
