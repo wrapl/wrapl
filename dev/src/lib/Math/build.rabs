@@ -54,7 +54,7 @@ riva_module("Math/Complex", [file("Complex.o")])
 riva_module("Math/Random", [file("Random.o")])
 --riva_module("Math/Special", [file("Special.o")])
 riva_module("Math/Graphviz", [file("Graphviz.o")], [
-	GVC_LIB, CGRAPH_LIB, CDT_LIB, LTDL_LIB,
+	GVC_LIB, CGRAPH_LIB, CDT_LIB,
 	DOT_LIB, NEATO_LIB, PATHPLAN_LIB, CORE_LIB,
 	PANGO_LIB, RSVG_LIB
 ])
