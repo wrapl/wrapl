@@ -27,7 +27,7 @@ var GVC_LIB := EXT_DIR / "lib/libgvc.a" => fun() do
 		"--with-gts=no",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
-		'PKG_CONFIG_LIBDIR=\"{EXT_DIR / "lib/pkgconfig"}:/usr/lib/pkgconfig:/usr/share/pkgconfig\"'
+		'PKG_CONFIG_LIBDIR=\"{EXT_DIR / "lib/pkgconfig"}:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/lib/i386-linux-gnu/pkgconfig\"'
 	)
 	execute("make -j8")
 	execute("make install")

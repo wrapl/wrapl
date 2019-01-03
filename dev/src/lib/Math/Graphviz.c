@@ -8,6 +8,11 @@
 static GVC_t *Context;
 static pthread_mutex_t Mutex[1] = {PTHREAD_MUTEX_INITIALIZER};
 
+typedef struct object_record_t {
+	Agrec_t Header;
+	void *Object;
+} object_record_t;
+
 typedef struct object_t {
 	const Std$Type$t *Type;
 	void *Handle;
@@ -85,9 +90,11 @@ GLOBAL_FUNCTION(New, 2) {
 	_graph_t *Graph = new(_graph_t);
 	Graph->Type = GraphT;
 	Graph->Handle = agopen(Std$String$flatten(Args[0].Val), ((_type_t *)Args[1].Val)->Value[0], 0);
+	object_record_t *Record = agbindrec(Graph->Handle, "riva", sizeof(object_record_t), 0);
+	Record->Object = Graph;
 	Result->Val = (Std$Object$t *)Graph;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(Plugins, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
@@ -111,6 +118,8 @@ METHOD("node", TYP, GraphT) {
 	}
 	Node->Type = NodeT;
 	Node->Handle = agnode(Graph->Handle, Name, 1);
+	object_record_t *Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+	Record->Object = Node;
 	RETURN(Node);
 };
 
@@ -119,10 +128,15 @@ METHOD("nodes", TYP, GraphT) {
 	Std$Object$t *Nodes = Agg$List$new0();
 	Agnode_t *N = agfstnode(Graph->Handle);
 	while (N) {
-		_node_t *Node = new(_node_t);
-		Node->Type = NodeT;
-		Node->Handle = N;
-		Agg$List$put(Nodes, Node);
+		object_record_t *Record = aggetrec(N, "riva", 0);
+		if (!Record) {
+			_node_t *Node = new(_node_t);
+			Node->Type = NodeT;
+			Node->Handle = N;
+			Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+			Record->Object = Node;
+		}
+		Agg$List$put(Nodes, Record->Object);
 		N = agnxtnode(Graph->Handle, N);
 	}
 	RETURN(Nodes);
@@ -141,6 +155,8 @@ METHOD("edge", TYP, GraphT, TYP, NodeT, TYP, NodeT) {
 	}
 	Edge->Type = EdgeT;
 	Edge->Handle = agedge(Graph->Handle, Tail->Handle, Head->Handle, Name, 1);
+	object_record_t *Record = agbindrec(Edge->Handle, "riva", sizeof(object_record_t), 0);
+	Record->Object = Edge;
 	RETURN(Edge);
 }
 
@@ -150,10 +166,15 @@ METHOD("edges", TYP, GraphT, TYP, NodeT) {
 	Std$Object$t *Edges = Agg$List$new0();
 	Agedge_t *E = agfstedge(Graph->Handle, Node->Handle);
 	while (E) {
-		_edge_t *Edge = new(_edge_t);
-		Edge->Type = EdgeT;
-		Edge->Handle = E;
-		Agg$List$put(Edges, Edge);
+		object_record_t *Record = aggetrec(E, "riva", 0);
+		if (!Record) {
+			_edge_t *Edge = new(_edge_t);
+			Edge->Type = EdgeT;
+			Edge->Handle = E;
+			Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+			Record->Object = Edge;
+		}
+		Agg$List$put(Edges, Record->Object);
 		E = agnxtedge(Graph->Handle, E, Node->Handle);
 	}
 	RETURN(Edges);
@@ -170,6 +191,8 @@ METHOD("subgraph", TYP, GraphT) {
 	}
 	SubGraph->Type = GraphT;
 	SubGraph->Handle = agsubg(Graph->Handle, Name, 1);
+	object_record_t *Record = agbindrec(SubGraph->Handle, "riva", sizeof(object_record_t), 0);
+	Record->Object = SubGraph;
 	RETURN(SubGraph);
 }
 
