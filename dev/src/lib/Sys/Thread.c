@@ -219,10 +219,10 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 GLOBAL_FUNCTION(New, 1) {
 	thread_t *Thread = new(thread_t);
 	Thread->Type = T;
-	Thread->Function = Args[0].Val;
+	Thread->Function = Args[Count - 1].Val;
 	Thread->Count = Count - 1;
 	Thread->Args = (Std$Function_argument *)Riva$Memory$alloc(Thread->Count * sizeof(Std$Function_argument));
-	memcpy(Thread->Args, &Args[1], Thread->Count * sizeof(Std$Function_argument));
+	memcpy(Thread->Args, Args, Thread->Count * sizeof(Std$Function_argument));
 	pthread_create(&Thread->Handle, 0, thread_func, (void *)Thread);
 	//printf("\e[32mCreating thread <thread @ %x>\e[0m\n", Thread);
 	Result->Val = (Std$Object$t *)Thread;
