@@ -1,7 +1,10 @@
 MD4C_VERSION := "0.2.7"
 
-var MD4C_SOURCE := file("md4c.c") => fun(Target) do
+var PATCHES := file("patches.txt")
+
+var MD4C_SOURCE := file("md4c.c")[PATCHES] => fun(Target) do
 	execute('wget -nv https://github.com/mity/md4c/archive/release-{MD4C_VERSION}.tar.gz -O- | tar xvzP')
+	execute('cd md4c-release-{MD4C_VERSION}/md4c && patch < {PATCHES}')
 	file('md4c-release-{MD4C_VERSION}/md4c/md4c.c'):copy(Target)
 end 
 

@@ -1,0 +1,179 @@
+--- md4c.c	2019-01-05 11:31:22.738319486 +0000
++++ md4c2.c	2019-01-05 11:30:01.035896119 +0000
+@@ -123,7 +123,7 @@
+ #endif
+ 
+     /* For resolving of inline spans. */
+-    MD_MARKCHAIN mark_chains[8];
++    MD_MARKCHAIN mark_chains[9];
+ #define PTR_CHAIN               ctx->mark_chains[0]
+ #define TABLECELLBOUNDARIES     ctx->mark_chains[1]
+ #define BACKTICK_OPENERS        ctx->mark_chains[2]
+@@ -132,8 +132,9 @@
+ #define UNDERSCORE_OPENERS      ctx->mark_chains[5]
+ #define TILDE_OPENERS           ctx->mark_chains[6]
+ #define BRACKET_OPENERS         ctx->mark_chains[7]
++#define DOLLAR_OPENERS            ctx->mark_chains[8]
+ #define OPENERS_CHAIN_FIRST     2
+-#define OPENERS_CHAIN_LAST      7
++#define OPENERS_CHAIN_LAST      8
+ 
+     int n_table_cell_boundaries;
+ 
+@@ -2663,6 +2664,7 @@
+                     case '`':   chain = &BACKTICK_OPENERS; break;
+                     case '<':   chain = &LOWERTHEN_OPENERS; break;
+                     case '~':   chain = &TILDE_OPENERS; break;
++                    case '$':   chain = &DOLLAR_OPENERS; break;
+                     default:    MD_UNREACHABLE(); break;
+                 }
+                 md_mark_chain_append(ctx, chain, mark_opener_index);
+@@ -2725,6 +2727,9 @@
+     if(ctx->r.flags & MD_FLAG_TABLES)
+         ctx->mark_char_map['|'] = 1;
+ 
++    if(ctx->r.flags & MD_FLAG_MATHS)
++		ctx->mark_char_map['$'] = 1;
++
+     if(ctx->r.flags & MD_FLAG_COLLAPSEWHITESPACE) {
+         int i;
+ 
+@@ -2952,7 +2957,7 @@
+                     const SZ suffix_size = scheme_map[scheme_index].suffix_size;
+ 
+                     if(line->beg + scheme_size <= off  &&  md_ascii_eq(STR(off-scheme_size), scheme, scheme_size)  &&
+-                        (line->beg + scheme_size == off || ISWHITESPACE(off-scheme_size-1) || ISANYOF(off-scheme_size-1, _T("*_~([")))  &&
++                        (line->beg + scheme_size == off || ISWHITESPACE(off-scheme_size-1) || ISANYOF(off-scheme_size-1, _T("*_~([$")))  &&
+                         off + 1 + suffix_size < line->end  &&  md_ascii_eq(STR(off+1), suffix, suffix_size))
+                     {
+                         PUSH_MARK(ch, off-scheme_size, off+1+suffix_size, MD_MARK_POTENTIAL_OPENER);
+@@ -2970,7 +2975,7 @@
+             /* A potential permissive WWW autolink. */
+             if(ch == _T('.')) {
+                 if(line->beg + 3 <= off  &&  md_ascii_eq(STR(off-3), _T("www"), 3)  &&
+-                    (line->beg + 3 == off || ISWHITESPACE(off-4) || ISANYOF(off-4, _T("*_~([")))  &&
++                    (line->beg + 3 == off || ISWHITESPACE(off-4) || ISANYOF(off-4, _T("*_~([$")))  &&
+                     off + 1 < line_end)
+                 {
+                     PUSH_MARK(ch, off-3, off+1, MD_MARK_POTENTIAL_OPENER);
+@@ -3002,6 +3007,17 @@
+                 off = tmp;
+             }
+ 
++            /* A potential maths start/end. */
++			if(ch == _T('$')) {
++				OFF tmp = off+1;
++
++				while(tmp < line_end  &&  CH(tmp) == _T('$'))
++					tmp++;
++
++				PUSH_MARK(ch, off, tmp, MD_MARK_POTENTIAL_OPENER | MD_MARK_POTENTIAL_CLOSER);
++				off = tmp;
++			}
++
+             /* Turn non-trivial whitespace into single space. */
+             if(ISWHITESPACE_(ch)) {
+                 OFF tmp = off+1;
+@@ -3609,6 +3625,25 @@
+ }
+ 
+ static void
++md_analyze_dollar(MD_CTX* ctx, int mark_index)
++{
++    /* We attempt to be Github Flavored Markdown compatible here. GFM says
++     * that length of the tilde sequence is not important at all. Note that
++     * implies the DOLLAR_OPENERS chain can have at most one item. */
++
++    if(DOLLAR_OPENERS.head >= 0) {
++        /* The chain already contains an opener, so we may resolve the span. */
++        int opener_index = DOLLAR_OPENERS.head;
++
++        md_rollback(ctx, opener_index, mark_index, MD_ROLLBACK_CROSSING);
++        md_resolve_range(ctx, &DOLLAR_OPENERS, opener_index, mark_index);
++    } else {
++        /* We can only be opener. */
++        md_mark_chain_append(ctx, &DOLLAR_OPENERS, mark_index);
++    }
++}
++
++static void
+ md_analyze_permissive_url_autolink(MD_CTX* ctx, int mark_index)
+ {
+     MD_MARK* opener = &ctx->marks[mark_index];
+@@ -3764,6 +3799,7 @@
+             case '*':   md_analyze_asterisk(ctx, i); break;
+             case '_':   md_analyze_underscore(ctx, i); break;
+             case '~':   md_analyze_tilde(ctx, i); break;
++            case '$':   md_analyze_dollar(ctx, i); break;
+             case '.':   /* Pass through. */
+             case ':':   md_analyze_permissive_url_autolink(ctx, i); break;
+             case '@':   md_analyze_permissive_email_autolink(ctx, i); break;
+@@ -3822,13 +3858,15 @@
+ md_analyze_link_contents(MD_CTX* ctx, const MD_LINE* lines, int n_lines,
+                          int mark_beg, int mark_end)
+ {
+-    md_analyze_marks(ctx, lines, n_lines, mark_beg, mark_end, _T("*_~@:."));
++    md_analyze_marks(ctx, lines, n_lines, mark_beg, mark_end, _T("*_~@:.$"));
+     ASTERISK_OPENERS.head = -1;
+     ASTERISK_OPENERS.tail = -1;
+     UNDERSCORE_OPENERS.head = -1;
+     UNDERSCORE_OPENERS.tail = -1;
+     TILDE_OPENERS.head = -1;
+     TILDE_OPENERS.tail = -1;
++    DOLLAR_OPENERS.head = -1;
++	DOLLAR_OPENERS.tail = -1;
+ }
+ 
+ static int
+@@ -3915,6 +3953,17 @@
+                     }
+                     break;
+ 
++                case '$':       /* Maths span. */
++                    if(mark->flags & MD_MARK_OPENER) {
++                        MD_ENTER_SPAN(MD_SPAN_MATH, NULL);
++                        text_type = MD_TEXT_MATH;
++                    } else {
++                        MD_LEAVE_SPAN(MD_SPAN_MATH, NULL);
++                        text_type = MD_TEXT_NORMAL;
++                    }
++                    break;
++
++
+                 case '_':
+                 case '*':       /* Emphasis, strong emphasis. */
+                     if(mark->flags & MD_MARK_OPENER) {
+--- md4c.h	2019-01-05 11:31:22.738319486 +0000
++++ md4c2.h	2019-01-05 11:25:05.779184638 +0000
+@@ -131,7 +131,10 @@
+     /* <del>...</del>
+      * Note: Recognized only when MD_FLAG_STRIKETHROUGH is enabled.
+      */
+-    MD_SPAN_DEL
++    MD_SPAN_DEL,
++
++	/* <math>...</math> */
++	MD_SPAN_MATH
+ } MD_SPANTYPE;
+ 
+ /* Text is the actual textual contents of span. */
+@@ -170,7 +173,10 @@
+     /* Text is a raw HTML. If it is contents of a raw HTML block (i.e. not
+      * an inline raw HTML), then MD_TEXT_BR and MD_TEXT_SOFTBR are not used.
+      * The text contains verbatim '\n' for the new lines. */
+-    MD_TEXT_HTML
++    MD_TEXT_HTML,
++
++	/* Maths */
++	MD_TEXT_MATH
+ } MD_TEXTTYPE;
+ 
+ 
+@@ -268,6 +274,7 @@
+ #define MD_FLAG_TABLES                      0x0100  /* Enable tables extension. */
+ #define MD_FLAG_STRIKETHROUGH               0x0200  /* Enable strikethrough extension. */
+ #define MD_FLAG_PERMISSIVEWWWAUTOLINKS      0x0400  /* Enable WWW autolinks (even without any scheme prefix, if they begin with 'www.') */
++#define MD_FLAG_MATHS                       0x0800  /* Enable maths.
+ 
+ #define MD_FLAG_PERMISSIVEAUTOLINKS         (MD_FLAG_PERMISSIVEEMAILAUTOLINKS | MD_FLAG_PERMISSIVEURLAUTOLINKS | MD_FLAG_PERMISSIVEWWWAUTOLINKS)
+ #define MD_FLAG_NOHTML                      (MD_FLAG_NOHTMLBLOCKS | MD_FLAG_NOHTMLSPANS)

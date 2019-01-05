@@ -1,13 +1,14 @@
 MOD Xml;
 
 IMP Std USE String, Symbol, Address;
+IMP Sys USE Module;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Escaped;
 
 DEF Parser Xml.Parser;
 
 DEF SpecialChars ["<", ">", "&", "\"", "\'"];
-DEF HtmlEntities ["&lt;", "&gt;", "&amp;", "&quot;", "&apos;"];
+DEF XmlEntities ["&lt;", "&gt;", "&amp;", "&quot;", "&apos;"];
 
 DEF EscapeMap! Escaped.MapNew({
 	"<" IS "&lt;",
@@ -18,8 +19,10 @@ DEF EscapeMap! Escaped.MapNew({
 });
 
 DEF NoText! 1;
+DEF HtmlEntities! 2;
 
 DEF NodeT! <[] parent, tag, attrs, content>;
+DEF EntityT! <[] ref>;
 
 DEF New! :?;
 
@@ -55,6 +58,16 @@ METH :prepend(node+ @ NodeT, child @ NodeT) (
 	RET node;
 );
 
+METH :append(node+ @ NodeT, entity @ EntityT) (
+	node:content:put(entity);
+	RET node;
+);
+
+METH :prepend(node+ @ NodeT, entity @ EntityT) (
+	node:content:push(entity);
+	RET node;
+);
+
 METH :append(node+ @ NodeT, text @ String.T) (
 	(node:content[-1] <- ($ IN String.T) + text) // (
 		node:content:put(text);
@@ -73,34 +86,38 @@ METH :detach(node+ @ NodeT) node:parent:content:remove(node);
 
 METH :"@"(node @ NodeT, =String.T) (
 	VAR s <- "<" + node:tag @ String.T;
-	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{(v @ String.T):map(SpecialChars, HtmlEntities)}"';
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{(v @ String.T):map(SpecialChars, XmlEntities)}"';
 	node:content:length = 0 => RET s + "/>";
-	s <- s + ">";
+	s <- $ + ">";
 	VAR child; EVERY child <- node:content:values DO (
 		?child == String.T => (
-			s <- s + child:map(SpecialChars, HtmlEntities);
+			s <- $ + child:map(SpecialChars, XmlEntities);
+		) // ?child == EntityT => (
+			s <- '{$}&{child:ref};';
 		) // (
-			s <- s + child @ String.T;
+			s <- $ + child @ String.T;
 		);
 	);
-	s <- '{s}</{node:tag}>';
+	s <- '{$}</{node:tag}>';
 	RET s;
 );
 
 METH :write(s @ Stream.T, node @ NodeT) (
 	s:write("<" + node:tag @ String.T);
-	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{(v @ String.T):map(SpecialChars, HtmlEntities)}"');
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{(v @ String.T):map(SpecialChars, XmlEntities)}"');
 	node:content:length = 0 => RET s:write("/>");
 	s:write(">");
 	VAR child; EVERY child <- node:content:values DO (
 		?child == String.T => (
-			s:write(child:map(SpecialChars, HtmlEntities));
+			s:write(child:map(SpecialChars, XmlEntities));
 		) // (
 			s:write(child);
 		);
 	);
 	RET s:write('</{node:tag}>');
 );
+
+METH :write(s @ Stream.T, entity @ EntityT) s:write('&{entity:ref};');
 
 METH :"."(node @ NodeT, attr) node:attrs[attr];
 
@@ -133,6 +150,7 @@ DEF Loader! MOD
 		VAR parser <- Parser.New();
 		(NIL == flags) <- 0;
 		parser:userdata <- NIL;
+		parser:use_foreign_dtd;
 		parser:onstartelement <- <node+, tag, attrs> (
 			VAR child <- NodeT(node, tag, attrs, []);
 			(NIL ~== node):content:put(child);
@@ -140,6 +158,19 @@ DEF Loader! MOD
 		);
 		parser:onendelement <- <node+, tag> (
 			node <- NIL ~== node:parent;
+		);
+		flags:covers(HtmlEntities) => (
+			VAR entities <- Module.Load(NIL, "Fmt/Html/Entities").ByName;
+			parser:onskippedentity <- <node+, ref> (
+				node:content:put(entities['&{ref};']);
+			);
+		) // (
+			parser:onskippedentity <- <node+, ref> (
+				node:content:put(ref);
+			);
+		);
+		parser:ondefault <- <node+, data> (
+			node:content:put(data);
 		);
 		flags:covers(NoText) // (
 			parser:oncharacterdata <- <node+, data> (
@@ -184,7 +215,7 @@ DEF LoadString!(string, flags) (
 	RET parser:userdata;
 );
 
-DEF Escape!(text) text:any("<>&'\"") => text:map(SpecialChars, HtmlEntities) // text;
+DEF Escape!(text) text:any("<>&'\"") => text:map(SpecialChars, XmlEntities) // text;
 
 DEF SaveFile!(filename, xml) File.Open(filename, File.Flag.Write + File.Flag.Text):write(xml):close;
 

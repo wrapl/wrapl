@@ -15,8 +15,8 @@ end
 
 scope("html";) do
 	file("Gumbo.c"):scan("INCLUDES", :true)[GUMBO_LIB]
-	WRAPL_MODULES[riva_module("Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])]
-	WRAPL_MODULES[wrapl_module("Html")]
+	WRAPL_MODULES[riva_module("Fmt/Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])]
+	WRAPL_MODULES[wrapl_module("Fmt/Html")]
 end
 
 var EntitiesGen := riva_program(file("EntitiesGen.riva"), [file("EntitiesGen.o")])

@@ -297,6 +297,7 @@ SYMBOL($strong, "strong");
 SYMBOL($a, "a");
 SYMBOL($img, "img");
 SYMBOL($del, "del");
+SYMBOL($math, "math");
 
 static int enter_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 	Std$Function$result Result[1];
@@ -335,6 +336,10 @@ static int enter_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 	}
 	case MD_SPAN_DEL: {
 		Arguments[1].Val = $del;
+		break;
+	}
+	case MD_SPAN_MATH: {
+		Arguments[1].Val = $math;
 		break;
 	}
 	}
@@ -381,6 +386,10 @@ static int leave_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 	}
 	case MD_SPAN_DEL: {
 		Arguments[1].Val = $del;
+		break;
+	}
+	case MD_SPAN_MATH: {
+		Arguments[1].Val = $math;
 		break;
 	}
 	}
@@ -442,6 +451,12 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 		Arguments[2].Val = Std$String$copy_length(Text, Size);
 		break;
 	}
+	case MD_TEXT_MATH: {
+		NumArguments = 3;
+		Arguments[1].Val = $math;
+		Arguments[2].Val = Std$String$copy_length(Text, Size);
+		break;
+	}
 	}
 	if (Std$Function$invoke(Parser->TextFn, NumArguments, Result, Arguments) == MESSAGE) {
 		longjmp(Parser->OnError, Result->Val);
@@ -464,7 +479,7 @@ GLOBAL_FUNCTION(New, 1) {
 	Parser->Renderer->enter_span = (void *)enter_span_fn;
 	Parser->Renderer->leave_span = (void *)leave_span_fn;
 	Parser->Renderer->text = (void *)text_fn;
-	Parser->Renderer->flags = MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH;
+	Parser->Renderer->flags = MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH | MD_FLAG_MATHS;
 	Result->Val = (Std$Object$t *)Parser;
 	return SUCCESS;
 }
