@@ -464,8 +464,24 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 	return 0;
 }
 
+Std$Integer$smallt FlagCollapseWhiteSpace[] = {{Std$Integer$SmallT, MD_FLAG_COLLAPSEWHITESPACE}};
+Std$Integer$smallt FlagPermissiveATXHeaders[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEATXHEADERS}};
+Std$Integer$smallt FlagPermissiveAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEURLAUTOLINKS}};
+Std$Integer$smallt FlagPermissiveEmailAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEEMAILAUTOLINKS}};
+Std$Integer$smallt FlagNoIndentedCodeBlocks[] = {{Std$Integer$SmallT, MD_FLAG_NOINDENTEDCODEBLOCKS}};
+Std$Integer$smallt FlagNoHTMLBlocks[] = {{Std$Integer$SmallT, MD_FLAG_NOHTMLBLOCKS}};
+Std$Integer$smallt FlagNoHTMLSpans[] = {{Std$Integer$SmallT, MD_FLAG_NOHTMLSPANS}};
+Std$Integer$smallt FlagTable[] = {{Std$Integer$SmallT, MD_FLAG_TABLES}};
+Std$Integer$smallt FlagStrikethrough[] = {{Std$Integer$SmallT, MD_FLAG_STRIKETHROUGH}};
+Std$Integer$smallt FlagPermissiveWWWAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEWWWAUTOLINKS}};
+Std$Integer$smallt FlagMaths[] = {{Std$Integer$SmallT, MD_FLAG_MATHS}};
 
-GLOBAL_FUNCTION(New, 1) {
+GLOBAL_FUNCTION(New, 0) {
+	unsigned int Flags = 0;
+	if (Count > 0) {
+		CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
+		Flags = Std$Integer$get_small(Args[0].Val);
+	}
 	parser_t *Parser = new(parser_t);
 	Parser->Type = T;
 	Parser->UserData = Std$Object$Nil;
@@ -479,7 +495,7 @@ GLOBAL_FUNCTION(New, 1) {
 	Parser->Renderer->enter_span = (void *)enter_span_fn;
 	Parser->Renderer->leave_span = (void *)leave_span_fn;
 	Parser->Renderer->text = (void *)text_fn;
-	Parser->Renderer->flags = MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH | MD_FLAG_MATHS;
+	Parser->Renderer->flags = Flags;
 	Result->Val = (Std$Object$t *)Parser;
 	return SUCCESS;
 }
