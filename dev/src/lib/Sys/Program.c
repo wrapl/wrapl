@@ -98,6 +98,10 @@ GLOBAL_FUNCTION(Restart, 0) {
 	
 };
 
+GLOBAL_FUNCTION(CurrentDir, 0) {
+	RETURN(Std$String$new(getcwd(0, 0)));
+}
+
 GLOBAL(Agg$List$T, Agg$List_t, Args)[] = {{
 // The command line arguments.
 	Agg$List$T,
