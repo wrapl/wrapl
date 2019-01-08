@@ -102,7 +102,7 @@ static int enter_block_fn(MD_BLOCKTYPE BlockType, void *Detail, parser_t *Parser
 	case MD_BLOCK_OL: {
 		MD_BLOCK_OL_DETAIL *OLDetail = (MD_BLOCK_OL_DETAIL *)Detail;
 		NumArguments = 5;
-		Arguments[1].Val = $ul;
+		Arguments[1].Val = $ol;
 		Arguments[2].Val = Std$Integer$new_small(OLDetail->start);
 		Arguments[3].Val = OLDetail->is_tight ? $true : $false;
 		Arguments[4].Val = Std$String$new_char(OLDetail->mark_delimiter);
