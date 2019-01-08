@@ -7,6 +7,7 @@ export("GraphT")
 export("NodeT")
 export("EdgeT")
 export("New")
+export("Parse")
 export("Plugins")
 
 submodule("Graph")

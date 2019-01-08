@@ -96,6 +96,18 @@ GLOBAL_FUNCTION(New, 2) {
 	return SUCCESS;
 }
 
+GLOBAL_FUNCTION(Parse, 1) {
+	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
+	_graph_t *Graph = new(_graph_t);
+	Graph->Type = GraphT;
+	Graph->Handle = agmemread(Std$String$flatten(Args[0].Val));
+	if (!Graph->Handle) SEND(Std$String$new("Parse error!"));
+	object_record_t *Record = agbindrec(Graph->Handle, "riva", sizeof(object_record_t), 0);
+	Record->Object = Graph;
+	Result->Val = (Std$Object$t *)Graph;
+	return SUCCESS;
+}
+
 GLOBAL_FUNCTION(Plugins, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	int Size;
