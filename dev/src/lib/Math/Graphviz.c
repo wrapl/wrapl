@@ -121,18 +121,22 @@ GLOBAL_FUNCTION(Plugins, 1) {
 
 METHOD("node", TYP, GraphT) {
 	_graph_t *Graph = (_graph_t *)Args[0].Val;
-	_node_t *Node = new(_node_t);
 	char *Name;
 	if (Count > 1) {
 		Name = Std$String$flatten(Args[1].Val);
 	} else {
 		asprintf(&Name, "N%d", agnnodes(Graph->Handle));
 	}
-	Node->Type = NodeT;
-	Node->Handle = agnode(Graph->Handle, Name, 1);
-	object_record_t *Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
-	Record->Object = Node;
-	RETURN(Node);
+	Agnode_t *N = agnode(Graph->Handle, Name, 1);
+	object_record_t *Record = aggetrec(N, "riva", 0);
+	if (!Record) {
+		_node_t *Node = new(_node_t);
+		Node->Type = NodeT;
+		Node->Handle = N;
+		Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+		Record->Object = Node;
+	}
+	RETURN(Record->Object);
 };
 
 METHOD("nodes", TYP, GraphT) {
@@ -145,7 +149,7 @@ METHOD("nodes", TYP, GraphT) {
 			_node_t *Node = new(_node_t);
 			Node->Type = NodeT;
 			Node->Handle = N;
-			Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+			Record = agbindrec(N, "riva", sizeof(object_record_t), 0);
 			Record->Object = Node;
 		}
 		Agg$List$put(Nodes, Record->Object);
@@ -158,18 +162,22 @@ METHOD("edge", TYP, GraphT, TYP, NodeT, TYP, NodeT) {
 	_graph_t *Graph = (_graph_t *)Args[0].Val;
 	_node_t *Head = (_node_t *)Args[1].Val;
 	_node_t *Tail = (_node_t *)Args[2].Val;
-	_edge_t *Edge = new(_edge_t);
 	char *Name;
 	if (Count > 3) {
 		Name = Std$String$flatten(Args[3].Val);
 	} else {
 		asprintf(&Name, "%s->%s", agnameof(Head->Handle), agnameof(Tail->Handle));
 	}
-	Edge->Type = EdgeT;
-	Edge->Handle = agedge(Graph->Handle, Tail->Handle, Head->Handle, Name, 1);
-	object_record_t *Record = agbindrec(Edge->Handle, "riva", sizeof(object_record_t), 0);
-	Record->Object = Edge;
-	RETURN(Edge);
+	Agedge_t *E = agedge(Graph->Handle, Tail->Handle, Head->Handle, Name, 1);
+	object_record_t *Record = aggetrec(E, "riva", 0);
+	if (!Record) {
+		_edge_t *Edge = new(_edge_t);
+		Edge->Type = EdgeT;
+		Edge->Handle = E;
+		Record = agbindrec(E, "riva", sizeof(object_record_t), 0);
+		Record->Object = Edge;
+	}
+	RETURN(Record->Object);
 }
 
 METHOD("edges", TYP, GraphT, TYP, NodeT) {
@@ -183,7 +191,7 @@ METHOD("edges", TYP, GraphT, TYP, NodeT) {
 			_edge_t *Edge = new(_edge_t);
 			Edge->Type = EdgeT;
 			Edge->Handle = E;
-			Record = agbindrec(Node->Handle, "riva", sizeof(object_record_t), 0);
+			Record = agbindrec(E, "riva", sizeof(object_record_t), 0);
 			Record->Object = Edge;
 		}
 		Agg$List$put(Edges, Record->Object);
