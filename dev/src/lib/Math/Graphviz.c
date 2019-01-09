@@ -202,18 +202,41 @@ METHOD("edges", TYP, GraphT, TYP, NodeT) {
 
 METHOD("subgraph", TYP, GraphT) {
 	_graph_t *Graph = (_graph_t *)Args[0].Val;
-	_graph_t *SubGraph = new(_graph_t);
 	char *Name;
 	if (Count > 1) {
 		Name = Std$String$flatten(Args[1].Val);
 	} else {
 		asprintf(&Name, "G%d", agnsubg(Graph->Handle));
 	}
-	SubGraph->Type = GraphT;
-	SubGraph->Handle = agsubg(Graph->Handle, Name, 1);
-	object_record_t *Record = agbindrec(SubGraph->Handle, "riva", sizeof(object_record_t), 0);
-	Record->Object = SubGraph;
-	RETURN(SubGraph);
+	Agraph_t *G = agsubg(Graph->Handle, Name, 1);
+	object_record_t *Record = aggetrec(G, "riva", 0);
+	if (!Record) {
+		_graph_t *SubGraph = new(_graph_t);
+		SubGraph->Type = GraphT;
+		SubGraph->Handle = G;
+		Record = agbindrec(G, "riva", sizeof(object_record_t), 0);
+		Record->Object = SubGraph;
+	}
+	RETURN(Record->Object);
+}
+
+METHOD("subgraphs", TYP, GraphT) {
+	_graph_t *Graph = (_graph_t *)Args[0].Val;
+	Std$Object$t *SubGraphs = Agg$List$new0();
+	Agraph_t *G = agfstsubg(Graph->Handle);
+	while (G) {
+		object_record_t *Record = aggetrec(G, "riva", 0);
+		if (!Record) {
+			_graph_t *SubGraph = new(_graph_t);
+			SubGraph->Type = GraphT;
+			SubGraph->Handle = G;
+			Record = agbindrec(G, "riva", sizeof(object_record_t), 0);
+			Record->Object = SubGraph;
+		}
+		Agg$List$put(SubGraphs, Record->Object);
+		G = agnxtnode(Graph->Handle, G);
+	}
+	RETURN(SubGraphs);
 }
 
 METHOD("delete", TYP, GraphT, TYP, ObjectT) {
