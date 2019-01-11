@@ -40,8 +40,7 @@ var CZMQ_LIB := (EXT_DIR / "lib/libczmq.a")[ZEROMQ_LIB] => fun() do
 	execute("make install")
 end
 
-file("ZeroMQ.c"):scan("INCLUDES", :true)[CZMQ_LIB]
-
+PREBUILDS := old + [CZMQ_LIB]
 CFLAGS := old + ['-I{file("include")}']
 
 riva_module("Net/ZeroMQ", [file("ZeroMQ.o")], [CZMQ_LIB, ZEROMQ_LIB, LZ4_LIB])

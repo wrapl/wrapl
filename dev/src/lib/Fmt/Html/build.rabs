@@ -14,7 +14,7 @@ var GUMBO_LIB := EXT_DIR / "lib/libgumbo.a" => fun() do
 end
 
 scope("html";) do
-	file("Gumbo.c"):scan("INCLUDES", :true)[GUMBO_LIB]
+	PREBUILDS := old + [GUMBO_LIB]
 	WRAPL_MODULES[riva_module("Fmt/Html/Gumbo", [file("Gumbo.o")], [GUMBO_LIB])]
 	WRAPL_MODULES[wrapl_module("Fmt/Html")]
 end

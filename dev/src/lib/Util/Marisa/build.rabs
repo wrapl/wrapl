@@ -16,5 +16,5 @@ end
 
 CXXFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
-file("Marisa.cpp"):scan("INCLUDES", :true)[MARISA_LIB]
+PREBUILDS := old + [MARISA_LIB]
 riva_module("Util/Marisa", [file("Marisa.o")], [MARISA_LIB])

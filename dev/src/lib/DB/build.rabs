@@ -16,10 +16,9 @@ POSTGRES_LIB := EXT_DIR / "lib/libpq.a" => fun() do
 	execute('make install PREFIX={EXT_DIR}')
 end
 
+PREBUILDS := old + [POSTGRES_LIB]
 CFLAGS := old + ["-std=gnu99", '-I{file("include")}', '-I{file("postgres/src/include")}']
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
-
-file("Postgres.c"):scan("INCLUDES", :true)[POSTGRES_LIB]
 
 riva_module("DB/Sqlite", [file("SqliteRiva.o")])
 riva_module("DB/LMDB", [file("LMDB.o")])

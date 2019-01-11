@@ -11,7 +11,7 @@ var LIBSSH_LIB := EXT_DIR / "lib/libssh.a" => fun() do
 end
 
 CFLAGS := old + ["-DLIBSSH_STATIC=1", '-I{file("include")}']
-file("SSH.c"):scan("INCLUDES", :true)[LIBSSH_LIB]
+PREBUILDS := old + [LIBSSH_LIB]
 
 riva_module("Net/SSH", [file("SSH.o")], [LIBSSH_LIB])
 
