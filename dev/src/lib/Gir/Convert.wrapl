@@ -26,6 +26,7 @@ EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:val
 	gir:wait;
 	gir:close;
 	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
+	RECV msg DO Err:write('Error: {msg}\n');
 );
 
 -- Additional fixups go here
