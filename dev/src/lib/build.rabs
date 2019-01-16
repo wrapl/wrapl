@@ -125,6 +125,7 @@ scope("lib";) do
 	subdir("ML")
 	subdir("DB")
 	subdir("Net")
+	subdir("Num")
 	
 	if PLATFORM = "Linux" then
 		subdir("Gir")
