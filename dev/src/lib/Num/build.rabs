@@ -1,1 +1,11 @@
+CROARING_VERSION := "0.2.59"
+
+var CROARING_SOURCE := file("roaring.c") => fun() do
+	execute('wget -nv https://github.com/lemire/CRoaringUnityBuild/archive/v{CROARING_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+end
+
+PREBUILDS := old + [CROARING_SOURCE]
+CFLAGS := old + ['-I{BUILDDIR}']
+
 riva_module("Num/Array", [file("Array.o")])
+riva_module("Num/Bitset", [file("Bitset.o")])

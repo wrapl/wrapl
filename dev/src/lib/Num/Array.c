@@ -81,7 +81,7 @@ GLOBAL_FUNCTION(New, 2) {
 	Num$Array$t *Array = _new(Format, Degree);
 	int DataSize = ItemSize;
 	for (int I = Degree; --I >= 0;) {
-		if (Count < I + 2) SEND(Std$String$new("Not enough dimensions"));
+		if (Count <= I + 2) SEND(Std$String$new("Not enough dimensions"));
 		CHECK_EXACT_ARG_TYPE(I + 2, Std$Integer$SmallT);
 		Array->Dimensions[I].Stride = DataSize;
 		int Size = Array->Dimensions[I].Size = Std$Integer$get_small(Args[I + 2].Val);

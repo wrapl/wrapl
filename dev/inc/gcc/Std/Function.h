@@ -164,6 +164,11 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 	return SUCCESS;\
 }
 
+#define RETURN1 {\
+	Result->Arg = Args[1];\
+	return SUCCESS;\
+}
+
 #define FAIL {\
 	return FAILURE;\
 }
