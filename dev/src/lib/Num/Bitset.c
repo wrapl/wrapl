@@ -41,9 +41,9 @@ METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 	}
 }
 
-METHOD("in", TYP, T, TYP, Std$Integer$SmallT) {
-	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
-	int Bit = Std$Integer$get_small(Args[1].Val);
+METHOD("in", TYP, Std$Integer$SmallT, TYP, T) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[1].Val;
+	int Bit = Std$Integer$get_small(Args[0].Val);
 	if (roaring_bitmap_contains(Bitset->Value, Bit)) {
 		RETURN0;
 	} else {
@@ -131,11 +131,29 @@ METHOD("values", TYP, T) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	if (roaring_bitmap_is_empty(Bitset->Value)) FAIL;
 	generator_t *Generator = new(generator_t);
+	Generator->State.Run = Std$Function$resume_c;
 	Generator->State.Invoke = resume_generator;
 	roaring_init_iterator(Bitset->Value, Generator->Iterator);
 	Result->Val = Std$Integer$new_small(Generator->Iterator->current_value);
 	Result->State = Generator;
 	return SUSPEND;
+}
+
+METHOD("values", TYP, T, TYP, Std$Integer$SmallT) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	int From = Std$Integer$get_small(Args[1].Val);
+	if (roaring_bitmap_is_empty(Bitset->Value)) FAIL;
+	generator_t *Generator = new(generator_t);
+	Generator->State.Run = Std$Function$resume_c;
+	Generator->State.Invoke = resume_generator;
+	roaring_init_iterator(Bitset->Value, Generator->Iterator);
+	if (roaring_move_uint32_iterator_equalorlarger(Generator->Iterator, From)) {
+		Result->Val = Std$Integer$new_small(Generator->Iterator->current_value);
+		Result->State = Generator;
+		return SUSPEND;
+	} else {
+		return FAILURE;
+	}
 }
 
 STRING(LeftBrace, "{");
