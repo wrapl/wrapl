@@ -6,7 +6,12 @@
 #define RIVA_MODULE Num$Bitset
 #include <Riva-Header.h>
 
-RIVA_STRUCT(t);
+#include "roaring.h"
+
+RIVA_STRUCT(t) {
+	const Std$Type$t *Type;
+	roaring_bitmap_t *Value;
+};
 
 RIVA_TYPE(T);
 

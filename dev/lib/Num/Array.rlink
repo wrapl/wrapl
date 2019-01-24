@@ -2,6 +2,7 @@ module("Num", "Array")
 
 import("_new")
 import("New")
+import("T")
 import("AnyT")
 import("Int8T")
 import("Int16T")

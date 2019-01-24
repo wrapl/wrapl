@@ -1,3 +1,4 @@
+require("Num/Methods")
 include("Std.rlib")
 include("Riva.rlib")
 

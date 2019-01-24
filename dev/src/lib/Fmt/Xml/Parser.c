@@ -81,6 +81,7 @@ GLOBAL_FUNCTION(New, 0) {
 	Parser->EndElementHandler = Std$Object$Nil;
 	Parser->CharacterDataHandler = Std$Object$Nil;
 	Parser->SkippedEntityHandler = Std$Object$Nil;
+	Parser->DefaultHandler = Std$Object$Nil;
 
 	XML_SetElementHandler(Parser->Handle, startelementhandler, endelementhandler);
 	XML_SetCharacterDataHandler(Parser->Handle, characterdatahandler);

@@ -1,8 +1,10 @@
+require("Num/Methods")
 include("Std.rlib")
 include("Riva.rlib")
 
 export("_new")
 export("New")
+export("T")
 export("AnyT")
 export("Int8T")
 export("Int16T")

@@ -4,11 +4,6 @@
 
 #include "roaring.c"
 
-struct Num$Bitset$t {
-	const Std$Type$t *Type;
-	roaring_bitmap_t *Value;
-};
-
 TYPE(T);
 
 GLOBAL_FUNCTION(New, 0) {
@@ -29,15 +24,21 @@ METHOD("copy", TYP, T) {
 METHOD("insert", TYP, T, TYP, Std$Integer$SmallT) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	int Bit = Std$Integer$get_small(Args[1].Val);
-	roaring_bitmap_add(Bitset->Value, Bit);
-	RETURN0;
+	if (roaring_bitmap_add_checked(Bitset->Value, Bit)) {
+		RETURN0;
+	} else {
+		FAIL;
+	}
 }
 
 METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	int Bit = Std$Integer$get_small(Args[1].Val);
-	roaring_bitmap_remove(Bitset->Value, Bit);
-	RETURN0;
+	if (roaring_bitmap_remove_checked(Bitset->Value, Bit)) {
+		RETURN0;
+	} else {
+		FAIL;
+	}
 }
 
 METHOD("in", TYP, T, TYP, Std$Integer$SmallT) {
@@ -135,5 +136,25 @@ METHOD("values", TYP, T) {
 	Result->Val = Std$Integer$new_small(Generator->Iterator->current_value);
 	Result->State = Generator;
 	return SUSPEND;
+}
+
+STRING(LeftBrace, "{");
+STRING(RightBrace, "}");
+
+static bool to_string_iterator(uint32_t Value, Std$Object$t **String) {
+	if (*String != LeftBrace) {
+		*String = Std$String$add_format(*String, ", %d", Value);
+	} else {
+		*String = Std$String$add_format(*String, "%d", Value);
+	}
+	return true;
+}
+
+METHOD("@", TYP, T, VAL, Std$String$T) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	Std$Object$t *String = LeftBrace;
+	roaring_iterate(Bitset->Value, to_string_iterator, &String);
+	String = Std$String$add(String, RightBrace);
+	RETURN(String);
 }
 

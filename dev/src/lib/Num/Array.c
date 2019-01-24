@@ -90,3 +90,55 @@ GLOBAL_FUNCTION(New, 2) {
 	Array->Data = Riva$Memory$alloc_atomic(DataSize);
 	RETURN(Array);
 }
+
+STRING(LeftSquare, "[");
+STRING(RightSquare, "]");
+
+#define METHODS(ATYPE, CTYPE, FORMAT) \
+static Std$Object$t *to_string_array_flat_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data) { \
+	Std$Object$t *String = LeftSquare; \
+	if (Dimension->Size > 0) { \
+		int Stride = Dimension->Stride; \
+		String = Std$String$add_format(String, FORMAT, *(CTYPE *)Data); \
+		Data += Stride; \
+		for (int I = Dimension->Size; --I > 0;) { \
+			String = Std$String$add_format(String, ", "FORMAT, *(CTYPE *)Data); \
+		} \
+	} \
+	String = Std$String$add(String, RightSquare); \
+	return String; \
+}\
+\
+static Std$Object$t *to_string_array_nested_ ## CTYPE(int Degree, Num$Array$dimension_t *Dimension, void *Data) { \
+	if (Degree == 1) return to_string_array_flat_ ## CTYPE(Dimension, Data); \
+	Std$Object$t *String = LeftSquare; \
+	if (Dimension->Size > 0) { \
+		int Stride = Dimension->Stride; \
+		String = Std$String$add(String, to_string_array_nested_ ## CTYPE(Degree - 1, Dimension + 1, Data)); \
+		Data += Stride; \
+		for (int I = Dimension->Size; --I > 0;) { \
+			String = Std$String$add_chars(String, ", ", 2); \
+			String = Std$String$add(String, to_string_array_nested_ ## CTYPE(Degree - 1, Dimension + 1, Data)); \
+		} \
+	} \
+	String = Std$String$add(String, RightSquare); \
+	return String; \
+}\
+\
+METHOD("@", TYP, ATYPE, VAL, Std$String$T) { \
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
+	RETURN(to_string_array_nested_ ## CTYPE(Array->Degree, Array->Dimensions, Array->Data)); \
+}
+
+METHODS(Int8T, int8_t, "%d");
+METHODS(UInt8T, uint8_t, "%ud");
+METHODS(Int16T, int16_t, "%d");
+METHODS(UInt16T, uint16_t, "%ud");
+METHODS(Int32T, int32_t, "%d");
+METHODS(UInt32T, uint32_t, "%ud");
+METHODS(Int64T, int64_t, "%ld");
+METHODS(UInt64T, uint64_t, "%uld");
+METHODS(Float32T, float, "%f");
+METHODS(Float64T, double, "%f");
+
+

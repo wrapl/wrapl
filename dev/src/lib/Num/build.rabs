@@ -1,7 +1,12 @@
 CROARING_VERSION := "0.2.59"
+YEPPP_VERSION := ""
 
 var CROARING_SOURCE := file("roaring.c") => fun() do
 	execute('wget -nv https://github.com/lemire/CRoaringUnityBuild/archive/v{CROARING_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
+end
+
+var YEPPP_LIB := EXT_DIR / "lib/libyeppp.a" => fun() do
+	--https://bitbucket.org/MDukhan/yeppp/downloads/yeppp-1.0.0.tar.bz2
 end
 
 PREBUILDS := old + [CROARING_SOURCE]
@@ -9,3 +14,4 @@ CFLAGS := old + ['-I{BUILDDIR}']
 
 riva_module("Num/Array", [file("Array.o")])
 riva_module("Num/Bitset", [file("Bitset.o")])
+riva_module("Num/Methods", [file("Methods.o")])
