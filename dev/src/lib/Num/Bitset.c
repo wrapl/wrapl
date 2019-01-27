@@ -10,6 +10,10 @@ GLOBAL_FUNCTION(New, 0) {
 	Num$Bitset$t *Bitset = new(Num$Bitset$t);
 	Bitset->Type = T;
 	Bitset->Value = roaring_bitmap_create();
+	for (int I = 0; I < Count; ++I) {
+		CHECK_EXACT_ARG_TYPE(I, Std$Integer$SmallT);
+		roaring_bitmap_add(Bitset->Value, Std$Integer$get_small(Args[I].Val));
+	}
 	RETURN(Bitset);
 }
 
@@ -31,6 +35,14 @@ METHOD("insert", TYP, T, TYP, Std$Integer$SmallT) {
 	}
 }
 
+METHOD("insert", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	int Lo = Std$Integer$get_small(Args[1].Val);
+	int Hi = Std$Integer$get_small(Args[2].Val);
+	roaring_bitmap_add_range_closed(Bitset->Value, Lo, Hi);
+	RETURN0;
+}
+
 METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	int Bit = Std$Integer$get_small(Args[1].Val);
@@ -39,6 +51,14 @@ METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 	} else {
 		FAIL;
 	}
+}
+
+METHOD("delete", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	int Lo = Std$Integer$get_small(Args[1].Val);
+	int Hi = Std$Integer$get_small(Args[2].Val);
+	roaring_bitmap_remove_range_closed(Bitset->Value, Lo, Hi);
+	RETURN0;
 }
 
 METHOD("in", TYP, Std$Integer$SmallT, TYP, T) {
@@ -54,6 +74,27 @@ METHOD("in", TYP, Std$Integer$SmallT, TYP, T) {
 METHOD("size", TYP, T) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	RETURN(Std$Integer$new_small(roaring_bitmap_get_cardinality(Bitset->Value)));
+}
+
+METHOD("min", TYP, T) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	RETURN(Std$Integer$new_small(roaring_bitmap_minimum(Bitset->Value)));
+}
+
+METHOD("max", TYP, T) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	RETURN(Std$Integer$new_small(roaring_bitmap_maximum(Bitset->Value)));
+}
+
+METHOD("[]", TYP, T, TYP, Std$Integer$SmallT) {
+	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
+	int Rank = Std$Integer$get_small(Args[1].Val);
+	int Element;
+	if (roaring_bitmap_select(Bitset->Value, Rank, &Element)) {
+		RETURN(Std$Integer$new_small(Element));
+	} else {
+		FAIL;
+	}
 }
 
 METHOD("=", TYP, T, TYP, T) {
@@ -94,7 +135,7 @@ METHOD("*", TYP, T, TYP, T) {
 	RETURN(C);
 }
 
-METHOD("-", TYP, T, TYP, T) {
+METHOD("/", TYP, T, TYP, T) {
 	Num$Bitset$t *A = (Num$Bitset$t *)Args[0].Val;
 	Num$Bitset$t *B = (Num$Bitset$t *)Args[1].Val;
 	Num$Bitset$t *C = new(Num$Bitset$t);

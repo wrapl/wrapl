@@ -291,6 +291,7 @@ api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name"
 api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "Style"}][:field, {"name" IS "private_font_desc"}].type <- $:after('!');
 api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "RcStyle"}][:field, {"name" IS "font_desc"}].type <- $:after('!');
 api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "BindingSignal"}][:field, {"name" IS "args"}]:detach;
+api[:namespace, {"name" IS "Gtk"}][][:method, {"cname" IS "gtk_cell_accessible_parent_get_column_header_cells"}]:detach;
 
 api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "Blob"}][:field, {"name" IS "data"}].type <- '!{$}';
 api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "MetaView"}][:field, {"name" IS "table"}].type <- '!{$}';

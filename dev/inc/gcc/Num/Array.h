@@ -6,8 +6,11 @@
 #define RIVA_MODULE Num$Array
 #include <Riva-Header.h>
 
+#include "roaring.h"
+
 RIVA_STRUCT(dimension_t) {
 	int Size, Stride;
+	roaring_bitmap_t *Bitmap;
 };
 
 typedef enum {
