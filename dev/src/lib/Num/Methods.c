@@ -270,7 +270,7 @@ METHOD(#NAME, TYP, ATYPE, TYP, Std$Number$T) { \
 STRING(LeftSquare, "[");
 STRING(RightSquare, "]");
 
-#define METHODS(ATYPE, CTYPE, FORMAT, RFUNC) \
+#define METHODS(ATYPE, CTYPE, FORMAT, RFUNC, RNEW) \
 \
 static Std$Object$t *to_string_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data) { \
 	Std$Object$t *String = LeftSquare; \
@@ -362,15 +362,20 @@ METHOD("copy", TYP, ATYPE) { \
 	Target->Data = Riva$Memory$alloc_atomic(DataSize); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Data, Degree, Source->Dimensions, Source->Data); \
 	RETURN(Target); \
+} \
+\
+METHOD("get", TYP, ATYPE) { \
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
+	RETURN(RNEW(*(CTYPE *)Array->Data)); \
 }
 
-METHODS(Num$Array$Int8T, int8_t, "%d", Std$Integer$int);
-METHODS(Num$Array$UInt8T, uint8_t, "%ud", Std$Integer$int);
-METHODS(Num$Array$Int16T, int16_t, "%d", Std$Integer$int);
-METHODS(Num$Array$UInt16T, uint16_t, "%ud", Std$Integer$int);
-METHODS(Num$Array$Int32T, int32_t, "%d", Std$Integer$int);
-METHODS(Num$Array$UInt32T, uint32_t, "%ud", Std$Integer$int);
-METHODS(Num$Array$Int64T, int64_t, "%ld", Std$Integer$int);
-METHODS(Num$Array$UInt64T, uint64_t, "%uld", Std$Integer$int);
-METHODS(Num$Array$Float32T, float, "%f", Std$Real$double);
-METHODS(Num$Array$Float64T, double, "%f", Std$Real$double);
+METHODS(Num$Array$Int8T, int8_t, "%d", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$UInt8T, uint8_t, "%ud", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$Int16T, int16_t, "%d", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$UInt16T, uint16_t, "%ud", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$Int32T, int32_t, "%d", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$UInt32T, uint32_t, "%ud", Std$Integer$int, Std$Integer$new_small);
+METHODS(Num$Array$Int64T, int64_t, "%ld", Std$Integer$int, Std$Integer$new_s64);
+METHODS(Num$Array$UInt64T, uint64_t, "%uld", Std$Integer$int, Std$Integer$new_u64);
+METHODS(Num$Array$Float32T, float, "%f", Std$Real$double, Std$Real$new);
+METHODS(Num$Array$Float64T, double, "%f", Std$Real$double, Std$Real$new);

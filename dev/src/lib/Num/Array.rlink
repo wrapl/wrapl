@@ -1,6 +1,7 @@
 require("Num/Methods")
 include("Std.rlib")
 include("Riva.rlib")
+include("Agg/List.rlib")
 
 export("_new")
 export("New")
