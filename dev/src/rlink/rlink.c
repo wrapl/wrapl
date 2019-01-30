@@ -899,6 +899,7 @@ typedef struct got_entry_t got_entry_t;
 
 typedef struct {
 	section_t Base;
+	uint32_t Flags, Size;
 } got_section_t;
 
 static void got_section_setup(got_section_t *Section) {
@@ -907,21 +908,28 @@ static void got_section_setup(got_section_t *Section) {
 static void got_section_relocate(got_section_t *Section, relocation_t *Relocation, uint32_t *Target) {
 	section_require((section_t *)Section);
 	Relocation->Section = (section_t *)Section;
+	uint32_t Size = *Target = (uint32_t)(-(int32_t )*Target);
+	if (Section->Size < Size) Section->Size = Size;
 }
 
 static void got_section_debug(got_section_t *Section, FILE *File) {
-	
+	fprintf(File, "%d: got section: %d, %x\n", ((section_t *)Section)->Index, Section->Size, Section->Flags);
 }
 
 static uint32_t got_section_size(got_section_t *Section) {
+	return 1 + 1 + 4;
 }
 
 static void got_section_write(got_section_t *Section, gzFile File) {
+	uint32_t Temp;
+	Temp = SECT_GOT; gzwrite(File, &Temp, 1);
+	Temp = Section->Flags; gzwrite(File, &Temp, 1);
+	Temp = Section->Size; gzwrite(File, &Temp, 4);
 }
 
 static section_t *new_got_section() {
 	static section_methods Methods = {
-		(void (*)(section_t *))default_section_setup,
+		(void (*)(section_t *))got_section_setup,
 		(void *)got_section_relocate,
 		invalid_section_export,
 		(void (*)(section_t *, FILE *))got_section_debug,
@@ -1328,6 +1336,8 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 		} else {
 			Sect->userdata = new_bss_section(bfd_get_section_size(Sect));
 		}
+	} else if (strcmp(Sect->name, ".got") == 0) {
+		asm("int3");
 	} else if (strcmp(Sect->name, ".group") == 0) {
 	} else if (strcmp(Sect->name, ".comment") == 0) {
 	} else if (strcmp(Sect->name, ".note.GNU-stack") == 0) {
