@@ -14,4 +14,5 @@ CFLAGS := old + ['-I{BUILDDIR}']
 
 riva_module("Num/Array", [file("Array.o")])
 riva_module("Num/Bitset", [file("Bitset.o")])
+riva_module("Num/Range", [file("Range.o")])
 riva_module("Num/Methods", [file("Methods.o")])

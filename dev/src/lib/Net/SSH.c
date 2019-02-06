@@ -11,13 +11,11 @@ typedef struct {
 	unsigned long int ti_offset;
 } tls_index;
 
-void * __attribute__((__regparm__ (1))) ___tls_get_addr(tls_index *ti) {
-}
-
 SYMBOL($block, "block");
 
 INITIAL() {
-	ssh_threads_init();
+	ssh_init();
+	//ssh_threads_init();
 }
 
 typedef struct ssh_session_t {

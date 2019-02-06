@@ -385,8 +385,17 @@ static bss_section_t *new_bss_section(uint32_t Size) {
 	return Section;
 }
 
+typedef struct bfd_info_t {
+	const char *FileName;
+	stringmap_t *LocalTable;
+	asymbol **Symbols;
+} bfd_info_t;
+
 typedef struct tbss_section_t {
 	section_t Base;
+	asection *Sect;
+	bfd *Bfd;
+	bfd_info_t *BfdInfo;
 	uint32_t Size;
 } tbss_section_t;
 
@@ -400,7 +409,7 @@ static void tbss_section_relocate(tbss_section_t *Section, relocation_t *Relocat
 }
 
 static void tbss_section_debug(tbss_section_t *Section, FILE *File) {
-	fprintf(File, "%d: tbss section: %d\n", ((section_t *)Section)->Index, Section->Size);
+	fprintf(File, "%d: tbss section: %d %s:%s[%x]\n", ((section_t *)Section)->Index, Section->Size, Section->BfdInfo->FileName, ((section_t *)Section)->Name, Section->Sect->flags);
 }
 
 static uint32_t tbss_section_size(tbss_section_t *Section) {
@@ -413,7 +422,7 @@ static void tbss_section_write(tbss_section_t *Section, gzFile File) {
 	Temp = Section->Size; gzwrite(File, &Temp, 4);
 }
 
-static section_t *new_tbss_section(uint32_t Size) {
+static section_t *new_tbss_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo, uint32_t Size) {
 	static section_methods Methods = {
 		default_section_setup,
 		(void *)tbss_section_relocate,
@@ -425,6 +434,9 @@ static section_t *new_tbss_section(uint32_t Size) {
 	tbss_section_t *Section = new(tbss_section_t);
 	((section_t *)Section)->Index = SEC_UNUSED;
 	((section_t *)Section)->Methods = &Methods;
+	Section->Sect = Sect;
+	Section->Bfd = Bfd;
+	Section->BfdInfo = BfdInfo;
 	Section->Size = Size;
 	return (section_t *)Section;
 }
@@ -538,12 +550,6 @@ static section_t *new_symbols_section(asection *Sect, bfd *Bfd, int Anon) {
 	}
 	return (section_t *)Section;
 }
-
-typedef struct bfd_info_t {
-	const char *FileName;
-	stringmap_t *LocalTable;
-	asymbol **Symbols;
-} bfd_info_t;
 
 typedef struct bfd_section_t bfd_section_t;
 
@@ -1332,7 +1338,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (Sect->flags & SEC_ALLOC) {
 		if (Sect->flags & SEC_THREAD_LOCAL) {
 			//printf("%s: .tbss support is experimental!\n", Bfd->filename);
-			Sect->userdata = new_tbss_section(bfd_get_section_size(Sect));
+			Sect->userdata = new_tbss_section(Sect, Bfd, BfdInfo, bfd_get_section_size(Sect));
 		} else {
 			Sect->userdata = new_bss_section(bfd_get_section_size(Sect));
 		}
