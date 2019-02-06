@@ -47,7 +47,8 @@ RUN apt-get update && apt-get install -y \
 	libtool \
 	autopoint \
 	flex \
-	bison
+	bison \
+	libssh-dev
 
 RUN apt-get clean
 
@@ -82,7 +83,8 @@ RUN apt-get update && apt-get install -y \
 	libssl1.1:i386 \
 	libgcrypt20:i386 \
 	libesmtp6:i386 \
-	libcurl4:i386
+	libcurl4:i386 \
+	libssh-4:i386
 
 RUN apt-get clean
 
