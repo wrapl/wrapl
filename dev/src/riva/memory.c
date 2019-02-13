@@ -175,6 +175,7 @@ void memory_init(void) {
 	module_export(Module, "_free", 0, GC_free);
 #endif
 	module_export(Module, "_alloc_code", 0, memory_alloc_code);
+	module_export(Module, "_alloc_aligned", 0, GC_memalign);
 	module_export(Module, "_calloc", 0, memory_calloc);
 	module_export(Module, "_base", 0, GC_base);
 	module_export(Module, "_register_finalizer", 0, GC_register_finalizer);

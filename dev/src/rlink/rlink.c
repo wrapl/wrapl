@@ -1324,7 +1324,18 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 			Section->Blocks = Block;
 			Sect->userdata = Block;
 		}
+	} else if (strcmp(Sect->name, ".init_array") == 0) {
+		//printf("New .ctors handling code...\n");
+		if (Sect->size) {
+			initial_section_t *Section = (initial_section_t *)new_initial_section();
+			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
+			Block->Next = Section->Blocks;
+			Section->Blocks = Block;
+			Sect->userdata = Block;
+		}
 	} else if (strcmp(Sect->name, ".dtors") == 0) {
+		//printf("New .dtors handling code...\n");
+	} else if (strcmp(Sect->name, ".fini_array") == 0) {
 		//printf("New .dtors handling code...\n");
 	} else if (strcmp(Sect->name, ".constants") == 0) {
 		if (Sect->size) Sect->userdata = new_constants_section(Sect, Bfd, BfdInfo);
@@ -1856,6 +1867,26 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 					ImportSection = new_import_section(LibrarySection, Name, 0);
 					symbol_t *Symbol = new_symbol(Name, (section_t *)ImportSection, 0);
 					stringmap_insert(GlobalTable, Name, Symbol);
+#ifdef WINDOWS
+					//char *_Name = snew(strlen(Name) + 2);
+					//_Name[0] = '_';
+					//strcpy(_Name + 1, Name);
+					//stringmap_insert(GlobalTable, _Name, Symbol);
+#endif
+				}
+#ifdef WINDOWS
+			} else if (Sym->flags & BSF_WEAK && Sym->flags & BSF_FUNCTION)
+#else
+			} else if (Sym->flags & BSF_WEAK)
+#endif
+			{
+				const char *Name = GC_strdup(Sym->name);
+				//printf("\tAdding import %s\n", Name);
+				import_section_t *ImportSection = (import_section_t *)stringmap_search(LibrarySection->Imports, Name);
+				if (ImportSection == 0) {
+					ImportSection = new_import_section(LibrarySection, Name, 0);
+					symbol_t *Symbol = new_symbol(Name, (section_t *)ImportSection, 0);
+					stringmap_insert(WeakTable, Name, Symbol);
 #ifdef WINDOWS
 					//char *_Name = snew(strlen(Name) + 2);
 					//_Name[0] = '_';

@@ -178,6 +178,10 @@ void *GC_calloc(size_t Count, size_t Size) {
 	return GC_malloc(Count * Size);
 }
 
+void *aligned_alloc(size_t Alignment, size_t Size) {
+	return GC_memalign(Alignment, Size);
+}
+
 void native_init(void) {
 	module_add_loader("Native", 90, native_find, native_load);
 	void *Handle = GC_dlopen(0, RTLD_LOCAL| RTLD_LAZY);
@@ -197,6 +201,7 @@ void native_init(void) {
 	module_export(Module, "stat", 0, &stat);
 	module_export(Module, "__dso_handle", 0, &__dso_handle);
 	module_export(Module, "__stack_chk_fail_local", 0, &__stack_chk_fail);
+	module_export(Module, "aligned_alloc", 0, &aligned_alloc);
 	
 	/*module_export(Module, "malloc", 0, GC_malloc);
 	module_export(Module, "calloc", 0, GC_calloc);
