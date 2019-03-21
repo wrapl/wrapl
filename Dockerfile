@@ -91,6 +91,7 @@ RUN apt-get clean
 
 COPY --from=build /tmp/wrapl/lib /usr/lib/riva
 COPY --from=build /tmp/wrapl/bin/riva /usr/bin/riva
+COPY --from=build /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
 COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
