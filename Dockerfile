@@ -84,7 +84,8 @@ RUN apt-get update && apt-get install -y \
 	libgcrypt20:i386 \
 	libesmtp6:i386 \
 	libcurl4:i386 \
-	libssh-4:i386
+	libssh-4:i386 \
+	libgc1c2:i386
 
 RUN apt-get clean
 
