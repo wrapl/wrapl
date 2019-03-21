@@ -84,15 +84,13 @@ RUN apt-get update && apt-get install -y \
 	libgcrypt20:i386 \
 	libesmtp6:i386 \
 	libcurl4:i386 \
-	libssh-4:i386 \
-	gdb
+	libssh-4:i386
 
 RUN apt-get clean
 
 COPY --from=build /tmp/wrapl/lib /usr/lib/riva
 COPY --from=build /tmp/wrapl/bin/riva /usr/bin/riva
 COPY --from=build /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
-COPY --from=build /tmp/wrapl/dev/bin/rabs /usr/bin/rabs
 COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
