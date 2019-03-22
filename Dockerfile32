@@ -68,11 +68,12 @@ RUN ls -lah
 
 RUN linux32 rabs -p8 -c
 
-COPY /tmp/wrapl/lib /usr/lib/riva
-COPY /tmp/wrapl/bin/riva /usr/bin/riva
-COPY /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
-COPY /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
-COPY /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
-COPY /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
-COPY /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
-COPY /tmp/wrapl/dev/lib /usr/lib/riva-dev
+RUN mv /tmp/wrapl/lib /usr/lib/riva
+RUN mv /tmp/wrapl/bin/riva /usr/bin/riva
+RUN mv /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
+RUN mv /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
+RUN mv /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
+RUN mv /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
+RUN mv /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
+RUN mv /tmp/wrapl/dev/lib /usr/lib/riva-dev
+RUN rm -rf /tmp/wrapl
