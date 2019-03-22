@@ -68,31 +68,11 @@ RUN ls -lah
 
 RUN linux32 rabs -p8 -c
 
-FROM debian:sid-slim
-
-RUN dpkg --add-architecture i386
-
-RUN apt-get update && apt-get install -y \
-	libgssapi-krb5-2:i386 \
-	libgtk-3-0:i386 \
-	libgtksourceview-3.0-1:i386 \
-	libncursesw6:i386 \
-	libjansson4:i386 \
-	libexpat1:i386 \
-	libpq5:i386 \
-	libssl1.1:i386 \
-	libgcrypt20:i386 \
-	libesmtp6:i386 \
-	libcurl4:i386 \
-	libssh-4:i386
-
-RUN apt-get clean
-
-COPY --from=build /tmp/wrapl/lib /usr/lib/riva
-COPY --from=build /tmp/wrapl/bin/riva /usr/bin/riva
-COPY --from=build /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
-COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
-COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
-COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
-COPY --from=build /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
-COPY --from=build /tmp/wrapl/dev/lib /usr/lib/riva-dev
+COPY /tmp/wrapl/lib /usr/lib/riva
+COPY /tmp/wrapl/bin/riva /usr/bin/riva
+COPY /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
+COPY /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
+COPY /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
+COPY /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
+COPY /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
+COPY /tmp/wrapl/dev/lib /usr/lib/riva-dev

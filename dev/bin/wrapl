@@ -70,7 +70,7 @@ DEF Init() (
 	--editline:prompt(<> prompt);
 	TO :readi(=in, n@Integer.SmallT, t@String.T) (
 		REP (stack[1]:readi(n, t) \ RET $; WHILE stack:pop:close);
-		VAR s <- Linenoise.Read(prompt);
+		VAR s <- Linenoise.Read(prompt) | FAIL;
 		Linenoise.History.Add(s);
 		--VAR s <- editline:read();
 		prompt <- '... ';
@@ -100,7 +100,11 @@ DEF Init() (
 		RET ALL line[1, -parts[1]:length] + scope:suggest(parts[1]):values;
 	);
 	REP (
-		exec:mark => (Out:write("Interrupted\n"); STEP;);
+		exec:mark => (
+			Loader.SessionReset(global);
+			Out:write("Interrupted\n");
+			STEP;
+		);
 		prompt <- '--> ';
 		--editline:continue(:false);
 		(result <- Loader.SessionEval(global)) => (

@@ -5,8 +5,8 @@
 
 GLOBAL_FUNCTION(Read, 1) {
 	CHECK_ARG_TYPE(0, Std$String$T);
-	Result->Val = Std$String$new(linenoise(Std$String$flatten(Args[0].Val)));
-	return SUCCESS;
+	const char *Line = linenoise(Std$String$flatten(Args[0].Val));
+	RETURN(Std$String$new(Line));
 }
 
 GLOBAL_FUNCTION(SetMultiLine, 1) {
@@ -16,7 +16,9 @@ GLOBAL_FUNCTION(SetMultiLine, 1) {
 
 GLOBAL_FUNCTION(HistoryAdd, 1) {
 	CHECK_ARG_TYPE(0, Std$String$T);
-	if (linenoiseHistoryAdd(Std$String$flatten(Args[0].Val)) < 0) {
+	const char *Line = Std$String$flatten(Args[0].Val);
+	if (!Line) FAIL;
+	if (linenoiseHistoryAdd(Line) < 0) {
 		Result->Val = Std$String$new("Error in HistoryAdd");
 		return MESSAGE;
 	} else {

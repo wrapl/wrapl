@@ -469,6 +469,13 @@ GLOBAL_FUNCTION(SessionEval, 1) {
 	return Command->compile(Session->Compiler, Result);
 }
 
+GLOBAL_METHOD(SessionReset, 1, "reset", TYP, SessionT) {
+	session_t *Session = (session_t *)Args[0].Val;
+	Session->Scanner->flush();
+	Session->Compiler->flush();
+	RETURN(Session);
+}
+
 GLOBAL_FUNCTION(SessionLine, 1) {
 //@session : SessionT
 //: Std$String$T

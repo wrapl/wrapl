@@ -19,7 +19,7 @@ UDIS_LIB => fun() do
 	execute("make install")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-pthread"]
 CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", '-I{EXT_DIR / "include"}']
 PREBUILDS := old + [UDIS_LIB]
 

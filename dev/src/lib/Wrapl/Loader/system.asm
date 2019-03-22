@@ -575,6 +575,16 @@ method "mark", TYP, ExecT
 	mov eax, 1
 	ret
 
+method "reset", TYP, ExecT
+;@exec
+; Resets <var>exec</var>.
+	mov eax, [Std$Function_argument(edi).Val]
+	xor edx, edx
+	mov [exec(eax).$eip], edx
+	mov ecx, eax
+	xor eax, eax
+	ret
+
 function ExecJump, 1
 ;@exec:ExecT
 ;@arg:ANY=NIL
@@ -582,7 +592,7 @@ function ExecJump, 1
 	mov eax, [Std$Function_argument(edi).Val]
 	mov ebx, [exec(eax).$eip]
 	test ebx, ebx
-	je .fail
+	jz .fail
 	mov esp, [exec(eax).$esp]
 	mov ebp, [exec(eax).$ebp]
 	mov [esp], ebx

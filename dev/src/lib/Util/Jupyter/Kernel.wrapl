@@ -187,6 +187,7 @@ DEF Handle(socket, msg) (
 				EXIT;
 			);
 			result <- wrapl:eval | "failure";
+			exec:reset;
 			RECV msg DO (
 				input:rest;
 				status <- "error";
