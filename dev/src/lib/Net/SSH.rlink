@@ -1,6 +1,7 @@
 include("Riva.rlib")
 include("Std.rlib")
 include("IO/Stream.rlib")
+include("libssh.so")
 include("libssl.so")
 include("libcrypto.so")
 include("libz.so")
@@ -9,7 +10,6 @@ include("libkrb5.so")
 include("libk5crypto.so")
 include("librt.so")
 include("libpthread.rlib")
-include("lib/libssh.a")
 
 export("New")
 

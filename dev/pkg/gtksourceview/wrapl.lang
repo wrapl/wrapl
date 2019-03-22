@@ -38,6 +38,7 @@
     <style id="decimal" _name="Decimal number" map-to="def:decimal"/>
     <style id="based" _name="Based number" map-to="def:base-n-integer"/>
   </styles>
+  <keyword-char-class>[a-zA-Z0-9_\$]</keyword-char-class>
   <definitions>
 <!--
     <context id="bash-line-comment" style-ref="comment" end-at-line-end="true" extend-parent="false">
@@ -149,12 +150,13 @@
       <keyword>COUNT</keyword>
       <keyword>MUST</keyword>
       <keyword>UNIQ</keyword>
+      <keyword>\$</keyword>
     </context>
     <context id="keywords2" style-ref="keyword">
       <match>[∑∏∅]</match>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
-      <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{},⩽⩾≠≡←⇒⇏∈∉∥≢≤≥↷…→]</match>
+      <match>[-.#~^@;/%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{},⩽⩾≠≡←⇒⇏∈∉∥≢≤≥↷…→]</match>
     </context>
     <context id="block">
       <start>\(</start>

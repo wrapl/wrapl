@@ -2,6 +2,12 @@ RLINK := DEV_BIN/"rlink"
 RDOC := DEV_BIN/"rdoc"
 WRAPL_MODULES := meta("WraplModules")
 
+EXT_DIR := file("ext"):mkdir
+(EXT_DIR / "lib"):mkdir
+(EXT_DIR / "include"):mkdir
+(EXT_DIR / "share"):mkdir
+(EXT_DIR / "man"):mkdir
+
 CFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
 CXXFLAGS := ["-pipe", "-O3", "-fomit-frame-pointer", "-D_GNU_SOURCE", "-fexpensive-optimizations"]
 ASFLAGS := ["-DCMOVSUPPORT", "-Ov", "-w-all"]
@@ -11,6 +17,7 @@ LIBCFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-f
 LIBCXXFLAGS := ["-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-ftls-model=global-dynamic", "-w", "-O2"]
 LIBLDFLAGS := []
 LIBHOST := ""
+PREBUILDS := []
 
 if PLATFORM = "Linux" then
 	CFLAGS := old + ["-DLINUX"]
@@ -65,7 +72,7 @@ cpp_includes := fun(Target) do
 end
 
 cpp_compile := fun(Object) do
-	var Source := Object % "cpp"
+	var Source := (Object % "cpp"):exists or (Object % "cc")
 	execute('gcc -c', CXXFLAGS, '-o', Object, Source)
 end
 
@@ -141,10 +148,11 @@ end
 
 SourceTypes := {
 	"c" is [c_includes, c_compile],
+	"cc" is [cpp_includes, cpp_compile],
 	"cpp" is [cpp_includes, cpp_compile],
 	"asm" is [asm_includes, asm_compile],
 	"S" is [as_includes, as_compile]
-}e
+}
 
 c_program := fun(Executable, Objects, Libraries) do
 	Objects := Objects or []
@@ -155,7 +163,7 @@ c_program := fun(Executable, Objects, Libraries) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", :true) => Functions[1]
+				var Scan := Source:scan("INCLUDES")[Libraries, PREBUILDS] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
@@ -167,8 +175,8 @@ c_program := fun(Executable, Objects, Libraries) do
 	DEFAULT[Executable]
 end
 
-UDIS_LIB := file("rlink/libudis86.a")
-GC_LIB := file("riva/libgc.a")
+UDIS_LIB := EXT_DIR / "lib/libudis86.a"
+GC_LIB := EXT_DIR / "lib/libgc.a"
 
 subdir("rlink")
 subdir("riva")

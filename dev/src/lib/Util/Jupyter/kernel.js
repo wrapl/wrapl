@@ -167,3 +167,8 @@ CodeMirror.defineMode("wrapl", function () {
 CodeMirror.registerHelper("wordChars", "wrapl", /[\w$]/);
 
 CodeMirror.defineMIME("text/x-wrapl", "wrapl");
+
+IPython.notebook.get_cells().map(
+	function(c) { return c.code_mirror.options.indentWithTabs = true; }
+);
+CodeMirror.defaults.indentWithTabs = true;

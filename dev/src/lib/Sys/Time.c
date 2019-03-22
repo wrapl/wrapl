@@ -36,13 +36,13 @@ GLOBAL_FUNCTION(New, 1) {
 		CHECK_EXACT_ARG_TYPE(1, Std$String$T);
 		const char *String = Std$String$flatten(Args[0].Val);
 		const char *Format = Std$String$flatten(Args[1].Val);
-		struct tm Tm[1];
+		struct tm Tm[1] = {0,};
 		if (!strptime(String, Format, Tm)) {
 			SEND(Std$String$new("Error parsing time"));
 		}
 		Sys$Time_t *Time = new(Sys$Time_t);
 		Time->Type = T;
-		Time->Value = mktime(Tm);
+		Time->Value = timegm(Tm);
 		RETURN(Time);
 	}
 	SEND(Std$String$new("Invalid parameter type"));
@@ -140,7 +140,7 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	ctime_r(&Time->Value, Buffer);
 	Buffer[strlen(Buffer) - 1] = 0;*/
 	struct tm TM[1];
-	localtime_r(&Time->Value, TM);
+	gmtime_r(&Time->Value, TM);
 	char *Buffer = Riva$Memory$alloc_atomic(40);
 	int Length = strftime(Buffer, 40, "%F %T%z", TM);
 	Result->Val = Std$String$new_length(Buffer, Length);
@@ -210,7 +210,7 @@ GLOBAL_FUNCTION(PreciseNew, 1) {
 METHOD("@", TYP, PreciseT, VAL, Std$String$T) {
 	Sys$Time$precise_t *Time = Args[0].Val;
 	struct tm TM[1];
-	localtime_r(&Time->Value.tv_sec, TM);
+	gmtime_r(&Time->Value.tv_sec, TM);
 	char *Buffer = Riva$Memory$alloc_atomic(40);
 	char *Temp = Buffer;
 	Temp += strftime(Temp, 40, "%F %T", TM);
@@ -320,7 +320,7 @@ METHOD("?", TYP, PreciseT, TYP, PreciseT) {
 METHOD("sec", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_sec));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -330,7 +330,7 @@ METHOD("sec", TYP, T) {
 METHOD("min", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_min));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -340,7 +340,7 @@ METHOD("min", TYP, T) {
 METHOD("hour", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_hour));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -350,7 +350,7 @@ METHOD("hour", TYP, T) {
 METHOD("mday", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_mday));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -360,7 +360,7 @@ METHOD("mday", TYP, T) {
 METHOD("mon", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_mon));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -370,7 +370,7 @@ METHOD("mon", TYP, T) {
 METHOD("year", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_year));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -380,7 +380,7 @@ METHOD("year", TYP, T) {
 METHOD("wday", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_wday));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -390,7 +390,7 @@ METHOD("wday", TYP, T) {
 METHOD("yday", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_yday));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -400,7 +400,7 @@ METHOD("yday", TYP, T) {
 METHOD("isdst", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		if (LocalTime->tm_isdst) {
 			RETURN0;
 		} else {
@@ -414,7 +414,7 @@ METHOD("isdst", TYP, T) {
 METHOD("gmtoff", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$Integer$new_small(LocalTime->tm_gmtoff));
 	} else {
 		SEND(Std$String$new("Time conversion error"));
@@ -424,7 +424,7 @@ METHOD("gmtoff", TYP, T) {
 METHOD("zone", TYP, T) {
 	Sys$Time$t *Time = (Sys$Time$t *)Args[0].Val;
 	struct tm LocalTime[1];
-	if (localtime_r(&Time->Value, LocalTime)) {
+	if (gmtime_r(&Time->Value, LocalTime)) {
 		RETURN(Std$String$new(LocalTime->tm_zone));
 	} else {
 		SEND(Std$String$new("Time conversion error"));

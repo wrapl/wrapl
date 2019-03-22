@@ -385,8 +385,17 @@ static bss_section_t *new_bss_section(uint32_t Size) {
 	return Section;
 }
 
+typedef struct bfd_info_t {
+	const char *FileName;
+	stringmap_t *LocalTable;
+	asymbol **Symbols;
+} bfd_info_t;
+
 typedef struct tbss_section_t {
 	section_t Base;
+	asection *Sect;
+	bfd *Bfd;
+	bfd_info_t *BfdInfo;
 	uint32_t Size;
 } tbss_section_t;
 
@@ -400,7 +409,7 @@ static void tbss_section_relocate(tbss_section_t *Section, relocation_t *Relocat
 }
 
 static void tbss_section_debug(tbss_section_t *Section, FILE *File) {
-	fprintf(File, "%d: tbss section: %d\n", ((section_t *)Section)->Index, Section->Size);
+	fprintf(File, "%d: tbss section: %d %s:%s[%x]\n", ((section_t *)Section)->Index, Section->Size, Section->BfdInfo->FileName, ((section_t *)Section)->Name, Section->Sect->flags);
 }
 
 static uint32_t tbss_section_size(tbss_section_t *Section) {
@@ -413,7 +422,7 @@ static void tbss_section_write(tbss_section_t *Section, gzFile File) {
 	Temp = Section->Size; gzwrite(File, &Temp, 4);
 }
 
-static section_t *new_tbss_section(uint32_t Size) {
+static section_t *new_tbss_section(asection *Sect, bfd *Bfd, bfd_info_t *BfdInfo, uint32_t Size) {
 	static section_methods Methods = {
 		default_section_setup,
 		(void *)tbss_section_relocate,
@@ -425,6 +434,9 @@ static section_t *new_tbss_section(uint32_t Size) {
 	tbss_section_t *Section = new(tbss_section_t);
 	((section_t *)Section)->Index = SEC_UNUSED;
 	((section_t *)Section)->Methods = &Methods;
+	Section->Sect = Sect;
+	Section->Bfd = Bfd;
+	Section->BfdInfo = BfdInfo;
 	Section->Size = Size;
 	return (section_t *)Section;
 }
@@ -538,12 +550,6 @@ static section_t *new_symbols_section(asection *Sect, bfd *Bfd, int Anon) {
 	}
 	return (section_t *)Section;
 }
-
-typedef struct bfd_info_t {
-	const char *FileName;
-	stringmap_t *LocalTable;
-	asymbol **Symbols;
-} bfd_info_t;
 
 typedef struct bfd_section_t bfd_section_t;
 
@@ -899,6 +905,7 @@ typedef struct got_entry_t got_entry_t;
 
 typedef struct {
 	section_t Base;
+	uint32_t Flags, Size;
 } got_section_t;
 
 static void got_section_setup(got_section_t *Section) {
@@ -907,21 +914,28 @@ static void got_section_setup(got_section_t *Section) {
 static void got_section_relocate(got_section_t *Section, relocation_t *Relocation, uint32_t *Target) {
 	section_require((section_t *)Section);
 	Relocation->Section = (section_t *)Section;
+	uint32_t Size = *Target = (uint32_t)(-(int32_t )*Target);
+	if (Section->Size < Size) Section->Size = Size;
 }
 
 static void got_section_debug(got_section_t *Section, FILE *File) {
-	
+	fprintf(File, "%d: got section: %d, %x\n", ((section_t *)Section)->Index, Section->Size, Section->Flags);
 }
 
 static uint32_t got_section_size(got_section_t *Section) {
+	return 1 + 1 + 4;
 }
 
 static void got_section_write(got_section_t *Section, gzFile File) {
+	uint32_t Temp;
+	Temp = SECT_GOT; gzwrite(File, &Temp, 1);
+	Temp = Section->Flags; gzwrite(File, &Temp, 1);
+	Temp = Section->Size; gzwrite(File, &Temp, 4);
 }
 
 static section_t *new_got_section() {
 	static section_methods Methods = {
-		(void (*)(section_t *))default_section_setup,
+		(void (*)(section_t *))got_section_setup,
 		(void *)got_section_relocate,
 		invalid_section_export,
 		(void (*)(section_t *, FILE *))got_section_debug,
@@ -1310,7 +1324,18 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 			Section->Blocks = Block;
 			Sect->userdata = Block;
 		}
+	} else if (strcmp(Sect->name, ".init_array") == 0) {
+		//printf("New .ctors handling code...\n");
+		if (Sect->size) {
+			initial_section_t *Section = (initial_section_t *)new_initial_section();
+			bfd_section_t *Block = new_bfd_section(Sect, Bfd, BfdInfo);
+			Block->Next = Section->Blocks;
+			Section->Blocks = Block;
+			Sect->userdata = Block;
+		}
 	} else if (strcmp(Sect->name, ".dtors") == 0) {
+		//printf("New .dtors handling code...\n");
+	} else if (strcmp(Sect->name, ".fini_array") == 0) {
 		//printf("New .dtors handling code...\n");
 	} else if (strcmp(Sect->name, ".constants") == 0) {
 		if (Sect->size) Sect->userdata = new_constants_section(Sect, Bfd, BfdInfo);
@@ -1324,10 +1349,12 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (Sect->flags & SEC_ALLOC) {
 		if (Sect->flags & SEC_THREAD_LOCAL) {
 			//printf("%s: .tbss support is experimental!\n", Bfd->filename);
-			Sect->userdata = new_tbss_section(bfd_get_section_size(Sect));
+			Sect->userdata = new_tbss_section(Sect, Bfd, BfdInfo, bfd_get_section_size(Sect));
 		} else {
 			Sect->userdata = new_bss_section(bfd_get_section_size(Sect));
 		}
+	} else if (strcmp(Sect->name, ".got") == 0) {
+		asm("int3");
 	} else if (strcmp(Sect->name, ".group") == 0) {
 	} else if (strcmp(Sect->name, ".comment") == 0) {
 	} else if (strcmp(Sect->name, ".note.GNU-stack") == 0) {
@@ -1335,6 +1362,7 @@ static void add_bfd_section(bfd *Bfd, asection *Sect, bfd_info_t *BfdInfo) {
 	} else if (strcmp(Sect->name, ".note.GNU-no-split-stack") == 0) {
 	} else if (strncmp(Sect->name, ".gnu.warning", 12) == 0) {
 	} else if (strncmp(Sect->name, ".gnu.glibc-stub", 15) == 0) {
+	} else if (strncmp(Sect->name, ".gnu.lto_", 9) == 0) {
 	} else {
 		fprintf(stderr, "%s: unknown bfd section type: %s,%x\n", Bfd->filename, Sect->name, Sect->flags);
 	}
@@ -1839,6 +1867,26 @@ static void add_so(bfd *Bfd, library_section_t *LibrarySection) {
 					ImportSection = new_import_section(LibrarySection, Name, 0);
 					symbol_t *Symbol = new_symbol(Name, (section_t *)ImportSection, 0);
 					stringmap_insert(GlobalTable, Name, Symbol);
+#ifdef WINDOWS
+					//char *_Name = snew(strlen(Name) + 2);
+					//_Name[0] = '_';
+					//strcpy(_Name + 1, Name);
+					//stringmap_insert(GlobalTable, _Name, Symbol);
+#endif
+				}
+#ifdef WINDOWS
+			} else if (Sym->flags & BSF_WEAK && Sym->flags & BSF_FUNCTION)
+#else
+			} else if (Sym->flags & BSF_WEAK)
+#endif
+			{
+				const char *Name = GC_strdup(Sym->name);
+				//printf("\tAdding import %s\n", Name);
+				import_section_t *ImportSection = (import_section_t *)stringmap_search(LibrarySection->Imports, Name);
+				if (ImportSection == 0) {
+					ImportSection = new_import_section(LibrarySection, Name, 0);
+					symbol_t *Symbol = new_symbol(Name, (section_t *)ImportSection, 0);
+					stringmap_insert(WeakTable, Name, Symbol);
 #ifdef WINDOWS
 					//char *_Name = snew(strlen(Name) + 2);
 					//_Name[0] = '_';

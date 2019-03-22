@@ -1,0 +1,22 @@
+LIS_VERSION := "2.0.17"
+
+var LIS_LIB := EXT_DIR / "lib/liblis.a" => fun() do
+	var LIS_DIR := file('lis-{LIS_VERSION}'):rmdir
+	file('lis-{LIS_VERSION}.zip'):rmdir
+	execute('wget -nv https://www.ssisc.org/lis/dl/lis-{LIS_VERSION}.zip')
+	execute('unzip lis-{LIS_VERSION}')
+	LIS_DIR:chdir
+	execute("./configure",
+		'--prefix={EXT_DIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make clean")
+	execute("make TARGET_LIBS=\"static\"")
+	execute("make install")
+end
+
+PREBUILDS := old + [LIS_LIB]
+
+riva_module("ML/Lis", [file("Lis.o")], [LIS_LIB])

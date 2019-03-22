@@ -2,11 +2,40 @@ MOD Kernel;
 
 IMP IO.Terminal USE Out;
 IMP Std, Sys, Agg, Util, Alg, IO, Net, Wrapl;
-IMP Fmt.Json;
+IMP Fmt USE Json, Xml;
 
 DEF Display! :?;
 
 METH Display(x) '{x}';
+
+METH Display(list @ Agg.List.T, data @ Agg.Table.T) (
+	VAR html <- Xml.New(:ol);
+	VAR value, value_text, value_data;
+	EVERY value <- list:values DO (
+		value_text <- Display(value, value_data <- {});
+		html:append(Xml.New(html, :li, [
+			Xml.LoadString(value_data["text/html"]) | value_text
+		]));
+	);
+	data:insert('text/html', '{html}');
+	RET '{list}';
+);
+
+METH Display(table @ Agg.Table.T, data @ Agg.Table.T) (
+	VAR html <- Xml.New(:ul);
+	VAR key, key_text, key_data;
+	VAR value, value_text, value_data;
+	EVERY table:loop(key, value) DO (
+		key_text <- Display(key, key_data <- {});
+		value_text <- Display(value, value_data <- {});
+		html:append(Xml.New(:li, [
+			Xml.New(:b, [Xml.LoadString(key_data["text/html"]) | key_text, ": "]),
+			Xml.LoadString(value_data["text/html"]) | value_text
+		]));
+	);
+	data:insert('text/html', '{html}');
+	RET '{table}';
+);
 
 VAR Log <- Util.Logger.New(Kernel);
 
@@ -30,13 +59,22 @@ METH :write(stream @ OutT, text @ Std.String.T) (
 	RET stream;
 );
 
+METH :suggest(table @ Agg.Table.T, prefix @ Std.String.T) (
+	RET ALL table:keys \ ($ IN Std.String.T & $:begins(prefix));
+);
+
 VAR execution_count <- 0;
 VAR input <- IO.Buffer.New();
 VAR wrapl <- Wrapl.Session.New(input);
 VAR session <- '{Alg.UUID.New()}';
 VAR loop <- Net.ZeroMQ.Loop.New();
-VAR in, out, err;
+VAR in;
+VAR out <- OutT("stdout", {});
+VAR err <- OutT("stderr", {});
 VAR exec <- Wrapl.Loader.ExecNew();
+
+Terminal:export("Out", out);
+Terminal:export("Err", err);
 Sys.Program.OnInt(exec);
 
 wrapl:def("Jupyter", Kernel);
@@ -59,14 +97,21 @@ loop:reader(stdin;) (
 	Log.DEBUG('Received {msg} on stdin');
 );
 
-loop:start RECV msg DO (
-	loop:destroy;
-	heartbeat:destroy;
-	shell:destroy;
-	control:destroy;
-	stdin:destroy;
-	iopub:destroy;
+
+loop:verbose(:true);
+VAR msg <- REP (
+	Log.INFO('Starting loop');
+	loop:start RECV msg DO msg ~= "Loop interrupted" => EXIT msg;
 );
+
+Log.INFO('Ending loop: ', msg);
+loop:destroy;
+heartbeat:destroy;
+shell:destroy;
+control:destroy;
+stdin:destroy;
+iopub:destroy;
+Log.INFO('After loop');
 
 DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	VAR msg_id <- '{Alg.UUID.New()}';
@@ -87,7 +132,7 @@ DEF Send(socket, ids, msg_type, parent, metadata, content, extra*) (
 	hmac:update(metadata);
 	hmac:update(content);
 	VAR signature <- Util.Base16.Encode(hmac:digest):lower;
-	Log.DEBUG("Sending", header, content);
+	Log.DEBUG("Sending ", header, content);
 	ids ~== NIL => EVERY socket:sendm(ids:values);
 	socket:sendm("<IDS|MSG>");
 	socket:sendm(signature);
@@ -108,7 +153,7 @@ DEF Handle(socket, msg) (
 	VAR req_parent <- Json.LoadString(msg:pop(Std.String.T));
 	VAR req_metadata <- Json.LoadString(msg:pop(Std.String.T));
 	VAR req_content <- Json.LoadString(msg:pop(Std.String.T));
-	Log.DEBUG("Received", req_header, req_content);
+	Log.DEBUG("Received ", req_header, req_content);
 	WHEN req_header.msg_type IS "kernel_info_request" DO (
 		Send(shell, ids, "kernel_info_reply", req_header, {}, {
 			"status" IS "ok",
@@ -142,6 +187,7 @@ DEF Handle(socket, msg) (
 				EXIT;
 			);
 			result <- wrapl:eval | "failure";
+			exec:reset;
 			RECV msg DO (
 				input:rest;
 				status <- "error";

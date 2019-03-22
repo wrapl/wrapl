@@ -84,7 +84,11 @@ DEF Init() (
 	Loader.SessionVar(global, "_", result);
 	Loader.SessionDef(global, "image", Loader.Image);
 	REP (
-		exec:mark => (Out:write("Interrupted\n"); STEP;);
+		exec:mark => (
+			Loader.SessionReset(global);
+			Out:write("Interrupted\n");
+			STEP;
+		);
 		prompt <- '--> ';
 		editline:continue(:false);
 		(result <- Loader.SessionEval(global)) => (

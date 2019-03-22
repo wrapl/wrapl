@@ -63,6 +63,8 @@ RIVA_CFUN(Std$Object_t *, copy_length, const char *, long) __attribute__ ((mallo
 RIVA_CFUN(Std$Object_t *, new_format, const char *, ...) __attribute__ ((malloc));
 RIVA_CFUN(Std$Object_t *, new_char, char) __attribute__ ((malloc));
 RIVA_CFUN(Std$Object_t *, add, Std$Object_t *, Std$Object_t *) __attribute__ ((const));
+RIVA_CFUN(Std$Object_t *, add_chars, Std$Object_t *, const char *, int) __attribute__ ((const));
+RIVA_CFUN(Std$Object_t *, add_format, Std$Object_t *, const char *, ...) __attribute__ ((const));
 RIVA_CFUN(Std$Object_t *, slice, Std$Object_t *, int, int) __attribute__ ((const));
 
 RIVA_CFUN(Std$String_t *, alloc, int) __attribute__ ((malloc));

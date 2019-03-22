@@ -1,10 +1,14 @@
-include("/usr/lib/libcgraph.so")
-include("/usr/lib/libgvc.so")
+include("libexpat.so")
+include("libz.so")
+include("Agg/List.rlib")
+include("libdl.rlib")
 
 export("GraphT")
 export("NodeT")
 export("EdgeT")
 export("New")
+export("Parse")
+export("Plugins")
 
 submodule("Graph")
 subexport("Graph", "GraphDefault", "Default")

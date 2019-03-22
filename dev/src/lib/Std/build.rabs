@@ -1,6 +1,5 @@
 CFLAGS := old + ["-std=gnu99"]
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib"]
-RDOCFLAGS := old + ["-I", BUILDDIR]
 
 WRAPL_MODULES[
 	riva_module("Std/Address", [file("Address.o")]),

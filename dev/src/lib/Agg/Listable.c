@@ -1112,16 +1112,11 @@ METHOD("Value", TYP, NodeType) {
 	return SUCCESS;
 };
 
-typedef struct avl_resume_data {
-	traverser_t *Traverser;
-	Std$Function_argument Result;
-} avl_resume_data;
-
-static long resume_items_table(avl_resume_data *Data) {
-	node_t *Node = avl_t_next(Data->Traverser);
+static long resume_items_table(Std$Function$result *Result) {
+	node_t *Node = avl_t_next(Result->State);
 	if (Node != 0) {
-		Data->Result.Val = (Std$Object_t *)Node;
-		Data->Result.Ref = 0;
+		Result->Val = (Std$Object_t *)Node;
+		Result->Ref = 0;
 		return SUSPEND;
 	} else {
 		return FAILURE;
@@ -1150,17 +1145,13 @@ typedef struct loop_state {
 	Std$Object_t **Key, **Value;
 } loop_state;
 
-typedef struct avl_resume_data2 {
-	loop_state *Traverser;
-	Std$Function_argument Result;
-} avl_resume_data2;
-
-static long resume_loop_table(avl_resume_data2 *Data) {
-	node_t *Node = avl_t_next((traverser_t *)Data->Traverser);
+static long resume_loop_table(Std$Function$result *Result) {
+	loop_state *Traverser = Result->State;
+	node_t *Node = avl_t_next(Traverser);
 	if (Node != 0) {
-		*(Data->Traverser->Key) = Node->Key;
-		*(Data->Traverser->Value) = Node->Value;
-		Data->Result.Val = Node;
+		*(Traverser->Key) = Node->Key;
+		*(Traverser->Value) = Node->Value;
+		Result->Val = Node;
 		return SUSPEND;
 	} else {
 		return FAILURE;
@@ -1189,11 +1180,11 @@ METHOD("loop", TYP, T, ANY, ANY) {
 	};
 };
 
-static long resume_keys_table(avl_resume_data *Data) {
-	node_t *Node = avl_t_next(Data->Traverser);
+static long resume_keys_table(Std$Function$result *Result) {
+	node_t *Node = avl_t_next(Result->State);
 	if (Node != 0) {
-		Data->Result.Val = Node->Key;
-		Data->Result.Ref = 0;
+		Result->Val = Node->Key;
+		Result->Ref = 0;
 		return SUSPEND;
 	} else {
 		return FAILURE;
@@ -1217,10 +1208,10 @@ METHOD("keys", TYP, T) {
 	};
 };
 
-static long resume_values_table(avl_resume_data *Data) {
-	node_t *Node = avl_t_next(Data->Traverser);
+static long resume_values_table(Std$Function$result *Result) {
+	node_t *Node = avl_t_next(Result->State);
 	if (Node != 0) {
-		Data->Result.Val = *(Data->Result.Ref = &Node->Value);
+		Result->Val = *(Result->Ref = &Node->Value);
 		return SUSPEND;
 	} else {
 		return FAILURE;
@@ -1249,21 +1240,17 @@ typedef struct find_state {
 	Std$Object_t *Value;
 } find_state;
 
-typedef struct find_resume_data {
-	find_state *State;
-	Std$Function_argument Result;
-} find_resume_data;
-
-static long resume_find_table(find_resume_data *Data) {
+static long resume_find_table(Std$Function$result *Result) {
+	find_state *State = Result->State;
 	node_t *Node;
-	while (Node = avl_t_next((traverser_t *)Data->State)) {
+	while (Node = avl_t_next(State)) {
 		Std$Function_result Result0;
-		switch (Std$Function$call($EQUAL, 2, &Result0, Node->Value, 0, Data->State->Value, 0)) {
+		switch (Std$Function$call($EQUAL, 2, &Result0, Node->Value, 0, State->Value, 0)) {
 		case SUSPEND: case SUCCESS:
-			Data->Result.Val = Node->Key;
+			Result->Val = Node->Key;
 			return SUSPEND;
 		case MESSAGE:
-			Data->Result.Val = Result0.Val;
+			Result->Val = Result0.Val;
 			return MESSAGE;
 		};
 	};

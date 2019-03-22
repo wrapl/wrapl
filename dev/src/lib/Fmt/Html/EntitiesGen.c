@@ -22,10 +22,23 @@ INITIAL() {
 		char Buffer[128], *P = Buffer;
 		for (int I = 0; I < json_array_size(CodePoints); ++I) {
 			int CodePoint = json_integer_value(json_array_get(CodePoints, I));
-			if (CodePoint < 256) {
+			if (CodePoint <= 0x7F) {
 				P += sprintf(P, "\\x%02x", CodePoint);
-			} else if (CodePoint < 65536) {
-				P += sprintf(P, "\\u%04x", CodePoint);
+			} else if (CodePoint <= 0x7FF) {
+				int Byte1 = 0xC0 | (CodePoint >> 6);
+				int Byte2 = 0x80 | (CodePoint & 0x3F);
+				P += sprintf(P, "\\x%02x\\x%02x", Byte1, Byte2);
+			} else if (CodePoint <= 0xFFFF) {
+				int Byte1 = 0xE0 | (CodePoint >> 12);
+				int Byte2 = 0x80 | ((CodePoint >> 6) & 0x3F);
+				int Byte3 = 0x80 | (CodePoint & 0x3F);
+				P += sprintf(P, "\\x%02x\\x%02x\\x%02x", Byte1, Byte2, Byte3);
+			} else if (CodePoint <= 0x10FFFF) {
+				int Byte1 = 0xF0 | (CodePoint >> 18);
+				int Byte2 = 0x80 | ((CodePoint >> 12) & 0x3F);
+				int Byte3 = 0x80 | ((CodePoint >> 6) & 0x3F);
+				int Byte4 = 0x80 | (CodePoint & 0x3F);
+				P += sprintf(P, "\\x%02x\\x%02x\\x%02x\\%x02x", Byte1, Byte2, Byte3, Byte4);
 			} else {
 				P += sprintf(P, "\\U%08x", CodePoint);
 			}

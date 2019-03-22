@@ -65,13 +65,8 @@ RIVA_STRUCT(checkedct) {
 RIVA_STRUCT(cstate);
 RIVA_STRUCT(cresumedata);
 
-typedef Std$Function$status (* Std$Function$cresumefn)(Std$Function$cresumedata *Data);
+typedef Std$Function$status (* Std$Function$cresumefn)(Std$Function$result *Result);
 typedef Std$Function$cresumefn Std$Function_cresumefn;
-
-struct Std$Function$cresumedata {
-	Std$Function$cstate *State;
-	Std$Function$argument Result;
-};
 
 RIVA_STRUCT(state_t) {
 	void *Run;
@@ -105,7 +100,7 @@ RIVA_OBJECT(Fold);
 RIVA_CFUN(Std$Object_t *, constant_new, Std$Object_t *);
 
 RIVA_CFUN(long, invoke_c);
-RIVA_CFUN(Std$Function_status, resume_c, Std$Function_cresumedata *) __attribute__ ((warn_unused_result));
+RIVA_CFUN(Std$Function_status, resume_c, Std$Function$result *) __attribute__ ((warn_unused_result));
 RIVA_CFUN(Std$Function_status, invoke, const Std$Object_t *, long, Std$Function_result *, const Std$Function_argument *) __attribute__ ((warn_unused_result));
 RIVA_CFUN(Std$Function_status, call, const Std$Object_t *, long, Std$Function_result *, ...) __attribute__ ((warn_unused_result));
 RIVA_CFUN(Std$Function_status, resume, Std$Function_result *) __attribute__ ((warn_unused_result));
@@ -166,6 +161,11 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 
 #define RETURN0 {\
 	Result->Arg = Args[0];\
+	return SUCCESS;\
+}
+
+#define RETURN1 {\
+	Result->Arg = Args[1];\
 	return SUCCESS;\
 }
 

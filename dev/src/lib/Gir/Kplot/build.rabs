@@ -1,11 +1,12 @@
 KPLOT_VERSION := "0_1_15"
 
-var KPLOT_LIB := file("lib/libkplot.a") => fun() do
+var KPLOT_LIB := EXT_DIR / "lib/libkplot.a" => fun() do
 	file("kplot"):rmdir:mkdir:chdir
 	file("man/man3"):mkdir
 	execute('wget -nv https://github.com/kristapsdz/kplot/archive/VERSION_{KPLOT_VERSION}.tar.gz -O- | tar xzP --strip-components=1')
 	execute("sed -i s/install:\\ all/install:\\ libkplot.a/g Makefile")
-	execute('make install CFLAGS=\"{LIBCFLAGS}\" PREFIX={BUILDDIR}')
+	(EXT_DIR / "man/man3"):mkdir
+	execute('make install CFLAGS=\"{LIBCFLAGS}\" PREFIX={EXT_DIR}')
 end
 
 PREBUILDS := old + [KPLOT_LIB, AUTOGEN]

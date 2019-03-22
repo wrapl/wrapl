@@ -2,13 +2,6 @@
 include("IO/Stream.rlib")
 include("Sys/Time.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("Option")
 export("Info")
 export("New")
@@ -26,3 +19,34 @@ subexport("UseSsl", "UseSslNone", "None")
 subexport("UseSsl", "UseSslTry", "Try")
 subexport("UseSsl", "UseSslControl", "Control")
 subexport("UseSsl", "UseSslAll", "All")
+
+submodule("Multi")
+subexport("Multi", "MultiNew", "New")
+subexport("Multi", "MultiAdd", "Add")
+subexport("Multi", "MultiRemove", "Remove")
+subexport("Multi", "MultiPerform", "Perform")
+subexport("Multi", "MultiWait", "Wait")
+subexport("Multi", "MultiRead", "Read")
+
+submodule("Share")
+subexport("Share", "ShareNew", "New")
+
+
+submodule("KeyMatch")
+subexport("KeyMatch", "KeyMatchOk", "Ok")
+subexport("KeyMatch", "KeyMatchMismatch", "Mismatch")
+subexport("KeyMatch", "KeyMatchMissing", "Missing")
+
+submodule("KeyState")
+subexport("KeyState", "KeyStateFineAddToFile", "FineAddToFile")
+subexport("KeyState", "KeyStateFine", "File")
+subexport("KeyState", "KeyStateReject", "Reject")
+subexport("KeyState", "KeyStateDefer", "Defer")
+
+submodule("KeyType")
+subexport("KeyType", "KeyTypeUnknown", "Unknown")
+subexport("KeyType", "KeyTypeRSA1", "RSA1")
+subexport("KeyType", "KeyTypeRSA", "RSA")
+subexport("KeyType", "KeyTypeDSS", "DSS")
+subexport("KeyType", "KeyTypeECDSA", "ECDSA")
+subexport("KeyType", "KeyTypeED25519", "ED25519")

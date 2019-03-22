@@ -34,7 +34,7 @@
       <keyword>end</keyword>
 	</context>
 	<context id="wrapl-code">
-	  <start>(\\)(begin)(\()code(\);)</start>
+	  <start>(\\)(begin)(\()code, "wrapl"(\);)</start>
 	  <end>(\\)(end)(\()code(\);)</end>
 	  <include>
 	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
@@ -45,7 +45,67 @@
 		<context sub-pattern="2" where="end" style-ref="def:function"/>
 		<context sub-pattern="3" where="end" style-ref="def:operator"/>
 		<context sub-pattern="4" where="end" style-ref="def:operator"/>
-	    <context ref="wrapl:wrapl"/>
+		<context ref="wrapl:wrapl"/>
+	  </include>
+	</context>
+	<context id="minilang-code">
+	  <start>(\\)(begin)(\()code, "minilang"(\);)</start>
+	  <end>(\\)(end)(\()code(\);)</end>
+	  <include>
+	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
+		<context sub-pattern="2" where="start" style-ref="def:function"/>
+		<context sub-pattern="3" where="start" style-ref="def:operator"/>
+		<context sub-pattern="4" where="start" style-ref="def:operator"/>
+        <context sub-pattern="1" where="end" style-ref="def:operator"/>
+		<context sub-pattern="2" where="end" style-ref="def:function"/>
+		<context sub-pattern="3" where="end" style-ref="def:operator"/>
+		<context sub-pattern="4" where="end" style-ref="def:operator"/>
+		<context ref="minilang:minilang"/>
+	  </include>
+	</context>
+	<context id="rabs-code">
+	  <start>(\\)(begin)(\()code, "rabs"(\);)</start>
+	  <end>(\\)(end)(\()code(\);)</end>
+	  <include>
+	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
+		<context sub-pattern="2" where="start" style-ref="def:function"/>
+		<context sub-pattern="3" where="start" style-ref="def:operator"/>
+		<context sub-pattern="4" where="start" style-ref="def:operator"/>
+        <context sub-pattern="1" where="end" style-ref="def:operator"/>
+		<context sub-pattern="2" where="end" style-ref="def:function"/>
+		<context sub-pattern="3" where="end" style-ref="def:operator"/>
+		<context sub-pattern="4" where="end" style-ref="def:operator"/>
+		<context ref="_minibuild_:_minibuild_"/>
+	  </include>
+	</context>
+	<context id="python-code">
+	  <start>(\\)(begin)(\()code, "python"(\);)</start>
+	  <end>(\\)(end)(\()code(\);)</end>
+	  <include>
+	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
+		<context sub-pattern="2" where="start" style-ref="def:function"/>
+		<context sub-pattern="3" where="start" style-ref="def:operator"/>
+		<context sub-pattern="4" where="start" style-ref="def:operator"/>
+        <context sub-pattern="1" where="end" style-ref="def:operator"/>
+		<context sub-pattern="2" where="end" style-ref="def:function"/>
+		<context sub-pattern="3" where="end" style-ref="def:operator"/>
+		<context sub-pattern="4" where="end" style-ref="def:operator"/>
+		<context ref="python:python"/>
+	  </include>
+	</context>
+	<context id="markdown-block">
+	  <start>(\\)(begin)(\()md(\);)</start>
+	  <end>(\\)(end)(\()md(\);)</end>
+	  <include>
+	    <context sub-pattern="1" where="start" style-ref="def:operator"/>
+		<context sub-pattern="2" where="start" style-ref="def:function"/>
+		<context sub-pattern="3" where="start" style-ref="def:operator"/>
+		<context sub-pattern="4" where="start" style-ref="def:operator"/>
+        <context sub-pattern="1" where="end" style-ref="def:operator"/>
+		<context sub-pattern="2" where="end" style-ref="def:function"/>
+		<context sub-pattern="3" where="end" style-ref="def:operator"/>
+		<context sub-pattern="4" where="end" style-ref="def:operator"/>
+		<context ref="markdown:markdown"/>
 	  </include>
 	</context>
     <context id="wrapl-block">
@@ -71,6 +131,10 @@
     <context id="rhtml">
       <include>
 	    <context ref="wrapl-code"/>
+		<context ref="minilang-code"/>
+		<context ref="rabs-code"/>
+		<context ref="python-code"/>
+		<context ref="markdown-block"/>
         <context ref="wrapl-block"/>
         <context ref="html:html"/>
       </include>

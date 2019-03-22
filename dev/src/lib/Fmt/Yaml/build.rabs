@@ -1,31 +1,24 @@
-YAML_VERSION := "0.1.7"
-YAML_DIR := file('yaml-{YAML_VERSION}')
+YAML_VERSION := "0.2.1"
 YAML_URL := 'http://pyyaml.org/download/libyaml/yaml-{YAML_VERSION}.tar.gz'
 
-var YAML_LIB := file("libyaml.a") => fun() do
-	execute("mkdir", "-p", YAML_DIR)
-	execute("cd", YAML_DIR, "&&", 'wget -nv {YAML_URL} -O- | tar xvzP --strip-components=1')
-	execute("cd", YAML_DIR, "&&",
-		"./configure --disable-shared --enable-static",
-		'--prefix={BUILDDIR}',
-		'--libdir={BUILDDIR}',
+var YAML_LIB := EXT_DIR / "lib/libyaml.a" => fun() do
+	file("yaml"):rmdir:mkdir:chdir
+	execute('wget -nv {YAML_URL} -O- | tar xvzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={EXT_DIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
-	execute("cd", YAML_DIR, "&&",
-		"make clean"
-	)
-	execute("cd", YAML_DIR, "&&",
-		"make TARGET_LIBS=\"static\""
-	)
-	execute("cd", YAML_DIR, "&&",
-		"make install"
-	)
+	execute("make clean")
+	execute("make TARGET_LIBS=\"static\"")
+	execute("make install")
 end
 
 CFLAGS := old + ["-I", file("include")]
+PREBUILDS := old + [YAML_LIB]
 
-file("Parser.o")[YAML_LIB]
-riva_module("Fmt/Yaml/Parser", [file("Parser.o")])
+riva_module("Fmt/Yaml/Event", [file("Event.o")], [YAML_LIB])
+riva_module("Fmt/Yaml/Parser", [file("Parser.o")], [YAML_LIB])
+riva_module("Fmt/Yaml/Emitter", [file("Emitter.o")], [YAML_LIB])
 wrapl_module("Fmt/Yaml")

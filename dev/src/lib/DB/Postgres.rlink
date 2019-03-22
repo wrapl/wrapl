@@ -1,4 +1,3 @@
-include('lib/libpq.a')
 include('Alg/UUID.rlib')
 include('Sys/Time.rlib')
 include('Agg.rlib')

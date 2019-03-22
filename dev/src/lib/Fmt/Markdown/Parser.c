@@ -1,6 +1,6 @@
 #include <Std.h>
 #include <Riva.h>
-#include <Html/Entities.h>
+#include <Fmt/Html/Entities.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
 #include <setjmp.h>
@@ -35,7 +35,7 @@ static Std$Object$t *attributes_to_string(MD_ATTRIBUTE *Attributes) {
 			break;
 		}
 		case MD_TEXT_ENTITY: {
-			Std$String$t *Entity = Agg$StringTable$get(Html$Entities$ByName, Text + Offset, Length);
+			Std$String$t *Entity = Agg$StringTable$get(Fmt$Html$Entities$ByName, Text + Offset, Length);
 			Parts[I] = Std$String$flatten(Entity);
 			Total += (Lengths[I] = Std$String$get_length(Entity));
 			break;
@@ -102,7 +102,7 @@ static int enter_block_fn(MD_BLOCKTYPE BlockType, void *Detail, parser_t *Parser
 	case MD_BLOCK_OL: {
 		MD_BLOCK_OL_DETAIL *OLDetail = (MD_BLOCK_OL_DETAIL *)Detail;
 		NumArguments = 5;
-		Arguments[1].Val = $ul;
+		Arguments[1].Val = $ol;
 		Arguments[2].Val = Std$Integer$new_small(OLDetail->start);
 		Arguments[3].Val = OLDetail->is_tight ? $true : $false;
 		Arguments[4].Val = Std$String$new_char(OLDetail->mark_delimiter);
@@ -297,6 +297,7 @@ SYMBOL($strong, "strong");
 SYMBOL($a, "a");
 SYMBOL($img, "img");
 SYMBOL($del, "del");
+SYMBOL($math, "math");
 
 static int enter_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 	Std$Function$result Result[1];
@@ -335,6 +336,10 @@ static int enter_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 	}
 	case MD_SPAN_DEL: {
 		Arguments[1].Val = $del;
+		break;
+	}
+	case MD_SPAN_MATH: {
+		Arguments[1].Val = $math;
 		break;
 	}
 	}
@@ -383,6 +388,10 @@ static int leave_span_fn(MD_SPANTYPE SpanType, void *Detail, parser_t *Parser) {
 		Arguments[1].Val = $del;
 		break;
 	}
+	case MD_SPAN_MATH: {
+		Arguments[1].Val = $math;
+		break;
+	}
 	}
 	if (Std$Function$invoke(Parser->LeaveSpanFn, NumArguments, Result, Arguments) == MESSAGE) {
 		longjmp(Parser->OnError, Result->Val);
@@ -427,7 +436,7 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 	case MD_TEXT_ENTITY: {
 		NumArguments = 3;
 		Arguments[1].Val = $text;
-		Arguments[2].Val = Agg$StringTable$get(Html$Entities$ByName, Text, Size);
+		Arguments[2].Val = Agg$StringTable$get(Fmt$Html$Entities$ByName, Text, Size);
 		break;
 	}
 	case MD_TEXT_CODE: {
@@ -442,6 +451,12 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 		Arguments[2].Val = Std$String$copy_length(Text, Size);
 		break;
 	}
+	case MD_TEXT_MATH: {
+		NumArguments = 3;
+		Arguments[1].Val = $math;
+		Arguments[2].Val = Std$String$copy_length(Text, Size);
+		break;
+	}
 	}
 	if (Std$Function$invoke(Parser->TextFn, NumArguments, Result, Arguments) == MESSAGE) {
 		longjmp(Parser->OnError, Result->Val);
@@ -449,8 +464,24 @@ static int text_fn(MD_TEXTTYPE TextType, const char *Text, int Size, parser_t *P
 	return 0;
 }
 
+Std$Integer$smallt FlagCollapseWhiteSpace[] = {{Std$Integer$SmallT, MD_FLAG_COLLAPSEWHITESPACE}};
+Std$Integer$smallt FlagPermissiveATXHeaders[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEATXHEADERS}};
+Std$Integer$smallt FlagPermissiveAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEURLAUTOLINKS}};
+Std$Integer$smallt FlagPermissiveEmailAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEEMAILAUTOLINKS}};
+Std$Integer$smallt FlagNoIndentedCodeBlocks[] = {{Std$Integer$SmallT, MD_FLAG_NOINDENTEDCODEBLOCKS}};
+Std$Integer$smallt FlagNoHTMLBlocks[] = {{Std$Integer$SmallT, MD_FLAG_NOHTMLBLOCKS}};
+Std$Integer$smallt FlagNoHTMLSpans[] = {{Std$Integer$SmallT, MD_FLAG_NOHTMLSPANS}};
+Std$Integer$smallt FlagTable[] = {{Std$Integer$SmallT, MD_FLAG_TABLES}};
+Std$Integer$smallt FlagStrikethrough[] = {{Std$Integer$SmallT, MD_FLAG_STRIKETHROUGH}};
+Std$Integer$smallt FlagPermissiveWWWAutoLinks[] = {{Std$Integer$SmallT, MD_FLAG_PERMISSIVEWWWAUTOLINKS}};
+Std$Integer$smallt FlagMaths[] = {{Std$Integer$SmallT, MD_FLAG_MATHS}};
 
-GLOBAL_FUNCTION(New, 1) {
+GLOBAL_FUNCTION(New, 0) {
+	unsigned int Flags = 0;
+	if (Count > 0) {
+		CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
+		Flags = Std$Integer$get_small(Args[0].Val);
+	}
 	parser_t *Parser = new(parser_t);
 	Parser->Type = T;
 	Parser->UserData = Std$Object$Nil;
@@ -464,7 +495,7 @@ GLOBAL_FUNCTION(New, 1) {
 	Parser->Renderer->enter_span = (void *)enter_span_fn;
 	Parser->Renderer->leave_span = (void *)leave_span_fn;
 	Parser->Renderer->text = (void *)text_fn;
-	Parser->Renderer->flags = MD_FLAG_TABLES | MD_FLAG_STRIKETHROUGH;
+	Parser->Renderer->flags = Flags;
 	Result->Val = (Std$Object$t *)Parser;
 	return SUCCESS;
 }

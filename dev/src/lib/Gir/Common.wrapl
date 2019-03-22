@@ -596,15 +596,22 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 	Type.Define("gchar**", Type.Lookup("array-gchar*"));
 );
 
-(VAR real <- Type.T("real");
-	TO :rtype(=real) "Std$Real$T";
-	TO :ctype(=real) "double";
-	TO :riva_to_c(=real, in, out, tmp) ['{out} = Std$Real$get_value({in});'];
-	TO :c_to_riva(=real, in, out, tmp) ['{out} = Std$Real$new({in});'];
-	Type.Define("gdouble", real);
-	Type.Define("double", real);
-	Type.Define("gfloat", real);
-	Type.Define("float", real);
+(VAR double <- Type.T("double");
+	TO :rtype(=double) "Std$Real$T";
+	TO :ctype(=double) "double";
+	TO :riva_to_c(=double, in, out, tmp) ['{out} = Std$Real$get_value({in});'];
+	TO :c_to_riva(=double, in, out, tmp) ['{out} = Std$Real$new({in});'];
+	Type.Define("gdouble", double);
+	Type.Define("double", double);
+);
+
+(VAR float <- Type.T("float");
+	TO :rtype(=float) "Std$Real$T";
+	TO :ctype(=float) "float";
+	TO :riva_to_c(=float, in, out, tmp) ['{out} = Std$Real$get_value({in});'];
+	TO :c_to_riva(=float, in, out, tmp) ['{out} = Std$Real$new({in});'];
+	Type.Define("gfloat", float);
+	Type.Define("float", float);
 );
 
 (VAR boolean <- Type.T("boolean");

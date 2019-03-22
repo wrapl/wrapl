@@ -1,12 +1,11 @@
 var MARISA_DIR := file("marisa-trie")
-var MARISA_LIB := file("libmarisa.a") => fun() do
+var MARISA_LIB := (EXT_DIR / "lib/libmarisa.a") => fun() do
 	MARISA_DIR:rmdir
 	execute("git clone https://github.com/s-yata/marisa-trie.git")
 	MARISA_DIR:chdir
 	execute("autoreconf -i")
 	execute("./configure --disable-shared --enable-static",
-		'--prefix={BUILDDIR}',
-		'--libdir={BUILDDIR}',
+		'--prefix={EXT_DIR}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
@@ -17,5 +16,5 @@ end
 
 CXXFLAGS := old + ["-I", file("include")]
 LDFLAGS := old + ["Riva/Memory.rlib"]
-file("Marisa.cpp"):scan("INCLUDES", :true)[MARISA_LIB]
+PREBUILDS := old + [MARISA_LIB]
 riva_module("Util/Marisa", [file("Marisa.o")], [MARISA_LIB])

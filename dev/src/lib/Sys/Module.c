@@ -181,6 +181,12 @@ static int function_import(Std$Object_t *Function, const char *Symbol, int *IsRe
 	};
 };
 
+METHOD("refresh", TYP, T) {
+	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$refresh(Module);
+	RETURN0;
+}
+
 METHOD("set_import_func", TYP, T, TYP, Std$Function$T) {
 	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
 	Riva$Module$set_import_func(Riva$Module$get_default_provider(Module), Args[1].Val, (Riva$Module$import_func)function_import);

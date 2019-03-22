@@ -4,7 +4,6 @@ include("Agg.rlib")
 include("IO/Stream.rlib")
 include("libpthread.rlib")
 include("libdl.so")
-include("lib/libyajl_s.a")
 
 export("T")
 export("New")

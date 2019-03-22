@@ -7,6 +7,11 @@
 
 #include <curl/curl.h>
 
+typedef struct share_t {
+	const Std$Type$t *Type;
+	CURLSH *Handle;
+} share_t;
+
 typedef struct curl_t {
 	const Std$Type_t *Type;
 	CURL *Handle;
@@ -27,6 +32,7 @@ typedef struct curl_info_t {
 	CURLINFO Value;
 } curl_info_t;
 
+TYPE(ShareT);
 TYPE(T);
 TYPE(MultiT);
 TYPE(OptionT);
@@ -37,14 +43,17 @@ static inline void register_option(Sys$Module_t *Module, char *Name, CURLoption 
 	Option->Type = OptionT;
 	Option->Value = Value;
 	Sys$Module$export(Module, Name, 0, Option);
-};
+}
 
-static curl_option_t WriteStreamOption[] = {{OptionT, -1}};
-static curl_option_t ReadStreamOption[] = {{OptionT, -1}};
+#define FAKEOPT_WRITE_STREAM CURLOPT_LASTENTRY + 1
+#define FAKEOPT_READ_STREAM CURLOPT_LASTENTRY + 2
+
+static curl_option_t WriteStreamOption[] = {{OptionT, FAKEOPT_WRITE_STREAM}};
+static curl_option_t ReadStreamOption[] = {{OptionT, FAKEOPT_READ_STREAM}};
 
 static inline void register_fake_option(Sys$Module_t *Module, char *Name, curl_option_t *Option) {
 	Sys$Module$export(Module, Name, 0, Option);
-};
+}
 
 CONSTANT(Option, Sys$Module$T) {
 	Sys$Module_t *Module = Sys$Module$new("Option");
@@ -59,6 +68,8 @@ CONSTANT(Option, Sys$Module$T) {
 	register_option(Module, "ReadData", CURLOPT_READDATA);
 	register_option(Module, "IoctlFunc", CURLOPT_IOCTLFUNCTION);
 	register_option(Module, "IoctlData", CURLOPT_IOCTLDATA);
+	register_option(Module, "XferInfoFunc", CURLOPT_XFERINFOFUNCTION);
+	register_option(Module, "XferInfoData", CURLOPT_XFERINFODATA);
 #ifdef LINUX
 	register_option(Module, "SeekFunc", CURLOPT_SEEKFUNCTION);
 	register_option(Module, "SeekData", CURLOPT_SEEKDATA);
@@ -207,6 +218,8 @@ CONSTANT(Option, Sys$Module$T) {
 	register_option(Module, "KrbLevel", CURLOPT_KRBLEVEL);
 #endif
 	register_option(Module, "SshAuthTypes", CURLOPT_SSH_AUTH_TYPES);
+	register_option(Module, "SshKnownHosts", CURLOPT_SSH_KNOWNHOSTS);
+	register_option(Module, "SshKeyFunc", CURLOPT_SSH_KEYFUNCTION);
 #ifdef LINUX
 	register_option(Module, "SshHostPublicKeyMd5", CURLOPT_SSH_HOST_PUBLIC_KEY_MD5);
 #endif
@@ -224,7 +237,7 @@ CONSTANT(Option, Sys$Module$T) {
 	register_fake_option(Module, "WriteStream", WriteStreamOption);
 	register_fake_option(Module, "ReadStream", ReadStreamOption);
 	return (Std$Object$t *)Module;
-};
+}
 
 Std$Integer$smallt UseSslNone[1] = {{Std$Integer$SmallT, CURLUSESSL_NONE}};
 Std$Integer$smallt UseSslTry[1] = {{Std$Integer$SmallT, CURLUSESSL_TRY}};
@@ -236,7 +249,7 @@ static inline void register_info(Sys$Module_t *Module, char *Name, CURLINFO Valu
 	Info->Type = InfoT;
 	Info->Value = Value;
 	Sys$Module$export(Module, Name, 0, Info);
-};
+}
 
 CONSTANT(Info, Sys$Module$T) {
 	Sys$Module_t *Module = Sys$Module$new("Info");
@@ -248,16 +261,22 @@ CONSTANT(Info, Sys$Module$T) {
 	register_info(Module, "FileTime", CURLINFO_FILETIME);
 	
 	return (Std$Object$t *)Module;
-};
+}
+
+GLOBAL_FUNCTION(ShareNew, 0) {
+	share_t *Share = new(share_t);
+	Share->Type = ShareT;
+	Share->Handle = curl_share_init();
+	RETURN(Share);
+}
 
 GLOBAL_FUNCTION(New, 0) {
 	curl_t *Curl = new(curl_t);
 	Curl->Type = T;
 	Curl->Handle = curl_easy_init();
 	curl_easy_setopt(Curl->Handle, CURLOPT_NOSIGNAL, 1);
-	Result->Val = (Std$Object$t *)Curl;
-	return SUCCESS;
-};
+	RETURN(Curl);
+}
 
 GLOBAL_METHOD(Escape, 2, "escape", TYP, T, TYP, Std$String$T) {
 	Result->Val = Std$String$new(curl_easy_escape(
@@ -266,86 +285,122 @@ GLOBAL_METHOD(Escape, 2, "escape", TYP, T, TYP, Std$String$T) {
 		((Std$String_t *)Args[1].Val)->Length.Value
 	));
 	return SUCCESS;
-};
+}
 
 GLOBAL_METHOD(Close, 1, "close", TYP, T) {
 	curl_easy_cleanup(((curl_t *)Args[0].Val)->Handle);
 	return SUCCESS;
-};
+}
 
 GLOBAL_METHOD(Dup, 1, "dup", TYP, T) {
 	curl_t *Curl = new(curl_t);
 	Curl->Type = T;
 	Curl->Handle = curl_easy_duphandle(((curl_t *)Args[0].Val)->Handle);
-	Result->Val = (Std$Object$t *)Curl;
-	return SUCCESS;
-};
+	RETURN(Curl);
+}
 
 GLOBAL_METHOD(Get, 2, "get", TYP, T, TYP, InfoT) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
 	curl_info_t *Info = (curl_info_t *)Args[1].Val;
 	switch (Info->Value) {
-	case CURLINFO_EFFECTIVE_URL: {
+	case CURLINFO_EFFECTIVE_URL:
+	case CURLINFO_FTP_ENTRY_PATH: {
 		char *String;
 		if (curl_easy_getinfo(Curl->Handle, Info->Value, &String) == CURLE_OK) {
-			Result->Val = Std$String$copy(String);
-			return SUCCESS;
+			RETURN(Std$String$copy(String));
 		} else {
-			return FAILURE;
-		};
-	};
+			FAIL;
+		}
+	}
 	case CURLINFO_HTTP_CONNECTCODE:
 	case CURLINFO_RESPONSE_CODE: {
 		long Int;
 		if (curl_easy_getinfo(Curl->Handle, Info->Value, &Int) == CURLE_OK) {
-			Result->Val = Std$Integer$new_small(Int);
-			return SUCCESS;
+			RETURN(Std$Integer$new_small(Int));
 		} else {
-			return FAILURE;
-		};
-	};
+			FAIL;
+		}
+	}
 	case CURLINFO_FILETIME: {
 		long Time;
 		if (curl_easy_getinfo(Curl->Handle, Info->Value, &Time) == CURLE_OK) {
-			Result->Val = (Std$Object$t *)Sys$Time$new(Time);
-			return SUCCESS;
+			RETURN((Std$Object$t *)Sys$Time$new(Time));
 		} else {
-			return FAILURE;
-		};
-	};
-	};
-	return FAILURE;
-};
+			FAIL;
+		}
+	}
+	}
+	FAIL;
+}
 
 static size_t write_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream_t *Stream) {
 	return IO$Stream$write(Stream, Buffer, Size * Count, 1);
-};
+}
 
 static size_t read_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream_t *Stream) {
 	return IO$Stream$read(Stream, Buffer, Size * Count, 1);
-};
+}
 
 static size_t readwrite_function(void *Buffer, size_t Size, size_t Count, Std$Object_t *Func) {
 	Std$Function$result Result;
 	Std$Function$status Status = Std$Function$call(Func, 2, &Result, Std$Address$new(Buffer), 0, Std$Integer$new_small(Size * Count), 0);
+	if (Status == MESSAGE) return CURL_READFUNC_ABORT;
 	return ((Std$Integer$smallt *)Result.Val)->Value;
-};
+}
+
+static int xferinfo_function(Std$Object_t *Func, curl_off_t DLTotal, curl_off_t DLNow, curl_off_t ULTotal, curl_off_t ULNow) {
+	Std$Function$result Result;
+	Std$Function$status Status = Std$Function$call(Func, 4, &Result,
+		Std$Integer$new_small(DLTotal), 0,
+		Std$Integer$new_small(DLNow), 0,
+		Std$Integer$new_small(ULTotal), 0,
+		Std$Integer$new_small(ULNow), 0
+	);
+	return Std$Integer$get_small(Result.Val);
+}
+
+Std$Integer$smallt KeyMatchOk[1] = {{Std$Integer$SmallT, CURLKHMATCH_OK}};
+Std$Integer$smallt KeyMatchMismatch[1] = {{Std$Integer$SmallT, CURLKHMATCH_MISMATCH}};
+Std$Integer$smallt KeyMatchMissing[1] = {{Std$Integer$SmallT, CURLKHMATCH_MISSING}};
+
+Std$Integer$smallt KeyStateFineAddToFile[1] = {{Std$Integer$SmallT, CURLKHSTAT_FINE_ADD_TO_FILE}};
+Std$Integer$smallt KeyStateFine[1] = {{Std$Integer$SmallT, CURLKHSTAT_FINE}};
+Std$Integer$smallt KeyStateReject[1] = {{Std$Integer$SmallT, CURLKHSTAT_REJECT}};
+Std$Integer$smallt KeyStateDefer[1] = {{Std$Integer$SmallT, CURLKHSTAT_DEFER}};
+
+Std$Integer$smallt KeyTypeUnknown[1] = {{Std$Integer$SmallT, CURLKHTYPE_UNKNOWN}};
+Std$Integer$smallt KeyTypeRSA1[1] = {{Std$Integer$SmallT, CURLKHTYPE_RSA1}};
+Std$Integer$smallt KeyTypeRSA[1] = {{Std$Integer$SmallT, CURLKHTYPE_RSA}};
+Std$Integer$smallt KeyTypeDSS[1] = {{Std$Integer$SmallT, CURLKHTYPE_DSS}};
+Std$Integer$smallt KeyTypeECDSA[1] = {{Std$Integer$SmallT, CURLKHTYPE_ECDSA}};
+Std$Integer$smallt KeyTypeED25519[1] = {{Std$Integer$SmallT, CURLKHTYPE_ED25519}};
+
+static enum curl_khstat ssh_key_function(CURL *Curl, const struct curl_khkey *KnownKey, const struct curl_khkey *FoundKey, enum curl_khmatch Match, Std$Object$t *Func) {
+	Std$Function$result Result;
+	Std$Function$status Status = Std$Function$call(Func, 5, &Result,
+		Std$Integer$new_small(Match), 0,
+		KnownKey->len ? Std$String$new_length(KnownKey->key, KnownKey->len) : Std$String$new(KnownKey->key), 0,
+		Std$Integer$new_small(KnownKey->keytype), 0,
+		KnownKey->len ? Std$String$new_length(FoundKey->key, FoundKey->len) : Std$String$new(FoundKey->key), 0,
+		Std$Integer$new_small(FoundKey->keytype), 0
+	);
+	return Std$Integer$get_small(Result.Val);
+}
 
 static struct curl_slist *string_list(Agg$List$t *In) {
 	struct curl_slist *Out = NULL;
 	for (Agg$List$node *Node = In->Head; Node; Node = Node->Next) {
 		Out = curl_slist_append(Out, Std$String$flatten(Node->Value));
-	};
+	}
 	return Out;
-};
+}
 
 GLOBAL_METHOD(Reset, 1, "reset", TYP, T) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
 	curl_easy_reset(Curl->Handle);
 	curl_easy_setopt(Curl->Handle, CURLOPT_NOSIGNAL, 1);
-	Result->Arg = Args[0];
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 GLOBAL_METHOD(Set, 3, "set", TYP, T, TYP, OptionT, ANY) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
@@ -360,17 +415,23 @@ GLOBAL_METHOD(Set, 3, "set", TYP, T, TYP, OptionT, ANY) {
 			curl_easy_setopt(Curl->Handle, Option->Value, Std$String$flatten(Param));
 		} else if (Param->Type == Agg$List$T) {
 			curl_easy_setopt(Curl->Handle, Option->Value, string_list((Agg$List$t *)Param));
+		} else if (Param->Type == ShareT) {
+			curl_easy_setopt(Curl->Handle, Option->Value, ((share_t *)Param)->Handle);
+		} else if (Param == Std$Object$Nil) {
+			curl_easy_setopt(Curl->Handle, Option->Value, 0);
 		} else if (Param == $true) {
 			curl_easy_setopt(Curl->Handle, Option->Value, 1);
 		} else if (Param == $false) {
 			curl_easy_setopt(Curl->Handle, Option->Value, 0);
-		} else if (Option == WriteStreamOption) {
+		} else switch (Option->Value) {
+		case FAKEOPT_WRITE_STREAM:
 			curl_easy_setopt(Curl->Handle, CURLOPT_WRITEFUNCTION, write_stream_function);
 			curl_easy_setopt(Curl->Handle, CURLOPT_WRITEDATA, Param);
-		} else if (Option == ReadStreamOption) {
+			break;
+		case FAKEOPT_READ_STREAM:
 			curl_easy_setopt(Curl->Handle, CURLOPT_READFUNCTION, read_stream_function);
 			curl_easy_setopt(Curl->Handle, CURLOPT_READDATA, Param);
-		} else switch (Option->Value) {
+			break;
 		case CURLOPT_WRITEFUNCTION:
 			curl_easy_setopt(Curl->Handle, CURLOPT_WRITEFUNCTION, readwrite_function);
 			curl_easy_setopt(Curl->Handle, CURLOPT_WRITEDATA, Param);
@@ -383,57 +444,70 @@ GLOBAL_METHOD(Set, 3, "set", TYP, T, TYP, OptionT, ANY) {
 			curl_easy_setopt(Curl->Handle, CURLOPT_HEADERFUNCTION, readwrite_function);
 			curl_easy_setopt(Curl->Handle, CURLOPT_HEADERDATA, Param);
 			break;
-		};
-	};
-	Result->Arg = Args[0];
-	return SUCCESS;
-};
+		case CURLOPT_XFERINFOFUNCTION:
+			curl_easy_setopt(Curl->Handle, CURLOPT_XFERINFOFUNCTION, xferinfo_function);
+			curl_easy_setopt(Curl->Handle, CURLOPT_XFERINFODATA, Param);
+			break;
+		case CURLOPT_SSH_KEYFUNCTION:
+			curl_easy_setopt(Curl->Handle, CURLOPT_SSH_KEYFUNCTION, ssh_key_function);
+			curl_easy_setopt(Curl->Handle, CURLOPT_SSH_KEYDATA, Param);
+			break;
+		}
+	}
+	RETURN0;
+}
 
 GLOBAL_METHOD(Perform, 1, "perform", TYP, T) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
 	CURLcode Code = curl_easy_perform(Curl->Handle);
 	if (Code != CURLE_OK) {
-		Result->Val = Std$String$new(curl_easy_strerror(Code));
-		return MESSAGE;
+		SEND(Std$String$new(curl_easy_strerror(Code)));
 	} else {
-		Result->Arg = Args[0];
-		return SUCCESS;
-	};
-};
+		RETURN0;
+	}
+}
 
 GLOBAL_FUNCTION(MultiNew, 0) {
 	multi_t *Multi = new(multi_t);
 	Multi->Type = MultiT;
 	Multi->Handle = curl_multi_init();
-	Result->Val = (Std$Object$t *)Multi;
-	return SUCCESS;
-};
+	RETURN(Multi);
+}
 
-METHOD("add", TYP, MultiT, TYP, T) {
+GLOBAL_METHOD(MultiAdd, 2, "add", TYP, MultiT, TYP, T) {
 	multi_t *Multi = (multi_t *)Args[0].Val;
 	curl_t *Curl = (curl_t *)Args[1].Val;
 	curl_multi_add_handle(Multi->Handle, Curl->Handle);
-	Result->Arg = Args[0];
-	return SUCCESS;
-};
+	RETURN0;
+}
 
-METHOD("remove", TYP, MultiT, TYP, T) {
+GLOBAL_METHOD(MultiRemove, 2, "remove", TYP, MultiT, TYP, T) {
 	multi_t *Multi = (multi_t *)Args[0].Val;
 	curl_t *Curl = (curl_t *)Args[1].Val;
 	curl_multi_remove_handle(Multi->Handle, Curl->Handle);
-	Result->Arg = Args[0];
-	return SUCCESS;
-};
+	RETURN0;
+}
 
-METHOD("perform", TYP, MultiT) {
+GLOBAL_METHOD(MultiPerform, 1, "perform", TYP, MultiT) {
 	multi_t *Multi = (multi_t *)Args[0].Val;
 	int Running;
 	while (curl_multi_perform(Multi->Handle, &Running) == CURLM_CALL_MULTI_PERFORM);
-	Result->Val = Std$Integer$new_small(Running);
-	return SUCCESS;
-};
+	RETURN(Std$Integer$new_small(Running));
+}
 
-METHOD("read", TYP, MultiT) {
+GLOBAL_METHOD(MultiWait, 2, "wait", TYP, MultiT, TYP, Std$Integer$SmallT) {
+	multi_t *Multi = (multi_t *)Args[0].Val;
+	int Timeout = Std$Integer$get_small(Args[1].Val);
+	int NumFds;
+	curl_multi_wait(Multi->Handle, 0, 0, Timeout, &NumFds);
+	if (NumFds) {
+		RETURN(Std$Integer$new_small(NumFds));
+	} else {
+		FAIL;
+	}
+}
+
+GLOBAL_METHOD(MultiRead, 1, "read", TYP, MultiT) {
 	multi_t *Multi = (multi_t *)Args[0].Val;
 	int Msgs;
 	CURLMsg *Msg = curl_multi_info_read(Multi->Handle, &Msgs);
@@ -442,13 +516,12 @@ METHOD("read", TYP, MultiT) {
 		curl_t *Curl = new(curl_t);
 		Curl->Type = T;
 		Curl->Handle = Msg->easy_handle;
-		Result->Val = (Std$Object$t *)Curl;
-		return SUCCESS;
-	};
-	return FAILURE;
-};
+		RETURN(Curl);
+	}
+	FAIL;
+}
 
-static void free(void *Ptr) {};
+static void free(void *Ptr) {}
 
 INITIAL() {
 	curl_global_init_mem(CURL_GLOBAL_ALL,
@@ -458,5 +531,5 @@ INITIAL() {
 		(void *)Riva$Memory$strdup,
 		(void *)Riva$Memory$calloc
 	);
-};
+}
 

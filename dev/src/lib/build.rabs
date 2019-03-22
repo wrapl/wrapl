@@ -1,7 +1,7 @@
 ASFLAGS := old + ["-I", DEV_INC/"nasm/"]
-CFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
-CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
-LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, "libc.rlink", "libm.rlib", "-L/usr/lib/"]
+CFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", '-I{EXT_DIR / "include"}', "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
+CXXFLAGS := old + ["-I", DEV_INC/"gcc/", "-I", GEN_INC/"gcc/", '-I{EXT_DIR / "include"}', "-fdata-sections", "-ffunction-sections", "-Wstrict-aliasing", "-fno-pic", "-ftls-model=global-dynamic", "-w"]
+LDFLAGS := old + ["-Z", "-DLINUX", "-L", DEV_LIB, "-L", GEN_LIB, '-L{EXT_DIR / "lib"}', "libc.rlink", "libm.rlib", "-L/usr/lib/"]
 PREBUILDS := []
 RDOCFLAGS := []
 
@@ -36,14 +36,14 @@ riva_module := fun(Name, Objects, Libraries, AutoExport) do
 			var Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS] => Functions[1]
+				var Scan := Source:scan("INCLUDES")[PREBUILDS, Libraries] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Module:basename) % "rlink"):exists or (file(Module:basename) % "rdef"):exists
-	var ScriptIncludes := Script:scan("INCLUDES", :true)[RLINK, PREBUILDS] => rlink_includes
+	var ScriptIncludes := Script:scan("INCLUDES")[RLINK, PREBUILDS] => rlink_includes
 	if AutoExport then
 		var ImportFile := GEN_LIB/Name % "rlink"
 		ImportFile:dir:mkdir
@@ -87,14 +87,14 @@ riva_program := fun(Executable, Objects, Libraries) do
 		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
-				var Scan := Source:scan("INCLUDES", :true)[PREBUILDS] => Functions[1]
+				var Scan := Source:scan("INCLUDES")[PREBUILDS, Libraries] => Functions[1]
 				Object[Source, Scan] => Functions[2]
 				exit
 			end
 		end
 	end
 	var Script := (file(Executable:basename) % "rlink"):exists or (file(Executable:basename) % "rdef"):exists
-	var ScriptIncludes := Script and Script:scan("INCLUDES", :true)[RLINK, PREBUILDS] => rlink_includes
+	var ScriptIncludes := Script and Script:scan("INCLUDES")[RLINK, PREBUILDS, Libraries] => rlink_includes
 	Executable[RLINK, Script, Objects, Libraries, ScriptIncludes] => fun(Executable) do
 		execute(RLINK, LDFLAGS, "-o", Executable, Objects, Libraries, Script, "-v0", "-?", Executable % "lst")
 	end
@@ -117,7 +117,7 @@ scope("lib";) do
 	subdir("Alg")
 	subdir("Wrapl")
 	subdir("Fmt")
-	--subdir("Web")
+	subdir("Web")
 	subdir("Math")
 	--subdir("Boost")
 	subdir("Stat")
@@ -125,6 +125,7 @@ scope("lib";) do
 	subdir("ML")
 	subdir("DB")
 	subdir("Net")
+	subdir("Num")
 	
 	if PLATFORM = "Linux" then
 		subdir("Gir")

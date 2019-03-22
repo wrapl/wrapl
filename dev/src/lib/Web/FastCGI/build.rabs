@@ -2,7 +2,7 @@ FCGI_URL := "https://github.com/toshic/libfcgi/archive/master.zip"
 FCGI_ARCHIVE := file("master.zip")
 FCGI_DIR := file("libfcgi-master")
 
-var FCGI_LIB := file("libfcgi.a")[file("fcgi.diff")] => fun()
+var FCGI_LIB := (EXT_DIR / "lib/libfcgi.a")[file("fcgi.diff")] => fun()
 	execute("wget -nv", FCGI_URL)
 	execute("unzip", "-o", FCGI_ARCHIVE)
 	execute("cd", FCGI_DIR, "&&",
@@ -10,8 +10,7 @@ var FCGI_LIB := file("libfcgi.a")[file("fcgi.diff")] => fun()
 	)
 	execute("cd", FCGI_DIR, "&&",
 		"./configure --disable-shared --enable-static",
-		"--prefix=" .. file(""),
-		"--libdir=" .. file(""),
+		'--prefix={EXT_DIR}',
 		"CFLAGS=\"-fdata-sections -ffunction-sections -Wstrict-aliasing -fno-pic -ftls-model=global-dynamic -w -O2\"",
 		"--without-man-pages"
 	)

@@ -1,0 +1,30 @@
+ITEX_VERSION := "1.5.8"
+
+var ITEX_SOURCE := file("itex2MML.cc") => fun(Target) do
+	execute('wget -nv http://golem.ph.utexas.edu/~distler/blog/files/itexToMML.tar.gz -O- | tar xvzP')
+	execute('make -C itexToMML/itex-src')
+	file("itexToMML/itex-src/itex2MML.cc"):copy(Target)
+end 
+
+var ITEX_HEADER := file("itex2MML.h")[ITEX_SOURCE] => fun(Target) do
+	file("itexToMML/itex-src/itex2MML.h"):copy(Target)
+end
+
+var ITEX_LEX := file("lex.yy.c")[ITEX_SOURCE] => fun(Target) do
+	file("itexToMML/itex-src/y.tab.h"):copy(file("y.tab.h"))
+	file("itexToMML/itex-src/y.tab.c"):copy(file("y.tab.c"))
+	file("itexToMML/itex-src/lex.yy.c"):copy(Target)
+end
+
+file("y.tab.c")[ITEX_LEX] => fun(Target) nil
+
+CFLAGS := old + ['-I{PATH}']
+PREBUILDS := old + [ITEX_HEADER, ITEX_LEX]
+
+riva_module("Fmt/LaTeX/iTeX", [
+	file("iTeX.o"),
+	file("itex2MML.o"),
+	file("y.tab.o"),
+	file("lex.yy.o")
+])
+

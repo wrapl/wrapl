@@ -1,0 +1,3 @@
+module("Fmt", "Html", "Entities")
+
+import("ByName")

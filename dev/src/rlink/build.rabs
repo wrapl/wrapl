@@ -8,9 +8,7 @@ UDIS_LIB => fun() do
 	UDIS_DIR:chdir
 	execute("./autogen.sh")
 	execute("./configure --disable-shared --enable-static",
-		'--prefix={file("")}',
-		'--includedir={file("")}',
-		'--libdir={file("")}',
+		'--prefix={EXT_DIR}',
 		"--without-man-pages",
 		'--with-python=python2',
 		'CFLAGS=\"{LIBCFLAGS}\"',
@@ -21,10 +19,9 @@ UDIS_LIB => fun() do
 	execute("make install")
 end
 
-LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-lgc", "-pthread"]
-CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", "-I", UDIS_LIB:dirname]
-
-file("rlink.c"):scan("INCLUDES", :true)[UDIS_LIB]
+LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-pthread"]
+CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", '-I{EXT_DIR / "include"}']
+PREBUILDS := old + [UDIS_LIB]
 
 var Minilang := file("minilang"):mkdir
 
@@ -50,7 +47,7 @@ elseif PLATFORM = "Darwin" then
 		execute("wget - nv", BINUTILS_URL, "-O- | tar xvzP")
 		execute("cd", BINUTILS_DIR, "&&",
 			"./configure --build=i386-apple-darwin16.6.0",
-			'--prefix={file("")}',
+			'--prefix={EXT_DIR}',
 			"--without-man-pages",
 			'CFLAGS=\"{LIBCFLAGS}\"',
 			'LDFLAGS=\"{LIBLDFLAGS}\"'

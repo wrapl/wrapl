@@ -48,7 +48,7 @@ static const char *listop(operand_t *Operand) {DEBUG
 	char *List;
 	switch (Operand->Type) {
 	case operand_t::CNST: {
-		char *Module, *Import;
+		const char *Module, *Import;
 		if (Riva$Module$lookup(Operand->Value, &Module, &Import)) {
 			asprintf(&List, "CNST:%s.%s", Module, Import);
 		} else {
@@ -1241,7 +1241,7 @@ void select_type_inst_t::list() {
 	if (IsPotentialBreakpoint) printf("*");
 	printf("%4d: select_type\n", LineNo);
 	for (select_type_case_t *Case = Cases; Case; Case = Case->Next) {
-		char *Module, *Import;
+		const char *Module, *Import;
 		if (Riva$Module$lookup(Case->Type, &Module, &Import)) {
 			printf("\t\t%s.%s => %x\n", Module, Import, Case->Body->final());
 		} else {

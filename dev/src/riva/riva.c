@@ -104,6 +104,8 @@ typedef struct code_header_t {
 	void *Links[];
 } code_header_t;
 
+static uint8_t *GOT = {0, 0, 0, 0};
+
 static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 	uint8_t *Data = Section->Data;
 	if (Section->NoOfFixups) {
@@ -138,7 +140,7 @@ static uint32_t fixup_text_section(section_t *Section, jmp_buf OnError) {
 					Value = (uint32_t)&Header->Links[Index];
 //				}
 			} else if (Reloc->Flags == RELOC_GOT) {
-				Value = -Value;
+				Value = GOT - Section->Data;
 			};
 			switch (Reloc->Size) {
 			case 1:
@@ -599,6 +601,10 @@ static int riva_load(module_provider_t *Provider, const char *FileName) {
 			Section->NoOfFixups = 0;
 		break;};
 		case SECT_GOT: {
+			uint32_t Flags, Size;
+			gzread(File, &Flags, 1);
+			gzread(File, &Size, 4);
+			Section->Data = GC_MALLOC(Size);
 		break;};
 		};
 	};

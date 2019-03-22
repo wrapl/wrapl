@@ -73,6 +73,12 @@ DEF New!(flags) (
 	parser:onendelement <- <node+, tag> (
 		node <- NIL ≢ node:parent;
 	);
+	parser:onskippedentity <- <node+, entity> (
+		node:content:put(entity);
+	);
+	parser:ondefault <- <node+, data> (
+		node:content:put(data);
+	);
 	flags:covers(NoText) // (
 		parser:oncharacterdata <- <node+, data> (
 			VAR content <- node:content;

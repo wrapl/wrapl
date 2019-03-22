@@ -230,6 +230,7 @@ extern void memory_log_enable(void);
 void __attribute__ ((constructor)) init(void) {
 	//GC_enable_incremental();
 	//GC_disable();
+	GC_set_warn_proc(GC_ignore_warn_proc);
 	GC_INIT();
 	//GC_enable();
 	//GC_disable();

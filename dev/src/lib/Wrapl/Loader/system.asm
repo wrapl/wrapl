@@ -520,18 +520,24 @@ ctype ExecT
 ; Marks a state in the execution of a Wrapl function that can be restarted.
 ; Calling an instance of <id>ExecT</id> will restart execution at the state stored in it.
 .invoke:
-	mov esp, [exec(ecx).$esp]
 	mov ebx, [exec(ecx).$eip]
+	test ebx, ebx
+	jz .fail
+	mov esp, [exec(ecx).$esp]
 	mov ebp, [exec(ecx).$ebp]
 	mov [esp], ebx
-	mov ecx, Std$Object$Nil
 	xor edx, edx
+	mov [exec(ecx).$eip], edx
+	mov ecx, Std$Object$Nil
 	cmp esi, byte 1
 	jbe .no_arg
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
 .no_arg:
 	xor eax, eax
+	ret
+.fail:
+	mov eax, 1
 	ret
 
 function ExecNew, 0
@@ -569,23 +575,39 @@ method "mark", TYP, ExecT
 	mov eax, 1
 	ret
 
+method "reset", TYP, ExecT
+;@exec
+; Resets <var>exec</var>.
+	mov eax, [Std$Function_argument(edi).Val]
+	xor edx, edx
+	mov [exec(eax).$eip], edx
+	mov ecx, eax
+	xor eax, eax
+	ret
+
 function ExecJump, 1
 ;@exec:ExecT
 ;@arg:ANY=NIL
 ; Restarts current execution from the state in <var>exec</var>.
 	mov eax, [Std$Function_argument(edi).Val]
-	mov esp, [exec(eax).$esp]
 	mov ebx, [exec(eax).$eip]
+	test ebx, ebx
+	jz .fail
+	mov esp, [exec(eax).$esp]
 	mov ebp, [exec(eax).$ebp]
 	mov [esp], ebx
 	mov ecx, dword Std$Object$Nil
 	xor edx, edx
+	mov [exec(eax).$eip], edx
 	cmp esi, byte 2
 	jbe .no_arg
 	mov ecx, [Std$Function_argument(edi + 8).Val]
 	mov edx, [Std$Function_argument(edi + 8).Ref]
 .no_arg:
 	xor eax, eax
+	ret
+.fail:
+	mov eax, 1
 	ret
 
 ctype IncorrectTypeMessageT

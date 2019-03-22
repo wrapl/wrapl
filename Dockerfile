@@ -25,18 +25,30 @@ RUN apt-get update && apt-get install -y \
 	gir1.2-freedesktop \
 	gir1.2-gtk-3.0 \
 	gir1.2-gtksource-3.0 \
+	gir1.2-rsvg-2.0 \
 	gobject-introspection \
 	lv2-dev \
 	libgtksourceview-3.0-dev \
 	liblmdb-dev \
 	libkrb5-dev \
 	libsoup2.4-dev \
+	librsvg2-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
 	liblz4-dev \
 	flex \
 	bison \
-	libreadline-dev
+	libreadline-dev \
+	unzip \
+	libcurl4-openssl-dev \
+	libesmtp-dev \
+	python-yaml \
+	gettext \
+	libtool \
+	autopoint \
+	flex \
+	bison \
+	libssh-dev
 
 RUN apt-get clean
 
@@ -54,7 +66,7 @@ WORKDIR /tmp/wrapl
 
 RUN ls -lah
 
-RUN linux32 rabs -c
+RUN linux32 rabs -p8 -c
 
 FROM debian:sid-slim
 
@@ -70,12 +82,17 @@ RUN apt-get update && apt-get install -y \
 	libpq5:i386 \
 	libssl1.1:i386 \
 	libgcrypt20:i386 \
-	libesmtp6:i386
+	libesmtp6:i386 \
+	libcurl4:i386 \
+	libssh-4:i386
 
 RUN apt-get clean
 
 COPY --from=build /tmp/wrapl/lib /usr/lib/riva
 COPY --from=build /tmp/wrapl/bin/riva /usr/bin/riva
+COPY --from=build /tmp/wrapl/dev/bin/rlink /usr/bin/rlink
 COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
+COPY --from=build /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
+COPY --from=build /tmp/wrapl/dev/lib /usr/lib/riva-dev

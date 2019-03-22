@@ -1,20 +1,40 @@
 CFLAGS := old + ["-std=gnu99"]
 LDFLAGS := old + ["Std.rlib", "Riva.rlib"]
-RDOCFLAGS := old + ["-I", file("")]
 
-LIBSSH_VERSION := "0.8.3"
+LIBSSH_VERSION := "0.8.6"
+LIBSSH2_VERSION := "1.8.0"
 
-var LIBSSH_LIB := file("lib/libssh.a") => fun() do
+var LIBSSH_LIB := EXT_DIR / "lib/libssh.so" => fun() do
 	file("libssh"):rmdir:mkdir:chdir
 	execute('wget -nv https://www.libssh.org/files/{(LIBSSH_VERSION /".")[1]}.{(LIBSSH_VERSION / ".")[2]}/libssh-{LIBSSH_VERSION}.tar.xz -O- | tar xvJP --strip-components=1')
+	execute('sed -i s/CMAKE_POSITION_INDEPENDENT_CODE\\ ON/CMAKE_POSITION_INDEPENDENT_CODE\\ OFF/g cmake/Modules/DefineCMakeDefaults.cmake')
 	file("libssh/build"):mkdir:chdir
-	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={BUILDDIR} -DBUILD_SHARED_LIBS=OFF -DWITH_STATIC_LIB=ON -DWITH_GCRYPT=OFF ..')	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
+	execute('CFLAGS=\"{LIBCFLAGS} -shared\" CXXFLAGS=\"{LIBCXXFLAGS} -shared\" cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} -DBUILD_SHARED_LIBS=ON -DWITH_STATIC_LIB=OFF -DWITH_GCRYPT=OFF -DCMAKE_BUILD_TYPE=Release ..')
+	execute('cmake --build . --config Release --target install')
 end
 
-CFLAGS := old + ["-DLIBSSH_STATIC=1", '-I{file("include")}']
-file("SSH.c"):scan("INCLUDES", :true)[LIBSSH_LIB]
+var LIBSSH2_LIB := EXT_DIR / "lib/libssh2.a" => fun() do
+	file("libssh2"):rmdir:mkdir:chdir
+	execute('wget -nv https://www.libssh2.org/download/libssh2-{LIBSSH2_VERSION}.tar.gz -O- | tar xvzP --strip-components=1')
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={EXT_DIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make clean")
+	execute("make")
+	execute("make install")
+end
 
-riva_module("Net/SSH", [file("SSH.o")])
+
+
+scope("ssh";) do
+	--CFLAGS := old + ["-DLIBSSH_STATIC=1", '-I{file("include")}']
+	riva_module("Net/SSH", [file("SSH.o")])
+end
+
+--riva_module("Net/SSH2", [file("SSH2.o")], [LIBSSH2_LIB])
 
 subdir("RabbitMQ")
 subdir("ZeroMQ")

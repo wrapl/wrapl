@@ -105,18 +105,13 @@ typedef struct result_generator {
 	Std$Function$cstate State;
 } result_generator;
 
-typedef struct result_resume_data {
-	result_generator *Generator;
-	Std$Function$argument Result;
-} result_resume_data;
-
 static void result_finalize(result_generator *Generator, void *Arg) {
 
 }
 
 static ec_ref ResumeRef = 0;
 
-static Std$Function$status result_resume(result_resume_data *Data) {
+static Std$Function$status result_resume(Std$Function$result *Result) {
 	ec_post_goal(ec_atom(ec_did("fail", 0)));
 	switch (ec_resume1(ResumeRef)) {
 	case PFAIL:
@@ -126,10 +121,10 @@ static Std$Function$status result_resume(result_resume_data *Data) {
 	case PSUCCEED:
 		return SUSPEND;
 	case PTHROW:
-		Data->Result.Val = Std$String$new("Error thrown ec_resume");
+		Result->Val = Std$String$new("Error thrown ec_resume");
 		return MESSAGE;
 	default:
-		Data->Result.Val = Std$String$new("Unsupported return value from ec_resume");
+		Result->Val = Std$String$new("Unsupported return value from ec_resume");
 		return MESSAGE;
 	}
 }

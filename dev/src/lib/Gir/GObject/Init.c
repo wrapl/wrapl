@@ -160,16 +160,18 @@ static GThreadFunctions ThreadVTable = {
 INITIAL(Riva$Module$provider_t *Provider) {
 	Sys$Service_t *Service = Sys$Service$new("gobject");
 	if (Service) {
-		printf("Initializing gobject system...\n");
+		//printf("Initializing gobject system...\n");
 		//g_slice_set_config(G_SLICE_CONFIG_ALWAYS_MALLOC, 1);
 		//g_mem_set_vtable(&MemVTable);
 		
 		char Buffer[1024];
 		strcpy(stpcpy(Buffer, Riva$Module$get_path(Provider->Module)), "/libfontconfig.so");
-		printf("Buffer = <%s>\n", Buffer);
+		//printf("Buffer = <%s>\n", Buffer);
 		void *Handle = dlopen(Buffer, RTLD_LAZY | RTLD_GLOBAL);
-		printf("Error = %s\n", dlerror());
-		printf("fontconfig = %x\n", Handle);
+		if (!Handle) {
+			printf("Error = %s\n", dlerror());
+			printf("fontconfig = %x\n", Handle);
+		}
 		
 #if defined(LINUX) || defined(CYGWIN)
 		struct sched_param sched;
@@ -180,10 +182,10 @@ INITIAL(Riva$Module$provider_t *Provider) {
 		g_thread_priority_map[G_THREAD_PRIORITY_NORMAL] = sched.sched_priority;
 		g_thread_priority_map[G_THREAD_PRIORITY_HIGH] = ((sched.sched_priority + sched_get_priority_max(policy)) * 2) / 3;
 #endif
-		printf("Initializing glib threads...\n");
+		//printf("Initializing glib threads...\n");
 		if (!g_thread_supported()) g_thread_init(0);
 		g_type_init();
-		printf("done.\n");
+		//printf("done.\n");
 		Sys$Service$start(Service, Std$Object$Nil);
 	};
 };

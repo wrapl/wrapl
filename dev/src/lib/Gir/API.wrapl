@@ -5,7 +5,7 @@ IMP IO.Terminal USE Out;
 IMP IO USE Stream, Process, File, Socket;
 IMP Sys USE FileSys, Config, Program;
 IMP Std.String USE Upper, Lower;
-IMP Html.Gumbo;
+IMP Fmt.Html.Gumbo;
 
 VAR ns!, cname!, name!;
 

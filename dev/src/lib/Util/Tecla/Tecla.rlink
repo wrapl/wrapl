@@ -1,4 +1,3 @@
-include("libtecla.a")
 include("libtermcap.rlib")
 
 export("T")

@@ -6,10 +6,16 @@
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 
+typedef struct {
+	unsigned long int ti_module;
+	unsigned long int ti_offset;
+} tls_index;
+
 SYMBOL($block, "block");
 
 INITIAL() {
-	ssh_threads_init();
+	ssh_init();
+	//ssh_threads_init();
 }
 
 typedef struct ssh_session_t {
@@ -796,17 +802,12 @@ typedef struct listdir_generator {
 	sftp_dir *Dir;
 } listdir_generator;
 
-typedef struct listdir_resume_data {
-	listdir_generator *Generator;
-	Std$Function$argument Result;
-} listdir_resume_data;
-
 static void listdir_finalize(listdir_generator *Generator, void *Arg) {
 	if (Generator) sftp_closedir(Generator->Dir);
 }
 
-static long listdir_resume(listdir_resume_data *Data) {
-	listdir_generator *Generator = Data->Generator;
+static long listdir_resume(Std$Function$result *Result) {
+	listdir_generator *Generator = (listdir_generator *)Result->State;
 	sftp_attributes Attributes = sftp_readdir(Generator->Session, Generator->Dir);
 	if (!Attributes) {
 		sftp_closedir(Generator->Dir);
@@ -814,7 +815,7 @@ static long listdir_resume(listdir_resume_data *Data) {
 		Riva$Memory$register_finalizer(Generator, 0, 0, 0, 0);
 		return FAILURE;
 	}
-	Data->Result.Val = Std$String$copy(Attributes->name);
+	Result->Val = Std$String$copy(Attributes->name);
 	sftp_attributes_free(Attributes);
 	return SUSPEND;
 }
@@ -931,8 +932,8 @@ METHOD("group", TYP, SFTPAttributesT) {
 	return SUCCESS;
 }
 
-static long listdirinfo_resume(listdir_resume_data *Data) {
-	listdir_generator *Generator = Data->Generator;
+static long listdirinfo_resume(Std$Function$result *Result) {
+	listdir_generator *Generator = (listdir_generator *)Result->State;
 	sftp_attributes_t *Attributes = new(sftp_attributes_t);
 	Attributes->Type = SFTPAttributesT;
 	if (!(Attributes->Handle = sftp_readdir(Generator->Session, Generator->Dir))) {
@@ -941,7 +942,7 @@ static long listdirinfo_resume(listdir_resume_data *Data) {
 		Riva$Memory$register_finalizer(Generator, 0, 0, 0, 0);
 		return FAILURE;
 	}
-	Data->Result.Val = (Std$Object$t *)Attributes;
+	Result->Val = (Std$Object$t *)Attributes;
 	return SUSPEND;
 }
 

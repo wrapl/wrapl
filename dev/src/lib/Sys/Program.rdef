@@ -6,6 +6,7 @@ export("Exit")
 export("Break")
 export("ErrorT")
 export("_stack_trace")
+export("CurrentDir")
 
 if LINUX then
 	library("libpthread.rlib")

@@ -55,23 +55,23 @@ METHOD("errmsg", TYP, T) {
 	database_t *DB = Args[0].Val;
 	Result->Val = Std$String$copy(sqlite3_errmsg(DB->Handle));
 	return SUCCESS;
-};
+}
 
 METHOD("close", TYP, T) {
 	database_t *DB = Args[0].Val;
 	return (sqlite3_close(DB->Handle) == SQLITE_BUSY) ? FAILURE : SUCCESS;
-};
+}
 
 METHOD("last_insert_rowid", TYP, T) {
 	database_t *DB = Args[0].Val;
 	Result->Val = Std$Integer$new_small(sqlite3_last_insert_rowid(DB->Handle));
 	return SUCCESS;
-};
+}
 
 METHOD("interrupt", TYP, T) {
 	database_t *DB = Args[0].Val;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(Open, 1) {
 	sqlite3 *Handle;
@@ -85,8 +85,8 @@ GLOBAL_FUNCTION(Open, 1) {
 		Result->Val = Std$String$new(sqlite3_errmsg(Handle));
 		sqlite3_close(Handle);
 		return MESSAGE;
-	};
-};
+	}
+}
 
 METHOD("prepare", TYP, T, TYP, Std$String$T) {
 	database_t *DB = Args[0].Val;
@@ -100,25 +100,24 @@ METHOD("prepare", TYP, T, TYP, Std$String$T) {
 		S->Handle = Handle;
 		S->NoOfFields = NoOfFields;
 		for (int I = 0; I < NoOfFields; ++I) S->Fields[I] = Std$String$copy(sqlite3_column_name(Handle, I));
-		Result->Val = S;
-		return SUCCESS;
+		RETURN(S);
 	} else {
 		Result->Val = Std$String$new("Error: Sqlite statement prepare failed");
 		return MESSAGE;
-	};
-};
+	}
+}
 
 METHOD("finalize", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
 	sqlite3_finalize(S->Handle);
 	return SUCCESS;
-};
+}
 
 METHOD("reset", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
 	sqlite3_reset(S->Handle);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
@@ -128,8 +127,8 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T, TYP
 		((Std$Integer_smallt *)Args[3].Val)->Value,
 		SQLITE_STATIC
 	);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
 	statement_t *S = Args[0].Val;
@@ -137,8 +136,8 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Real$T) {
 		((Std$Integer_smallt *)Args[1].Val)->Value,
 		((Std$Real_t *)Args[2].Val)->Value
 	);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
@@ -146,16 +145,16 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT
 		((Std$Integer_smallt *)Args[1].Val)->Value,
 		((Std$Integer_smallt *)Args[2].Val)->Value
 	);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, VAL, Std$Object$Nil) {
 	statement_t *S = Args[0].Val;
 	sqlite3_bind_null(S->Handle,
 		((Std$Integer_smallt *)Args[1].Val)->Value
 	);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	statement_t *S = Args[0].Val;
@@ -165,50 +164,57 @@ METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		((Std$String_t *)Args[2].Val)->Length.Value,
 		SQLITE_STATIC
 	);
-	return SUCCESS;
-};
+	RETURN0;
+}
 
 METHOD("step", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
-	Result->Val = Std$Integer$new_small(sqlite3_step(S->Handle));
-	return SUCCESS;
-};
+	int Code = sqlite3_step(S->Handle);
+	switch (Code) {
+	case SQLITE_DONE:
+		sqlite3_reset(S->Handle);
+		FAIL;
+	case SQLITE_ROW: RETURN0;
+	default:
+		SEND(Std$Integer$new_small(Code));
+	}
+}
 
 METHOD("column_blob", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Address$new(sqlite3_column_blob(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value));
 	return SUCCESS;
-};
+}
 
 METHOD("column_bytes", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Integer$new_small(sqlite3_column_bytes(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value));
 	return SUCCESS;
-};
+}
 
 METHOD("column_count", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Integer$new_small(S->NoOfFields);
 	return SUCCESS;
-};
+}
 
 METHOD("column_double", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Real$new(sqlite3_column_double(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value));
 	return SUCCESS;
-};
+}
 
 METHOD("column_int", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Integer$new_small(sqlite3_column_int(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value));
 	return SUCCESS;
-};
+}
 
 METHOD("column_name", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$String$new(S->Fields[((Std$Integer_smallt *)Args[1].Val)->Value]);
 	return SUCCESS;
-};
+}
 
 METHOD("column_text", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
@@ -216,35 +222,30 @@ METHOD("column_text", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	int Length = sqlite3_column_bytes(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value);
 	Result->Val = Std$String$copy_length(Text, Length);
 	return SUCCESS;
-};
+}
 
 METHOD("column_type", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
 	Result->Val = Std$Integer$new_small(sqlite3_column_type(S->Handle, ((Std$Integer_smallt *)Args[1].Val)->Value));
 	return SUCCESS;
-};
+}
 
 typedef struct result_generator {
 	Std$Function_cstate State;
 	statement_t *Statement;
 } result_generator;
 
-typedef struct result_resume_data {
-	result_generator *Generator;
-	Std$Function_argument Result;
-} result_resume_data;
-
-static Std$Function_status resume_result_generator(result_resume_data *Data) {
-	result_generator *Generator = Data->Generator;
+static Std$Function_status resume_result_generator(Std$Function$result *Result) {
+	result_generator *Generator = Result->State;
 	statement_t *S = Generator->Statement;
 	sqlite3_stmt *Handle = S->Handle;
-	int Code;
-	for (;;) switch (Code = sqlite3_step(Handle)) {
+	int Code = sqlite3_step(Handle);
+	switch (Code) {
 	case SQLITE_DONE:
 		sqlite3_reset(Handle);
 		return FAILURE;
 	case SQLITE_ROW: {
-		Std$Object_t *Results = Agg$Table$new(Std$String$Compare, Std$String$Hash);
+		Std$Object_t *Results = Agg$List$new0();
 		for (int I = 0; I < S->NoOfFields; ++I) {
 			Std$Object_t *Value;
 			switch (sqlite3_column_type(S->Handle, I)) {
@@ -263,17 +264,17 @@ static Std$Function_status resume_result_generator(result_resume_data *Data) {
 			case SQLITE_NULL:
 				Value = Std$Object$Nil;
 				break;
-			};
-			Agg$Table$insert(Results, S->Fields[I], Value);
-		};
-		Data->Result.Val = Results;
+			}
+			Agg$List$put(Results, Value);
+		}
+		Result->Val = Results;
 		return SUSPEND;
-	};
+	}
 	default:
-		Data->Result.Val = Std$Integer$new_small(Code);
+		Result->Val = Std$Integer$new_small(Code);
 		return MESSAGE;
-	};
-};
+	}
+}
 
 METHOD("()", TYP, StatementT) {
 	statement_t *S = Args[0].Val;
@@ -283,7 +284,7 @@ METHOD("()", TYP, StatementT) {
 	for (int J = 1; J < Count; ++I) {
 		Std$Object_t *Arg = Args[J].Val;
 		if (Arg->Type == Std$Address$T) {
-			if (Args[J + 1].Val->Type != Std$Integer$SmallT) {Result->Val = Std$String$new("Invalid bind argument"); return MESSAGE;};
+			CHECK_EXACT_ARG_TYPE(J + 1, Std$Integer$SmallT);
 			sqlite3_bind_blob(Handle, I, ((Std$Address_t *)Arg)->Value, ((Std$Integer_smallt *)Args[J + 1].Val)->Value, SQLITE_STATIC);
 			J += 2;
 		} else if (Arg->Type == Std$Real$T) {
@@ -300,15 +301,15 @@ METHOD("()", TYP, StatementT) {
 			J += 1;
 		} else {
 			Result->Val = Std$String$new("Invalid bind argument"); return MESSAGE;
-		};
-	};
+		}
+	}
 	int Code;
 	for (;;) switch (Code = sqlite3_step(Handle)) {
 	case SQLITE_DONE:
 		sqlite3_reset(Handle);
 		return FAILURE;
 	case SQLITE_ROW: {
-		Std$Object_t *Results = Agg$Table$new(Std$String$Compare, Std$String$Hash);
+		Std$Object_t *Results = Agg$List$new0();
 		for (int I = 0; I < S->NoOfFields; ++I) {
 			Std$Object_t *Value;
 			switch (sqlite3_column_type(S->Handle, I)) {
@@ -327,9 +328,9 @@ METHOD("()", TYP, StatementT) {
 			case SQLITE_NULL:
 				Value = Std$Object$Nil;
 				break;
-			};
-			Agg$Table$insert(Results, S->Fields[I], Value);
-		};
+			}
+			Agg$List$put(Results, Value);
+		}
 		result_generator *Generator = new(result_generator);
 		Generator->State.Run = Std$Function$resume_c;
 		Generator->State.Invoke = resume_result_generator;
@@ -337,12 +338,12 @@ METHOD("()", TYP, StatementT) {
 		Result->State = Generator;
 		Result->Val = Results;
 		return SUSPEND;
-	};
+	}
 	default:
 		Result->Val = Std$Integer$new_small(Code);
 		return MESSAGE;
-	};
-};
+	}
+}
 
 typedef struct callback_t {
     Std$Object_t *Function;
@@ -353,10 +354,10 @@ static int exec_callback(callback_t *Callback, int Count, char **Values, char **
     Std$Object_t *Table = Agg$Table$new(Std$String$Compare, Std$String$Hash);
     for (int I = 0; I < Count; ++I) {
         Agg$Table$insert(Table, Std$String$copy(Keys[I]), Std$String$copy(Values[I]));
-    };
+    }
     Std$Function_result Buffer;
     return (Std$Function$call(Callback->Function, 2, &Buffer, Table, 0, Callback->Arg.Val, Callback->Arg.Ref) >= FAILURE);
-};
+}
 
 METHOD("exec", TYP, T, TYP, Std$String$T, TYP, Std$Function$T) {
     database_t *DB = Args[0].Val;
@@ -371,8 +372,8 @@ METHOD("exec", TYP, T, TYP, Std$String$T, TYP, Std$Function$T) {
     } else {
         Result->Val = Std$String$new(ErrMsg);
         return MESSAGE;
-    };
-};
+    }
+}
 
 METHOD("exec", TYP, T, TYP, Std$String$T) {
     database_t *DB = Args[0].Val;
@@ -383,19 +384,19 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
     } else {
         Result->Val = Std$String$new(ErrMsg);
         return MESSAGE;
-    };
-};
+    }
+}
 
 static int execv_callback(callback_t *Callback, int Count, char **Values, char **Keys) {
     Std$Function_argument Args[Count + 1];
     for (int I = 0; I < Count; ++I) {
         Args[I].Val = Std$String$copy(Values[I]);
         Args[I].Ref = 0;
-    };
+    }
     Args[Count] = Callback->Arg;
     Std$Function_result Buffer;
     return (Std$Function$invoke(Callback->Function, Count + 1, &Buffer, Args) >= FAILURE);
-};
+}
 
 METHOD("execv", TYP, T, TYP, Std$String$T, TYP, Std$Function$T) {
     database_t *DB = Args[0].Val;
@@ -410,9 +411,9 @@ METHOD("execv", TYP, T, TYP, Std$String$T, TYP, Std$Function$T) {
     } else {
         Result->Val = Std$String$new(ErrMsg);
         return MESSAGE;
-    };
-};
+    }
+}
 
 INITIAL() {
 	//sqlite3Os.xMalloc = Riva$Memory$alloc;
-};
+}
