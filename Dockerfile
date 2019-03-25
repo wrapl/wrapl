@@ -95,6 +95,6 @@ COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
 COPY --from=build /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
-COPY --from=build /tmp/wrapl/dev/dev/inc/gcc/* /usr/include/riva-dev/
+COPY --from=build /tmp/wrapl/dev/gen/inc/gcc/* /usr/include/riva-dev/
 COPY --from=build /tmp/wrapl/dev/lib /usr/lib/riva-dev
 COPY --from=build /tmp/wrapl/dev/gen/lib/* /usr/lib/riva-dev/

@@ -75,7 +75,7 @@ RUN mv /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 RUN mv /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 RUN mv /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
 RUN mv /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
-RUN cp -R /tmp/wrapl/dev/dev/inc/gcc/* /usr/include/riva-dev/
+RUN cp -R /tmp/wrapl/dev/gen/inc/gcc/* /usr/include/riva-dev/
 RUN mv /tmp/wrapl/dev/lib /usr/lib/riva-dev
 RUN cp -R /tmp/wrapl/dev/gen/lib/* /usr/lib/riva-dev/
 RUN rm -rf /tmp/wrapl
