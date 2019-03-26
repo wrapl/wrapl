@@ -48,7 +48,9 @@ RUN apt-get update && apt-get install -y \
 	autopoint \
 	flex \
 	bison \
-	libssh-dev
+	libssh-dev \
+	libpocketsphinx-dev \
+	libsphinxbase-dev
 
 RUN apt-get clean
 

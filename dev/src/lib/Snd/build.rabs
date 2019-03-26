@@ -41,7 +41,7 @@ var VORBIS_LIB := (EXT_DIR / "lib/libvorbis.a")[OGG_LIB] => fun() do
 end
 
 var VORBISENC_LIB := (EXT_DIR / "lib/libvorbisenc.a")[VORBIS_LIB]
-var VORBISFILE_LIB := (EXT_DIR / "lib/libvorbisfile.a")[VORBIS_LIB] 
+var VORBISFILE_LIB := (EXT_DIR / "lib/libvorbisfile.a")[VORBIS_LIB]
 
 var FLAC_LIB := (EXT_DIR / "lib/libFLAC.a") => fun() do
 	file("flac"):rmdir:mkdir:chdir
@@ -87,7 +87,7 @@ end
 
 var SERD_LIB := (EXT_DIR / "lib/libserd-0.a") => fun() do
 	file("serd"):rmdir:mkdir:chdir
-	execute('wget -nv http://download.drobilla.net/serd-{SERD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv -t50 http://download.drobilla.net/serd-{SERD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{EXT_DIR / "lib/pkgconfig"}',
@@ -100,7 +100,7 @@ end
 
 var SORD_LIB := (EXT_DIR / "lib/libsord-0.a")[SERD_LIB] => fun() do
 	file("sord"):rmdir:mkdir:chdir
-	execute('wget -nv http://download.drobilla.net/sord-{SORD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv -t50 http://download.drobilla.net/sord-{SORD_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{EXT_DIR / "lib/pkgconfig"}',
@@ -113,7 +113,7 @@ end
 
 var SRATOM_LIB := (EXT_DIR / "lib/libsratom-0.a")[SORD_LIB] => fun() do
 	file("sratom"):rmdir:mkdir:chdir
-	execute('wget -nv http://download.drobilla.net/sratom-{SRATOM_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv -t50 http://download.drobilla.net/sratom-{SRATOM_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{EXT_DIR / "lib/pkgconfig"}',
@@ -126,7 +126,7 @@ end
 
 var LILV_LIB := (EXT_DIR / "lib/liblilv-0.a")[SERD_LIB, SORD_LIB, SRATOM_LIB, SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB] => fun() do
 	file("lilv"):rmdir:mkdir:chdir
-	execute('wget -nv http://download.drobilla.net/lilv-{LILV_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
+	execute('wget -nv -t50 http://download.drobilla.net/lilv-{LILV_VERSION}.tar.bz2  -O- | tar xvjP --strip-components=1')
 	execute('CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS} -ldl -lsndfile -logg -lvorbis -lvorbisenc -lFLAC\"',
 		'PKG_CONFIG_PATH={getenv("PKG_CONFIG_PATH") or ""}:{EXT_DIR / "lib/pkgconfig"}',
@@ -158,3 +158,5 @@ riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
 riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
 riva_module("Snd/SndFile", [file("SndFile.o")], [SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB, VORBISENC_LIB, VORBISFILE_LIB])
 --riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
+CFLAGS := old + ["-I/usr/include/pocketsphinx", "-I/usr/include/sphinxbase"]
+riva_module("Snd/PocketSphinx", [file("PocketSphinx.o")])

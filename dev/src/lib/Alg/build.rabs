@@ -6,7 +6,7 @@ LDFLAGS := old + ["Std.rlib", "Riva.rlib", "Util/TypedFunction.rlib", "Sys/Modul
 
 var UUID_LIB := EXT_DIR / "lib/libuuid.a" => fun() do
 	UUID_DIR:rmdir
-	execute('wget -nv https://downloads.sourceforge.net/project/libuuid/libuuid-{UUID_VERSION}.tar.gz -O- | tar xvzP')
+	execute('wget -t50 -nv https://downloads.sourceforge.net/project/libuuid/libuuid-{UUID_VERSION}.tar.gz -O- | tar xvzP')
 	UUID_DIR:chdir
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={EXT_DIR}',
