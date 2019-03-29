@@ -431,9 +431,10 @@ struct all_expr_t : expr_t {CLASSID
 };
 
 struct uniq_expr_t : expr_t {CLASSID
-	expr_t *Value;
-	uniq_expr_t(int LineNo, expr_t *Value) {
+	expr_t *Key, *Value;
+	uniq_expr_t(int LineNo, expr_t *Key, expr_t *Value) {
 		this->LineNo = LineNo;
+		this->Key = Key;
 		this->Value = Value;
 	}
 	PRINT_METHOD

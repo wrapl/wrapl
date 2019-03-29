@@ -819,7 +819,9 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 	};
 	if (Scanner->parse(tkUNIQ)) {
 		uint32_t LineNo = Scanner->Token.LineNo;
-		return new uniq_expr_t(LineNo, accept_expr(Scanner));
+		expr_t *Key = accept_expr(Scanner);
+		expr_t *Value = Scanner->parse(tkCOMMA) ? accept_expr(Scanner) : 0;
+		return new uniq_expr_t(LineNo, Key, Value);
 	};
 	if (Scanner->parse(tkCOUNT)) {
 		uint32_t LineNo = Scanner->Token.LineNo;

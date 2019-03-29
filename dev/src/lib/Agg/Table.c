@@ -12,10 +12,10 @@ SYMBOL($COMP, "?");
 SYMBOL($HASH, "#");
 
 TYPE(T);
-// A table of Key/Value pairs
+// A table of key/value pairs
 
 TYPE(NodeType);
-// A single Key/Value pair
+// A single key/value pair
 
 /* Maximum AVL height. */
 #ifndef AVL_MAX_HEIGHT
@@ -533,7 +533,7 @@ METHOD("empty", TYP, T) {
 
 GLOBAL_FUNCTION(Make, 0) {
 //:T
-// Returns a new table with the arguments taken as alternating Key/Value pairs.
+// Returns a new table with the arguments taken as alternating key/value pairs.
 	table_t *Table = avl_create($COMP, $HASH);
 	int I;
 	for (I = 0; I < Count; I += 2) {
@@ -551,7 +551,7 @@ GLOBAL_FUNCTION(Collect, 1) {
 //@func:Std$Function$T
 //@args...
 //:T
-// Returns a table consisting of the values returned by <code>func(args)</code> as keys (and <id>NIL</id> as each Value).
+// Returns a table consisting of the values returned by <code>func(args)</code> as keys (and <id>NIL</id> as each value).
 	Std$Function_result Result0;
 	Std$Object_t *Function = Args[0].Val;
 	table_t *Table = avl_create($COMP, $HASH);
@@ -612,7 +612,7 @@ METHOD("map", TYP, T, TYP, Std$Function$T) {
 //@t
 //@func
 //:T
-// Returns a copy of <var>t</var> with the same keys, but with values returned by calling <code>func(Key, Value)</code>
+// Returns a copy of <var>t</var> with the same keys, but with values returned by calling <code>func(key, value)</code>
 	table_t *Source = (table_t *)Args[0].Val;
 	table_t *Table = avl_create(Source->Compare, Source->Hash);
 	traverser_t Traverser;
@@ -638,7 +638,7 @@ METHOD("list", TYP, T, TYP, Std$Function$T) {
 //@t
 //@func
 //:T
-// Returns the list <code>func(Key, Value)</code> running over all pairs in <var>t</var>.
+// Returns the list <code>func(key, value)</code> running over all pairs in <var>t</var>.
 	table_t *Source = (table_t *)Args[0].Val;
 	Agg$List$t *List = Agg$List$new0();
 	traverser_t Traverser;
@@ -664,7 +664,7 @@ METHOD("+", TYP, T, TYP, T) {
 //@a
 //@b
 //:T
-// Returns the union of <var>a</var> and <var>b</var>. If a Key exists in both <var>a</var> and <var>b</var> then the Value is taken from <var>b</var>.
+// Returns the union of <var>a</var> and <var>b</var>. If a key exists in both <var>a</var> and <var>b</var> then the value is taken from <var>b</var>.
 	table_t *Table = avl_create($COMP, $HASH);
 	traverser_t Traverser;
 	RDLOCK(Args[0].Val);
@@ -685,7 +685,7 @@ METHOD("-", TYP, T, TYP, T) {
 //@a
 //@b
 //:T
-// Returns the difference of <var>a</var> and <var>b</var>, i.e. those <code>(Key, Value)</code> pairs of <var>a</var> where <var>Key</var> is not in <var>b</var>.
+// Returns the difference of <var>a</var> and <var>b</var>, i.e. those <code>(key, value)</code> pairs of <var>a</var> where <var>key</var> is not in <var>b</var>.
 	table_t *Table = avl_create($COMP, $HASH);
 	traverser_t Traverser;
 	RDLOCK(Args[0].Val);
@@ -705,7 +705,7 @@ METHOD("*", TYP, T, TYP, T) {
 //@a
 //@b
 //:T
-// Returns the intersection of <var>a</var> and <var>b</var>, i.e. those <code>(Key, Value)</code> pairs of <var>a</var> where <var>Key</var> is in <var>b</var>.
+// Returns the intersection of <var>a</var> and <var>b</var>, i.e. those <code>(key, value)</code> pairs of <var>a</var> where <var>key</var> is in <var>b</var>.
 	table_t *Table = avl_create($COMP, $HASH);
 	traverser_t Traverser;
 	table_t *A = (table_t *)Args[0].Val;
@@ -746,10 +746,10 @@ METHOD("insert", TYP, T, ANY, ANY) {
 METHOD("insert", TYP, T, SKP) {
 #endif
 //@t
-//@Key
-//@Value=NIL
+//@key
+//@value=NIL
 //:T
-// Inserts the pair <code>(Key, Value)</code> into <var>t</var>.
+// Inserts the pair <code>(key, value)</code> into <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -764,10 +764,10 @@ METHOD("insert", TYP, T, SKP) {
 
 METHOD("replace", TYP, T, ANY, ANY) {
 //@t
-//@Key
-//@Value=NIL
+//@key
+//@value=NIL
 //:T
-// Inserts the pair <code>(Key, Value)</code> into <var>t</var>, returning the existing value if present, or failing.
+// Inserts the pair <code>(key, value)</code> into <var>t</var>, returning the existing value if present, or failing.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -780,13 +780,13 @@ METHOD("replace", TYP, T, ANY, ANY) {
 	return Result->Val ? SUCCESS : FAILURE;
 };
 
-METHOD("modify", TYP, T, ANY, TYP, Std$Function$T) {
+METHOD("update", TYP, T, ANY, TYP, Std$Function$T) {
 //@t
-//@Key
+//@key
 //@mod
 //:T
-// Modifies the Value associated with <var>Key</var>, <code>t[Key] &lt;- mod($)</code>.
-// Uses the default Value of <var>t</var> if <var>Key</var> is not present and a default has been set.
+// Modifies the value associated with <var>key</var>, <code>t[key] &lt;- mod($)</code>.
+// Uses the default value of <var>t</var> if <var>key</var> is not present and a default has been set.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function$call(Table->Hash, 1, Result, Args[1].Val, 0);
@@ -831,9 +831,9 @@ int _delete(table_t *Table, Std$Object_t *Key) {
 
 METHOD("delete", TYP, T, SKP) {
 //@t
-//@Key
+//@key
 //:T
-// Removes the <var>Key</var> from <var>t</var>.
+// Removes the <var>key</var> from <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -852,9 +852,9 @@ SYMBOL($EQUAL, "=");
 
 METHOD("remove", TYP, T, SKP) {
 //@t
-//@Value
+//@value
 //:T
-// Removes the first <var>Key</var> found with Value <var>Value</var>.
+// Removes the first <var>key</var> found with value <var>value</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	traverser_t Traverser;
@@ -875,7 +875,7 @@ METHOD("remove_if", TYP, T, TYP, Std$Function$T) {
 //@t
 //@func
 //:T
-// Removes the first <code>(Key, Value)</code> pair for which <code>func(Key, Value)</code> succeeds.
+// Removes the first <code>(key, value)</code> pair for which <code>func(key, value)</code> succeeds.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	traverser_t Traverser;
@@ -891,11 +891,29 @@ METHOD("remove_if", TYP, T, TYP, Std$Function$T) {
 	return FAILURE;
 };
 
+METHOD("foreach", TYP, T, TYP, Std$Function$T) {
+//@t
+//@func
+//:T
+// Calls <code>func(key, value)</code> for each key/value pair in <var>t</var>. <var>value</var> is an assignable reference.
+	table_t *Table = (table_t *)Args[0].Val;
+	WRLOCK(Table);
+	traverser_t Traverser;
+	for (node_t *Node = avl_t_first(&Traverser, Table); Node; Node = avl_t_next(&Traverser)) {
+		if (Std$Function$call(Args[1].Val, 2, Result, Node->Key, 0, Node->Value, &Node->Value) == MESSAGE) {
+			UNLOCK(Table);
+			return MESSAGE;
+		};
+	};
+	UNLOCK(Table);
+	RETURN(Table);
+};
+
 METHOD("remove_all", TYP, T, TYP, Std$Function$T) {
 //@t
 //@func
 //:T
-// Removes the first <code>(Key, Value)</code> pair for which <code>func(Key, Value)</code> succeeds.
+// Removes the first <code>(key, value)</code> pair for which <code>func(key, value)</code> succeeds.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	size_t Removed = 0;
@@ -985,7 +1003,7 @@ Std$Object_t **_probe(table_t *Table, Std$Object_t *Key) {
 METHOD("defval", TYP, T, ANY) {
 //@t
 //@default
-// Sets the default Value to return when a Key is not present
+// Sets the default value to return when a key is not present
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Table->Default = Std$Function$constant_new(Args[1].Val);
@@ -997,7 +1015,7 @@ METHOD("defval", TYP, T, ANY) {
 METHOD("deffun", TYP, T, ANY) {
 //@t
 //@default
-// Sets the default function to create a Value when a Key is not present
+// Sets the default function to create a value when a key is not present
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Table->Default = Args[1].Val;
@@ -1008,10 +1026,10 @@ METHOD("deffun", TYP, T, ANY) {
 
 METHOD("check", TYP, T, SKP, ANY) {
 //@t
-//@Key
+//@key
 //@default
-// Returns the Value associated with <var>Key</var> in <var>t</var>.
-// If <var>Key</var> is not present, a new pair <code>(Key, default)</code> is created and the call fails.
+// Returns the value associated with <var>key</var> in <var>t</var>.
+// If <var>key</var> is not present, a new pair <code>(key, default)</code> is created and the call fails.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -1031,10 +1049,10 @@ METHOD("check", TYP, T, SKP, ANY) {
 
 METHOD("missing", TYP, T, ANY) {
 //@t
-//@Key
+//@key
 //@var=NIL
-// If <var>Key</var> is present in <var>t</var> then fail, after assigning the current Value to <var>var</var> if provided.
-// Otherwise, inserts the pair <code>(Key, NIL)</code> into <var>t</var> and returns an assignable reference.
+// If <var>key</var> is present in <var>t</var> then fail, after assigning the current value to <var>var</var> if provided.
+// Otherwise, inserts the pair <code>(key, NIL)</code> into <var>t</var> and returns an assignable reference.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -1056,8 +1074,8 @@ METHOD("missing", TYP, T, ANY) {
 
 METHOD("[]", TYP, T, SKP) {
 //@t
-//@Key
-// Returns the Value associated with <var>Key</var> in <var>t</var>.
+//@key
+// Returns the value associated with <var>key</var> in <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	Std$Function_result Result1;
 	Std$Object_t **Slot;
@@ -1092,10 +1110,10 @@ METHOD("[]", TYP, T, SKP) {
 
 METHOD("[]", TYP, T, SKP, ANY) {
 //@t
-//@Key
+//@key
 //@default
-// Returns the Value associated with <var>Key</var> in <var>t</var>.
-// If <var>Key</var> is not present, a new pair <code>(Key, default)</code> is created and <var>default</var> is returned.
+// Returns the value associated with <var>key</var> in <var>t</var>.
+// If <var>key</var> is not present, a new pair <code>(key, default)</code> is created and <var>default</var> is returned.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function_result Result1;
@@ -1141,9 +1159,9 @@ METHOD(".", TYP, T, SKP) {
 };
 
 METHOD("in", SKP, TYP, T) {
-//@Key
+//@key
 //@table
-// Returns <var>Key</var> if it is a Key in <var>table</var>, fails otherwise.
+// Returns <var>key</var> if it is a key in <var>table</var>, fails otherwise.
 	table_t *Table = (table_t *)Args[1].Val;
 	RDLOCK(Table);
 	Std$Function_result Result1;
@@ -1210,7 +1228,7 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 METHOD("key", TYP, NodeType) {
 //@Node
 //:ANY
-// Returns <var>Key</var> from a <code>(Key, Value)</code> pair.
+// Returns <var>key</var> from a <code>(key, value)</code> pair.
 	Result->Val = ((node_t *)Args[0].Val)->Key;
 	return SUCCESS;
 };
@@ -1218,7 +1236,7 @@ METHOD("key", TYP, NodeType) {
 METHOD("value", TYP, NodeType) {
 //@Node
 //:ANY
-// Returns <var>Value</var> from a <code>(Key, Value)</code> pair.
+// Returns <var>value</var> from a <code>(key, value)</code> pair.
 	Result->Val = *(Result->Ref = &((node_t *)Args[0].Val)->Value);
 	return SUCCESS;
 };
@@ -1237,7 +1255,7 @@ static long resume_items_table(Std$Function$result *Result) {
 METHOD("items", TYP, T) {
 //@t
 //:NodeT
-// Generates the <code>(Key, Value)</code> pairs in <var>t</var>.
+// Generates the <code>(key, value)</code> pairs in <var>t</var>.
 	traverser_t *Traverser = new(traverser_t);
 	node_t *Node = avl_t_first(Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
@@ -1276,9 +1294,9 @@ static long resume_loop_table(Std$Function$result *Result) {
 
 METHOD("loop", TYP, T, ANY, ANY) {
 //@t
-//@Key+
-//@Value+
-// For each <code>(Key, Value)</code> in <var>t</var>, generates <id>NIL</id> after assigning <var>Key</var> and <var>Value</var>.
+//@key+
+//@value+
+// For each <code>(key, value)</code> in <var>t</var>, generates <id>NIL</id> after assigning <var>key</var> and <var>value</var>.
 	loop_state *Traverser = new(loop_state);
 	node_t *Node = avl_t_first((traverser_t *)Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
@@ -1445,9 +1463,9 @@ static long resume_find_table(Std$Function$result *Result) {
 
 METHOD("find", TYP, T, SKP) {
 //@table
-//@Value
+//@value
 //:ANY
-// Generates the all keys in <var>table</var> which has Value <var>Value</var>.
+// Generates the all keys in <var>table</var> which has value <var>value</var>.
 	find_state *State = new(find_state);
 	for (node_t *Node = avl_t_first((traverser_t *)State, (table_t *)Args[0].Val); Node; Node = avl_t_next((traverser_t *)State)) {
 		Std$Function_result Result0;
@@ -1483,7 +1501,7 @@ METHOD("size", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("Hash", TYP, T) {
+METHOD("hash", TYP, T) {
 //@t
 //:Std$Function$T
 // Returns the Hash function used in <var>t</var>.
@@ -1503,8 +1521,8 @@ METHOD("newv", TYP, Std$Type$T, TYP, T) {
 //@type
 //@fields
 //:ANY
-// Creates a new instance <var>instance</var> of <var>type</var> and for each <code>(Key, Value)</code> pair in <var>fields</var>, sets <code>Key(instance) &lt;- Value</code>. Returns <var>instance</var>.
-// Each <var>Key</var> should be a <id>Std/Symbol/T</id>.
+// Creates a new instance <var>instance</var> of <var>type</var> and for each <code>(key, value)</code> pair in <var>fields</var>, sets <code>key(instance) &lt;- value</code>. Returns <var>instance</var>.
+// Each <var>key</var> should be a <id>Std/Symbol/T</id>.
 	Std$Function$call(Args[0].Val, 0, Result);
 	Std$Object_t *Object = Result->Val;
 	traverser_t Traverser;

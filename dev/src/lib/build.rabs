@@ -132,3 +132,53 @@ scope("lib";) do
 		subdir("Snd")
 	end
 end
+
+var DevHeaders := DEFAULT:scan("DevHeaders") => fun() do
+	var Targets := []
+	var TargetDir := PREFIX / "include/riva-dev"
+	var SourceDir := DEV_INC / "gcc"
+	for var Source in SourceDir:ls("^.+\\.h$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	SourceDir := GEN_INC / "gcc"
+	for var Source in SourceDir:ls("^.+\\.h$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	return Targets
+end
+
+var DevLibraries := DEFAULT:scan("DevLibraries") => fun() do
+	var Targets := []
+	var TargetDir := PREFIX / "lib/riva-dev"
+	var SourceDir := DEV_LIB
+	for var Source in SourceDir:ls("^.+\\.rlink$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	SourceDir := GEN_LIB
+	for var Source in SourceDir:ls("^.+\\.rlink$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	return Targets
+end
+
+INSTALL[DevHeaders, DevLibraries]

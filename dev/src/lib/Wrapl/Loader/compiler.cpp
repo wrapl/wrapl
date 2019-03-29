@@ -527,7 +527,7 @@ void all_expr_t::print(int Indent) {
 void uniq_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	printf("UNIQ ");
-	Value->print(Indent);
+	Key->print(Indent);
 };
 
 void count_expr_t::print(int Indent) {
@@ -1484,7 +1484,7 @@ operand_t *uniq_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	Start->link(LineNo, Label0);
 
 	Label0 = Compiler->push_trap(LineNo, Label0, Success);
-		Label1->load(LineNo, Value->compile(Compiler, Label0, Label1));
+		Label1->load(LineNo, Key->compile(Compiler, Label0, Label1));
 		Label1->store_table(LineNo, Index);
 		Compiler->back_trap(Label1);
 	Compiler->pop_trap();
