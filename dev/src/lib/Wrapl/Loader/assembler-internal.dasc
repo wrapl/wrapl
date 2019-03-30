@@ -1214,6 +1214,14 @@ void store_table_inst_t::encode(assembler_t *Assembler) {
 	| add esp, 12
 }
 
+void store_table2_inst_t::encode(assembler_t *Assembler) {
+	| push ecx
+	| push dword [ebp + Assembler->Temps + 8 * Key]
+	| push dword [ebp + Assembler->Temps + 8 * Index]
+	| call &Agg$Table$insert
+	| add esp, 12
+}
+
 void new_count_inst_t::encode(assembler_t *Assembler) {
 	| push sizeof(Std$Integer_smallt);
 	| call &Riva$Memory$alloc

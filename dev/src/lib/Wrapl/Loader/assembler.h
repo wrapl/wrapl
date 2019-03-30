@@ -205,6 +205,7 @@ struct label_t : inst_t {
 	void store_list(uint32_t LineNo, uint32_t Index);
 	void new_table(uint32_t LineNo, uint32_t Index);
 	void store_table(uint32_t LineNo, uint32_t Index);
+	void store_table2(uint32_t LineNo, uint32_t Index, uint32_t Key);
 	void new_count(uint32_t LineNo, uint32_t Index);
 	void inc_count(uint32_t LineNo, uint32_t Index);
 	void load_code(uint32_t LineNo, label_t *Code);

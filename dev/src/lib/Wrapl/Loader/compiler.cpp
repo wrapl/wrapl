@@ -1476,19 +1476,30 @@ operand_t *uniq_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	operand_t *Result = new operand_t;
 	Result->Type = operand_t::TVAR;
 	Result->Index = Index;
-
 	label_t *Label0 = new label_t;
 	label_t *Label1 = new label_t;
-
 	Start->new_table(LineNo, Index);
 	Start->link(LineNo, Label0);
-
 	Label0 = Compiler->push_trap(LineNo, Label0, Success);
+	if (Value) {
+		operand_t *KeyOp = new operand_t;
+		KeyOp->Type = operand_t::TREG;
+		KeyOp->Index = Compiler->new_temporary();
+		Label1->load(LineNo, Key->compile(Compiler, Label0, Label1));
+		Label1->store_reg(LineNo, KeyOp);
+		label_t *Label2 = new label_t;
+		operand_t *OldSelf = Compiler->Function->Loop->Self;
+		Compiler->Function->Loop->Self = KeyOp;
+		Label2->load(LineNo, Value->compile(Compiler, Label1, Label2));
+		Compiler->Function->Loop->Self = OldSelf;
+		Label2->store_table2(LineNo, Index, KeyOp->Index);
+		Compiler->back_trap(Label2);
+	} else {
 		Label1->load(LineNo, Key->compile(Compiler, Label0, Label1));
 		Label1->store_table(LineNo, Index);
 		Compiler->back_trap(Label1);
+	}
 	Compiler->pop_trap();
-
 	return Result;
 };
 

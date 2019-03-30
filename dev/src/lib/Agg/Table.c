@@ -900,7 +900,7 @@ METHOD("foreach", TYP, T, TYP, Std$Function$T) {
 	WRLOCK(Table);
 	traverser_t Traverser;
 	for (node_t *Node = avl_t_first(&Traverser, Table); Node; Node = avl_t_next(&Traverser)) {
-		if (Std$Function$call(Args[1].Val, 2, Result, Node->Key, 0, Node->Value, &Node->Value) == MESSAGE) {
+		if (Std$Function$call(Args[1].Val, 3, Result, Node->Key, 0, Node->Value, &Node->Value, Table, 0) == MESSAGE) {
 			UNLOCK(Table);
 			return MESSAGE;
 		};
