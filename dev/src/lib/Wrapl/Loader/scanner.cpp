@@ -366,7 +366,7 @@ static Std$String_t *scan_string_block_next(scanner_t *Scanner, const char *End,
 
 extern Riva$Module_t Riva$Symbol[];
 
-bool scanner_t::parse(int Type) {
+int scanner_t::next() {
 	if (NextToken.Type == 0) {
 		const char *Current = NextChar;
 		const char *Start;
@@ -682,7 +682,11 @@ bool scanner_t::parse(int Type) {
 	scan_done:
 		NextChar = Current;
 	};
-	if (NextToken.Type == Type) {
+	return NextToken.Type;
+}
+
+bool scanner_t::parse(int Type) {
+	if (next() == Type) {
 		Token = NextToken;
 		NextToken.Type = 0;
 		return true;

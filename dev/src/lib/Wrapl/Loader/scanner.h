@@ -127,6 +127,11 @@ struct scanner_t {
 	scanner_t(IO$Stream_t *Source);
 	const char *readl(void);
 	void flush();
+	int next();
+	void parse() {
+		Token = NextToken;
+		NextToken.Type = 0;
+	}
 	bool parse(int Type);
 	void accept(int Type);
 	void unparse();

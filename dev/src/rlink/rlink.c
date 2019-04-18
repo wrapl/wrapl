@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <gc/gc.h>
 #include "minilang/minilang.h"
+#include "minilang/ml_macros.h"
 #include "minilang/stringmap.h"
 
 #ifdef USE_UDIS
@@ -2062,7 +2063,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RlinkGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RlinkGlobals, E->Name, E);
@@ -2083,7 +2084,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RlibGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RlibGlobals, E->Name, E);
@@ -2100,7 +2101,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RdefGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RdefGlobals, E->Name, E);
