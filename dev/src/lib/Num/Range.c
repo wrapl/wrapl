@@ -26,7 +26,7 @@ GLOBAL_FUNCTION(New, 3) {
 	RETURN(Range);
 }
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Num$Range$t *Range = (Num$Range$t *)Args[0].Val;
 	RETURN(Std$String$new_format("%d, %d, ... %d", Range->Min, Range->Min + Range->Step, Range->Max));
 }

@@ -203,7 +203,7 @@ typedef struct ssh_known_host_t {
 
 TYPE(SSHKnownHostT);
 
-METHOD("@", TYP, SSHKnownHostT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SSHKnownHostT) {
 	ssh_known_host_t *KnownHost = (ssh_known_host_t *)Args[0].Val;
 	Result->Val = Std$String$new(KnownHost->Name);
 	return SUCCESS;
@@ -274,7 +274,7 @@ typedef struct ssh_auth_t {
 
 TYPE(SSHAuthT);
 
-METHOD("@", TYP, SSHAuthT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SSHAuthT) {
 	ssh_auth_t *Auth = (ssh_auth_t *)Args[0].Val;
 	Result->Val = Std$String$new(Auth->Name);
 	return SUCCESS;
@@ -879,7 +879,7 @@ sftp_file_type_t SFTPFileTypeSymLink[] = {{SFTPFileTypeT, "symlink", SSH_FILEXFE
 sftp_file_type_t SFTPFileTypeSpecial[] = {{SFTPFileTypeT, "special", SSH_FILEXFER_TYPE_SPECIAL}};
 sftp_file_type_t SFTPFileTypeUnknown[] = {{SFTPFileTypeT, "unknown", SSH_FILEXFER_TYPE_UNKNOWN}};
 
-METHOD("@", TYP, SFTPFileTypeT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SFTPFileTypeT) {
 	sftp_file_type_t *FileType = (sftp_file_type_t *)Args[0].Val;
 	Result->Val = Std$String$new(FileType->Name);
 	return SUCCESS;

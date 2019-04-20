@@ -10,7 +10,7 @@ typedef struct _uuid_t {
 
 TYPE(T);
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	_uuid_t *UUID = (_uuid_t *)Args[0].Val;
 	char *Buffer = Riva$Memory$alloc_atomic(37);
 	uuid_unparse_lower(UUID->Value, Buffer);

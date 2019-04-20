@@ -8,7 +8,6 @@ typedef struct complex_t {
 
 TYPE(T);
 
-SYMBOL($AT, "@");
 SYMBOL($ADD, "+");
 SYMBOL($SUB, "-");
 SYMBOL($MUL, "*");
@@ -60,12 +59,12 @@ GLOBAL_FUNCTION(New, 2) {
 	return SUCCESS;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	const complex_t *Complex = Args[0].Val;
 	Std$Function_result Buffer;
-	Std$Function$call($AT, 2, &Buffer, Complex->Re, 0, Std$String$T, 0);
+	Std$Function$call(Std$String$Of, 1, &Buffer, Complex->Re, 0);
 	Std$String_t *Final = Std$String$add(Buffer.Val, SpacePlusSpace);
-	Std$Function$call($AT, 2, &Buffer, Complex->Im, 0, Std$String$T, 0);
+	Std$Function$call(Std$String$Of, 1, &Buffer, Complex->Im, 0);
 	Final = Std$String$add(Final, Buffer.Val);
 	Result->Val = Std$String$add(Final, iStr);
 	return SUCCESS;

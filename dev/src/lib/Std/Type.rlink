@@ -1,0 +1,15 @@
+require("Std/Methods")
+
+include("Std/Integer.rlib")
+include("Std/Array.rlib")
+include("Std/Object.rlib")
+include("Std/Function.rlib")
+include("Std/Symbol.rlib")
+
+export("T")
+export("T.invoke")
+export("Of")
+export("_is")
+export("New")
+export("New.invoke")
+export("Fields")

@@ -1,4 +1,10 @@
---require("Std/Methods")
+require("Std/Methods")
+
+include("Std/Integer.rlib")
+include("Std/Array.rlib")
+include("Std/Type.rlib")
+include("Std/Function.rlib")
+include("Std/Symbol.rlib")
 
 export("T")
 export("Nil")

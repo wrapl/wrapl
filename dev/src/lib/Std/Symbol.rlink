@@ -1,5 +1,12 @@
 require("Std/Methods")
-library("Riva/Debug.rlib")
+
+include("Riva/Debug.rlib")
+include("Std/Integer.rlib")
+include("Std/Array.rlib")
+include("Std/Function.rlib")
+include("Std/Type.rlib")
+include("Std/Address.rlib")
+include("Std/String.rlib")
 
 export("T")
 export("T.invoke")

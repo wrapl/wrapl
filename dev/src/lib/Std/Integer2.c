@@ -5,17 +5,17 @@
 #include <Std/Integer.h>
 #include <Std/Function.h>
 #include <Util/TypedFunction.h>
+#include <Riva/Memory.h>
+#include <gmp.h>
 
 extern Std$Type_t T[];
 extern Std$Type_t SmallT[];
 extern Std$Type_t BigT[];
 
-ASYMBOL(From);
+ASYMBOL(Of);
 
 extern Std$Object_t *_new_small(int32_t);
 extern Std$Object_t *_new_big(mpz_t);
-
-SYMBOL($AS, "@");
 
 TYPED_FUNCTION(int, _int, Std$Object_t *A) {
 	return 0;
@@ -106,10 +106,10 @@ GLOBAL_FUNCTION(NextPrime, 1) {
 		mpz_init_set_ui(Z, ((Std$Integer_smallt *)Args[0].Val)->Value);
 		mpz_nextprime(Z, Z);
 		if (mpz_fits_slong_p(Z)) {
-			Result->Val = Std$Integer$new_small(mpz_get_si(Z));
+			Result->Val = _new_small(mpz_get_si(Z));
 			return SUCCESS;
 		} else {
-			Result->Val = Std$Integer$new_big(Z);
+			Result->Val = _new_big(Z);
 			return SUCCESS;
 		};
 	} else if (Args[0].Val->Type == BigT) {
@@ -117,10 +117,10 @@ GLOBAL_FUNCTION(NextPrime, 1) {
 		mpz_init(Z);
 		mpz_nextprime(Z, ((Std$Integer_bigt *)Args[0].Val)->Value);
 		if (mpz_fits_slong_p(Z)) {
-			Result->Val = Std$Integer$new_small(mpz_get_si(Z));
+			Result->Val = _new_small(mpz_get_si(Z));
 			return SUCCESS;
 		} else {
-			Result->Val = Std$Integer$new_big(Z);
+			Result->Val = _new_big(Z);
 			return SUCCESS;
 		};
 	} else {

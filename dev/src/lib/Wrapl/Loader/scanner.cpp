@@ -274,11 +274,10 @@ static bool scan_string_block0_next(scanner_t *Scanner, int Index, char **Chars,
 			//printf("(2) Writing 0 to 0x%x [%d]\n", Chars[0] + Index, Index);
             Chars[0][Index] = 0;
             Length[0] = Index;
-            return true;
         } else {
         	Length[0] = 0;
-        	return true;
-        };
+        }
+        return true;
     };
     case '\'': {
         if (Index > 0) {
@@ -286,11 +285,10 @@ static bool scan_string_block0_next(scanner_t *Scanner, int Index, char **Chars,
 			//printf("(3) Writing 0 to 0x%x [%d]\n", Chars[0] + Index, Index);
             Chars[0][Index] = 0;
             Length[0] = Index;
-            return false;
         } else {
         	Length[0] = 0;
-        	return false;
-        };
+        }
+        return false;
     };
     default: {
     	bool Continue = scan_string_block0_next(Scanner, Index + 1, Chars, Length);
@@ -300,6 +298,27 @@ static bool scan_string_block0_next(scanner_t *Scanner, int Index, char **Chars,
     };
     };
 };
+
+struct stringifier_t {
+	const Std$Type$t *Type;
+	int Count;
+	Std$Function$argument Args[];
+};
+
+TYPE(StringifierT);
+
+AMETHOD(Std$String$Of, TYP, StringifierT) {
+	stringifier_t *Stringifier = (stringifier_t *)Args[0].Val;
+	return Std$Function$invoke(Std$String$Of, Stringifier->Count, Result, Stringifier->Args);
+}
+
+LOCAL_FUNCTION(Stringify) {
+	stringifier_t *Stringifier = (stringifier_t *)Riva$Memory$alloc(sizeof(stringifier_t) + Count * sizeof(Std$Function$argument));
+	Stringifier->Type = StringifierT;
+	Stringifier->Count = Count;
+	memcpy(Stringifier->Args, Args, Count * sizeof(Std$Function$argument));
+	RETURN(Stringifier);
+}
 
 static void scan_string_block0(scanner_t *Scanner) {
 	expr_t Head;
@@ -319,7 +338,13 @@ static void scan_string_block0(scanner_t *Scanner) {
 	};
     while (Continue) {
         Scanner->NextToken.Type = 0;
-        Tail = (Tail->Next = accept_expr(Scanner));
+        expr_t *Expr = accept_expr(Scanner);
+        if (Scanner->parse(tkCOMMA)) {
+        	expr_t *Tail2 = Expr->Next = accept_expr(Scanner);
+        	while (Scanner->parse(tkCOMMA)) Tail2 = (Tail2->Next = accept_expr(Scanner));
+        	Expr = new invoke_expr_t(Scanner->Token.LineNo, new const_expr_t(Scanner->Token.LineNo, Stringify), Expr);
+        }
+        Tail = (Tail->Next = Expr);
         Scanner->accept(tkRBRACE);
         Continue = scan_string_block0_next(Scanner, 0, &Chars, &Length);
 	    if (Length) Tail = (Tail->Next = new const_expr_t(Scanner->Token.LineNo, Std$String$new_length(Chars, Length)));
@@ -715,13 +740,12 @@ void scanner_t::raise_error(int LineNo, const Std$Type_t *Type, const char *Form
 	longjmp(Error.Handler, 1);
 };
 
-SYMBOL($AT, "@");
 ASYMBOL(Image);
 // Converts an object to it's representation in Wrapl.
 
 AMETHOD(Image, TYP, Std$Number$T) {
 //:Std$String$T
-	return Std$Function$call((Std$Object_t *)$AT, 2, Result, Args[0].Val, 0, Std$String$T, 0);
+	return Std$Function$call(Std$String$Of, 1, Result, Args[0].Val, 0);
 };
 
 AMETHOD(Image, TYP, Std$String$T) {

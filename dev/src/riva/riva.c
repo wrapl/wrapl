@@ -332,7 +332,7 @@ static uint32_t fixup_symbol_section(section_t *Section, jmp_buf OnError) {
 			module_import(Symbol, Section->Name, &IsRef, (void **)&Section->Data);
 		} else {
 			Section->Data = make_symbol("<anonymous>");
-		};
+		}
 		Section->NoOfFixups = 0;
 	};
 	return (uint32_t)Section->Data;

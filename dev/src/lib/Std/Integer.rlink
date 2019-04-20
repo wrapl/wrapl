@@ -1,10 +1,18 @@
---require("Std/Methods")
-library("Std/Number.rlib")
+require("Std/Methods")
+
+include("Std/Number.rlib")
+include("Std/Array.rlib")
+include("Std/Function.rlib")
+include("Std/Type.rlib")
+include("Std/String.rlib")
+include("Std/Object.rlib")
+include("Std/Real.rlib")
+include("Gmp.rlink")
 
 export("T")
 export("SmallT")
 export("BigT")
-export("From")
+export("Of")
 
 export("Zero")
 export("One")

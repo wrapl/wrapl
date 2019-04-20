@@ -50,7 +50,7 @@ RIVA_OBJECT(Compare);
 RIVA_OBJECT(Create);
 RIVA_OBJECT(Nil);
 RIVA_OBJECT(Empty);
-RIVA_OBJECT(From);
+RIVA_OBJECT(Of);
 
 RIVA_CFUN(const char *, flatten, Std$Object_t *) __attribute__ ((pure));
 RIVA_CFUN(void, flatten_to, Std$Object_t *, char *);

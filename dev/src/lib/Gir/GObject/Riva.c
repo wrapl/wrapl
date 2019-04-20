@@ -147,8 +147,6 @@ void _riva_to_value(Std$Object$t *Source, GValue *Dest) {
 	};
 };
 
-SYMBOL(AS, "@");
-
 typedef struct val_closure_t {
 	GClosure Parent;
 	Std$Object$t *Function;
@@ -167,9 +165,9 @@ static void __marshal_val(val_closure_t *Closure, GValue *Result, guint NoOfArgs
 		if (Result0.Val->Type == Std$Symbol$NoMethodMessageT) {
 			Std$Symbol$nomethodmessage *Message = (Std$Symbol$nomethodmessage *)Result0.Val;
 			for (int I = 0; I < Message->Count; ++I) printf("\t%s\n", Message->Stack[I]);
-			Std$Function$call((Std$Object_t *)AS, 2, &Result0, Result0.Val, 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Result0, Result0.Val, 0);
 			printf("Warning: Closure sent message: %s.\n", Std$String$flatten(Result0.Val));
-		} else if (Std$Function$call(AS, 2, &Result0, Result0.Val, 0, Std$String$T, 0) < FAILURE) {
+		} else if (Std$Function$call(Std$String$Of, 1, &Result0, Result0.Val, 0) < FAILURE) {
 			printf("Warning: Closure sent message: %s.\n", Std$String$flatten(Result0.Val));
 		} else {
 			printf("Warning: Closure sent message: <unknown>.\n");
@@ -209,7 +207,7 @@ static void __marshal_ref(ref_closure_t *Closure, GValue *Result, guint NoOfArgs
 	Std$Function_result Result0;
 	switch (Std$Function$invoke(Closure->Function[0], NoOfArgs, &Result0, Args0)) {
 	case MESSAGE:
-		if (Std$Function$call(AS, 2, &Result0, Result0.Val, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Result0, Result0.Val, 0) < FAILURE) {
 			printf("Warning: Closure sent message: %s.\n", Std$String$flatten(Result0.Val));
 		} else {
 			printf("Warning: Closure sent message: <unknown>.\n");

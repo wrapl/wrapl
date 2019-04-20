@@ -29,7 +29,6 @@ SYMBOL($seek, "seek");
 SYMBOL($tell, "tell");
 SYMBOL($remaining, "remaining");
 SYMBOL($block, "block");
-SYMBOL($AS, "@");
 
 typedef IO$Stream_t stream_t;
 
@@ -50,7 +49,7 @@ TYPE(TextWriterT, WriterT, T);
 TYPE(MessageT, Sys$Program$ErrorT);
 #endif
 
-METHOD("@", TYP, MessageT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, MessageT) {
 //@msg
 //:Std$String$T
 	IO$Stream_messaget *Msg = (IO$Stream_messaget *)Args[0].Val;
@@ -981,7 +980,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 //:TextWriterT
 // Writes <code>value@Std.String.T</code> to <var>wr</var>.
 	Std$Function_result Result0;
-	switch (Std$Function$call($AS, 2, &Result0, Args[1].Val, Args[1].Ref, Std$String$T, 0)) {
+	switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, Args[1].Ref)) {
 	case SUSPEND:
 	case SUCCESS:
 		return Std$Function$call($write, 2, Result, Args[0].Val, Args[0].Ref, Result0.Val, Result0.Ref);

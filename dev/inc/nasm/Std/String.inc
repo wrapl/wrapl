@@ -19,6 +19,7 @@ riva_struct t, Std$Object_t
 endstruct
 
 riva_extern T
+riva_extern Of
 riva_extern Nil
 riva_extern Empty
 riva_extern New

@@ -14,7 +14,7 @@
 
 TYPE(T, Gtk$GObject$Object$T);
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Gtk$GObject$Type_t *Type = (Gtk$GObject$Type_t *)Args[0].Val;
 	Result->Val = Std$String$new(g_type_name(Type->Value));
 	return SUCCESS;

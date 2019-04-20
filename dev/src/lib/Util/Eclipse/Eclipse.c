@@ -16,7 +16,7 @@ typedef struct dident_t {
 
 extern Std$Type$t DidentT[1];
 
-METHOD("@", TYP, DidentT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, DidentT) {
 	dident_t *Dident = (dident_t *)Args[0].Val;
 	int Length = DidLength(Dident->Value);
 	char *String = Riva$Memory$alloc_atomic(Length + 4);

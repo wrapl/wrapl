@@ -25,6 +25,79 @@
 
 #endif
 
+AMETHOD(Std$String$Of, TYP, Std$Integer$SmallT) {
+	char *Chars;
+	int Length = asprintf(&Chars, "%d", Std$Integer$get_small(Args[0].Val));
+	RETURN(Std$String$new_length(Chars, Length));
+}
+
+/*
+AMETHOD(Std$Integer$Of, TYP, Std$String$T) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	mpz_t Z;
+	if (mpz_init_set_str(Z, Buffer, 10) == 0) {
+		if (mpz_fits_sint_p(Z)) {
+			Std$Integer$smallt *Value = new_atomic(Std$Integer$smallt);
+			Value->Type = Std$Integer$SmallT;
+			Value->Value = mpz_get_si(Z);
+			RETURN(Value);
+		} else {
+			Std$Integer$bigt *Value = new(Std$Integer$bigt);
+			Value->Type = Std$Integer$BigT;
+			Value->Value[0] = Z[0];
+			RETURN(Value);
+		}
+	} else {
+		FAIL;
+	}
+}
+
+AMETHOD(Std$Integer$Of, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	int Base = Std$Integer$get_small(Args[1].Val);
+	mpz_t Z;
+	if (mpz_init_set_str(Z, Buffer, Base) == 0) {
+		if (mpz_fits_sint_p(Z)) {
+			Std$Integer$smallt *Value = new_atomic(Std$Integer$smallt);
+			Value->Type = Std$Integer$SmallT;
+			Value->Value = mpz_get_si(Z);
+			RETURN(Value);
+		} else {
+			Std$Integer$bigt *Value = new(Std$Integer$bigt);
+			Value->Type = Std$Integer$BigT;
+			Value->Value[0] = Z[0];
+			RETURN(Value);
+		}
+	} else {
+		FAIL;
+	}
+}
+*/
+
+AMETHOD(Std$Number$Of, TYP, Std$String$T) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	mpq_t R;
+	mpq_init(R);
+	if (mpq_set_str(R, Buffer, 10) == 0) {
+		mpq_canonicalize(R);
+		if (mpz_cmp_si(mpq_denref(R), 1)) {
+			return Std$Rational$new(R);
+		} else if (mpz_fits_slong_p(mpq_numref(R))) {
+			return Std$Integer$new_small(mpz_get_si(mpq_numref(R)));
+		} else {
+			return Std$Integer$new_big(mpq_numref(R));
+		}
+	} else {
+		char *End;
+		double Value = strtod(Buffer, &End);
+		if (End > Buffer) {
+			RETURN(Std$Real$new(Value));
+		} else {
+			FAIL;
+		}
+	}
+}
+
 ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Length = Std$Integer$get_small(Args[1].Val);
 	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
@@ -69,9 +142,9 @@ ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 	return SUCCESS;
 }
 
-REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$String$T, TYP, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, Std$Real$T, TYP, Std$String$T) {
 	double Value = ((Std$Real_t *)Args[0].Val)->Value;
-	const unsigned char *Format = Std$String$flatten(Args[2].Val);
+	const unsigned char *Format = Std$String$flatten(Args[1].Val);
 	unsigned char *String;
 	int Length = asprintf(&String, Format, Value);
 	Result->Val = Std$String$new_length(String, Length);
@@ -1787,27 +1860,7 @@ static inline Std$Object_t *finish_rational(mpq_t R) {
 	};
 };
 
-STRING_METHOD("@", TYP, Std$String$T, VAL, Std$Number$T) {
-	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
-	mpq_t R;
-	mpq_init(R);
-	if (mpq_set_str(R, Buffer, 10) == 0) {
-		mpq_canonicalize(R);
-		Result->Val = finish_rational(R);
-		return SUCCESS;
-	} else {
-		unsigned char *Tail;
-		double Val = strtod(Buffer, &Tail);
-		if (Tail > Buffer) {
-			Result->Val = Std$Real$new(atof(Buffer));
-			return SUCCESS;
-		} else {
-			return FAILURE;
-		};
-	};
-};
-
-RATIONAL_METHOD("@", TYP, Std$String$T, VAL, Std$Rational$T) {
+AMETHOD(Std$Rational$Of, TYP, Std$String$T) {
 //@str
 //:T
 // <var>str</var> should be of the form <code>"num/den"</code>.
@@ -1868,7 +1921,7 @@ RATIONAL_METHOD("den", TYP, Std$Rational$T) {
 	return SUCCESS;
 };
 
-RATIONAL_METHOD("@", TYP, Std$Rational$T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, Std$Rational$T) {
 	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
 	Result->Val = Std$String$new(mpq_get_str(0, 10, R->Value));
 	return SUCCESS;
@@ -2384,13 +2437,13 @@ RATIONAL_METHOD("is0", TYP, Std$Rational$T) {
 	return SUCCESS;
 };
 
-RATIONAL_METHOD("@", TYP, Std$Rational$T, VAL, Std$Real$T) {
+AMETHOD(Std$Real$Of, TYP, Std$Rational$T) {
 	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
 	Result->Val = Std$Real$new(mpq_get_d(R->Value));
 	return SUCCESS;
 };
 
-REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$Rational$T) {
+AMETHOD(Std$Rational$Of, TYP, Std$Real$T) {
 	double X = ((Std$Real_t *)Args[0].Val)->Value;
 	int Negative = 0;
 	if (X < 0.0) {

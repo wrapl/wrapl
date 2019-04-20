@@ -1,6 +1,0 @@
-require("Std/Methods")
-
-export("T")
-export("New")
-export("Alloc")
-export("_new")

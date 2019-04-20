@@ -323,7 +323,7 @@ static Std$Object$t *to_string_array_ ## CTYPE(int Degree, Num$Array$dimension_t
 	return String; \
 } \
 \
-METHOD("@", TYP, ATYPE, VAL, Std$String$T) { \
+AMETHOD(Std$String$Of, TYP, ATYPE) { \
 	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
 	if (Array->Degree == 0) { \
 		RETURN(Std$String$new_format(FORMAT, *(CTYPE *)Array->Data)); \

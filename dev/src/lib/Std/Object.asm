@@ -1,5 +1,8 @@
 %include "Std.inc"
 
+%define Std$Object$T T
+%define Std$Object$Nil Nil
+
 ctype T
 ;  the base type of all types
 .invoke:

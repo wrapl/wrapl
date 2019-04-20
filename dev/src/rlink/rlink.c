@@ -1603,6 +1603,8 @@ static ml_value_t *script_file_module(void *Data, int Count, ml_value_t **Args) 
 		stringmap_insert(GlobalTable, Name, new_symbol(Name, (section_t *)LibrarySection, 0));
 	}
 
+	stringmap_insert(RlinkGlobals, "MODULE", ml_string(Name, PathSize));
+
 	CurrentLibrary->Section = LibrarySection;
 	return MLNil;
 }

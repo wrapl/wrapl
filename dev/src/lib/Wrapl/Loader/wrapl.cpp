@@ -219,14 +219,13 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 	return Expr->evaluate(Compiler, Result);
 }
 
-SYMBOL($AT, "@");
 ASYMBOL(WriteExpr);
 // Writes the representation for a value to a stream.
 
 AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$Number$T) {
 //:IO$Stream$T
 	Std$Function$result Result0;
-	Std$Function$call((Std$Object_t *)$AT, 2, &Result0, Args[1].Val, 0, Std$String$T, 0);
+	Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, 0);
 	Std$String$t *String = (Std$String$t *)Result0.Val;
 	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
 		IO$Stream$write(Args[0].Val, (const char *)Block->Chars.Value, Block->Length.Value, 1);
@@ -413,7 +412,7 @@ struct session_t {
 TYPE(SessionT);
 //  An incremental Wrapl compiler/interpreter
 
-METHOD("@", TYP, ErrorMessageT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, ErrorMessageT) {
 	errormessage_t *Error = (errormessage_t *)Args[0].Val;
 	char *Buffer;
 	Result->Val = (Std$Object_t *)Std$String$new_length(Buffer, asprintf(&Buffer, "(%d): %s", Error->LineNo, Error->Message));

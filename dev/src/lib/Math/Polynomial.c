@@ -11,7 +11,6 @@ typedef struct polynomial_t {
 
 TYPE(T);
 
-SYMBOL($AT, "@");
 SYMBOL($ADD, "+");
 SYMBOL($SUB, "-");
 SYMBOL($MUL, "*");
@@ -70,7 +69,7 @@ METHOD("[]", TYP, T, TYP, Std$Integer$SmallT) {
 	};
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T, VAL, Std$String$T) {
 	polynomial_t *P = Args[0].Val;
 	int Degree = P->Degree.Value;
 	switch (Degree) {
@@ -80,26 +79,26 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	};
 	case 0: {
 		Std$Function_result Buffer;
-		Std$Function$call($AT, 2, &Buffer, P->Coefficients[0], 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[0], 0);
 		Result->Val = Buffer.Val;
 		return SUCCESS;
 	};
 	case 1: {
 		Std$Function_result Buffer;
-		Std$Function$call($AT, 2, &Buffer, P->Coefficients[0], 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[0], 0);
 		Std$String_t *S = Buffer.Val;
-		Std$Function$call($AT, 2, &Buffer, P->Coefficients[1], 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[1], 0);
 		Result->Val = Std$String$add(Std$String$add(Buffer.Val, XStr), Std$String$add(SpacePlusSpace, S));
 		return SUCCESS;
 	};
 	default: {
 		Std$Function_result Buffer;
-		Std$Function$call($AT, 2, &Buffer, P->Coefficients[0], 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[0], 0);
 		Std$String_t *S = Buffer.Val;
-		Std$Function$call($AT, 2, &Buffer, P->Coefficients[1], 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[1], 0);
 		S = Std$String$add(Std$String$add(Buffer.Val, XStr), Std$String$add(SpacePlusSpace, S));
 		for (int I = 2; I <= Degree; ++I) {
-			Std$Function$call($AT, 2, &Buffer, P->Coefficients[I], 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Buffer, P->Coefficients[I], 0);
 			char *Power;
 			asprintf(&Power, "%d", I);
 			S = Std$String$add(SpacePlusSpace, S);

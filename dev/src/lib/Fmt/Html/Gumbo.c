@@ -127,7 +127,7 @@ METHOD("index", TYP, NodeT) {
 	return SUCCESS;
 }
 
-METHOD("@", TYP, TextNodeT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, TextNodeT) {
 	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
 	Result->Val = Std$String$new(Node->Handle->v.text.text);
 	return SUCCESS;
@@ -167,7 +167,7 @@ METHOD("text", TYP, ElementNodeT) {
 	return SUCCESS;
 }
 
-METHOD("@", TYP, ElementNodeT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, ElementNodeT) {
 	gumbo_node_t *Node = (gumbo_node_t *)Args[0].Val;
 	const char *Tag = gumbo_normalized_tagname(Node->Handle->v.element.tag);
 	GumboAttribute **Attributes = (GumboAttribute **)Node->Handle->v.element.attributes.data;

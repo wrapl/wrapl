@@ -7,7 +7,6 @@
 This file was modified from avl.c in GNU libavl
 */
 
-SYMBOL($AT, "@");
 SYMBOL($COMP, "?");
 SYMBOL($HASH, "#");
 
@@ -1183,21 +1182,21 @@ STRING(CommaSpace, ", ");
 STRING(KeyString, "<key>");
 STRING(ValueString, "<value>");
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Std$Function_result Buffer;
 	Std$Object_t *Final = LeftBrace;
 	traverser_t Traverser;
 	RDLOCK(Args[0].Val);
 	node_t *Node = avl_t_first(&Traverser, (table_t *)Args[0].Val);
 	if (Node != 0) {
-		if (Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0) < FAILURE) {
 			Final = Std$String$add(Final, Buffer.Val);
 		} else {
 			Final = Std$String$add(Final, KeyString);
 		}
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+			if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 				Final = Std$String$add(Final, Buffer.Val);
 			} else {
 				Final = Std$String$add(Final, ValueString);
@@ -1206,14 +1205,14 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	};
 	for (Node = avl_t_next(&Traverser); Node; Node = avl_t_next(&Traverser)) {
 		Final = Std$String$add(Final, CommaSpace);
-		if (Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0) < FAILURE) {
 			Final = Std$String$add(Final, Buffer.Val);
 		} else {
 			Final = Std$String$add(Final, KeyString);
 		}
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+			if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value) < FAILURE) {
 				Final = Std$String$add(Final, Buffer.Val);
 			} else {
 				Final = Std$String$add(Final, ValueString);

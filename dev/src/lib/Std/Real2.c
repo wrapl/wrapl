@@ -3,7 +3,7 @@
 
 extern Std$Type_t T[];
 
-ASYMBOL(From);
+ASYMBOL(Of);
 
 TYPED_INSTANCE(int, Std$Number$is0, T, Std$Real_t *A) {
 	return A->Value == 0.0;
@@ -12,8 +12,6 @@ TYPED_INSTANCE(int, Std$Number$is0, T, Std$Real_t *A) {
 TYPED_INSTANCE(int, Std$Number$is1, T, Std$Real_t *A) {
 	return A->Value == 1.0;
 };
-
-SYMBOL($AS, "@");
 
 TYPED_FUNCTION(double, _double, Std$Object_t *A) {
 	return 0.0 / 0.0;

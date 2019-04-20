@@ -7,7 +7,6 @@
 This file was modified from avl.c in GNU libavl
 */
 
-SYMBOL($AT, "@");
 SYMBOL($COMP, "?");
 SYMBOL($HASH, "#");
 
@@ -1066,28 +1065,28 @@ STRING(RightBrace, "}");
 STRING(SpaceIsSpace, " is ");
 STRING(CommaSpace, ", ");
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Std$Function_result Buffer;
 	Std$Object_t *Final = LeftBrace;
 	traverser_t Traverser;
 	RDLOCK(Args[0].Val);
 	node_t *Node = avl_t_first(&Traverser, (table_t *)Args[0].Val);
 	if (Node != 0) {
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0);
 		Final = Std$String$add(Final, Buffer.Val);
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0);
 			Final = Std$String$add(Final, Buffer.Val);
 		};
 	};
 	for (Node = avl_t_next(&Traverser); Node; Node = avl_t_next(&Traverser)) {
 		Final = Std$String$add(Final, CommaSpace);
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0);
 		Final = Std$String$add(Final, Buffer.Val);
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0);
 			Final = Std$String$add(Final, Buffer.Val);
 		};
 	};

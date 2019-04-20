@@ -13,7 +13,6 @@
 #include <sys/socket.h>
 #include <sys/mman.h>
 
-SYMBOL($AS, "@");
 SYMBOL($block, "block");
 
 TYPE(T, IO$Stream$T);
@@ -884,7 +883,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 METHOD("write", TYP, TextWriterT, ANY) {
 	IO$Posix_t *Stream = (IO$Posix_t *)Args[0].Val;
 	Std$Function_result Result0;
-	switch (Std$Function$call($AS, 2, &Result0, Args[1].Val, Args[1].Ref, Std$String$T, 0)) {
+	switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, Args[1].Ref)) {
 	case SUSPEND:
 	case SUCCESS: {
 		const Std$String_t *String = (Std$String_t *)Result0.Val;

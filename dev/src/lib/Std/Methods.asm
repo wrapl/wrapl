@@ -38,25 +38,25 @@ local_function Self
 ;_amethod Std$Integer$New, Self, SMALLINT
 ;_amethod Std$Integer$New, Self, BIGINT
 
-normal_method "@", TYP, Std$String$T, VAL, Std$String$T
+amethod Std$String$Of, TYP, Std$String$T
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
 	ret
 
-normal_method "@", TYP, Std$Integer$SmallT, VAL, Std$Integer$T
+amethod Std$Integer$Of, TYP, Std$Integer$SmallT
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
 	ret
 
-normal_method "@", TYP, Std$Integer$BigT, VAL, Std$Integer$T
+amethod Std$Integer$Of, TYP, Std$Integer$BigT
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
 	ret
 
-normal_method "@", TYP, Std$Real$T, VAL, Std$Real$T
+amethod Std$Real$Of, TYP, Std$Real$T
 	mov ecx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Function_argument(edi).Ref]
 	xor eax, eax
@@ -892,7 +892,7 @@ address_method "-", ADDRESS, ADDRESS
 
 extern sprintf
 
-address_method "@", ADDRESS, VAL, Std$String$T
+amethod Std$String$Of, ADDRESS
 	push byte 12
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
@@ -1004,7 +1004,7 @@ object_method "#", ANY
 	ret
 %endif
 
-object_method "@", VAL, Std$Object$Nil, VAL, Std$String$T
+amethod Std$String$Of, VAL, Std$Object$Nil
 	mov ecx, .nilstr
 	xor edx, edx
 	xor eax, eax
@@ -1022,7 +1022,7 @@ datasect
 .nil:
 	db "NIL", 0
 
-symbol_method "@", SYMBOL, VAL, Std$String$T
+amethod Std$String$Of, SYMBOL
 	mov edx, [Std$Function_argument(edi).Val]
 	lea edx, [Std$Symbol_t(edx).Name]
 	mov ecx, [edx]
@@ -1032,7 +1032,7 @@ symbol_method "@", SYMBOL, VAL, Std$String$T
 set_method "[]", Std$Symbol$Get, SYMBOL
 
 extern asprintf
-symbol_method "@", TYP, Std$Symbol$NoMethodMessageT, VAL, Std$String$T
+amethod Std$String$Of, TYP, Std$Symbol$NoMethodMessageT
 	mov edx, [Std$Function_argument(edi).Val]
 	mov edx, [Std$Symbol_nomethodmessage(edx).Symbol]
 	push byte 0
@@ -1058,7 +1058,7 @@ datasect
 .str:
 	db "no method: ", 0
 
-function_method "@", TYP, Std$Function$FewArgsMessageT, VAL, Std$String$T
+amethod Std$String$Of, TYP, Std$Function$FewArgsMessageT
 	sub esp, byte 4
 	mov edx, [Std$Function_argument(edi).Val]
 	mov eax, esp
@@ -1080,7 +1080,7 @@ function_method "@", TYP, Std$Function$FewArgsMessageT, VAL, Std$String$T
 datasect
 .format: db "%s:%d: expected %d args, received %d", 0
 
-function_method "@", TYP, Std$Function$ArgTypeMessageT, VAL, Std$String$T
+amethod Std$String$Of, TYP, Std$Function$ArgTypeMessageT
 	sub esp, byte 4
 	mov edx, [Std$Function_argument(edi).Val]
 	mov eax, esp
@@ -1170,7 +1170,7 @@ cfunction bin2ascii_test
 	mov [edi + 9], bl
 	ret
 
-integer_method "@", SMALLINT, VAL, Std$String$T
+amethod Std$String$Of, SMALLINT
 	mov ebx, 10
 	mov eax, [Std$Function_argument(edi).Val]
 	mov esi, [Std$Integer_smallt(eax).Value]
@@ -1282,8 +1282,8 @@ cstrend
 ;	db "0"
 ;cstrend
 
-integer_method "@", SMALLINT, VAL, Std$String$T, SMALLINT
-	mov ebx, [Std$Function_argument(edi, 2).Val]
+amethod Std$String$Of, SMALLINT, SMALLINT
+	mov ebx, [Std$Function_argument(edi, 1).Val]
 	mov ebx, [Std$Integer_smallt(ebx).Value]
 	mov eax, [Std$Function_argument(edi).Val]
 	mov esi, [Std$Integer_smallt(eax).Value]
@@ -1430,7 +1430,7 @@ datasect
 
 extern __gmpz_get_str
 
-integer_method "@", BIGINT, VAL, Std$String$T
+amethod Std$String$Of, BIGINT
 	mov ebx, [Std$Function_argument(edi).Val]
 	lea ebx, [Std$Integer_bigt(ebx).Value]
 	push ebx
@@ -1446,9 +1446,9 @@ integer_method "@", BIGINT, VAL, Std$String$T
 	xor eax, eax
 	ret
 
-integer_method "@", BIGINT, VAL, Std$String$T, SMALLINT
+amethod Std$String$Of, BIGINT, SMALLINT
 	mov ebx, [Std$Function_argument(edi).Val]
-	mov eax, [Std$Function_argument(edi, 2).Val]
+	mov eax, [Std$Function_argument(edi, 1).Val]
 	lea ebx, [Std$Integer_bigt(ebx).Value]
 	push ebx
 	push dword [Std$Integer_bigt(eax).Value]
@@ -1464,7 +1464,7 @@ integer_method "@", BIGINT, VAL, Std$String$T, SMALLINT
 	ret
 
 extern __gmpz_init_set_str
-integer_method "@", STRING, VAL, Std$Integer$T
+amethod Std$Integer$Of, STRING
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
@@ -1530,7 +1530,7 @@ integer_method "base", STRING, SMALLINT
 	inc eax
 	ret
 
-integer_method "@", STRING, VAL, Std$Integer$T, SMALLINT
+amethod Std$Integer$Of, STRING, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
@@ -1565,7 +1565,7 @@ integer_method "@", STRING, VAL, Std$Integer$T, SMALLINT
 	ret
 
 extern strtod
-real_method "@", STRING, VAL, Std$Real$T
+amethod Std$Real$Of, STRING
 	mov eax, [Std$Function_argument(edi).Val]
 	push ebx
 	mov ebx, esp
@@ -3828,7 +3828,7 @@ integer_method "down", SMALLINT
 	ret
 
 extern sprintf
-real_method "@", REAL, VAL, Std$String$T
+amethod Std$String$Of, REAL
 	sub esp, byte 8
 	mov eax, esp
 	mov ebx, [Std$Function_argument(edi).Val]
@@ -3850,7 +3850,7 @@ real_method "@", REAL, VAL, Std$String$T
 	db "%.20g", 0
 
 extern __gmpz_init_set_d
-real_method "@", REAL, VAL, Std$Integer$T
+amethod Std$Integer$Of, REAL
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
@@ -3862,7 +3862,7 @@ real_method "@", REAL, VAL, Std$Integer$T
 	add esp, byte 12
 	jmp finish_integer
 
-real_method "@", SMALLINT, VAL, Std$Real$T
+amethod Std$Real$Of, SMALLINT
 	call Std$Real$_alloc
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -3873,7 +3873,7 @@ real_method "@", SMALLINT, VAL, Std$Real$T
 	ret
 
 extern __gmpz_get_d
-real_method "@", BIGINT, VAL, Std$Real$T
+amethod Std$Real$Of, BIGINT, VAL, Std$Real$T
 	mov eax, [Std$Function_argument(edi).Val]
 	lea eax, [Std$Integer_bigt(eax).Value]
 	push eax

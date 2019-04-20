@@ -2,7 +2,7 @@
 #include <Riva/Memory.h>
 #include <Util/TypedFunction.h>
 
-ASYMBOL(From);
+ASYMBOL(Of);
 
 SYMBOL($is0, "is0");
 SYMBOL($is1, "is1");

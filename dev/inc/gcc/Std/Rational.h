@@ -15,7 +15,7 @@ RIVA_STRUCT(t) {
 };
 
 RIVA_TYPE(T);
-RIVA_OBJECT(From);
+RIVA_OBJECT(Of);
 
 RIVA_CFUN(Std$Object_t *, new, mpq_t) __attribute__ ((malloc));
 RIVA_CFUN(Std$Object_t *, new_string, const char *) __attribute__ ((malloc));

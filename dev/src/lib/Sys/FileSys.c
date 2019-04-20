@@ -57,7 +57,7 @@ typedef struct message_t {
 TYPE(MessageT);
 // Base type for error messages sent from file system methods.
 
-METHOD("@", TYP, MessageT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, MessageT) {
 //@msg
 //:Std$String$T
 	message_t *Msg = Args[0].Val;

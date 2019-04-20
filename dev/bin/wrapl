@@ -34,7 +34,7 @@ DEF Init() (
 			CreateServerFile(Args[i]);
 		) IS "-sp" DO (
 			i <- i + 1;
-			CreateServerOnPort(Args[i]@Integer.T);
+			CreateServerOnPort(Integer.Of(Args[i]));
 		) IS "-cf" DO (
 			i <- i + 1;
 			client <- Socket.New(Socket.Flag.Local, Socket.Flag.Stream);
@@ -46,7 +46,7 @@ DEF Init() (
 			i <- i + 1;
 			client <- Socket.New(Socket.Flag.Inet, Socket.Flag.Stream);
 			address <- ALL Args[i]:split(":");
-			client:connect(address[1], address[2]@Integer.T);
+			client:connect(address[1], Integer.Of(address[2]));
 			Program.OnInt(<> (
 				Out:write('Trying to send urgent data...\n');
 				client:urge("!");

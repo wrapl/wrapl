@@ -16,7 +16,6 @@ STRING(CommaSpace, ", ");
 STRING(LeftRightBracket, "[]");
 STRING(ValueString, "<value>");
 
-SYMBOL($AT, "@");
 SYMBOL($ADD, "+");
 SYMBOL($SUB, "-");
 SYMBOL($MUL, "*");
@@ -61,20 +60,20 @@ METHOD("cols", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	const matrix_t *Matrix = Args[0].Val;
 	Std$Object_t **Ptr = Matrix->Entries;
 
 	Std$Function_result Buffer;
 	Std$String_t *Final = Std$String$add(LeftBracket, LeftBracket);
-	if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+	if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 		Final = Std$String$add(Final, Buffer.Val);
 	} else {
 		Final = Std$String$add(Final, ValueString);
 	};
 	for (int J = 1; J < Matrix->NoOfCols.Value; ++J) {
 		Final = Std$String$add(Final, CommaSpace);
-		if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 			Final = Std$String$add(Final, Buffer.Val);
 		} else {
 			Final = Std$String$add(Final, ValueString);
@@ -84,14 +83,14 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	for (int I = 1; I < Matrix->NoOfRows.Value; ++I) {
 		Final = Std$String$add(Final, CommaSpace);
 		Final = Std$String$add(Final, LeftBracket);
-		if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 			Final = Std$String$add(Final, Buffer.Val);
 		} else {
 			Final = Std$String$add(Final, ValueString);
 		};
 		for (int J = 1; J < Matrix->NoOfCols.Value; ++J) {
 			Final = Std$String$add(Final, CommaSpace);
-			if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+			if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 				Final = Std$String$add(Final, Buffer.Val);
 			} else {
 				Final = Std$String$add(Final, ValueString);

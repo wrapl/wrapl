@@ -31,6 +31,7 @@ RIVA_CFUN(void, change_stubborn, char *);
 #ifndef __cplusplus
 #ifndef new
 #define new(T) ((T *)Riva$Memory$alloc(sizeof(T)))
+#define new_atomic(T) ((T *)Riva$Memory$alloc_atomic(sizeof(T)))
 #endif
 #else
 

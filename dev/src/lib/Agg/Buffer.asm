@@ -84,7 +84,7 @@ method "length", TYP, T
 	xor eax, eax
 	ret
 
-method "@", TYP, T, VAL, Std$String$T
+amethod Std$String$Of, TYP, T
 	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4

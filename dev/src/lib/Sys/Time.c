@@ -134,7 +134,7 @@ METHOD("~=", TYP, T, TYP, T) {
 	};
 };*/
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Sys$Time_t *Time = Args[0].Val;
 	/*char *Buffer = Riva$Memory$alloc_atomic(26);
 	ctime_r(&Time->Value, Buffer);
@@ -147,7 +147,7 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	return SUCCESS;
 };
 
-METHOD("@", TYP, T, VAL, Std$Integer$SmallT) {
+AMETHOD(Std$Integer$Of, TYP, T) {
 	Sys$Time_t *Time = Args[0].Val;
 	Result->Val = Std$Integer$new_small(Time->Value);
 	return SUCCESS;
@@ -207,7 +207,7 @@ GLOBAL_FUNCTION(PreciseNew, 1) {
 	return SUCCESS;
 };
 
-METHOD("@", TYP, PreciseT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, PreciseT) {
 	Sys$Time$precise_t *Time = Args[0].Val;
 	struct tm TM[1];
 	gmtime_r(&Time->Value.tv_sec, TM);

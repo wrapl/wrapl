@@ -31,8 +31,6 @@ typedef struct {
 	int Level;
 } stream_writer_t;
 
-SYMBOL($AT, "@");
-
 static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream, IO$Stream_writefn write) {
@@ -110,7 +108,7 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 			break;
 		} else if (Val->Type != Std$String$T) {
 			Std$Function$result Result0;
-			if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+			if (Std$Function$call(Std$String$Of, 1, &Result0, Val, 0) <= SUCCESS) {
 				Val = Result0.Val;
 			}
 		}
@@ -131,7 +129,7 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 			Std$Object$t *Val = Args[Index].Val;
 			if (Val->Type != Std$String$T) {
 				Std$Function$result Result0;
-				if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+				if (Std$Function$call(Std$String$Of, 1, &Result0, Val, 0) <= SUCCESS) {
 					Val = Result0.Val;
 				}
 			}
@@ -207,7 +205,7 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 			break;
 		} else if (Val->Type != Std$String$T) {
 			Std$Function$result Result0;
-			if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+			if (Std$Function$call(Std$String$Of, 1, &Result0, Val, 0) <= SUCCESS) {
 				Val = Result0.Val;
 			}
 		}
@@ -221,7 +219,7 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 			Std$Object$t *Val = Args[Index].Val;
 			if (Val->Type != Std$String$T) {
 				Std$Function$result Result0;
-				if (Std$Function$call($AT, 2, &Result0, Val, 0, Std$String$T, 0) <= SUCCESS) {
+				if (Std$Function$call(Std$String$Of, 1, &Result0, Val, 0) <= SUCCESS) {
 					Val = Result0.Val;
 				}
 			}

@@ -80,7 +80,7 @@ TO :c_to_riva(type@DoubleT, in, out, tmp) [
 DEF LengthT! <- <[Type.T] index>;
 
 DEF LengthNew!(base) (
-    VAR index <- base @ Integer.T;
+    VAR index <- Integer.Of(base);
     VAR type <- LengthT();
     type:index <- index;
     RET type;

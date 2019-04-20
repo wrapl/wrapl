@@ -1,6 +1,10 @@
 %include "Std.inc"
 %include "Riva/Memory.inc"
 
+%define Std$Function$T T
+%define Std$Function$AsmT AsmT
+%define Std$Function$CheckedAsmT CheckedAsmT
+
 ctype FewArgsMessageT
 ; Message sent when a function is called with too few arguments
 .invoke: equ 0

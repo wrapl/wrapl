@@ -209,7 +209,7 @@ thread_t *thread_self(void) {
 	return Thread;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	thread_t *Thread = (thread_t *)Args[0].Val;
 	char *Buffer;
 	Result->Val = Std$String$new_length(Buffer, asprintf(&Buffer, "<thread @ %x>", Thread->Handle));

@@ -392,7 +392,7 @@ EVERY WITH cname <- cairo[].cname DO (
 		i <- j;
 	);
 	s:put('t');
-	cname <- s @ (Std.String.T, '_');
+	cname <- Std.String.Of(s, "_");
 );
 
 VAR cairo_api <- Xml.LoadFile(Main:path + "/Cairo/extra.xml", Xml.NoText);
@@ -402,7 +402,7 @@ EVERY WITH method <- cairo_api[][:method] DO method.shared // (
 		s:put(method.name[i, j]:lower);
 		i <- j;
 	);
-	method.name <- s @ (Std.String.T, '_');
+	method.name <- Std.String.Of(s, "_");
 );
 EVERY WITH node <- cairo_api[] DO (
 	VAR name <- ALL node.cname:split('_');
@@ -723,7 +723,7 @@ DEF ProcessFunction(function) (
 	VAR parameter <- {}, return, array, aux <- {};
 	return <- function[:"return-value"];
 	(array <- return[:array]) => (
-		array.length => aux:insert(array.length @ Std.Integer.T, 'out-size');
+		array.length => aux:insert(Std.Integer.Of(array.length), 'out-size');
 	);
 	VAR return_type <- Xml.New(:"return-type", {"type" IS ProcessType(return[])});
 	return_type == NIL => (
@@ -732,7 +732,7 @@ DEF ProcessFunction(function) (
 		Sys.Program.Exit(1);
 	);
 	EVERY parameter <- function[:parameters][:parameter] DO (
-		(array <- parameter[:array]) => aux:insert(array.length @ Std.Integer.T, 'length-{array.length}');
+		(array <- parameter[:array]) => aux:insert(Std.Integer.Of(array.length), 'length-{array.length}');
 	);
 	VAR i <- 0;
 	VAR parameters <- Xml.New(:parameters);

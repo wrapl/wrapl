@@ -7,8 +7,6 @@
 
 TYPE(T);
 
-SYMBOL(AS, "@");
-
 typedef struct val_closure_t {
 	GClosure Parent;
 	Std$Object_t *Function;
@@ -24,7 +22,7 @@ static void __marshal_val(val_closure_t *Closure, GValue *Result, guint NoOfArgs
 	Std$Function_result Result0;
 	switch (Std$Function$invoke(Closure->Function, NoOfArgs, &Result0, Args0)) {
 	case MESSAGE:
-		if (Std$Function$call(AS, 2, &Result0, Result0.Val, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Result0, Result0.Val) < FAILURE) {
 			printf("Warning: Closure sent message: %s.\n", Std$String$flatten(Result0.Val));
 		} else {
 			printf("Warning: Closure sent message: <unknown>.\n");

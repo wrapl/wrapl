@@ -5,7 +5,7 @@
 
 TYPE(T, Std$Number$T);
 
-ASYMBOL(From);
+ASYMBOL(Of);
 
 TYPED_INSTANCE(int, Std$Number$is0, T, Std$Rational_t *A) {
 	return 0;

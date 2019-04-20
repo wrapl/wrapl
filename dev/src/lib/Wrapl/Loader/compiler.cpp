@@ -14,8 +14,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-SYMBOL($AT, "@");
-
 TYPE(ScopeT);
 
 #if 0
@@ -445,7 +443,7 @@ void qualident_expr_t::print(int Indent) {
 void const_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	Std$Function_result Result;
-	if (Std$Function$call((Std$Object_t *)$AT, 2, &Result, Operand->Value, 0, Std$String$T, 0) < FAILURE) {
+	if (Std$Function$call(Std$String$Of, 1, &Result, Operand->Value, 0) < FAILURE) {
 		printf("%s", Std$String$flatten(Result.Val));
 	} else {
 		printf("#%x", Operand->Value);
@@ -2478,7 +2476,7 @@ Std$Object_t *expr_t::evaluate(compiler_t *Compiler) {
 	case FAILURE:
 		return 0;
 	case MESSAGE:
-		if (Std$Function$call($AT, 2, &Result, Result.Val, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Result, Result.Val, 0) < FAILURE) {
 			Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
 		};
 		return 0;
@@ -2654,14 +2652,14 @@ operand_t *module_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 			if (Std$Object$in(Result.Val, Sys$Program$ErrorT)) {
 				Sys$Program$stack_trace_t *StackTrace = ((Sys$Program$error_t *)Result.Val)->StackTrace;
 				for (int I = 0; I < StackTrace->Depth; ++I) fprintf(stderr, "\t%s\n", StackTrace->Trace[I]);
-				Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0);
+				Std$Function$call(Std$String$Of, 1, &Result, Result.Val, 0);
 				Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
 			} else if (Result.Val->Type == Std$Symbol$NoMethodMessageT) {
 				Std$Symbol$nomethodmessage *Message = (Std$Symbol$nomethodmessage *)Result.Val;
 				for (int I = 0; I < Message->Count; ++I) fprintf(stderr, "\t%s\n", Message->Stack[I]);
-				Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0);
+				Std$Function$call(Std$String$Of, 1, &Result, Result.Val, 0);
 				Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
-			} else if (Std$Function$call((Std$Object_t *)$AT, 2, &Result, Result.Val, 0, Std$String$T, 0) < FAILURE) {
+			} else if (Std$Function$call(Std$String$Of, 1, &Result, Result.Val) < FAILURE) {
 				Compiler->raise_error(LineNo, InitErrorMessageT, Std$String$flatten(Result.Val));
 			} else {
 				Compiler->raise_error(0, InitErrorMessageT, "Error: unhandled message");

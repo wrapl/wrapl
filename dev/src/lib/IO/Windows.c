@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-SYMBOL($AS, "@");
 SYMBOL($block, "block");
 
 TYPE(T, IO$Stream$T);
@@ -768,7 +767,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 METHOD("write", TYP, TextWriterT, ANY) {
 	IO$Windows_t *Stream = Args[0].Val;
 	Std$Function_result Result0;
-	switch (Std$Function$call($AS, 2, &Result0, Args[1].Val, Args[1].Ref, Std$String$T, 0)) {
+	switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, Args[1].Ref)) {
 	case SUSPEND:
 	case SUCCESS: {
 		Std$String_t *String = Result0.Val;

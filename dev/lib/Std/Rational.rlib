@@ -1,7 +1,7 @@
 module("Std", "Rational")
 
 export("T")
-export("New")
+export("Of")
 export("_alloc")
 export("_new")
 export("_new_string")

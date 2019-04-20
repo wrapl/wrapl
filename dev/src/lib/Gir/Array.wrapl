@@ -69,7 +69,7 @@ TO :c_to_riva(type@NullTerminatedT, in, out, tmp) [
 DEF SizedT! <- <[T] length>;
 
 DEF SizedNew!(base) (
-    VAR length <- base:before("-") @ Integer.T;
+    VAR length <- Integer.Of(base:before("-"));
     base <- Type.Lookup(base:after("-"));
     VAR type <- SizedT();
     type:base <- base;
@@ -95,7 +95,7 @@ TO :c_to_riva(type@SizedT, in, out, tmp) [
 DEF SizedFieldT! <- <[T] length>;
 
 DEF SizedFieldNew!(base) (
-	VAR length <- base:before("-") @ String.T;
+	VAR length <- base:before("-");
     base <- Type.Lookup(base:after("-"));
     VAR type <- SizedFieldT();
     type:base <- base;
@@ -133,7 +133,7 @@ TO :c_to_riva(type@SizedFieldT, in, out, tmp) [
 DEF FixedT! <- <[T] length>;
 
 DEF FixedNew!(base) (
-    VAR length <- base:before("-") @ Integer.T;
+    VAR length <- Integer.Of(base:before("-"));
     base <- Type.Lookup(base:after("-"));
     VAR type <- FixedT();
     type:base <- base;

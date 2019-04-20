@@ -109,7 +109,7 @@ typedef struct result_t {
 TYPE(ResultT);
 // The result of a regular expression match.
 
-METHOD("@", TYP, ResultT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, ResultT) {
 	result_t *Result0 = Args[0].Val;
 	Result->Val = Result0->String;
 	return SUCCESS;

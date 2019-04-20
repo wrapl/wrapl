@@ -277,16 +277,14 @@ GLOBAL_FUNCTION(EncodeString, 1) {
 };
 
 
-SYMBOL($AS, "@");
-
 static void encode_key_value(Std$Object$t *Key, Std$Object$t *Value, encoder_t *Encoder) {
 	if (Encoder->Sep) encoder_write("&", 1, Encoder);
 	Std$Function$result Result[1];
-	if (Std$Function$call($AS, 2, Result, Key, 0, Std$String$T, 0) <= SUCCESS) {
+	if (Std$Function$call(Std$String$Of, 1, Result, Key, 0) <= SUCCESS) {
 		encode_string((Std$String$t *)Result->Val, Encoder);
 	};
 	encoder_write("=", 1, Encoder);
-	if (Std$Function$call($AS, 2, Result, Value, 0, Std$String$T, 0) <= SUCCESS) {
+	if (Std$Function$call(Std$String$Of, 1, Result, Value, 0) <= SUCCESS) {
 		encode_string((Std$String$t *)Result->Val, Encoder);
 	};
 	Encoder->Sep = 1;

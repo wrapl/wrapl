@@ -1,0 +1,11 @@
+require("Std/Methods")
+
+include("Std/Integer.rlib")
+include("Std/Type.rlib")
+include("Std/Function.rlib")
+include("Std/Object.rlib")
+
+export("T")
+export("New")
+export("Alloc")
+export("_new")

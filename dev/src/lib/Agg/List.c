@@ -1428,23 +1428,21 @@ STRING(CommaSpace, ", ");
 STRING(LeftRightBracket, "[]");
 STRING(ValueString, "<value>");
 
-SYMBOL($AT, "@");
-
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	_list *List = (_list *)Args[0].Val;
 	const _node *Node = List->Head;
 	RDLOCK(List);
 	if (Node) {
 		Std$Object_t *Final;
 		Std$Function_result Buffer;
-		if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 			Final = Std$String$add(LeftBracket, Buffer.Val);
 		} else {
 			Final = Std$String$add(LeftBracket, ValueString);
 		};
 		while (Node = Node->Next) {
 			Final = Std$String$add(Final, CommaSpace);
-			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+			if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 				Final = Std$String$add(Final, Buffer.Val);
 			} else {
 				Final = Std$String$add(Final, ValueString);
@@ -1460,7 +1458,7 @@ METHOD("@", TYP, T, VAL, Std$String$T) {
 	};
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T, TYP, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T, TYP, Std$String$T) {
 //@list
 //@_
 //@sep
@@ -1468,19 +1466,19 @@ METHOD("@", TYP, T, VAL, Std$String$T, TYP, Std$String$T) {
 // converts each element of <var>list</var> to a string and joins them separating elements with <var>sep</var>.
 	_list *List = (_list *)Args[0].Val;
 	const _node *Node = List->Head;
-	Std$Object_t *Sep = Args[2].Val;
+	Std$Object_t *Sep = Args[1].Val;
 	RDLOCK(List);
 	if (Node) {
 		Std$Object_t *Final;
 		Std$Function_result Buffer;
-		if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 			Final = Buffer.Val;
 		} else {
 			Final = ValueString;
 		};
 		while (Node = Node->Next) {
 			Final = Std$String$add(Final, Sep);
-			if (Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0) < FAILURE) {
+			if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 				Final = Std$String$add(Final, Buffer.Val);
 			} else {
 				Final = Std$String$add(Final, ValueString);

@@ -67,7 +67,7 @@ METHOD("set", TYP, ObjectT, TYP, Std$String$T, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-METHOD("@", TYP, ObjectT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, ObjectT) {
 	object_t *Object = (object_t *)Args[0].Val;
 	RETURN(Std$String$new(agnameof(Object->Handle)));
 }
