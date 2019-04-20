@@ -1534,7 +1534,7 @@ amethod Std$Integer$Of, STRING, SMALLINT
 	sub esp, byte 12
 	mov ebx, esp
 	mov eax, [Std$Function_argument(edi).Val]
-	mov edx, [Std$Function_argument(edi, 2).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
 	push byte 0
 	mov edx, [Std$Integer_smallt(edx).Value]
 	sub esp, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
