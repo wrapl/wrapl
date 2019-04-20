@@ -1,0 +1,6 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags vips"),
+	"-include vips/vips.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l vips")]
+
+detect_modules("Gir/Vips")
