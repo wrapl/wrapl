@@ -10,6 +10,8 @@ extern Std$Type_t T[];
 extern Std$Type_t SmallT[];
 extern Std$Type_t BigT[];
 
+ASYMBOL(From);
+
 extern Std$Object_t *_new_small(int32_t);
 extern Std$Object_t *_new_big(mpz_t);
 

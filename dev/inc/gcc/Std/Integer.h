@@ -27,6 +27,7 @@ RIVA_TYPE(BigT);
 
 RIVA_OBJECT(Zero);
 RIVA_OBJECT(One);
+RIVA_OBJECT(From);
 
 RIVA_OBJECT(ToSmallSmall);
 

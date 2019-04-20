@@ -8,6 +8,8 @@ extern Std$Type$t T[];
 extern Std$Object$t *_new_length(const char *Chars, int Length);
 extern Std$Object$t *_add(Std$Object$t *A, Std$String$t *B);
 
+ASYMBOL(From);
+
 Std$Object_t *_new_format(const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);

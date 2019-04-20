@@ -3,6 +3,8 @@
 
 extern Std$Type_t T[];
 
+ASYMBOL(From);
+
 TYPED_INSTANCE(int, Std$Number$is0, T, Std$Real_t *A) {
 	return A->Value == 0.0;
 };

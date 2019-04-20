@@ -4,6 +4,7 @@ library("Std/Number.rlib")
 export("T")
 export("SmallT")
 export("BigT")
+export("From")
 
 export("Zero")
 export("One")

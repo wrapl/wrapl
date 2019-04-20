@@ -137,6 +137,13 @@ DEF Opaque {
 		"StructureElementIter",
 		"TextSpan",
 		"Rectangle"
+	],
+	"Vips" IS [
+		"RefString",
+		"Blob",
+		"ArrayInt",
+		"ArrayDouble",
+		"ArrayImage"
 	]
 };
 
@@ -439,6 +446,49 @@ cairo.name <- "Cairo";
 EVERY WITH node <- api:find(; node) node.type:find("cairo.") DO (
 	node.type <- $:map(["cairo."], ["Cairo."]);
 );
+
+VAR vips <- api[:namespace, {"name" IS "Vips"}];
+EVERY WITH struct <- vips[:struct] DO (
+	WITH parent <- struct[:field, {"name" IS "parent"}]:detach DO (
+		struct:attrs:insert("parent", parent.type);
+	); 
+);
+EVERY vips[:struct, {"name" IS Opaque["Vips"]:values}][:field]:detach;
+EVERY WITH field <- vips[][:field, {"type" IS "!GLib.Mutex"}] DO field.type <- $[2, 0];
+EVERY WITH field <- vips[][:field, {"type" IS "!GLib.Thread"}] DO field.type <- $[2, 0];
+EVERY WITH field <- vips[][:field, {"type" IS "!GLib.HashTable"}] DO field.type <- $[2, 0];
+EVERY WITH field <- vips[][:field, {"type" IS "!Vips.ArrayDouble"}] DO field.type <- $[2, 0];
+EVERY WITH field <- vips[][:field, {"type" IS "!Vips.Progress"}] DO field.type <- $[2, 0];
+EVERY vips[:object][:field, {"type" IS "!any"}]:detach;
+
+DEF VipsOutParams {
+	"ColCh2ab" IS ["a", "b"],
+	"ColLab2XYZ" IS ["X", "Y", "Z"],
+	"ColXYZ2Lab" IS ["L", "a", "b"],
+	"ColXYZ2scRGB" IS ["R", "G", "B"],
+	"ColAb2Ch" IS ["C", "h"],
+	"ColSRGB2scRGB16" IS ["R", "G", "B"],
+	"ColSRGB2scRGB16Noclip" IS ["R", "G", "B"],
+	"ColSRGB2scRGB8" IS ["R", "G", "B"],
+	"ColSRGB2scRGB8Noclip" IS ["R", "G", "B"],
+	"ColScRGB2XYZ" IS ["X", "Y", "Z"],
+	"ColScRGB2sRGB16" IS ["r", "g", "b", "og"],
+	"ColScRGB2BW16" IS ["g", "og"],
+	"ColScRGB2BW8" IS ["g", "og"],
+	"ColScRGB2sRGB8" IS ["r", "g", "b", "og"]
+};
+
+vips[:class, {"name" IS "Main"}][:method, {"name" IS "ColSRGB2scRGB16Noclip"}]:detach;
+vips[:class, {"name" IS "Main"}][:method, {"name" IS "ColSRGB2scRGB8Noclip"}]:detach;
+
+VAR names;
+EVERY vips[:class, {"name" IS "Main"}][:method, {"name" IS VipsOutParams:keys(names)}][:parameters][:parameter, {"name" IS names:values}].type <- 'out-{$}';
+WITH method <- vips[:class, {"name" IS "Main"}][:method, {"cname" IS "vips_value_get_array_double"}] DO (
+	method[:"return-type"].type <- 'sized-1-double';
+	method[:parameters][:parameter, {"name" IS "n"}].type <- 'out-{$}';
+);
+vips[:object, {"name" IS "Image"}][:method, {"cname" IS "vips_image_get_double"}][:parameters][:parameter, {"name" IS "out"}].type <- 'out-{$}';
+vips[:object, {"name" IS "Object"}][:method, {"cname" IS "vips_object_set_required"}]:detach;
 
 VAR out <- IO.File.Open(Sys.Program.Args[2], IO.File.Flag.Write + IO.File.Flag.Text) | Out;
 out:write(api);

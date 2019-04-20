@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
 	libkrb5-dev \
 	libsoup2.4-dev \
 	librsvg2-dev \
+	libvips-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
 	liblz4-dev \

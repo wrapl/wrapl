@@ -1,5 +1,6 @@
 --require("Std/Methods")
 
 export("T")
+export("From")
 export("_is0")
 export("_is1")

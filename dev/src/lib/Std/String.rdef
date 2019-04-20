@@ -3,6 +3,7 @@
 export("T")
 export("Nil")
 export("Empty")
+export("From")
 export("Lower")
 export("Upper")
 export("_alloc")

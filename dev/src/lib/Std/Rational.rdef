@@ -2,6 +2,7 @@ require("Std/Methods")
 library("Std/Number.rlib")
 
 export("T")
+export("From")
 export("_alloc")
 export("_new")
 export("_new_string")

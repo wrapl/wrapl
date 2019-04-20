@@ -8,6 +8,8 @@
 
 RIVA_TYPE(T);
 
+RIVA_OBJECT(From);
+
 RIVA_CFUN(int, is0, Std$Object_t *);
 RIVA_CFUN(int, is1, Std$Object_t *);
 
