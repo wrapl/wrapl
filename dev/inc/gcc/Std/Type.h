@@ -62,7 +62,7 @@ extern void Std$Type$default_invoke(void) asm("Std$Type$New.invoke");
 		NAME ## _parents, \
 		Std$Type$default_invoke, \
 		NAME ## _fields, \
-		NAME ## _levels\
+		NAME ## _levels \
 	}}
 
 #define __strip(FIELDS...) FIELDS
@@ -81,7 +81,7 @@ extern void Std$Type$default_invoke(void) asm("Std$Type$New.invoke");
 		NAME ## _parents, \
 		Std$Type$default_invoke, \
 		NAME ## _fields_array, \
-		NAME ## _levels\
+		NAME ## _levels \
 	}}
 
 #define LEVELS_1 {1, 0}

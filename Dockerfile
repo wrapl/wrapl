@@ -78,6 +78,7 @@ RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y \
 	libgssapi-krb5-2:i386 \
 	libgtk-3-0:i386 \
+	libvips42:i386 \
 	libgtksourceview-3.0-1:i386 \
 	libncursesw6:i386 \
 	libjansson4:i386 \
