@@ -1,4 +1,4 @@
-ECLIPSE_VERSION := "7.0_45"
+ECLIPSE_VERSION := "7.0_46"
 
 ECLIPSE_LIB := file("eclipse/Kernel/i386_linux/libeclipse.a") => fun() do
 	file("eclipse"):rmdir:mkdir:chdir
