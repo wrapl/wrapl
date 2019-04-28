@@ -32,7 +32,7 @@ EclipseDir:mkdir
 
 var LibFiles := ["lib", "lib_public"]
 
-for var LibFile in LibFiles do
+for LibFile in LibFiles do
 	var Target := EclipseDir / LibFile
 	Target[ECLIPSE_LIB] => fun(Target) do
 		Target:rmdir

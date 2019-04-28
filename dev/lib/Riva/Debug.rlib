@@ -6,3 +6,4 @@ else
 end
 export("Key")
 export("_stack_trace")
+export("_caller_info")

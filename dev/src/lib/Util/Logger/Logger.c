@@ -5,6 +5,7 @@
 #include <Sys/Module.h>
 #include <Riva/Config.h>
 #include <Riva/System.h>
+#include <Riva/Debug.h>
 #include <Sys/Time.h>
 #include <Util/TypedFunction.h>
 #include <pthread.h>
