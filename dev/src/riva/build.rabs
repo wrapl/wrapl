@@ -1,5 +1,5 @@
-GC_VERSION := "8.0.0"
-ATOMIC_OPS_VERSION := "7.6.6"
+GC_VERSION := "8.0.4"
+ATOMIC_OPS_VERSION := "7.6.10"
 CONFUSE_VERSION := "3.2"
 
 var CONFUSE_LIB := EXT_DIR / "lib/libconfuse.a" => fun() do
@@ -39,10 +39,10 @@ GC_LIB => fun() do
 	var ATOMIC_OPS_DIR := GC_DIR / "libatomic_ops"
 	GC_DIR:rmdir
 	execute('wget -nv https://github.com/ivmai/bdwgc/releases/download/v{GC_VERSION}/gc-{GC_VERSION}.tar.gz -O- | tar xvzP')
-	execute("mkdir", "-p", ATOMIC_OPS_DIR)
-	execute("cd", ATOMIC_OPS_DIR, "&&",
-		'wget -nv https://github.com/ivmai/libatomic_ops/releases/download/v{ATOMIC_OPS_VERSION}/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
-	)
+	--execute("mkdir", "-p", ATOMIC_OPS_DIR)
+	--execute("cd", ATOMIC_OPS_DIR, "&&",
+	--	'wget -nv https://github.com/ivmai/libatomic_ops/releases/download/v{ATOMIC_OPS_VERSION}/libatomic_ops-{ATOMIC_OPS_VERSION}.tar.gz -O- | tar xvzP --strip-components=1'
+	--)
 	GC_DIR:chdir
 	execute("./configure", CFG_OPTS, 'CFLAGS=\"{CFLAGS}\"')
 	execute("make")
