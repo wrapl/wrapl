@@ -1,0 +1,31 @@
+var WORDNET_H := file("wordnet/include/wn.h") => fun() do
+	file("wordnet"):rmdir:mkdir:chdir
+	execute("wget -nv http://wordnetcode.princeton.edu/3.0/WordNet-3.0.tar.bz2 -O- | tar xjP --strip-components=1")
+end
+
+CFLAGS := old + ['-I', WORDNET_H:dir]
+PREBUILDS := old + [WORDNET_H]
+
+var Sources := [
+	"binsrch.c",
+	"morph.c",
+	"search.c",
+	"wnglobal.c",
+	"wnrtl.c",
+	"wnutil.c"
+]
+
+var Objects := [file("Wordnet.o")]
+
+for SourceName in Sources do
+	var Original := file('wordnet/lib/{SourceName}')[WORDNET_H] 
+	var Source := file(SourceName)[Original] => (:copy !! [Original])
+	Objects:put(Source % "o")
+end
+
+var WORDNET_DICT := OUT_LIB/"Util/Wordnet/dict" => fun(Target) do
+	Target:rmdir:mkdir:chdir
+	execute("wget -nv http://wordnetcode.princeton.edu/wn3.1.dict.tar.gz -O- | tar xzP --strip-components=1")
+end 
+
+riva_module("Util/Wordnet", Objects)[WORDNET_DICT]

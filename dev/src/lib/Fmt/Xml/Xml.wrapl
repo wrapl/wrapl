@@ -95,7 +95,7 @@ METH String.Of(node @ NodeT) (
 		) // ?child == EntityT => (
 			s <- '{$}&{child:ref};';
 		) // (
-			s <- $ + child @ String.T;
+			s <- $ + String.Of(child);
 		);
 	);
 	s <- '{$}</{node:tag}>';

@@ -82,7 +82,7 @@ AMETHOD(Std$Number$Of, TYP, Std$String$T) {
 		mpq_canonicalize(R);
 		if (mpz_cmp_si(mpq_denref(R), 1)) {
 			return Std$Rational$new(R);
-		} else if (mpz_fits_slong_p(mpq_numref(R))) {
+		} else if (mpz_fits_sint_p(mpq_numref(R))) {
 			return Std$Integer$new_small(mpz_get_si(mpq_numref(R)));
 		} else {
 			return Std$Integer$new_big(mpq_numref(R));
@@ -1843,7 +1843,7 @@ STRING_METHOD("after", TYP, Std$String$T, TYP, Std$String$T) {
 };
 
 static inline Std$Object_t *finish_integer(mpz_t Z) {
-	if (mpz_fits_slong_p(Z)) {
+	if (mpz_fits_sint_p(Z)) {
 		return Std$Integer$new_small(mpz_get_si(Z));
 	} else {
 		return Std$Integer$new_big(Z);
@@ -1853,7 +1853,7 @@ static inline Std$Object_t *finish_integer(mpz_t Z) {
 static inline Std$Object_t *finish_rational(mpq_t R) {
 	if (mpz_cmp_si(mpq_denref(R), 1)) {
 		return Std$Rational$new(R);
-	} else if (mpz_fits_slong_p(mpq_numref(R))) {
+	} else if (mpz_fits_sint_p(mpq_numref(R))) {
 		return Std$Integer$new_small(mpz_get_si(mpq_numref(R)));
 	} else {
 		return Std$Integer$new_big(mpq_numref(R));
@@ -2275,8 +2275,8 @@ RATIONAL_METHOD("^", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 
 static inline Std$Function_status rational_power(mpq_t A, mpq_t B, Std$Function_result *Result) {
 	int Power, Root;
-	if (!mpz_fits_slong_p(mpq_numref(B))) return FAILURE;
-	if (!mpz_fits_slong_p(mpq_denref(B))) return FAILURE;
+	if (!mpz_fits_sint_p(mpq_numref(B))) return FAILURE;
+	if (!mpz_fits_sint_p(mpq_denref(B))) return FAILURE;
 	Power = mpz_get_si(mpq_numref(B));
 	Root = mpz_get_si(mpq_denref(B));
 	mpq_t C;
@@ -2480,7 +2480,7 @@ Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
 	mpz_t Quotient;
 	mpz_init(Quotient);
 	mpz_fdiv_q(Quotient, mpq_numref(R->Value), mpq_denref(R->Value));
-	if (mpz_fits_slong_p(Quotient)) {
+	if (mpz_fits_sint_p(Quotient)) {
 		Result->Val = Std$Integer$new_small(mpz_get_si(Quotient));
 	} else {
 		Result->Val = Std$Integer$new_big(Quotient);
@@ -2493,7 +2493,7 @@ RATIONAL_METHOD("ceil", TYP, Std$Rational$T) {
 	mpz_t Quotient;
 	mpz_init(Quotient);
 	mpz_cdiv_q(Quotient, mpq_numref(R->Value), mpq_denref(R->Value));
-	if (mpz_fits_slong_p(Quotient)) {
+	if (mpz_fits_sint_p(Quotient)) {
 		Result->Val = Std$Integer$new_small(mpz_get_si(Quotient));
 	} else {
 		Result->Val = Std$Integer$new_big(Quotient);

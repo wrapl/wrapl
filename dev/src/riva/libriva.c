@@ -99,6 +99,7 @@ size_t malloc_usable_size(void *Ptr) {
 	return GC_strdup(Str);
 };*/
 
+/*
 void *memalign(size_t Alignment, size_t Size) {
 	if (Size < 256) Size = 256; // TODO: This is a temporary fix for what seems to be a bug in the garbage collector
 	return GC_memalign(Alignment, Size);
@@ -108,6 +109,7 @@ int posix_memalign(void **Ptr, size_t Alignment, size_t Size) {
 	*Ptr = memalign(Alignment, Size);
 	return 0;
 };
+*/
 
 void *fcfix_malloc(size_t Size) {
 	//printf("%s:%d\n", __FILE__, __LINE__);

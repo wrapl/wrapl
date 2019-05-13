@@ -1,0 +1,14 @@
+include("Agg/List.rlib")
+include("Sys/Module.rlib")
+
+export("SynsetT")
+export("PosT")
+export("Find")
+export("Morph")
+
+submodule("Pos")
+subexport("Pos", "PosNoun", "Noun")
+subexport("Pos", "PosVerb", "Verb")
+subexport("Pos", "PosAdj", "Adj")
+subexport("Pos", "PosAdv", "Adv")
+subexport("Pos", "PosSatellite", "Satellite")

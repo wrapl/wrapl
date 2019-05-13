@@ -160,6 +160,36 @@ METHOD("[]", TYP, Agg$List$T, TYP, T) {
 	return SUCCESS;
 };
 
+METHOD("shuffle", TYP, Agg$List$T, TYP, T) {
+	Agg$List$t *List = (Agg$List$t *)Args[0].Val;
+	random_t *Random = (random_t *)Args[1].Val;
+	if (!List->Length) RETURN(List);
+	Agg$List$node **Nodes = (Agg$List$node **)Riva$Memory$alloc(List->Length * sizeof(Agg$List$node *));
+	Agg$List$node **P = Nodes;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) *P++ = Node;
+	for (int I = List->Length; --I >= 0;) {
+		int J = gmp_urandomm_ui(Random->State, I + 1);
+		Agg$List$node *Temp = Nodes[J];
+		Nodes[J] = Nodes[I];
+		Nodes[I] = Temp;
+	}
+	Agg$List$node *Tail = List->Head = Nodes[List->Length - 1];
+	Tail->Prev = 0;
+	for (int I = List->Length - 1; --I >= 0;) {
+		Agg$List$node *Node = Nodes[I];
+		Tail->Next = Node;
+		Node->Prev = Tail;
+		Tail = Node;
+	}
+	Tail->Next = 0;
+	List->Tail = Tail;
+	List->Index = 1;
+	List->Cache = List->Head;
+	List->Access = 4;
+	List->Array = 0;
+	RETURN(List);
+}
+
 double _uniform01(random_t *Random) {
 	double R;
 	unsigned long *I = &R;

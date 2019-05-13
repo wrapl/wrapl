@@ -2967,10 +2967,10 @@ extern __gmpz_mul_2exp
 integer_method "sal", BIGINT, SMALLINT
 sal_big_small:
 	sub esp, byte 12
+	mov ebx, esp
 	push esp
 	call __gmpz_init
 	add esp, byte 4
-	mov ebx, esp
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
@@ -2990,10 +2990,10 @@ extern __gmpz_tdiv_q_2exp
 integer_method "sar", BIGINT, SMALLINT
 sar_big_small:
 	sub esp, byte 12
+	mov ebx, esp
 	push esp
 	call __gmpz_init
 	add esp, byte 4
-	mov ebx, esp
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
@@ -3013,14 +3013,14 @@ extern __gmpz_mul_2exp
 integer_method "shl", BIGINT, SMALLINT
 shl_big_small:
 	sub esp, byte 12
+	mov ebx, esp
 	push esp
 	call __gmpz_init
 	add esp, byte 4
-	mov ebx, esp
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
-	js near shr_big_small.finish
+	jns near shr_big_small.finish
 	neg ecx
 .finish:
 	push ecx
@@ -3036,14 +3036,14 @@ extern __gmpz_fdiv_q_2exp
 integer_method "shr", BIGINT, SMALLINT
 shr_big_small:
 	sub esp, byte 12
+	mov ebx, esp
 	push esp
 	call __gmpz_init
 	add esp, byte 4
-	mov ebx, esp
 	mov eax, [Std$Function_argument(edi, 1).Val]
 	mov ecx, [Std$Integer_smallt(eax).Value]
 	neg ecx
-	js near shl_big_small.finish
+	jns near shl_big_small.finish
 	neg ecx
 .finish:
 	push ecx
@@ -3569,11 +3569,11 @@ integer_method "in", SMALLINT, BIGINT
 	inc eax
 	ret
 
-extern __gmpz_fits_slong_p
+extern __gmpz_fits_sint_p
 extern __gmpz_get_si
 cfunction finish_integer
 	push esp
-	call __gmpz_fits_slong_p
+	call __gmpz_fits_sint_p
 	add esp, byte 4
 	test eax, eax
 	jnz .convert_to_small

@@ -24,6 +24,7 @@ CFG_OPTS := {
 	"--with-libatomic-ops=none",
 	"--enable-parallel-mark",
 	"--disable-gcj-support",
+	"--enable-cplusplus",
 	'--prefix={EXT_DIR}'
 }
 

@@ -62,7 +62,7 @@ end
 
 cpp_includes := fun(Target) do
 	var Files := []
-	var Lines := shell('gcc -c {CXXFLAGS} -M -MG {Target:source}')
+	var Lines := shell('g++ -c {CXXFLAGS} -M -MG {Target:source}')
 	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( )"
 	Files:pop
 	for File in Files do

@@ -6,16 +6,31 @@ IMP Fmt USE Json, Xml;
 
 DEF Display! :?;
 
-METH Display(x) '{x}';
+METH Display(x, data @ Agg.Table.T) '{x}' RECV msg DO (
+	VAR contents <- ['('];
+	VAR field, value_text, value_data;
+	VAR sep <- "";
+	EVERY field <- (?x):fields:values DO (
+		value_text <- Display(field(x), value_data <- {});
+		contents:put(
+			Xml.New(:i, ['{sep}{field}: ']),
+			Xml.LoadString(value_data["text/html"]) | value_text
+		);
+		sep <- ", ";
+	);
+	contents:put(')');
+	data:insert('text/html', '{Xml.New(:span, contents)}');
+	RET '<object>';
+);
 
 METH Display(list @ Agg.List.T, data @ Agg.Table.T) (
 	VAR html <- Xml.New(:ol);
 	VAR value, value_text, value_data;
 	EVERY value <- list:values DO (
 		value_text <- Display(value, value_data <- {});
-		html:append(Xml.New(html, :li, [
+		Xml.New(html, :li, [
 			Xml.LoadString(value_data["text/html"]) | value_text
-		]));
+		]);
 	);
 	data:insert('text/html', '{html}');
 	RET '{list}';
@@ -28,10 +43,10 @@ METH Display(table @ Agg.Table.T, data @ Agg.Table.T) (
 	EVERY table:loop(key, value) DO (
 		key_text <- Display(key, key_data <- {});
 		value_text <- Display(value, value_data <- {});
-		html:append(Xml.New(:li, [
+		Xml.New(html, :li, [
 			Xml.New(:b, [Xml.LoadString(key_data["text/html"]) | key_text, ": "]),
 			Xml.LoadString(value_data["text/html"]) | value_text
-		]));
+		]);
 	);
 	data:insert('text/html', '{html}');
 	RET '{table}';
@@ -196,7 +211,7 @@ DEF Handle(socket, msg) (
 			);
 		);
 		VAR data <- {};
-		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
+		data:insert("text/plain", Display(result, data) RECV msg DO '{msg}');
 		Send(iopub, NIL, "execute_result", req_header, {}, {
 			"execution_count" IS execution_count,
 			"data" IS data
