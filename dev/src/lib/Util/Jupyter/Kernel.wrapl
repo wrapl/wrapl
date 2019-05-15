@@ -59,6 +59,39 @@ Log.INFO('Starting wrapl kernel');
 DEF InT <[IO.Stream.TextReaderT, IO.Stream.ReaderT, IO.Stream.T] parent>;
 DEF OutT <[IO.Stream.TextWriterT, IO.Stream.WriterT, IO.Stream.T] type, parent>;
 
+DEF CommT <[] id, callback>;
+VAR targets <- {};
+VAR comms <- {};
+
+DEF RegisterTarget!(target_name, callback) (
+	targets:insert(target_name, callback);
+);
+
+DEF OpenComm!(target_name, data, callback) (
+	VAR comm <- CommT('{Alg.UUID.New()}', callback);
+	comms:insert(comm:id, comm);
+	Send(shell, NIL, "comm_open", out:parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+	RET comm;
+);
+
+METH :send(comm @ CommT, data) IS <comm, data, parent> (
+	Send(shell, NIL, "comm_msg", parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+);
+
+METH :close(comm @ CommT, data) IS <comm, data, parent> (
+	comms:delete(comm:id);
+	Send(shell, NIL, "comm_close", parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+);
+
 VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
 VAR key <- connection.key;
 
@@ -185,6 +218,10 @@ DEF Handle(socket, msg) (
 		});
 		Terminal:export("Out", out <- OutT("stdout", {}));
 		Terminal:export("Err", err <- OutT("stderr", {}));
+	) IS "comm_info_request" DO (
+		Send(shell, ids, "comm_info_reply", req_header, {}, {
+			"comms" IS {}
+		});
 	) IS "execute_request" DO (
 		execution_count <- $ + 1;
 		input:write(req_content.code);
@@ -244,7 +281,22 @@ DEF Handle(socket, msg) (
 	) IS "shutdown_request" DO (
 		Log.INFO("Shutting down");
 		SEND "Shutdown";
+	) IS "comm_open" DO (
+		Log.INFO("Comm open");
+		targets[req_content.target_name](req_content.comm_id, req_content.data);
+		RECV msg DO Log.ERROR("Comm open ", msg);
+	) IS "comm_msg" DO (
+		Log.INFO("Comm message");
+		comms[req_content.comm_id](req_content.data);
+		RECV msg DO Log.ERROR("Comm message ", msg);
 	);
+);
+
+DEF DisplayData!(data, metadata | {}) (
+	Send(iopub, NIL, "display_data", out:parent, {}, {
+		"data" IS data,
+		"metadata" IS metadata
+	});
 );
 
 END Kernel.

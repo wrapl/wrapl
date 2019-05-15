@@ -69,7 +69,7 @@ METHOD("copy", TYP, T) {
 	return SUCCESS;
 };
 
-AMETHOD(Std$String$Of, TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	const vector_t *Vector = Args[0].Val;
 	if (Vector->Length.Value == 0) {
 		Result->Val = LeftRightBracket;
