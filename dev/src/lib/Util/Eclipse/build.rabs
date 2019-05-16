@@ -1,9 +1,8 @@
-ECLIPSE_VERSION := "7.0_46"
+ECLIPSE_VERSION := "7.0_47"
 
 ECLIPSE_LIB := file("eclipse/Kernel/i386_linux/libeclipse.a") => fun() do
 	file("eclipse"):rmdir:mkdir:chdir
---	execute('wget -nv http://eclipseclp.org/Distribution/CurrentRelease/{ECLIPSE_VERSION}%20i386_linux%20Intel-32bit-Linux/eclipse_basic.tgz -O- | tar xzP')
-	execute('wget -nv http://eclipseclp.org/Distribution/CurrentRelease/{ECLIPSE_VERSION}%20src%20Sources/eclipse_src.tgz -O- | tar xzP --strip-components=1')
+	execute('wget -nv https://eclipseclp.org/Distribution/Builds/{ECLIPSE_VERSION}/src/eclipse_src.tgz -O- | tar xzP --strip-components=1')
 	execute("./configure",
 		'--prefix={BUILDDIR}',
 		'--libdir={BUILDDIR}',
