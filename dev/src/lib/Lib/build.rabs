@@ -16,10 +16,9 @@ var GMP_LIB := EXT_DIR / "lib/libgmp.a" => fun() do
 	execute("make install")
 end
 
-file("Gmp.o")[GMP_LIB]
-
 scope("gmp";) do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", '-x{GMP_LIB}', "-XGmp.exports"]
+	PREBUILDS := old + [GMP_LIB]
 	GMP_RLINK[riva_module("Gmp", [file("Gmp.o")])] => fun() do
 		var Out := GMP_RLINK:open("w")
 		Out:write('module(\"Gmp\")\nprefix(\"\")\n')
