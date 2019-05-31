@@ -596,6 +596,27 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 	Type.Define("gchar**", Type.Lookup("array-gchar*"));
 );
 
+DEF StringLengthT! <- <[Type.T] index>;
+
+DEF StringLengthNew!(base) (
+    VAR index <- Integer.Of(base);
+    VAR type <- StringLengthT();
+    type:index <- index;
+    RET type;
+);
+
+TO :ctype(type@StringLengthT) "int";
+TO :rtype(type@StringLengthT) FAIL;
+
+TO :c_argcount(type@StringLengthT) 0;
+TO :c_precall(type@StringLengthT, argindex, paramindex) [
+    'int param{paramindex} = Std$String$get_length(Args[{type:index}].Val);'
+];
+TO :riva_argcount(type@StringLengthT) 0;
+TO :riva_precall(type@StringLengthT, argindex, paramindex) [
+	'int param{paramindex}_value = arg{type:index};'
+];
+
 (VAR double <- Type.T("double");
 	TO :rtype(=double) "Std$Real$T";
 	TO :ctype(=double) "double";

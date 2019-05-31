@@ -380,6 +380,11 @@ api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"na
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_headers"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
+WITH method <- api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "MessageBody"}][:method, {"name" IS "append"}] DO (
+	Out:write('method = {method}\n');
+	method[:parameters][:parameter, {"name" IS "data"}].type <- 'guchar*';
+	method[:parameters][:parameter, {"name" IS "length"}].type <- 'string_length-1';
+);
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
 
