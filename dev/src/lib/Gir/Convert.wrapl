@@ -373,6 +373,9 @@ api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Server"}]:prepend(
 );
 EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
 EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:method, {"name" IS "get_data"}][:parameters][:parameter, {"name" IS "data"}].type <- 'out-void*';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:method, {"name" IS "get_data"}][:parameters][:parameter, {"name" IS "length"}].type <- 'out-int';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:field, {"name" IS "data"}].type <- 'void*';
 
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_body"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_headers"}].type <- $:after('!');
