@@ -19,6 +19,7 @@ typedef struct parser_t {
 TYPE(T, IO$Stream$WriterT, IO$Stream$T);
 
 static Std$Object$t *attributes_to_string(MD_ATTRIBUTE *Attributes) {
+	if (!Attributes->size) return Std$String$Empty;
 	int Total = 0;
 	int NumParts = 0;
 	while (Attributes->substr_offsets[NumParts] != Attributes->size) ++NumParts;

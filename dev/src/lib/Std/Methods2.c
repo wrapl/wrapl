@@ -81,11 +81,11 @@ AMETHOD(Std$Number$Of, TYP, Std$String$T) {
 	if (mpq_set_str(R, Buffer, 10) == 0) {
 		mpq_canonicalize(R);
 		if (mpz_cmp_si(mpq_denref(R), 1)) {
-			return Std$Rational$new(R);
+			RETURN(Std$Rational$new(R));
 		} else if (mpz_fits_sint_p(mpq_numref(R))) {
-			return Std$Integer$new_small(mpz_get_si(mpq_numref(R)));
+			RETURN(Std$Integer$new_small(mpz_get_si(mpq_numref(R))));
 		} else {
-			return Std$Integer$new_big(mpq_numref(R));
+			RETURN(Std$Integer$new_big(mpq_numref(R)));
 		}
 	} else {
 		char *End;
