@@ -144,6 +144,22 @@ DEF Opaque {
 		"ArrayInt",
 		"ArrayDouble",
 		"ArrayImage"
+	],
+	"WebKit2" IS [
+		"NetworkProxySettings",
+		"UserContentFilter",
+		"ScriptDialog",
+		"ApplicationInfo",
+		"NavigationAction",
+		"UserStyleSheet",
+		"Credential",
+		"SecurityOrigin",
+		"OptionMenuItem",
+		"UserScript",
+		"WebViewSessionState",
+		"JavascriptResult",
+		"MimeInfo",
+		"WebsiteData"
 	]
 };
 
@@ -398,6 +414,8 @@ WITH parameters <- api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Mess
 	parameters[:parameter, {"name" IS "length"}].type <- 'string_length-1';
 );
 
+EVERY api[:namespace, {"name" IS "WebKit2"}][].cname <- $:map(["WebKit2"], ["WebKit"]);
+EVERY api[:namespace, {"name" IS "JavaScriptCore"}][].cname <- $:map(["JavaScriptCore"], ["JSC"]);
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
 

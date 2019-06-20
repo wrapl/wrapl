@@ -1,0 +1,6 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags webkit2gtk-4.0"),
+	"-include webkit2/webkit2.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l webkit2gtk-4.0")]
+
+detect_modules("Gir/WebKit2")

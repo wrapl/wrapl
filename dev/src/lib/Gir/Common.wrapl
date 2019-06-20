@@ -9,10 +9,16 @@ IMP .Type, .Docs, .API;
 IMP .Log USE Log, List;
 
 DEF PrefixLength!(namespace, cname) (
-	VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
-	("A" <= namespace[-1] <= "Z") => n <- n + 1;
-	cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
-	RET n;
+	cname:begins("WebKit2") => (
+		RET cname:length - 1 + COUNT cname:chars IN String.Upper;
+	) // cname:begins("WebKit") => (
+		RET cname:length + COUNT cname:chars IN String.Upper;
+	) // (
+		VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
+		("A" <= namespace[-1] <= "Z") => n <- n + 1;
+		cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
+		RET n;
+	);
 );
 
 DEF ConstructorName(type, cname) (
@@ -24,14 +30,14 @@ DEF ConstructorName(type, cname) (
 	cname[i] = "_" => (i <- i + 1);
 	name <- name + cname[i]:upper;
 	REP (
-	i <- i + 1;
-	UNTIL i > n;
-	cname[i] = "_" => (
 		i <- i + 1;
-		name <- name + cname[i]:upper;
-	) // (
-		name <- name + cname[i];
-	);
+		UNTIL i > n;
+		cname[i] = "_" => (
+			i <- i + 1;
+			name <- name + cname[i]:upper;
+		) // (
+			name <- name + cname[i];
+		);
 	);
 	RET name;
 );
