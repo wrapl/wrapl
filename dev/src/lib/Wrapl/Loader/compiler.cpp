@@ -2683,9 +2683,10 @@ void module_expr_t::compile(compiler_t *Compiler) {DEBUG
 };
 
 Std$Function_status command_expr_t::compile(compiler_t *Compiler, Std$Function_result *Result) {DEBUG
-	char ModulePath[256];
-	char *Tmp = getcwd(ModulePath, 256);
-	strcat(ModulePath, PATHSTR);
+	char Tmp[256];
+	getcwd(Tmp, 256);
+	strcat(Tmp, PATHSTR);
+	const char *ModulePath = Riva$Memory$strdup(Tmp);
 	for (command_expr_t::globalvar_t *Var = Vars; Var; Var = Var->Next) {
 		operand_t *Operand = new operand_t;
 		Operand->Type = operand_t::GVAR;

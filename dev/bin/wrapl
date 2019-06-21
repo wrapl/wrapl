@@ -95,7 +95,8 @@ DEF Init() (
 		VAR parts <- ALL code:split(".");
 		code[-1] = "." => parts:put("");
 		VAR scope <- global;
-		line[i - 3, i] = "IMP" => scope <- Module.Load(NIL, parts:pop);
+		VAR path <- code[1] = "." => Main:path // NIL;
+		line[i - 3, i] = "IMP" => scope <- Module.Load(path, parts:pop);
 		REP (WHILE parts:length > 1; scope <- scope.(parts:pop) | FAIL);
 		RET ALL line[1, -parts[1]:length] + scope:suggest(parts[1]):values;
 	);
