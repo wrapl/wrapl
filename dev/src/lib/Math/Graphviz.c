@@ -64,7 +64,7 @@ METHOD(".", TYP, ObjectT, TYP, Std$String$T) {
 METHOD("set", TYP, ObjectT, TYP, Std$String$T, TYP, Std$String$T) {
 	object_t *Object = (object_t *)Args[0].Val;
 	agsafeset(Object->Handle, Std$String$flatten(Args[1].Val), Std$String$flatten(Args[2].Val), Std$String$flatten(Args[2].Val));
-	return SUCCESS;
+	RETURN0;
 }
 
 AMETHOD(Std$String$Of, TYP, ObjectT) {
@@ -119,13 +119,36 @@ GLOBAL_FUNCTION(Plugins, 1) {
 	RETURN(List);
 }
 
+Std$Integer$smallt KindGraph[] = {{Std$Integer$SmallT, AGRAPH}};
+Std$Integer$smallt KindNode[] = {{Std$Integer$SmallT, AGNODE}};
+Std$Integer$smallt KindInEdge[] = {{Std$Integer$SmallT, AGINEDGE}};
+Std$Integer$smallt KindOutEdge[] = {{Std$Integer$SmallT, AGOUTEDGE}};
+Std$Integer$smallt KindEdge[] = {{Std$Integer$SmallT, AGEDGE}};
+
+METHOD("get", TYP, GraphT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
+	_graph_t *Graph = (_graph_t *)Args[0].Val;
+	agattr(Graph->Handle, Std$Integer$get_small(Args[1].Val), Std$String$flatten(Args[2].Val), 0);
+	RETURN0;
+}
+
+METHOD("set", TYP, GraphT, TYP, Std$Integer$SmallT, TYP, Std$String$T, TYP, Std$String$T) {
+	_graph_t *Graph = (_graph_t *)Args[0].Val;
+	char *Value = agattr(Graph->Handle, Std$Integer$get_small(Args[1].Val), Std$String$flatten(Args[2].Val), Std$String$flatten(Args[3].Val));
+	if (Value) {
+		RETURN(Std$String$new(Value));
+	} else {
+		FAIL;
+	}
+
+}
+
 METHOD("node", TYP, GraphT) {
 	_graph_t *Graph = (_graph_t *)Args[0].Val;
 	char *Name;
 	if (Count > 1) {
 		Name = Std$String$flatten(Args[1].Val);
 	} else {
-		asprintf(&Name, "N%d", agnnodes(Graph->Handle));
+		asprintf(&Name, "%s:N%d", agnameof(Graph->Handle), agnnodes(Graph->Handle));
 	}
 	Agnode_t *N = agnode(Graph->Handle, Name, 1);
 	object_record_t *Record = aggetrec(N, "riva", 0);
@@ -206,7 +229,7 @@ METHOD("subgraph", TYP, GraphT) {
 	if (Count > 1) {
 		Name = Std$String$flatten(Args[1].Val);
 	} else {
-		asprintf(&Name, "G%d", agnsubg(Graph->Handle));
+		asprintf(&Name, "%s:G%d", agnameof(Graph->Handle), agnsubg(Graph->Handle));
 	}
 	Agraph_t *G = agsubg(Graph->Handle, Name, 1);
 	object_record_t *Record = aggetrec(G, "riva", 0);

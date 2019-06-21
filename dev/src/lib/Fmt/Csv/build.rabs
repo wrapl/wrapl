@@ -1,6 +1,7 @@
 CSV_VERSION := "3.0.3"
 CSV_DIR := file('libcsv-{CSV_VERSION}')
-CSV_URL := 'http://downloads.sourceforge.net/project/libcsv/libcsv/libcsv-{CSV_VERSION}/libcsv-{CSV_VERSION}.tar.gz'
+--CSV_URL := 'http://downloads.sourceforge.net/project/libcsv/libcsv/libcsv-{CSV_VERSION}/libcsv-{CSV_VERSION}.tar.gz'
+CSV_URL := 'https://sourceforge.net/projects/libcsv/files/libcsv/libcsv-3.0.3/libcsv-3.0.3.tar.gz/download?use_mirror=cfhcable#'
 
 file("libcsv.c") => fun() do
 	execute("wget -t50 -nv", CSV_URL, "-O- | tar xvzP")
