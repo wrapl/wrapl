@@ -396,7 +396,7 @@ TO :generate_c_file(type@Type.T, basedir) (
 	API.ns <- type:namespace;
 	API.cname <- type:cname;
 	API.name <- type:name;
-	VAR headers <- type:base_headers;
+	VAR headers <- type:base_headers:copy;
 	VAR item;
 	EVERY item <- type:items:values DO (
 		EVERY headers:insert(item:headers:keys);
@@ -417,7 +417,7 @@ TO :generate_c_file(type@Type.T, basedir) (
 );
 
 TO :generate_rdef_file(type@Type.T, basedir) (
-	VAR libraries <- type:base_libraries;
+	VAR libraries <- type:base_libraries:copy;
 	VAR item;
 	EVERY item <- type:items:values DO (
 		EVERY libraries:insert(item:libraries:keys);
