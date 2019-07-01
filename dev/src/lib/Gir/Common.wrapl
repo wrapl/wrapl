@@ -401,6 +401,7 @@ TO :generate_c_file(type@Type.T, basedir) (
 	EVERY item <- type:items:values DO (
 		EVERY headers:insert(item:headers:keys);
 	);
+	headers:insert("Gir/GObject/Riva.h");
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.c', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.c\n');
 	file:write("#include <Riva.h>\n");
@@ -421,6 +422,7 @@ TO :generate_rdef_file(type@Type.T, basedir) (
 	EVERY item <- type:items:values DO (
 		EVERY libraries:insert(item:libraries:keys);
 	);
+	libraries:insert("Gir/GObject/Riva.rlib");
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rdef', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.rdef\n');
 	type:namespace ~= "GObject" => file:write('require(\"Gir/GObject/Init\")\n');

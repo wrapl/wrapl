@@ -431,6 +431,8 @@ EVERY WITH cname <- cairo[].cname DO (
 	cname <- Std.String.Of(s, "_");
 );
 
+EVERY cairo[][:method, {"name" IS "GetType"}]:detach;
+
 VAR cairo_api <- Xml.LoadFile(Main:path + "/Cairo/extra.xml", Xml.NoText);
 EVERY WITH method <- cairo_api[][:method] DO method.shared // (
 	VAR i <- 0, j, s <- [];
@@ -638,6 +640,10 @@ DEF ProcessClass(class) (
 	EVERY child <- class[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= class."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
@@ -659,6 +665,10 @@ DEF ProcessInterface(interface) (
 	EVERY child <- interface[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= interface."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
@@ -690,6 +700,10 @@ DEF ProcessRecord(record) (
 	EVERY child <- record[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= record."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
