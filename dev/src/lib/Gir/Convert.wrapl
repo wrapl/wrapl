@@ -16,6 +16,7 @@ VAR gir_dirs <- [
 
 VAR gir_file, gir_dir, gir;
 EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:values)) DO gir_file[1] ~= "." => (
+	gir_file = "Gdk-2.0.typelib" => STEP;
 	gir_file = "Gtk-2.0.typelib" => STEP;
 	gir_file = "Vte-0.0.typelib" => STEP;
 	gir_file = "Dfu-1.0.typelib" => STEP;
@@ -26,7 +27,7 @@ EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:val
 	gir:wait;
 	gir:close;
 	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
-	RECV msg DO Err:write('Error: {msg}\n');
+	RECV msg DO Err:write('Error: {gir_file} -> {msg}\n');
 );
 
 -- Additional fixups go here
@@ -416,6 +417,7 @@ WITH poppler <- api[:namespace, {"name" IS "Poppler"}] DO (
 	poppler[:object, {"name" IS "Attachment"}][:field, {"name" IS "checksum"}].type <- $:after("!");
 	poppler[:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "color"}].type <- '!{$}';
 	EVERY poppler[:struct, {"name" IS "Action"}][:field].type <- '!{$}';
+	poppler[:object, {"name" IS "Document"}][:method, {"cname" IS "poppler_document_get_print_scaling"}]:detach;
 );
 
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
@@ -538,6 +540,29 @@ WITH vips <- api[:namespace, {"name" IS "Vips"}] DO (
 	);
 	vips[:object, {"name" IS "Image"}][:method, {"cname" IS "vips_image_get_double"}][:parameters][:parameter, {"name" IS "out"}].type <- 'out-{$}';
 	vips[:object, {"name" IS "Object"}][:method, {"cname" IS "vips_object_set_required"}]:detach;
+);
+
+EVERY WITH struct <- api[:namespace, {"name" IS "Graphene"}][] DO (
+	VAR cname <- "", char, num <- :false;
+	EVERY char <- struct.cname:chars DO (
+		'A' <= char <= 'Z' => (
+			num == :true => (
+				cname <- '{cname}{char:lower}';
+			) // (
+				cname <- '{cname}_{char:lower}';
+			);
+		) // '0' <= char <= '9' => (
+			num <- :true;
+			cname <- '{cname}{char}';
+		) // (
+			num <- :false;
+			cname <- '{cname}{char}';
+		);
+	);
+	struct.cname <- cname[2, 0] + '_t';
+	struct.name = "Point" | "Point3D" | "Size" | "Rectangle" // (
+		EVERY struct[:field]:detach;
+	);
 );
 
 VAR out <- IO.File.Open(Sys.Program.Args[2], IO.File.Flag.Write + IO.File.Flag.Text) | Out;

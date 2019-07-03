@@ -1,0 +1,6 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags graphene-gobject-1.0"),
+	"-include graphene.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l graphene-gobject-1.0")]
+
+detect_modules("Gir/Graphene")
