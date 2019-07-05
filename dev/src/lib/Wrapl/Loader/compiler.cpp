@@ -580,6 +580,13 @@ void skip_expr_t::print(int Indent) {
 	Skip->print(Indent);
 };
 
+void unique_expr_t::print(int Indent) {
+	printf("[L%d]", LineNo);
+	Expr->print(Indent);
+	printf(" UNIQ ");
+	Expr->print(Indent);
+};
+
 void infinite_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	printf("|");
@@ -1664,6 +1671,21 @@ operand_t *skip_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	Label2->test_skip(LineNo, Trap, Temp);
 	Label2->link(LineNo, Success);
 	return Result;
+};
+
+operand_t *unique_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
+	label_t *Label0 = new label_t;
+	label_t *Label1 = new label_t;
+
+	uint32_t Trap = Compiler->use_trap();
+	uint32_t Temp = Compiler->new_temporary();
+
+	Start->new_table(LineNo, Temp);
+	Start->link(LineNo, Label0);
+	Label1->load(LineNo, Expr->compile(Compiler, Label0, Label1));
+	Label1->test_unique(LineNo, Trap, Temp);
+	Label1->link(LineNo, Success);
+	return Register;
 };
 
 operand_t *infinite_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG

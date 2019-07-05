@@ -1130,6 +1130,21 @@ void test_skip_inst_t::encode(assembler_t *Assembler) {
 	| inc dword [ebp + Assembler->Temps + 8 * Temp]
 }
 
+void test_unique_inst_t::encode(assembler_t *Assembler) {
+	| push ecx
+	| push edx
+	| push 0
+	| push ecx
+	| push dword [ebp + Assembler->Temps + 8 * Temp]
+	| call &Agg$Table$missing
+	| add esp, 12
+	| test eax, eax
+	| pop edx
+	| pop ecx
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	| jz &backtrack
+}
+
 void type_of_inst_t::encode(assembler_t *Assembler) {
 	switch (Type) {
 	case LOAD_VAL: {

@@ -10,6 +10,7 @@ RIVA_TYPE(T);
 
 RIVA_CFUN(Std$Object_t *, new, Std$Object_t *, Std$Object_t *)  __attribute__ ((malloc));
 RIVA_CFUN(void, insert, Std$Object_t *, Std$Object_t *, Std$Object_t *);
+RIVA_CFUN(int, missing, Std$Object_t *, Std$Object_t ***);
 RIVA_CFUN(int, delete, Std$Object_t *, Std$Object_t *);
 RIVA_CFUN(Std$Object_t *, index, Std$Object_t *, Std$Object_t *);
 RIVA_CFUN(Std$Object_t **, probe, Std$Object_t *, Std$Object_t *);

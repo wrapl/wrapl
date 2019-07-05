@@ -941,6 +941,27 @@ void label_t::test_skip(uint32_t LineNo, uint32_t Trap, uint32_t Temp) {DEBUG
 	append(Inst);
 };
 
+struct test_unique_inst_t : inst_t {
+	uint32_t Temp;
+	uint32_t Trap;
+#ifdef ASSEMBLER_LISTING
+	void list() {
+		if (IsPotentialBreakpoint) printf("*");
+		printf("%4d: test_skip %d, %d\n", LineNo, Temp, Trap);
+	};
+#endif
+	void encode(assembler_t *Assembler);
+};
+
+void label_t::test_unique(uint32_t LineNo, uint32_t Trap, uint32_t Temp) {DEBUG
+	test_unique_inst_t *Inst = new test_unique_inst_t;
+	Inst->Trap = Trap;
+	Inst->Temp = Temp;
+	Inst->LineNo = LineNo;
+	Inst->IsPotentialBreakpoint = false;
+	append(Inst);
+};
+
 struct comp_inst_t : inst_t {
 	operand_t *Operand;
 	label_t *Failure;

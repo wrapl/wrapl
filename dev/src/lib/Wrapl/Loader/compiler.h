@@ -541,6 +541,16 @@ struct skip_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
+struct unique_expr_t : expr_t {CLASSID
+	expr_t *Expr;
+	unique_expr_t(int LineNo, expr_t *Expr) {
+		this->LineNo = LineNo;
+		this->Expr = Expr;
+	}
+	PRINT_METHOD;
+	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
+};
+
 struct infinite_expr_t : expr_t {CLASSID
 	expr_t *Expr;
 	infinite_expr_t(int LineNo, expr_t *Expr) {

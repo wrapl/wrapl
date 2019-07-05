@@ -194,6 +194,7 @@ struct label_t : inst_t {
 	void test_limit(uint32_t LineNo, uint32_t Temp, label_t *Failure);
 	void skip(uint32_t LineNo, uint32_t Temp);
 	void test_skip(uint32_t LineNo, uint32_t Trap, uint32_t Temp);
+	void test_unique(uint32_t LineNo, uint32_t Trap, uint32_t Temp);
 	void select_integer(uint32_t LineNo, select_integer_case_t *Cases, label_t *Default);
 	void select_string(uint32_t LineNo, select_string_case_t *Cases, label_t *Default);
 	void select_real(uint32_t LineNo, select_real_case_t *Cases, label_t *Default);

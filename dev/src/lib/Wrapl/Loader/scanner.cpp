@@ -100,11 +100,12 @@ const char *Tokens[] = {
 	"MAX", //tkMAX                            83
 	"MIN", //tkMIN                            84
 	"COUNT", //tkCOUNT                          85
-	"UNIQ", //tkUNIQ                           86
+	"MAP", //tkMAP                            86
 	"NEW", //tkNEW                            87
 	"MUST", //tkMUST                           88
 	"/\\", //tkLOGICALAND                     89
-	"\\/" //tkLOGICALOR                      90
+	"\\/", //tkLOGICALOR                      90
+	"UNIQ" //tkUNIQ                           91
 };
 
 scanner_t::scanner_t(IO$Stream_t *Source) {

@@ -87,11 +87,12 @@
 #define tkMAX                            83
 #define tkMIN                            84
 #define tkCOUNT                          85
-#define tkUNIQ                           86
+#define tkMAP                            86
 #define tkNEW                            87
 #define tkMUST                           88
 #define tkLOGICALAND                     89
 #define tkLOGICALOR                      90
+#define tkUNIQ                           91
 
 extern const char *Tokens[];
 

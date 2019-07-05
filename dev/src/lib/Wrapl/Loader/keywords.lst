@@ -43,6 +43,7 @@ COUNT, tkCOUNT
 UNIQ, tkUNIQ
 NEW, tkNEW
 MUST, tkMUST
+MAP, tkMAP
 $, tkSELF
 ∈, tkIN
 ←, tkASSIGN

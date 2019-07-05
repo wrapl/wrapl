@@ -835,12 +835,18 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new all_expr_t(LineNo, accept_expr(Scanner));
 	};
-	case tkUNIQ: {
+	case tkMAP: {
 		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Key = accept_expr(Scanner);
 		expr_t *Value = Scanner->parse(tkIS) ? accept_expr(Scanner) : 0;
 		return new uniq_expr_t(LineNo, Key, Value);
+	};
+	case tkUNIQ: {
+		Scanner->parse();
+		uint32_t LineNo = Scanner->Token.LineNo;
+		expr_t *Expr = accept_expr(Scanner);
+		return new unique_expr_t(LineNo, Expr);
 	};
 	case tkCOUNT: {
 		Scanner->parse();
