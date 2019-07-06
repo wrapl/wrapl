@@ -1,7 +1,7 @@
 #include <Std.h>
 #include <Riva.h>
 
-#include <tre/regex.h>
+#include <tre/tre.h>
 
 typedef struct regexp_t {
 	Std$Type_t *Type;
@@ -12,7 +12,7 @@ TYPE(T);
 // A regular expression.
 
 static void regexp_finalize(regexp_t *R, void *Data) {
-	regfree(R->Handle);
+	tre_regfree(R->Handle);
 };
 
 GLOBAL_FUNCTION(New, 1) {
@@ -22,7 +22,7 @@ GLOBAL_FUNCTION(New, 1) {
 	Std$String_t *Expr = Args[0].Val;
 	regexp_t *R = new(regexp_t);
 	int Flags = REG_EXTENDED;
-	if (regncomp(R->Handle, Std$String$flatten(Expr), Expr->Length.Value, Flags)) {
+	if (tre_regncomp(R->Handle, Std$String$flatten(Expr), Expr->Length.Value, Flags)) {
 		Result->Val = "Invalid regular expression";
 		return MESSAGE;
 	} else {
@@ -168,7 +168,7 @@ METHOD("match", TYP, T, TYP, Std$String$T) {
 		Context
 	}};
 	regmatch_t PMatch[PReg->re_nsub + 1];
-	if (reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
+	if (tre_reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
 	Std$Function_argument *Out = Args + 2;
 	int Max = Count - 2;
 	if (Max > PReg->re_nsub) Max = PReg->re_nsub + 1;
@@ -223,7 +223,7 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 		Context
 	}};
 	regmatch_t PMatch[PReg->re_nsub + 1];
-	if (reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
+	if (tre_reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
 	Std$Function_argument *Out = Args + 2;
 	int Max = Count - 2;
 	if (Max > PReg->re_nsub) Max = PReg->re_nsub + 1;
@@ -237,8 +237,8 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	result_t *Result0 = new(result_t);
 	Result0->Type = ResultT;
 	Result0->String = Std$String$slice(String, PMatch[0].rm_so + Offset, PMatch[0].rm_eo + Offset);
-	Result0->Start = Std$Integer$new_small(PMatch[0].rm_so + Offset);
-	Result0->End = Std$Integer$new_small(PMatch[0].rm_eo + Offset);
+	Result0->Start = Std$Integer$new_small(PMatch[0].rm_so + Offset + 1);
+	Result0->End = Std$Integer$new_small(PMatch[0].rm_eo + Offset + 1);
 	Result->Val = Result0;
 	return SUCCESS;
 };

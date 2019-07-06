@@ -93,6 +93,7 @@
 #define tkLOGICALAND                     89
 #define tkLOGICALOR                      90
 #define tkUNIQ                           91
+#define tkPARALLEL                       92
 
 extern const char *Tokens[];
 

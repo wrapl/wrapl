@@ -105,7 +105,8 @@ const char *Tokens[] = {
 	"MUST", //tkMUST                           88
 	"/\\", //tkLOGICALAND                     89
 	"\\/", //tkLOGICALOR                      90
-	"UNIQ" //tkUNIQ                           91
+	"UNIQ", //tkUNIQ                           91
+	"||" //tkPARALLEL                       92
 };
 
 scanner_t::scanner_t(IO$Stream_t *Source) {
@@ -442,7 +443,11 @@ int scanner_t::next() {
 				};
 			case '¬': ++Current; NextToken.Type = tkINVERSE; goto scan_done;
 			case '}': ++Current; NextToken.Type = tkRBRACE; goto scan_done;
-			case '|': ++Current; NextToken.Type = tkOR; goto scan_done;
+			case '|': ++Current;
+				switch (*Current) {
+				case '|': ++Current; NextToken.Type = tkPARALLEL; goto scan_done;
+				default: NextToken.Type = tkOR; goto scan_done;
+				}
 			case '{': ++Current; NextToken.Type = tkLBRACE; goto scan_done;
 			case '^': ++Current; NextToken.Type = tkPOWER; goto scan_done;
 			case ']': ++Current; NextToken.Type = tkRBRACKET; goto scan_done;

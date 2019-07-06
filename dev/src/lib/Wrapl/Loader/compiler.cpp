@@ -522,7 +522,7 @@ void all_expr_t::print(int Indent) {
 	Value->print(Indent);
 };
 
-void uniq_expr_t::print(int Indent) {
+void map_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	printf("UNIQ ");
 	Key->print(Indent);
@@ -580,7 +580,7 @@ void skip_expr_t::print(int Indent) {
 	Skip->print(Indent);
 };
 
-void unique_expr_t::print(int Indent) {
+void uniq_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	Expr->print(Indent);
 	printf(" UNIQ ");
@@ -1476,7 +1476,7 @@ operand_t *all_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Su
 	return Result;
 };
 
-operand_t *uniq_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
+operand_t *map_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
 	uint32_t Index = Compiler->new_temporary();
 	operand_t *Result = new operand_t;
 	Result->Type = operand_t::TVAR;
@@ -1673,7 +1673,7 @@ operand_t *skip_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	return Result;
 };
 
-operand_t *unique_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
+operand_t *uniq_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
 	label_t *Label0 = new label_t;
 	label_t *Label1 = new label_t;
 

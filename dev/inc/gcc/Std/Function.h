@@ -155,7 +155,7 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 	}}
 
 #define RETURN(X) {\
-	Result->Val = (Std$Object$t *)X;\
+	Result->Val = (Std$Object$t *)(X);\
 	return SUCCESS;\
 }
 
@@ -174,7 +174,7 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 }
 
 #define SEND(X) {\
-	Result->Val = (Std$Object$t *)X;\
+	Result->Val = (Std$Object$t *)(X);\
 	return MESSAGE;\
 }
 

@@ -430,9 +430,9 @@ struct all_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
-struct uniq_expr_t : expr_t {CLASSID
+struct map_expr_t : expr_t {CLASSID
 	expr_t *Key, *Value;
-	uniq_expr_t(int LineNo, expr_t *Key, expr_t *Value) {
+	map_expr_t(int LineNo, expr_t *Key, expr_t *Value) {
 		this->LineNo = LineNo;
 		this->Key = Key;
 		this->Value = Value;
@@ -541,9 +541,9 @@ struct skip_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
-struct unique_expr_t : expr_t {CLASSID
+struct uniq_expr_t : expr_t {CLASSID
 	expr_t *Expr;
-	unique_expr_t(int LineNo, expr_t *Expr) {
+	uniq_expr_t(int LineNo, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Expr = Expr;
 	}

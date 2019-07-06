@@ -36,6 +36,7 @@ SYMBOL($HASH, "#");
 SYMBOL($DOT, ".");
 SYMBOL($LOGICALAND, "and");
 SYMBOL($LOGICALOR, "or");
+SYMBOL($PARALLEL, "||");
 
 extern Riva$Module_t Riva$Symbol[];
 
@@ -840,13 +841,13 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Key = accept_expr(Scanner);
 		expr_t *Value = Scanner->parse(tkTO) ? accept_expr(Scanner) : 0;
-		return new uniq_expr_t(LineNo, Key, Value);
+		return new map_expr_t(LineNo, Key, Value);
 	};
 	case tkUNIQ: {
 		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Expr = accept_expr(Scanner);
-		return new unique_expr_t(LineNo, Expr);
+		return new uniq_expr_t(LineNo, Expr);
 	};
 	case tkCOUNT: {
 		Scanner->parse();
@@ -1037,6 +1038,8 @@ static expr_t *parse_term(scanner_t *Scanner) {
 	PREFIX(MODULO);
 	PREFIX(POWER);
 	PREFIX(MINUS);
+	PREFIX(PLUS);
+	PREFIX(MULTIPLY);
 	PREFIX(DIVIDE);
 	PREFIX(BACKSLASH);
 	PREFIX(INVERSE);
@@ -1206,6 +1209,7 @@ static expr_t *parse_expr2(scanner_t *Scanner, int Precedence = 0) {
 		INFIX(IN, 3);
 		INFIX(SUBTYPE, 3);
 		INFIX(INVERSE, 3);
+		INFIX(PARALLEL, 3);
 	case 4:
 		INFIX(PLUS, 4);
 		INFIX(MINUS, 4);

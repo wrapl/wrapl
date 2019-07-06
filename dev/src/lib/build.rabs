@@ -104,11 +104,12 @@ pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):t
 
 GCC_RLINK := GEN_LIB / "Gcc.rlink"
 GMP_RLINK := GEN_LIB / "Gmp.rlink"
+FFI_RLINK := GEN_LIB / "FFI.rlink"
 
 subdir("Lib")
 
 scope("lib";) do
-	PREBUILDS := old + [GCC_RLINK, GMP_RLINK]
+	PREBUILDS := old + [GCC_RLINK, GMP_RLINK, FFI_RLINK]
 	subdir("Std")
 	subdir("Sys")
 	subdir("IO")
