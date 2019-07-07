@@ -1053,15 +1053,26 @@ int _missing(table_t *Table, Std$Object_t *Key, Std$Object_t ***Value) {
 	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
 	int Size = Table->Count;
 	Slot = avl_probe_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
+	if (Value) Value[0] = Slot;
 	if (Table->Count == Size) {
 		UNLOCK(Table);
 		return 0;
 	} else {
-		if (Value) Value[0] = Slot;
 		UNLOCK(Table);
 		return 1;
 	}
 };
+
+Std$Object$t **_slot(table_t *Table, Std$Object_t *Key) {
+	WRLOCK(Table);
+	Std$Function_result Result1;
+	Std$Object_t **Slot;
+	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
+	int Size = Table->Count;
+	Slot = avl_probe_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
+	UNLOCK(Table);
+	return Slot;
+}
 
 METHOD("missing", TYP, T, ANY) {
 //@t

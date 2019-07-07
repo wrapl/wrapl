@@ -51,7 +51,8 @@ RUN apt-get update && apt-get install -y \
 	bison \
 	libssh-dev \
 	libpocketsphinx-dev \
-	libsphinxbase-dev
+	libsphinxbase-dev \
+	texinfo
 
 RUN apt-get clean
 

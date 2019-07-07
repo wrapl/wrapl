@@ -933,11 +933,21 @@ STRING(CommaSpace, ", ");
 
 AMETHOD(Image, TYP, Agg$List$T) {
 //:Std$String$T
+	Std$Object$t *Cache;
+	if (Count > 1) {
+		CHECK_EXACT_ARG_TYPE(1, Agg$Table$T);
+		Cache = Args[1].Val;
+	} else {
+		Cache = Agg$Table$new(Std$Object$Compare, Std$Object$Hash);
+	}
+	Std$Object$t **CacheSlot = Agg$Table$slot(Cache, Args[0].Val);
+	if (*CacheSlot) RETURN(*CacheSlot);
+	*CacheSlot = Std$String$new_format("#%d", Agg$Table$size(Cache));
 	Agg$List_node *Node = ((Agg$List_t *)Args[0].Val)->Head;
 	if (Node) {
 		Std$Object_t *Final;
 		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Node->Value, 0)) {
+		switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
 		case SUSPEND: case SUCCESS:
 			Final = Std$String$add(Std$String$new("["), Buffer.Val);
 			break;
@@ -948,9 +958,9 @@ AMETHOD(Image, TYP, Agg$List$T) {
 			Result->Val = Buffer.Val;
 			return MESSAGE;
 		};
-		while (Node = Node->Next) {
+		while ((Node = Node->Next)) {
 			Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
-			switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Node->Value, 0)) {
+			switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
 			case SUSPEND: case SUCCESS:
 				Final = Std$String$add(Final, Buffer.Val);
 				break;
@@ -972,6 +982,16 @@ AMETHOD(Image, TYP, Agg$List$T) {
 
 AMETHOD(Image, TYP, Agg$Table$T) {
 //:Std$String$T
+	Std$Object$t *Cache;
+	if (Count > 1) {
+		CHECK_EXACT_ARG_TYPE(1, Agg$Table$T);
+		Cache = Args[1].Val;
+	} else {
+		Cache = Agg$Table$new(Std$Object$Compare, Std$Object$Hash);
+	}
+	Std$Object$t **CacheSlot = Agg$Table$slot(Cache, Args[0].Val);
+	if (*CacheSlot) RETURN(*CacheSlot);
+	*CacheSlot = Std$String$new_format("#%d", Agg$Table$size(Cache));
 	Agg$Table$trav *Trav = Agg$Table$trav_new();
 	Std$Object$t *Node = Agg$Table$trav_first(Trav, Args[0].Val);
 	if (!Node) {
@@ -983,7 +1003,7 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 	bool Comma = false;
 	do {
 		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Agg$Table$node_key(Node), 0)) {
+		switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Agg$Table$node_key(Node), 0, Cache, 0)) {
 		case SUSPEND: case SUCCESS:
 			if (Comma) Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
 			Final = Std$String$add(Final, Buffer.Val);
@@ -997,7 +1017,7 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 		};
 		Std$Object$t *Value = Agg$Table$node_value(Node);
 		if (Value != Std$Object$Nil) {
-			switch (Std$Function$call((Std$Object_t *)Image, 1, &Buffer, Value, 0)) {
+			switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Value, 0, Cache, 0)) {
 			case SUSPEND: case SUCCESS:
 				Final = Std$String$add(Final, (Std$Object$t *)SpaceIsSpace);
 				Final = Std$String$add(Final, Buffer.Val);
