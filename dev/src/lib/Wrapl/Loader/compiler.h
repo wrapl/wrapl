@@ -432,10 +432,12 @@ struct all_expr_t : expr_t {CLASSID
 
 struct map_expr_t : expr_t {CLASSID
 	expr_t *Key, *Value;
-	map_expr_t(int LineNo, expr_t *Key, expr_t *Value) {
+	int Reverse;
+	map_expr_t(int LineNo, expr_t *Key, expr_t *Value, int Reverse) {
 		this->LineNo = LineNo;
 		this->Key = Key;
 		this->Value = Value;
+		this->Reverse = Reverse;
 	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);

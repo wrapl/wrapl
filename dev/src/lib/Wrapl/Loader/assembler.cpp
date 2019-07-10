@@ -1432,6 +1432,7 @@ void label_t::store_table(uint32_t LineNo, uint32_t Index) {DEBUG
 struct store_table2_inst_t : inst_t {
 	uint32_t Index;
 	uint32_t Key;
+	int Reverse;
 #ifdef ASSEMBLER_LISTING
 	void list() {
 		if (IsPotentialBreakpoint) printf("*");
@@ -1444,10 +1445,11 @@ struct store_table2_inst_t : inst_t {
 	void encode(assembler_t *Assembler);
 };
 
-void label_t::store_table2(uint32_t LineNo, uint32_t Index, uint32_t Key) {DEBUG
+void label_t::store_table2(uint32_t LineNo, uint32_t Index, uint32_t Key, int Reverse) {DEBUG
 	store_table2_inst_t *Inst = new store_table2_inst_t;
 	Inst->Index = Index;
 	Inst->Key = Key;
+	Inst->Reverse = Reverse;
 	Inst->LineNo = LineNo;
 	Inst->IsPotentialBreakpoint = false;
 	append(Inst);

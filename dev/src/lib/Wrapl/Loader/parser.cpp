@@ -840,8 +840,15 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Key = accept_expr(Scanner);
-		expr_t *Value = Scanner->parse(tkTO) ? accept_expr(Scanner) : 0;
-		return new map_expr_t(LineNo, Key, Value);
+		if (Scanner->parse(tkAS)) {
+			expr_t *Value = accept_expr(Scanner);
+			return new map_expr_t(LineNo, Key, Value, 1);
+		} else if (Scanner->parse(tkTO)) {
+			expr_t *Value = accept_expr(Scanner);
+			return new map_expr_t(LineNo, Key, Value, 0);
+		} else {
+			return new map_expr_t(LineNo, Key, 0, 0);
+		}
 	};
 	case tkUNIQ: {
 		Scanner->parse();

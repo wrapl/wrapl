@@ -1497,7 +1497,7 @@ operand_t *map_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Su
 		Compiler->Function->Loop->Self = KeyOp;
 		Label2->load(LineNo, Value->compile(Compiler, Label1, Label2));
 		Compiler->Function->Loop->Self = OldSelf;
-		Label2->store_table2(LineNo, Index, KeyOp->Index);
+		Label2->store_table2(LineNo, Index, KeyOp->Index, Reverse);
 		Compiler->back_trap(Label2);
 	} else {
 		Label1->load(LineNo, Key->compile(Compiler, Label0, Label1));

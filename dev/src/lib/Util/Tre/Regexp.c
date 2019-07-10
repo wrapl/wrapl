@@ -5,33 +5,121 @@
 
 typedef struct regexp_t {
 	Std$Type_t *Type;
+	Std$Object$t *Pattern;
 	regex_t Handle[1];
 } regexp_t;
 
 TYPE(T);
 // A regular expression.
 
-static void regexp_finalize(regexp_t *R, void *Data) {
+/*static void regexp_finalize(regexp_t *R, void *Data) {
 	tre_regfree(R->Handle);
-};
+};*/
 
 GLOBAL_FUNCTION(New, 1) {
 //@regexp:Std$String$T
 //:T
 // Compiles <var>regexp</var> into a regular expression and returns it.
-	Std$String_t *Expr = Args[0].Val;
+	Std$Object$t *Pattern = Args[0].Val;
 	regexp_t *R = new(regexp_t);
 	int Flags = REG_EXTENDED;
-	if (tre_regncomp(R->Handle, Std$String$flatten(Expr), Expr->Length.Value, Flags)) {
+	if (tre_regncomp(R->Handle, Std$String$flatten(Pattern), Std$String$get_length(Pattern), Flags)) {
 		Result->Val = "Invalid regular expression";
 		return MESSAGE;
 	} else {
-		Riva$Memory$register_finalizer(R, regexp_finalize, 0, 0, 0);
+		//Riva$Memory$register_finalizer(R, regexp_finalize, 0, 0, 0);
 		R->Type = T;
+		R->Pattern = Pattern;
 		Result->Val = R;
 		return SUCCESS;
 	};
 };
+
+STRING(SlashString, "/");
+
+AMETHOD(Std$String$Of, TYP, T) {
+	regexp_t *R = (regexp_t *)Args[0].Val;
+	Std$String$t *In = (Std$String$t *)R->Pattern;
+	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	Std$String_t *Out = Std$String$alloc(In->Count + 2);
+	const Std$String_block *Src = In->Blocks;
+	Std$String_block *Dst = Out->Blocks;
+	int Length = In->Length.Value + 2;
+	Dst->Length.Value = 1;
+	Dst->Chars.Value = "/";
+	Dst++;
+	for (int I = In->Count; --I >= 0;) {
+		int SrcLength = Src->Length.Value;
+		int DstLength = SrcLength;
+		const char *SrcChars = Src->Chars.Value;
+		for (int J = 0; J < SrcLength; ++J) {
+			unsigned char Char = SrcChars[J];
+			if (Char == '\"') {
+				DstLength += 1;
+			} else if (Char == '\\') {
+				DstLength += 1;
+			} else if (Char == '\'') {
+				DstLength += 1;
+			} else if (Char == '\t') {
+				DstLength += 1;
+			} else if (Char == '\r') {
+				DstLength += 1;
+			} else if (Char == '\n') {
+				DstLength += 1;
+			} else if ((Char < ' ') || (Char >= 0x80)) {
+				DstLength += 3;
+			};
+		};
+		Src++;
+		char *DstChars = Riva$Memory$alloc_atomic(DstLength + 1);
+		if (DstLength == SrcLength) {
+			memcpy(DstChars, SrcChars, SrcLength);
+		} else {
+			Length += DstLength - SrcLength;
+			char *Tmp = DstChars;
+			for (int J = 0; J < SrcLength; ++J) {
+				unsigned char Char = SrcChars[J];
+				if (Char == '\"') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = Char;
+				} else if (Char == '\\') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = Char;
+				} else if (Char == '\'') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = Char;
+				} else if (Char == '\t') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = 't';
+				} else if (Char == '\r') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = 'r';
+				} else if (Char == '\n') {
+					*(Tmp++) = '\\';
+					*(Tmp++) = 'n';
+				} else if ((Char < ' ') || (Char >= 0x80)) {
+					*(Tmp++) = '\\';
+					*(Tmp++) = 'x';
+					*(Tmp++) = Hex[Char / 16];
+					*(Tmp++) = Hex[Char % 16];
+				} else {
+					*(Tmp++) = Char;
+				};
+			};
+		};
+		DstChars[DstLength] = 0;
+		Dst->Length.Type = Std$Integer$SmallT;
+		Dst->Length.Value = DstLength;
+		Dst->Chars.Type = Std$Address$T;
+		Dst->Chars.Value = DstChars;
+		Dst++;
+	};
+	Dst->Length.Value = 1;
+	Dst->Chars.Value = "/";
+	Out->Length.Value = Length;
+	Std$String$freeze(Out);
+	RETURN(Out);
+}
 
 typedef struct context_t {
 	Std$String_block *Head;
