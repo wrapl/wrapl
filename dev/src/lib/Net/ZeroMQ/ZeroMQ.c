@@ -311,6 +311,21 @@ METHOD("sendm", TYP, SockT, TYP, Std$String$T) {
 	RETURN0;
 }
 
+METHOD("proxy", TYP, SockT, TYP, SockT) {
+	sock_t *Frontend = (sock_t *)Args[0].Val;
+	sock_t *Backend = (sock_t *)Args[1].Val;
+	zmq_proxy(Frontend->Handle, Backend->Handle, NULL);
+	return SUCCESS;
+}
+
+METHOD("proxy", TYP, SockT, TYP, SockT, TYP, SockT) {
+	sock_t *Frontend = (sock_t *)Args[0].Val;
+	sock_t *Backend = (sock_t *)Args[1].Val;
+	sock_t *Capture = (sock_t *)Args[2].Val;
+	zmq_proxy(Frontend->Handle, Backend->Handle, Capture->Handle);
+	return SUCCESS;
+}
+
 typedef struct frame_t {
 	const Std$Type$t *Type;
 	zframe_t *Handle;
