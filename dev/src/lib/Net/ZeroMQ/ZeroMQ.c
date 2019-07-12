@@ -17,6 +17,12 @@ GLOBAL_FUNCTION(CtxNew, 0) {
 	RETURN(Ctx);
 }
 
+METHOD("destroy", TYP, CtxT) {
+	ctx_t *Ctx = (ctx_t *)Args[0].Val;
+	zmq_ctx_destroy(Ctx->Handle);
+	RETURN0;
+}
+
 typedef struct sock_t {
 	const Std$Type$t *Type;
 	zsock_t *Handle;
