@@ -26,14 +26,13 @@
 	__EXTERN TYPE __concat(RIVA_MODULE, $ ## FUNC) ( ARGS ) __asmify(__concat(RIVA_MODULE, __concat($_, FUNC)))
 
 #define RIVA_TYPE(NAME)\
-	__EXTERN const Std$Type_t __concat(RIVA_MODULE, $ ## NAME)[];
+	__EXTERN const Std$Type$t __concat(RIVA_MODULE, $ ## NAME)[];
 
 #define RIVA_OBJECT(NAME)\
-	__EXTERN Std$Object_t __concat(RIVA_MODULE, $ ## NAME)[];
+	__EXTERN Std$Object$t __concat(RIVA_MODULE, $ ## NAME)[];
 
 #define RIVA_STRUCT(NAME)\
 	typedef struct __concat(RIVA_MODULE, $ ## NAME) __concat(RIVA_MODULE, $ ## NAME);\
-	typedef __concat(RIVA_MODULE, $ ## NAME) __concat(RIVA_MODULE, _ ## NAME);\
 	struct __concat(RIVA_MODULE, $ ## NAME)
 
 #endif

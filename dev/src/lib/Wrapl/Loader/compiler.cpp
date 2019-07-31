@@ -22,7 +22,7 @@ TYPE(ScopeT);
 #define DEBUG
 #endif
 
-void compiler_t::raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...) {DEBUG
+void compiler_t::raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...) {DEBUG
 	va_list Args;
 	va_start(Args, Format);
 	int Length = vasprintf((char **)&Error.Message, Format, Args);
@@ -205,7 +205,7 @@ frame_t *compiler_t::pop_function() {DEBUG
 GLOBAL_FUNCTION(ScopeNew, 0) {
 	compiler_t::scope_t *Scope = new compiler_t::scope_t(compiler_t::scope_t::SC_GLOBAL);
 	Scope->Type0 = ScopeT;
-	Result->Val = (Std$Object_t *)Scope;
+	Result->Val = (Std$Object$t *)Scope;
 	return SUCCESS;
 };
 
@@ -336,7 +336,7 @@ operand_t *compiler_t::lookup(int LineNo, const char *Name) {DEBUG
 	operand_t *Operand = try_lookup(LineNo, Name);
 	if (Operand) return Operand;
 	if (MissingIDFunc) {
-		Std$Function_result Result[1];
+		Std$Function$result Result[1];
 		switch (Std$Function$call(MissingIDFunc, 1, Result, Std$String$new(Name), 0)) {
 		case SUSPEND: case SUCCESS: {
 			operand_t *Operand = new operand_t;
@@ -442,7 +442,7 @@ void qualident_expr_t::print(int Indent) {
 
 void const_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
-	Std$Function_result Result;
+	Std$Function$result Result;
 	if (Std$Function$call(Std$String$Of, 1, &Result, Operand->Value, 0) < FAILURE) {
 		printf("%s", Std$String$flatten(Result.Val));
 	} else {
@@ -897,7 +897,7 @@ operand_t *invoke_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 	label_t *Label0 = new label_t;
 	operand_t *FunctionOperand = Function->compile(Compiler, Start, Label0);
 	if ((FunctionOperand->Type == operand_t::CNST) && (FunctionOperand->Value->Type == Std$Integer$SmallT)) {
-		int Selected = ((Std$Integer_smallt *)FunctionOperand->Value)->Value;
+		int Selected = ((Std$Integer$smallt *)FunctionOperand->Value)->Value;
 		if (Selected <= 0) {
 			for (expr_t *Arg = Args; Arg; Arg = Arg->Next) Selected++;
 			Selected++;
@@ -1117,7 +1117,7 @@ operand_t *func_expr_t::precompile(compiler_t *Compiler, precomp_t &Type) {DEBUG
 	Closure->Type = WraplPreT;
 	_Compiler = Compiler;
 	Closure->Entry = (void *)this;
-	Constant->Value = (Std$Object_t *)Closure;
+	Constant->Value = (Std$Object$t *)Closure;
 	Type = _PC_PARTIAL;
 	return Constant;
 };
@@ -1167,7 +1167,7 @@ operand_t *qualident_expr_t::compile(compiler_t *Compiler, label_t *Start, label
 			//Compiler->raise_error(LineNo, TypeErrorMessageT, "Error: %s is not constant", Ident);
 			operand_t *Field = new operand_t;
 			Field->Type = operand_t::CNST;
-			Field->Value = (Std$Object_t *)Std$String$new(Name->Ident);
+			Field->Value = (Std$Object$t *)Std$String$new(Name->Ident);
 
 			uint32_t Trap = Compiler->use_trap();
 			uint32_t Args = Compiler->new_temporary(2);
@@ -1187,7 +1187,7 @@ operand_t *qualident_expr_t::compile(compiler_t *Compiler, label_t *Start, label
 			Start = Label2;
 			Operand = Register;
 		} else {
-			Sys$Module_t *Module = (Sys$Module_t *)Operand->Value;
+			Sys$Module$t *Module = (Sys$Module$t *)Operand->Value;
 			Operand = new operand_t;
 			if (Sys$Module$import(Module, Name->Ident, (int *)&Operand->Type, (void **)&Operand->Value) == 0) {
 				Compiler->raise_error(LineNo, ExternErrorMessageT, "Error: import not found %s.%s", Ident, Name->Ident);
@@ -1206,7 +1206,7 @@ operand_t *qualident_expr_t::constant(compiler_t *Compiler) {DEBUG
 	for (qualident_expr_t::name_t *Name = Names->Next; Name; Name = Name->Next) {
 		if (Operand->Type != operand_t::CNST) return 0;
 		if (Operand->Value->Type != Sys$Module$T) return 0;
-		Sys$Module_t *Module = (Sys$Module_t *)Operand->Value;
+		Sys$Module$t *Module = (Sys$Module$t *)Operand->Value;
 		Operand = new operand_t;
 		if (Sys$Module$import(Module, Name->Ident, (int *)&Operand->Type, (void **)&Operand->Value) == 0) {
 			Compiler->raise_error(LineNo, ExternErrorMessageT, "Error: import not found %s.%s", Ident, Name->Ident);
@@ -1223,7 +1223,7 @@ operand_t *const_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 };
 
 operand_t *backquote_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
-	Std$Function_result Result;
+	Std$Function$result Result;
 	switch (Expr->evaluate(Compiler, &Result)) {
 	case SUSPEND: // Should we create a Function.IteratorT here???
 	case SUCCESS: {
@@ -1549,7 +1549,7 @@ operand_t *typeof_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 		Start->link(LineNo, Success);
 		operand_t *Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Constant->Value->Type;
+		Operand->Value = (Std$Object$t *)Constant->Value->Type;
 		return Operand;
 	};
 	label_t *Label0 = new label_t;
@@ -1612,9 +1612,9 @@ operand_t *limit_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 
 	operand_t *Operand = Limit->compile(Compiler, Start, Label0);
 	if (Operand->Type == operand_t::CNST) {
-		Std$Object_t *Value = Operand->Value;
+		Std$Object$t *Value = Operand->Value;
 		if (Value->Type != Std$Integer$SmallT) Compiler->raise_error(LineNo, TypeErrorMessageT, "Error: limit is not an integer");
-		switch (((Std$Integer_smallt *)Value)->Value) {
+		switch (((Std$Integer$smallt *)Value)->Value) {
 		case 0: {
 			Compiler->back_trap(Label0);
 			return Register;
@@ -1948,16 +1948,16 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	case_t::range_t *Range = Case->Ranges;
 	operand_t *Operand = Range->Min->constant(Compiler);
 	if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
-	Std$Object_t *Value = Operand->Value;
+	Std$Object$t *Value = Operand->Value;
 	if (Std$Type$is(Value->Type, Std$Integer$SmallT)) {
 		select_integer_case_t *ICase = new select_integer_case_t;
-		ICase->Min = ((Std$Integer_smallt *)Value)->Value;
+		ICase->Min = ((Std$Integer$smallt *)Value)->Value;
 		if (Range->Max) {
 			Operand = Range->Max->constant(Compiler);
 			if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 			Value = Operand->Value;
 			if (!Std$Type$is(Value->Type, Std$Integer$SmallT)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-			ICase->Max = ((Std$Integer_smallt *)Value)->Value;
+			ICase->Max = ((Std$Integer$smallt *)Value)->Value;
 		} else {
 			ICase->Max = ICase->Min;
 		};
@@ -1968,13 +1968,13 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 			if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
 			Value = Operand->Value;
 			if (!Std$Type$is(Value->Type, Std$Integer$SmallT)) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-			ICase0->Min = ((Std$Integer_smallt *)Value)->Value;
+			ICase0->Min = ((Std$Integer$smallt *)Value)->Value;
 			if (Range->Max) {
 				Operand = Range->Max->constant(Compiler);
 				if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 				Value = Operand->Value;
 				if (!Std$Type$is(Value->Type, Std$Integer$SmallT)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-				ICase0->Max = ((Std$Integer_smallt *)Value)->Value;
+				ICase0->Max = ((Std$Integer$smallt *)Value)->Value;
 			} else {
 				ICase0->Max = ICase0->Min;
 			};
@@ -1995,13 +1995,13 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 				if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
 				Value = Operand->Value;
 				if (!Std$Type$is(Value->Type, Std$Integer$SmallT)) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-				ICase0->Min = ((Std$Integer_smallt *)Value)->Value;
+				ICase0->Min = ((Std$Integer$smallt *)Value)->Value;
 				if (Range->Max) {
 					Operand = Range->Max->constant(Compiler);
 					if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 					Value = Operand->Value;
 					if (!Std$Type$is(Value->Type, Std$Integer$SmallT)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-					ICase0->Max = ((Std$Integer_smallt *)Value)->Value;
+					ICase0->Max = ((Std$Integer$smallt *)Value)->Value;
 				} else {
 					ICase0->Max = ICase0->Min;
 				};
@@ -2027,7 +2027,7 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 		if (Range->Max) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case can not be a range");
 		select_string_case_t *ICase = new select_string_case_t;
 		ICase->Key = Std$String$flatten(Value);
-		ICase->Length = ((Std$String_t *)Value)->Length.Value;
+		ICase->Length = ((Std$String$t *)Value)->Length.Value;
 		ICase->Body = Label1;
 		while (Range = Range->Next) {
 			select_string_case_t *ICase0 = new select_string_case_t;
@@ -2036,7 +2036,7 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 			Value = Operand->Value;
 			if (!Std$Type$is(Value->Type, Std$String$T)) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
 			ICase0->Key = Std$String$flatten(Value);
-			ICase0->Length = ((Std$String_t *)Value)->Length.Value;
+			ICase0->Length = ((Std$String$t *)Value)->Length.Value;
 			if (Range->Max) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case can not be a range");
 			ICase0->Body = Label1;
 			ICase0->Next = ICase;
@@ -2056,7 +2056,7 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 				Value = Operand->Value;
 				if (!Std$Type$is(Value->Type, Std$String$T)) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
 				ICase0->Key = Std$String$flatten(Value);
-				ICase0->Length = ((Std$String_t *)Value)->Length.Value;
+				ICase0->Length = ((Std$String$t *)Value)->Length.Value;
 				if (Range->Max) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case can not be a range");
 				ICase0->Body = Label1;
 				ICase0->Next = ICase;
@@ -2079,13 +2079,13 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 	} else if (Std$Type$is(Value->Type, Std$Real$T)) {
 		select_real_case_t *ICase = new select_real_case_t;
 		select_real_case_t *Tail = ICase;
-		ICase->Min = ((Std$Real_t *)Value)->Value;
+		ICase->Min = ((Std$Real$t *)Value)->Value;
 		if (Range->Max) {
 			Operand = Range->Max->constant(Compiler);
 			if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 			Value = Operand->Value;
 			if (!Std$Type$is(Value->Type, Std$Real$T)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-			ICase->Max = ((Std$Real_t *)Value)->Value;
+			ICase->Max = ((Std$Real$t *)Value)->Value;
 		} else {
 			ICase->Max = ICase->Min;
 		};
@@ -2096,13 +2096,13 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 			if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
 			Value = Operand->Value;
 			if (Value->Type != Std$Real$T) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-			ICase0->Min = ((Std$Real_t *)Value)->Value;
+			ICase0->Min = ((Std$Real$t *)Value)->Value;
 			if (Range->Max) {
 				Operand = Range->Max->constant(Compiler);
 				if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 				Value = Operand->Value;
 				if (!Std$Type$is(Value->Type, Std$Real$T)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-				ICase0->Max = ((Std$Real_t *)Value)->Value;
+				ICase0->Max = ((Std$Real$t *)Value)->Value;
 			} else {
 				ICase0->Max = ICase0->Min;
 			};
@@ -2123,13 +2123,13 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 				if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
 				Value = Operand->Value;
 				if (!Std$Type$is(Value->Type, Std$Real$T)) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-				ICase0->Min = ((Std$Real_t *)Value)->Value;
+				ICase0->Min = ((Std$Real$t *)Value)->Value;
 				if (Range->Max) {
 					Operand = Range->Max->constant(Compiler);
 					if (Operand == 0) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not constant");
 					Value = Operand->Value;
 					if (!Std$Type$is(Value->Type, Std$Real$T)) Compiler->raise_error(Range->Max->LineNo, TypeErrorMessageT, "Error: case is not correct type");
-					ICase0->Max = ((Std$Real_t *)Value)->Value;
+					ICase0->Max = ((Std$Real$t *)Value)->Value;
 				} else {
 					ICase0->Max = ICase0->Min;
 				};
@@ -2156,7 +2156,7 @@ operand_t *when_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 		select_object_case_t *ICase = new select_object_case_t;
 		ICase->Object = Value;
 		ICase->Body = Label1;
-		while (Range = Range->Next) {
+		while ((Range = Range->Next)) {
 			select_object_case_t *ICase0 = new select_object_case_t;
 			Operand = Range->Min->constant(Compiler);
 			if (Operand == 0) Compiler->raise_error(Range->Min->LineNo, TypeErrorMessageT, "Error: case is not constant");
@@ -2229,7 +2229,7 @@ operand_t *whentype_expr_t::compile(compiler_t *Compiler, label_t *Start, label_
 	expr_t *Type = Case->Types;
 	operand_t *Operand = Type->constant(Compiler);
 	if (Operand == 0) Compiler->raise_error(Type->LineNo, TypeErrorMessageT, "Error: case is not constant");
-	Std$Object_t *Value = Operand->Value;
+	Std$Object$t *Value = Operand->Value;
 	select_type_case_t *ICase = new select_type_case_t;
 	ICase->Type = Value;
 	ICase->Body = Label1;
@@ -2292,7 +2292,7 @@ operand_t *block_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 				Compiler->raise_error(Def->LineNo, InitErrorMessageT, "Error: recursive constant initialization");
 			};
 			Def->Type = _PC_WAIT;
-			Std$Object_t *Value = Def->Value->evaluate(Compiler);
+			Std$Object$t *Value = Def->Value->evaluate(Compiler);
 			if (Value == 0) {
 				Compiler->raise_error(Def->LineNo, InitErrorMessageT, "Error: constant initialization failed");
 			} else {
@@ -2467,7 +2467,7 @@ operand_t *block_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 operand_t *module_expr_t::precompile(compiler_t *Compiler, precomp_t &Type) {DEBUG
 	operand_t *Constant = new operand_t;
 	Constant->Type = operand_t::CNST;
-	Constant->Value = (Std$Object_t *)Provider->Module;
+	Constant->Value = (Std$Object$t *)Provider->Module;
 	Type = _PC_PARTIAL;
 	return Constant;
 };
@@ -2476,7 +2476,7 @@ static int default_import(void *Module, const char *Symbol, int *IsRef, void **D
 	return 0;
 };
 
-Std$Object_t *expr_t::evaluate(compiler_t *Compiler) {
+Std$Object$t *expr_t::evaluate(compiler_t *Compiler) {
 	Compiler->push_function(LineNo);
 	label_t *Start = new label_t;
 	label_t *Success = new label_t;
@@ -2490,7 +2490,7 @@ Std$Object_t *expr_t::evaluate(compiler_t *Compiler) {
 	frame_t *Frame = Compiler->pop_function();
 	operand_t *Closure = Start->assemble(Frame, Compiler->SourceName, LineNo);
 	if (Closure == 0) Compiler->raise_error(LineNo, ScopeErrorMessageT, "Error: context does not allow access to surrounding scope");
-	Std$Function_result Result;
+	Std$Function$result Result;
 	switch (Std$Function$call(Closure->Value, 0, &Result)) {
 	case SUSPEND:
 	case SUCCESS:
@@ -2505,7 +2505,7 @@ Std$Object_t *expr_t::evaluate(compiler_t *Compiler) {
 	};
 };
 
-Std$Function_status expr_t::evaluate(compiler_t *Compiler, Std$Function_result *Result) {
+Std$Function$status expr_t::evaluate(compiler_t *Compiler, Std$Function$result *Result) {
 	Compiler->push_function(LineNo);
 	label_t *Start = new label_t;
 	label_t *Success = new label_t;
@@ -2537,10 +2537,10 @@ struct future_imp_t : future_t {
 	future_imp_t(int LineNo, const char *Path, const char *Name) : future_t(LineNo), Path(Path), Name(Name) {};
 	
 	void resolve(compiler_t *Compiler, operand_t *Operand) {
-		Sys$Module_t *Module = Sys$Module$load(Path, Name);
+		Sys$Module$t *Module = Sys$Module$load(Path, Name);
 		if (Module == 0) Compiler->raise_error(LineNo, ExternErrorMessageT, "Error: module not found %s/%s", Path, Name);
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Module;
+		Operand->Value = (Std$Object$t *)Module;
 	};
 };
 
@@ -2550,7 +2550,7 @@ struct future_use_t : future_t {
 	future_use_t(int LineNo, const char *Path, const char *Name, const char *Import) : future_t(LineNo), Path(Path), Name(Name), Import(Import) {};
 	
 	void resolve(compiler_t *Compiler, operand_t *Operand) {
-		Sys$Module_t *Module = Sys$Module$load(Path, Name);
+		Sys$Module$t *Module = Sys$Module$load(Path, Name);
 		if (Module == 0) Compiler->raise_error(LineNo, ExternErrorMessageT, "Error: module not found %s/%s", Path, Name);
 		if (Sys$Module$import(Module, Import, (int *)&Operand->Type, (void **)&Operand->Value) == 0) {
 			Compiler->raise_error(LineNo, ExternErrorMessageT, "Error: import not found %s.%s", Name, Import);
@@ -2572,7 +2572,7 @@ struct future_def_t : future_t {
 		Def->Type = expr_t::_PC_WAIT;
 		compiler_t::scope_t *OldScope = Compiler->Scope;
 		Compiler->Scope = Scope;
-			Std$Object_t *Value = Def->Value->evaluate(Compiler);
+			Std$Object$t *Value = Def->Value->evaluate(Compiler);
 		Compiler->Scope = OldScope;
 		if (Value == 0) {
 			Compiler->raise_error(Def->LineNo, InitErrorMessageT, "Error: constant initialization failed");
@@ -2589,12 +2589,12 @@ operand_t *module_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 	const char *ModulePath = Sys$Module$get_path(Provider->Module);
 	operand_t *Operand = new operand_t;
 	Operand->Type = operand_t::CNST;
-	Operand->Value = (Std$Object_t *)Provider->Module;
+	Operand->Value = (Std$Object$t *)Provider->Module;
 	Compiler->declare(Name, Operand);
 	for (module_expr_t::globalvar_t *Var = Vars; Var; Var = Var->Next) {
 		operand_t *Operand = new operand_t;
 		Operand->Type = operand_t::GVAR;
-		Std$Object_t **Address = new Std$Object_t *;
+		Std$Object$t **Address = new Std$Object$t *;
 		Address[0] = Std$Object$Nil;
 		Operand->Address = Address;
 		Compiler->declare(Var->Name, Operand);
@@ -2668,7 +2668,7 @@ operand_t *module_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t 
 		frame_t *Frame = Compiler->pop_function();
 		operand_t *Closure = Start->assemble(Frame, Compiler->SourceName, LineNo);
 		if (Closure == 0) Compiler->raise_error(LineNo, ScopeErrorMessageT, "Error: context does not allow access to surrounding scope");
-		Std$Function_result Result;
+		Std$Function$result Result;
 		//printf("Running module %s\n", Compiler->SourceName);
 		if (Std$Function$call(Closure->Value, 0, &Result) == MESSAGE) {
 			if (Std$Object$in(Result.Val, Sys$Program$ErrorT)) {
@@ -2704,7 +2704,7 @@ void module_expr_t::compile(compiler_t *Compiler) {DEBUG
 	compile(Compiler, new label_t, new label_t);
 };
 
-Std$Function_status command_expr_t::compile(compiler_t *Compiler, Std$Function_result *Result) {DEBUG
+Std$Function$status command_expr_t::compile(compiler_t *Compiler, Std$Function$result *Result) {DEBUG
 	char Tmp[256];
 	getcwd(Tmp, 256);
 	strcat(Tmp, PATHSTR);
@@ -2712,7 +2712,7 @@ Std$Function_status command_expr_t::compile(compiler_t *Compiler, Std$Function_r
 	for (command_expr_t::globalvar_t *Var = Vars; Var; Var = Var->Next) {
 		operand_t *Operand = new operand_t;
 		Operand->Type = operand_t::GVAR;
-		Std$Object_t **Address = new Std$Object_t *;
+		Std$Object$t **Address = new Std$Object$t *;
 		Address[0] = Std$Object$Nil;
 		Operand->Address = Address;
 		Compiler->declare(Var->Name, Operand);
@@ -2742,12 +2742,12 @@ Std$Function_status command_expr_t::compile(compiler_t *Compiler, Std$Function_r
 		operand_t *Operand = Def->Value->precompile(Compiler, Def->Type);
 		if (Operand) Compiler->declare(Def->Name, Operand);
 	};
-	Std$Function_status Status = SUCCESS;
+	Std$Function$status Status = SUCCESS;
 	for (command_expr_t::globaldef_t *Def = Defs; Def; Def = Def->Next) {
 		switch (Def->Type) {
 		case _PC_NONE: {
 			Def->Type = _PC_WAIT;
-			Std$Object_t *Value = Def->Value->evaluate(Compiler);
+			Std$Object$t *Value = Def->Value->evaluate(Compiler);
 			if (Value == 0) {
 				Compiler->raise_error(LineNo, InitErrorMessageT, "Error: constant initialization failed");
 			} else {

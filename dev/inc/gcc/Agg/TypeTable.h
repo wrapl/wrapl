@@ -7,18 +7,18 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	Std$Type_t const *Type;
+	Std$Type$t const *Type;
 	unsigned long Size, Space;
 	void *Entries;
 };
 
-extern Std$Type_t Agg$TypeTable$T[];
+extern Std$Type$t Agg$TypeTable$T[];
 
 #define Agg$TypeTable$INIT {Agg$TypeTable$T, 0, 0, 0}
 
-RIVA_CFUN(void, init, Agg$TypeTable_t *Table);
-RIVA_CFUN(void, put, Agg$TypeTable_t *Table, const Std$Type_t *Key, const void *Value);
-RIVA_CFUN(void *, get, const Agg$TypeTable_t *Table, const Std$Type_t *Key);
+RIVA_CFUN(void, init, Agg$TypeTable$t *Table);
+RIVA_CFUN(void, put, Agg$TypeTable$t *Table, const Std$Type$t *Key, const void *Value);
+RIVA_CFUN(void *, get, const Agg$TypeTable$t *Table, const Std$Type$t *Key);
 
 #undef RIVA_MODULE
 

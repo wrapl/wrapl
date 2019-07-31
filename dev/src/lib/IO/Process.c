@@ -15,23 +15,23 @@
 #include <signal.h>
 
 typedef struct process_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int Handle;
 	pid_t Pid;
 } process_t;
 
-TYPE(T, IO$Socket$T, NATIVE($TextReaderT), NATIVE($TextWriterT), NATIVE($ReaderT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(T, IO$Socket$T, NATIVE(TextReaderT), NATIVE(TextWriterT), NATIVE(ReaderT), NATIVE(WriterT), NATIVE(SeekerT), NATIVE(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
 TYPE(PipeMessageT, IO$Stream$MessageT);
 TYPE(ForkMessageT, IO$Stream$MessageT);
 TYPE(WaitMessageT, IO$Stream$MessageT);
 
-IO$Stream_messaget PipeMessage[] = {{IO$Stream$MessageT, "Pipe Error"}};
-IO$Stream_messaget ForkMessage[] = {{IO$Stream$MessageT, "Fork Error"}};
-IO$Stream_messaget WaitMessage[] = {{IO$Stream$MessageT, "Wait Error"}};
+IO$Stream$messaget PipeMessage[] = {{IO$Stream$MessageT, "Pipe Error"}};
+IO$Stream$messaget ForkMessage[] = {{IO$Stream$MessageT, "Fork Error"}};
+IO$Stream$messaget WaitMessage[] = {{IO$Stream$MessageT, "Wait Error"}};
 
 CONSTANT(Message, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Message");
+	Sys$Module$t *Module = Sys$Module$new("Message");
 	Sys$Module$export(Module, "PipeError", 0, PipeMessage);
 	Sys$Module$export(Module, "ForkError", 0, ForkMessage);
 	Sys$Module$export(Module, "WaitError", 0, WaitMessage);
@@ -71,16 +71,16 @@ GLOBAL_FUNCTION(Open, 1) {
 	};
 	int NoOfArgs;
 	if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
-		NoOfArgs = ((Agg$List_t *)Args[1].Val)->Length + 1;
+		NoOfArgs = ((Agg$List$t *)Args[1].Val)->Length + 1;
 	} else {
 		NoOfArgs = Count + 1;
 	};
 	const char *Prog = Std$String$flatten(Args[0].Val);
 	const char *Argv[NoOfArgs];
 	if (Count > 1 && Args[1].Val->Type == Agg$List$T) {
-		Agg$List_t *List = Args[1].Val;
+		Agg$List$t *List = Args[1].Val;
 		char **Arg = Argv;
-		for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) *(Arg++) = Std$String$flatten(Node->Value);
+		for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) *(Arg++) = Std$String$flatten(Node->Value);
 		*Arg = 0;
 	} else {
 		char **Arg = Argv;
@@ -150,7 +150,7 @@ GLOBAL_METHOD(Signal, 2, "signal", TYP, T, TYP, Std$Integer$SmallT) {
 #else
 
 typedef struct process_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	//IO$Windows_t *Stream;
 } process_t;
 

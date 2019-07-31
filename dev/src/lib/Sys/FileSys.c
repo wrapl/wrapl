@@ -17,19 +17,19 @@
 #endif
 
 #ifdef WINDOWS
-Std$Integer_smallt BLOCKFILE[] = {{Std$Integer$SmallT, 0}};
-Std$Integer_smallt CHARFILE[] = {{Std$Integer$SmallT, 0}};
-Std$Integer_smallt FIFOFILE[] = {{Std$Integer$SmallT, 0}};
-Std$Integer_smallt REGFILE[] = {{Std$Integer$SmallT, 0}};
-Std$Integer_smallt DIRFILE[] = {{Std$Integer$SmallT, 0}};
-Std$Integer_smallt LINKFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt BLOCKFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt CHARFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt FIFOFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt REGFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt DIRFILE[] = {{Std$Integer$SmallT, 0}};
+Std$Integer$smallt LINKFILE[] = {{Std$Integer$SmallT, 0}};
 #else
-Std$Integer_smallt BLOCKFILE[] = {{Std$Integer$SmallT, S_IFBLK}};
-Std$Integer_smallt CHARFILE[] = {{Std$Integer$SmallT, S_IFCHR}};
-Std$Integer_smallt FIFOFILE[] = {{Std$Integer$SmallT, S_IFIFO}};
-Std$Integer_smallt REGFILE[] = {{Std$Integer$SmallT, S_IFREG}};
-Std$Integer_smallt DIRFILE[] = {{Std$Integer$SmallT, S_IFDIR}};
-Std$Integer_smallt LINKFILE[] = {{Std$Integer$SmallT, S_IFLNK}};
+Std$Integer$smallt BLOCKFILE[] = {{Std$Integer$SmallT, S_IFBLK}};
+Std$Integer$smallt CHARFILE[] = {{Std$Integer$SmallT, S_IFCHR}};
+Std$Integer$smallt FIFOFILE[] = {{Std$Integer$SmallT, S_IFIFO}};
+Std$Integer$smallt REGFILE[] = {{Std$Integer$SmallT, S_IFREG}};
+Std$Integer$smallt DIRFILE[] = {{Std$Integer$SmallT, S_IFDIR}};
+Std$Integer$smallt LINKFILE[] = {{Std$Integer$SmallT, S_IFLNK}};
 #endif
 
 CONSTANT(Type, Sys$Module$T) {
@@ -39,7 +39,7 @@ CONSTANT(Type, Sys$Module$T) {
 // <code>.Reg</code>: Regular file.
 // <code>.Dir</code>: Directory.
 // <code>.Link</code>: Symbolic link.
-	Sys$Module_t *Module = Sys$Module$new("Type");
+	Sys$Module$t *Module = Sys$Module$new("Type");
 	Sys$Module$export(Module, "Block", 0, BLOCKFILE);
 	Sys$Module$export(Module, "Char", 0, CHARFILE);
 	Sys$Module$export(Module, "Fifo", 0, FIFOFILE);
@@ -50,7 +50,7 @@ CONSTANT(Type, Sys$Module$T) {
 };
 
 typedef struct message_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	const char *Message;
 } message_t;
 
@@ -90,7 +90,7 @@ CONSTANT(Message, Sys$Module$T) {
 // <code>.FileRemoveError</code>: An error occured while removing a file.
 // <code>.FileRenameError</code>: An error occured while renaming a file.
 // <code>.FileSetPermissionsError</code>: An error occured while setting permissions for a file.
-	Sys$Module_t *Module = Sys$Module$new("Message");
+	Sys$Module$t *Module = Sys$Module$new("Message");
 	Sys$Module$export(Module, "Error", 0, MessageT);
 	Sys$Module$export(Module, "DirectoryCreateError", 0, DirectoryCreateMessageT);
 	Sys$Module$export(Module, "DirectoryRemoveError", 0, DirectoryRemoveMessageT);
@@ -106,13 +106,13 @@ TYPE(InfoT);
 // Contains information about files
 
 typedef struct info_t {
-	const Std$Type_t *Type;
-	const Std$Object_t *Name;
-	const Std$Object_t *Kind;
-	const Std$Object_t *Size;
-	const Std$Object_t *Created;
-	const Std$Object_t *Modified;
-	const Std$Object_t *Accessed;
+	const Std$Type$t *Type;
+	const Std$Object$t *Name;
+	const Std$Object$t *Kind;
+	const Std$Object$t *Size;
+	const Std$Object$t *Created;
+	const Std$Object$t *Modified;
+	const Std$Object$t *Accessed;
 } info_t;
 
 METHOD("name", TYP, InfoT) {
@@ -184,7 +184,7 @@ GLOBAL_FUNCTION(MakeDir, 2) {
 #ifdef WINDOWS
 	if (CreateDirectory(Std$String$flatten(Args[0].Val), 0) == 0) {
 #else
-	if (mkdir(Std$String$flatten(Args[0].Val), ((Std$Integer_smallt *)Args[1].Val)->Value)) {
+	if (mkdir(Std$String$flatten(Args[0].Val), ((Std$Integer$smallt *)Args[1].Val)->Value)) {
 #endif
 		Result->Val = DirectoryCreateMessage;
 		return MESSAGE;
@@ -196,7 +196,7 @@ GLOBAL_FUNCTION(RemoveDir, 1) {
 //@path:Std$String$T
 // Removes the directory <var>path</var>. The directory should be empty.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char DirName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char DirName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, DirName);
 #ifdef WINDOWS
 	if (RemoveDirectory(DirName) == 0) {
@@ -222,8 +222,8 @@ GLOBAL_FUNCTION(Link, 2) {
 // Links the file <var>old</var> to <var>new</var>.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
-	char OldName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
-	char NewName[((Std$String_t *)Args[1].Val)->Length.Value + 1];
+	char OldName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
+	char NewName[((Std$String$t *)Args[1].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[1].Val, NewName);
 	Std$String$flatten_to(Args[0].Val, OldName);
 #ifdef WINDOWS
@@ -243,8 +243,8 @@ GLOBAL_FUNCTION(SymLink, 2) {
 // Links the file <var>old</var> to <var>new</var>.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
-	char OldName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
-	char NewName[((Std$String_t *)Args[1].Val)->Length.Value + 1];
+	char OldName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
+	char NewName[((Std$String$t *)Args[1].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[1].Val, NewName);
 	Std$String$flatten_to(Args[0].Val, OldName);
 #ifdef WINDOWS
@@ -262,7 +262,7 @@ GLOBAL_FUNCTION(Remove, 1) {
 //@file:Std$String$T
 // Removes the file <var>file</var>.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 	if (DeleteFile(FileName) == 0) {
@@ -281,8 +281,8 @@ GLOBAL_FUNCTION(Rename, 2) {
 // Renames the file <var>old</var> to <var>new</var>.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
-	char OldName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
-	char NewName[((Std$String_t *)Args[1].Val)->Length.Value + 1];
+	char OldName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
+	char NewName[((Std$String$t *)Args[1].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[1].Val, NewName);
 	Std$String$flatten_to(Args[0].Val, OldName);
 #ifdef WINDOWS
@@ -302,7 +302,7 @@ GLOBAL_FUNCTION(SetPermissions, 2) {
 // Sets the permissions for the file <var>file</var> to <var>perm</var>.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	CHECK_EXACT_ARG_TYPE(1, Std$Integer$SmallT);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 #else
@@ -315,7 +315,7 @@ GLOBAL_FUNCTION(SetPermissions, 2) {
 };
 
 typedef struct listdir_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 #ifdef WINDOWS
 #else
 	DIR *Dir;
@@ -352,7 +352,7 @@ GLOBAL_FUNCTION(ListDir, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 #ifdef WINDOWS
 #else
-	char DirName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char DirName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, DirName);
 	DIR *Dir = opendir(DirName);
 	if (Dir == 0) {
@@ -434,14 +434,14 @@ GLOBAL_FUNCTION(ListDirInfo, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 #ifdef WINDOWS
 #else
-	char *PathName = Riva$Memory$alloc_atomic(((Std$String_t *)Args[0].Val)->Length.Value + 1 + 256);
+	char *PathName = Riva$Memory$alloc_atomic(((Std$String$t *)Args[0].Val)->Length.Value + 1 + 256);
 	Std$String$flatten_to(Args[0].Val, PathName);
 	DIR *Dir = opendir(PathName);
 	if (Dir == 0) {
 		Result->Val = DirectoryOpenMessage;
 		return MESSAGE;
 	};
-	char *FileName = PathName + ((Std$String_t *)Args[0].Val)->Length.Value;
+	char *FileName = PathName + ((Std$String$t *)Args[0].Val)->Length.Value;
 	*(FileName++) = '/';
 	struct dirent *Entry = readdir(Dir);
 	if (Entry == 0) {
@@ -503,7 +503,7 @@ GLOBAL_FUNCTION(Exists, 1) {
 // Returns <var>filename</var> if it denotes an existing file/directory. Fails otherwise.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 #ifdef WINDOWS
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 	if (GetFileAttributes(FileName) == INVALID_FILE_ATTRIBUTES) {
 		return FAILURE;
@@ -512,7 +512,7 @@ GLOBAL_FUNCTION(Exists, 1) {
 		return SUCCESS;
 	};
 #else
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 	struct stat Stat;
 	if (stat(FileName, &Stat) == 0) {
@@ -529,7 +529,7 @@ GLOBAL_FUNCTION(FileSize, 1) {
 //:Std$Integer$T
 // Returns the type of <var>filename</var> if it exists. Fails otherwise.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 #else
@@ -548,7 +548,7 @@ GLOBAL_FUNCTION(FileType, 1) {
 //:Std$Integer$T
 // Returns the type of <var>filename</var> if it exists. Fails otherwise.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 #else
@@ -567,7 +567,7 @@ GLOBAL_FUNCTION(FileTime, 1) {
 //:Sys$Time$T
 // Returns the modification time of <var>filename</var> if it exists. Fails otherwise.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 #else
@@ -586,7 +586,7 @@ GLOBAL_FUNCTION(FileInfo, 1) {
 //:InfoT
 // Returns an instance of <id>InfoT</id> describing <var>filename</var> if it exists. Fail otherwise.
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	char FileName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char FileName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, FileName);
 #ifdef WINDOWS
 #else
@@ -614,7 +614,7 @@ GLOBAL_FUNCTION(TempFile, 0) {
 
 GLOBAL_FUNCTION(MakePipe, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
-	Std$String_t *Arg0 = Args[0].Val;
+	Std$String$t *Arg0 = Args[0].Val;
 #ifdef WINDOWS
 #else
 	char FileName[Arg0->Length.Value + 1];

@@ -16,7 +16,7 @@ typedef enum {
 	IO$File$OPEN_TRUNCATE	= 64
 } IO$File_openflag;
 
-RIVA_CFUN(NATIVE(_t) *, open, const char *, IO$File_openflag);
+RIVA_CFUN(NATIVE(t) *, open, const char *, IO$File_openflag);
 
 #undef RIVA_MODULE
 

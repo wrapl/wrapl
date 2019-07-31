@@ -5,8 +5,8 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
-	const Std$Type_t **Types;
+	const Std$Type$t *Type;
+	const Std$Type$t **Types;
 	void (*Invoke)(void);
 	const struct Std$Array$t *Fields;
 	const unsigned long *Levels;
@@ -14,7 +14,7 @@ RIVA_STRUCT(t) {
 
 RIVA_TYPE(T);
 
-RIVA_CFUN(const Std$Type_t *, is, const Std$Type_t *, const Std$Type_t *);
+RIVA_CFUN(const Std$Type$t *, is, const Std$Type$t *, const Std$Type$t *);
 
 #ifdef WINDOWS
 extern void Std$Type$default_invoke(void) asm("_Std$Type$New.invoke");
@@ -50,14 +50,14 @@ extern void Std$Type$default_invoke(void) asm("Std$Type$New.invoke");
 	9,8,7,6,5,4,3,2,1,0 
 
 #define TYPE(NAME, PARENTS...)\
-	extern const Std$Type_t NAME[];\
-	static const Std$Type_t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
-	static const Std$Array_t NAME ## _fields[] = {{\
+	extern const Std$Type$t NAME[];\
+	static const Std$Type$t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
+	static const Std$Array$t NAME ## _fields[] = {{\
 		Std$Array$T, 0,\
 		{Std$Integer$SmallT, 0}\
 	}};\
 	static unsigned long NAME ## _levels[] = __concat(LEVELS_, PP_NARG(NAME, ## PARENTS));\
-	const Std$Type_t NAME[] = {{\
+	const Std$Type$t NAME[] = {{\
 		Std$Type$T, \
 		NAME ## _parents, \
 		Std$Type$default_invoke, \
@@ -68,15 +68,15 @@ extern void Std$Type$default_invoke(void) asm("Std$Type$New.invoke");
 #define __strip(FIELDS...) FIELDS
 
 #define TYPEF(NAME, FIELDS, PARENTS...)\
-	extern const Std$Type_t NAME[];\
-	static const Std$Type_t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
-	static Std$Object_t * const NAME ## _fields[] = {__strip FIELDS};\
-	static const Std$Array_t NAME ## _fields_array[] = {{\
-		Std$Array$T, (Std$Object_t **)NAME ## _fields,\
+	extern const Std$Type$t NAME[];\
+	static const Std$Type$t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
+	static Std$Object$t * const NAME ## _fields[] = {__strip FIELDS};\
+	static const Std$Array$t NAME ## _fields_array[] = {{\
+		Std$Array$T, (Std$Object$t **)NAME ## _fields,\
 		{Std$Integer$SmallT, PP_NARG FIELDS}\
 	}};\
 	static unsigned long NAME ## _levels[] = __concat(LEVELS_, PP_NARG(NAME, ## PARENTS));\
-	const Std$Type_t NAME[] = {{\
+	const Std$Type$t NAME[] = {{\
 		Std$Type$T, \
 		NAME ## _parents, \
 		Std$Type$default_invoke, \

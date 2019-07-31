@@ -154,7 +154,7 @@ METHOD("^", TYP, T, TYP, T) {
 }
 
 typedef struct generator_t {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	roaring_uint32_iterator_t Iterator[1];
 } generator_t;
 

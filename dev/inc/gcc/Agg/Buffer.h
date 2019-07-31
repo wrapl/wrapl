@@ -9,13 +9,13 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	void *Value;
 	Std$Integer$smallt Length;
 };
 
 RIVA_STRUCT(constt) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	const void *Value;
 	const Std$Integer$smallt Length;
 };
@@ -28,7 +28,7 @@ RIVA_TYPE(Int32$T);
 RIVA_TYPE(Float32$T);
 RIVA_TYPE(Float64$T);
 
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 
 #define Agg$Buffer$get_value(A) ((Agg$Buffer$t *)A)->Value
 #define Agg$Buffer$get_length(A) ((Agg$Buffer$t *)A)->Length.Value
@@ -37,27 +37,27 @@ RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
 
 #define RIVA_MODULE Agg$Buffer$Int8
 RIVA_TYPE(T);
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #define RIVA_MODULE Agg$Buffer$Int16
 RIVA_TYPE(T);
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #define RIVA_MODULE Agg$Buffer$Int32
 RIVA_TYPE(T);
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #define RIVA_MODULE Agg$Buffer$Float32
 RIVA_TYPE(T);
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #define RIVA_MODULE Agg$Buffer$Float64
 RIVA_TYPE(T);
-RIVA_CFUN(Std$Object_t *, new, void *, size_t) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *, size_t) __attribute__ ((malloc));
 #undef RIVA_MODULE
 
 #endif

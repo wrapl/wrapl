@@ -16,7 +16,7 @@ static void finalize(Gtk$GObject$Object_t *Object, void *Data) {
 
 static GQuark RivaQuark;
 
-Gtk$GObject$Object_t *_new(GObject *Handle, Std$Type_t *Type) {
+Gtk$GObject$Object_t *_new(GObject *Handle, Std$Type$t *Type) {
 	Gtk$GObject$Object_t *Object = new(Gtk$GObject$Object_t);
 	Object->Type = Type;
 	Object->Handle = Handle;
@@ -31,7 +31,7 @@ Gtk$GObject$Object_t *_to_riva(GObject *Handle) {
 	if (Handle == 0) return Nil;
 	Gtk$GObject$Object_t *Object = g_object_get_qdata(Handle, RivaQuark);
 	if (Object) return Object;
-	Std$Type_t *Type = Gtk$GObject$Type$to_riva(G_OBJECT_TYPE(Handle));
+	Std$Type$t *Type = Gtk$GObject$Type$to_riva(G_OBJECT_TYPE(Handle));
 	if (Type == 0) return 0;
 	return _new(Handle, Type);
 };
@@ -70,7 +70,7 @@ METHOD("Connect", TYP, T, TYP, Std$String$T, TYP, Std$Function$T) {
 
 METHOD("Disconnect", TYP, T, TYP, Std$Integer$SmallT) {
 	Gtk$GObject$Object_t *Object = (Gtk$GObject$Object_t *)Args[0].Val;
-	gulong ID = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	gulong ID = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	g_signal_handler_disconnect(Object->Handle, ID);
 	return SUCCESS;
 };
@@ -100,7 +100,7 @@ METHOD("SetPropertyBoxed", TYP, T, TYP, Std$String$T, TYP, Gtk$GObject$Type$T, A
 	GObject *Object = ((Gtk$GObject$Object_t *)Args[0].Val)->Handle;
 	const char *Prop = Std$String$flatten(Args[1].Val);
 	GType *Type = ((Gtk$GObject$Type_t *)Args[2].Val)->Value;
-	void *Address = ((Std$Address_t *)Args[3].Val)->Value;
+	void *Address = ((Std$Address$t *)Args[3].Val)->Value;
 	GValue Value[1] = {{0,}};
 	g_value_init(Value, Type);
 	g_value_set_boxed(Value, Address);
@@ -112,7 +112,7 @@ METHOD("SetPropertyEnum", TYP, T, TYP, Std$String$T, TYP, Gtk$GObject$Type$T, TY
 	GObject *Object = ((Gtk$GObject$Object_t *)Args[0].Val)->Handle;
 	const char *Prop = Std$String$flatten(Args[1].Val);
 	GType *Type = ((Gtk$GObject$Type_t *)Args[2].Val)->Value;
-	int Int = ((Std$Integer_smallt *)Args[3].Val)->Value;
+	int Int = ((Std$Integer$smallt *)Args[3].Val)->Value;
 	GValue Value[1] = {{0,}};
 	g_value_init(Value, Type);
 	g_value_set_enum(Value, Int);
@@ -145,7 +145,7 @@ METHOD("SetBoxed", TYP, T, TYP, Std$String$T, TYP, Gtk$GObject$Type$T, ANY) {
 	GObject *Object = ((Gtk$GObject$Object_t *)Args[0].Val)->Handle;
 	const char *Prop = Std$String$flatten(Args[1].Val);
 	GType *Type = ((Gtk$GObject$Type_t *)Args[2].Val)->Value;
-	void *Address = ((Std$Address_t *)Args[3].Val)->Value;
+	void *Address = ((Std$Address$t *)Args[3].Val)->Value;
 	GValue Value[1] = {{0,}};
 	g_value_init(Value, Type);
 	g_value_set_boxed(Value, Address);
@@ -157,7 +157,7 @@ METHOD("SetEnum", TYP, T, TYP, Std$String$T, TYP, Gtk$GObject$Type$T, TYP, Std$I
 	GObject *Object = ((Gtk$GObject$Object_t *)Args[0].Val)->Handle;
 	const char *Prop = Std$String$flatten(Args[1].Val);
 	GType *Type = ((Gtk$GObject$Type_t *)Args[2].Val)->Value;
-	int Int = ((Std$Integer_smallt *)Args[3].Val)->Value;
+	int Int = ((Std$Integer$smallt *)Args[3].Val)->Value;
 	GValue Value[1] = {{0,}};
 	g_value_init(Value, Type);
 	g_value_set_enum(Value, Int);
@@ -187,7 +187,7 @@ METHOD("GetType", TYP, T) {
 	Gtk$GObject$Type_t *Type = new(Gtk$GObject$Type_t);
 	Type->Type = Gtk$GObject$Type$T;
 	Type->Value = G_OBJECT_TYPE(Object->Handle);
-	Result->Val = (Std$Object_t *)Type;
+	Result->Val = (Std$Object$t *)Type;
 	return SUCCESS;
 };
 

@@ -22,20 +22,20 @@ static pthread_key_t CoexprKey;
 #endif
 
 typedef struct coexpr_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	struct coexpr_t *Caller;
-	Std$Function_argument Transfer;
+	Std$Function$argument Transfer;
 	int Status;
 #ifdef WINDOWS
     void *Fiber;
-    Std$Object_t *Func;
+    Std$Object$t *Func;
 #else
 	pthread_mutex_t Mutex[1];
 	ucontext_t Context;
 #endif
 } coexpr_t;
 
-static inline coexpr_t *switch_coexpr(coexpr_t *Old, coexpr_t *New, int Status, Std$Function_argument Transfer) {
+static inline coexpr_t *switch_coexpr(coexpr_t *Old, coexpr_t *New, int Status, Std$Function$argument Transfer) {
     New->Transfer = Transfer;
 	New->Status = Status;
 	New->Caller = Old;
@@ -60,7 +60,7 @@ static inline coexpr_t *switch_coexpr(coexpr_t *Old, coexpr_t *New, int Status, 
 
 static void __stdcall coexpr_func(coexpr_t *Callee) {
 	coexpr_t *Caller = Callee->Caller;
-	Std$Function_result Result;
+	Std$Function$result Result;
 	int Status = Std$Function$invoke(Callee->Func, 1, &Result, &Callee->Transfer);
 	for (;;) switch (Status) {
 	case SUSPEND:
@@ -71,7 +71,7 @@ static void __stdcall coexpr_func(coexpr_t *Callee) {
 	case SUCCESS:
 		Caller = switch_coexpr(Callee, Caller, SUCCESS, Result.Arg);
 	case FAILURE:
-		for (;;) Caller = switch_coexpr(Callee, Caller, FAILURE, (Std$Function_argument){0, 0});
+		for (;;) Caller = switch_coexpr(Callee, Caller, FAILURE, (Std$Function$argument){0, 0});
 	case MESSAGE:
 		for (;;) Caller = switch_coexpr(Callee, Caller, MESSAGE, Result.Arg);
 	};
@@ -90,10 +90,10 @@ GLOBAL_FUNCTION(New, 1) {
 
 #else
 
-static void coexpr_func(coexpr_t *Callee, Std$Object_t *Fun) {
+static void coexpr_func(coexpr_t *Callee, Std$Object$t *Fun) {
 	coexpr_t *Caller = Callee->Caller;
 	pthread_mutex_unlock(Caller->Mutex);
-	Std$Function_result Result;
+	Std$Function$result Result;
 	int Status = Std$Function$invoke(Fun, 1, &Result, &Callee->Transfer);
 	for (;;) switch (Status) {
 	case SUSPEND:
@@ -104,7 +104,7 @@ static void coexpr_func(coexpr_t *Callee, Std$Object_t *Fun) {
 	case SUCCESS:
 		Caller = switch_coexpr(Callee, Caller, SUCCESS, Result.Arg);
 	case FAILURE:
-		for (;;) Caller = switch_coexpr(Callee, Caller, FAILURE, (Std$Function_argument){0, 0});
+		for (;;) Caller = switch_coexpr(Callee, Caller, FAILURE, (Std$Function$argument){0, 0});
 	case MESSAGE:
 		for (;;) Caller = switch_coexpr(Callee, Caller, MESSAGE, Result.Arg);
 	};
@@ -207,7 +207,7 @@ METHOD("^", TYP, T) {
 	coexpr_t *Caller = self();
 	coexpr_t *Callee = Args[0].Val;
 	if (Caller == Callee) return SUCCESS;
-	switch_coexpr(Caller, Callee, SUCCESS, (Std$Function_argument){Std$Object$Nil, 0});
+	switch_coexpr(Caller, Callee, SUCCESS, (Std$Function$argument){Std$Object$Nil, 0});
 	Result->Arg = Caller->Transfer;
 	return Caller->Status;
 };
@@ -226,18 +226,18 @@ METHOD("collect", TYP, T) {
 // Returns the values produced by <var>co</var> as a list.
 	coexpr_t *Caller = self();
 	coexpr_t *Callee = Args[0].Val;
-	Agg$List_t *List = new(Agg$List_t);
+	Agg$List$t *List = new(Agg$List$t);
 	List->Type = Agg$List$T;
 	List->Lower = List->Upper = 0;
 	List->Access = 4;
 	Result->Val = List;
-	Agg$List_node *Node, *Prev;
+	Agg$List$node *Node, *Prev;
 	unsigned long NoOfElements;
 	Callee = switch_coexpr(Caller, Callee, SUCCESS, Args[0]);
 	switch (Caller->Status) {
 	case SUSPEND:
 	case SUCCESS:
-		Node = new(Agg$List_node);
+		Node = new(Agg$List$node);
 		NoOfElements = 1;
 		Node->Value = Caller->Transfer.Val;
 		List->Head = Node;
@@ -250,7 +250,7 @@ METHOD("collect", TYP, T) {
 			case SUSPEND:
 				++NoOfElements;
 				Prev = Node;
-				Node = new(Agg$List_node);
+				Node = new(Agg$List$node);
 				(Node->Prev = Prev)->Next = Node;
 				Node->Value = Caller->Transfer.Val;
 				break;
@@ -282,6 +282,6 @@ INITIAL() {
 	pthread_mutex_init(Coexpr->Mutex, 0);
 	pthread_mutex_lock(Coexpr->Mutex);
 #endif
-	//switch_coexpr(Coexpr, Coexpr, SUCCESS, (Std$Function_argument){Std$Object$Nil, 0});
+	//switch_coexpr(Coexpr, Coexpr, SUCCESS, (Std$Function$argument){Std$Object$Nil, 0});
 	Coexpr->Caller = Coexpr;
 };

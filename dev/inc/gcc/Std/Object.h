@@ -7,7 +7,7 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 };
 
 RIVA_TYPE(T);
@@ -21,7 +21,7 @@ RIVA_OBJECT(Greater);
 RIVA_OBJECT(Hash);
 RIVA_OBJECT(Compare);
 
-RIVA_CFUN(int, in, const Std$Object_t *, const Std$Type_t *);
+RIVA_CFUN(int, in, const Std$Object$t *, const Std$Type$t *);
 
 #define INITIAL(ARG)\
 	static void __concat(__init_fn_, __LINE__)(ARG);\
@@ -38,9 +38,9 @@ RIVA_CFUN(int, in, const Std$Object_t *, const Std$Type_t *);
 #else
 
 #define CONSTANT(NAME, TYPE)\
-	static Std$Object_t *__init_ ## NAME(void);\
-	Std$Object_t NAME[] __attribute__ ((section (".constants"))) = {{(Std$Type_t *)&__init_ ## NAME}};\
-	static Std$Object_t *__init_ ## NAME(void)
+	static Std$Object$t *__init_ ## NAME(void);\
+	Std$Object$t NAME[] __attribute__ ((section (".constants"))) = {{(Std$Type$t *)&__init_ ## NAME}};\
+	static Std$Object$t *__init_ ## NAME(void)
 
 #define GLOBAL(TYPE, CTYPE, NAME) CTYPE NAME
 

@@ -4,49 +4,49 @@
 #include <fluidsynth.h>
 
 typedef struct settings_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_settings_t *Handle;
 } settings_t;
 
 TYPE(SettingsT);
 
 typedef struct synth_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_synth_t *Handle;
 } synth_t;
 
 TYPE(SynthT);
 
 typedef struct sequencer_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_sequencer_t *Handle;
 } sequencer_t;
 
 TYPE(SequencerT);
 
 typedef struct event_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_event_t *Handle;
 } event_t;
 
 TYPE(EventT);
 
 typedef struct audio_driver_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_audio_driver_t *Handle;	
 } audio_driver_t;
 
 TYPE(AudioDriverT);
 
 typedef struct sfont_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	fluid_sfont_t *Handle;
 } sfont_t;
 
 TYPE(SFontT);
 
 typedef struct float_block_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int Len;
 	void *Lout, *Rout;
 	int Loff, Roff, Lincr, Rincr;
@@ -63,7 +63,7 @@ GLOBAL_FUNCTION(SettingsNew, 0) {
 	Settings->Type = SettingsT;
 	Settings->Handle = new_fluid_settings();
 	Riva$Memory$register_finalizer((char *)Settings->Handle, (Riva$Memory_finalizer)settings_finalize, 0, 0, 0);
-	Result->Val = (Std$Object_t *)Settings;
+	Result->Val = (Std$Object$t *)Settings;
 	return SUCCESS;
 };
 
@@ -130,7 +130,7 @@ GLOBAL_FUNCTION(SynthNew, 1) {
 	Synth->Type = SynthT;
 	Synth->Handle = new_fluid_synth(Settings->Handle);
 	Riva$Memory$register_finalizer((char *)Synth->Handle, (Riva$Memory_finalizer)synth_finalize, 0, 0, 0);
-	Result->Val = (Std$Object_t *)Synth;
+	Result->Val = (Std$Object$t *)Synth;
 	return SUCCESS;
 };
 
@@ -211,7 +211,7 @@ METHOD("get_sfont", TYP, SynthT, TYP, Std$Integer$SmallT) {
 	sfont_t *SFont = new(sfont_t);
 	SFont->Type = SFontT;
 	SFont->Handle = fluid_synth_get_sfont_by_id(Synth, SFontID);
-	Result->Val = (Std$Object_t *)SFont;
+	Result->Val = (Std$Object$t *)SFont;
 	return SUCCESS;
 };
 
@@ -285,7 +285,7 @@ GLOBAL_FUNCTION(FloatBlockNew, 7) {
 	Block->Rout = Std$Address$get_value(Args[4].Val);
 	Block->Roff = Std$Integer$get_small(Args[5].Val);
 	Block->Rincr = Std$Integer$get_small(Args[6].Val);
-	Result->Val = (Std$Object_t *)Block;
+	Result->Val = (Std$Object$t *)Block;
 	return SUCCESS;
 };
 
@@ -321,7 +321,7 @@ METHOD("program", TYP, PresetT) {
 };
 
 typedef struct presets_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	fluid_sfont_t *SFont;
 	fluid_preset_t Preset[1];
 } presets_generator;
@@ -347,7 +347,7 @@ METHOD("presets", TYP, SFontT) {
 	SFont->iteration_start(SFont);
 	if (SFont->iteration_next(SFont, Generator->Preset)) {
 		Generator->State.Run = Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_presets;
+		Generator->State.Invoke = (Std$Function$cresumefn)resume_presets;
 		Generator->SFont = SFont;
 		preset_t *Preset = new(preset_t);
 		Preset->Type = PresetT;
@@ -375,7 +375,7 @@ GLOBAL_FUNCTION(SequencerNew, 0) {
 		Sequencer->Handle = new_fluid_sequencer();
 	};
 	Riva$Memory$register_finalizer((char *)Sequencer->Handle, (Riva$Memory_finalizer)sequencer_finalize, 0, 0, 0);
-	Result->Val = (Std$Object_t *)Sequencer;
+	Result->Val = (Std$Object$t *)Sequencer;
 	return SUCCESS;
 };
 
@@ -425,14 +425,14 @@ METHOD("register", TYP, SequencerT, TYP, SynthT) {
 
 SYMBOL($write, "write");
 
-static void riva_event_callback(unsigned int Time, fluid_event_t *Event, fluid_sequencer_t *Sequencer, Std$Object_t *Function) {
+static void riva_event_callback(unsigned int Time, fluid_event_t *Event, fluid_sequencer_t *Sequencer, Std$Object$t *Function) {
 	event_t *EventArg = new(event_t);
 	EventArg->Type = EventT;
 	EventArg->Handle = Event;
 	sequencer_t *SequencerArg = new(sequencer_t);
 	SequencerArg->Type = SequencerT;
 	SequencerArg->Handle = Sequencer;
-	Std$Function_result Result;
+	Std$Function$result Result;
 	if (Std$Function$call(Function, 3, &Result, Std$Integer$new_small(Time), 0, EventArg, 0, SequencerArg, 0) == MESSAGE) {
 		
 	};
@@ -461,13 +461,13 @@ GLOBAL_FUNCTION(EventNew, 0) {
 	Event->Type = EventT;
 	Event->Handle = new_fluid_event();
 	Riva$Memory$register_finalizer((char *)Event->Handle, (Riva$Memory_finalizer)event_finalize, 0, 0, 0);
-	Result->Val = (Std$Object_t *)Event;
+	Result->Val = (Std$Object$t *)Event;
 	return SUCCESS;
 };
 
 METHOD("data", TYP, EventT) {
 	fluid_event_t *Event = ((event_t *)Args[0].Val)->Handle;
-	Result->Val = (Std$Object_t *)fluid_event_get_data(Event);
+	Result->Val = (Std$Object$t *)fluid_event_get_data(Event);
 	return SUCCESS;
 };
 
@@ -623,6 +623,6 @@ GLOBAL_FUNCTION(AudioDriverNew, 2) {
 	AudioDriver->Type = AudioDriverT;
 	AudioDriver->Handle = new_fluid_audio_driver(Settings->Handle, Synth->Handle);
 	Riva$Memory$register_finalizer((char *)AudioDriver->Handle, (Riva$Memory_finalizer)audio_driver_finalize, 0, 0, 0);
-	Result->Val = (Std$Object_t *)AudioDriver;
+	Result->Val = (Std$Object$t *)AudioDriver;
 	return SUCCESS;
 };

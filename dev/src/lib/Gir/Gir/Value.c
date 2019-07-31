@@ -13,7 +13,7 @@ TYPE(T);
 
 static GType RivaType;
 
-const Std$Object_t *_to_riva(const GValue *Value) {
+const Std$Object$t *_to_riva(const GValue *Value) {
 	switch (G_VALUE_TYPE(Value)) {
 	case G_TYPE_NONE: return Std$Object$Nil;
 	case G_TYPE_CHAR: return Std$Integer$new_small(g_value_get_char(Value));
@@ -30,16 +30,16 @@ const Std$Object_t *_to_riva(const GValue *Value) {
 	case G_TYPE_STRING: return Std$String$new(g_value_get_string(Value));
 	case G_TYPE_POINTER: return Std$Address$new(g_value_get_pointer(Value));
 	default: {
-		Std$Type_t *Type;
+		Std$Type$t *Type;
 		if (G_VALUE_TYPE(Value) == Gtk$GObject$Type$RIVA->Value) {
 			return g_value_peek_pointer(Value);
 		} else if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
-			return (const Std$Object_t *)Gtk$GObject$Object$to_riva(g_value_get_object(Value));
+			return (const Std$Object$t *)Gtk$GObject$Object$to_riva(g_value_get_object(Value));
 		} else if (g_value_fits_pointer(Value) && (Type = Gtk$GObject$Type$to_riva(G_VALUE_TYPE(Value)))) {
 			Gtk$GObject$Object_t *Object = new(Gtk$GObject$Object_t);
 			Object->Type = Type;
 			Object->Handle = g_value_peek_pointer(Value);
-			return (const Std$Object_t *)Object;
+			return (const Std$Object$t *)Object;
 		} else {
 			printf("Warning: Unknown parameter type: %s\n", G_VALUE_TYPE_NAME(Value));
 			return Std$Address$new(g_value_peek_pointer(Value));
@@ -48,46 +48,46 @@ const Std$Object_t *_to_riva(const GValue *Value) {
 	};
 };
 
-static inline int is_gtk_object(Std$Object_t *Object) {
-	for (const Std$Type_t **P = Object->Type->Types; *P; ++P) {
+static inline int is_gtk_object(Std$Object$t *Object) {
+	for (const Std$Type$t **P = Object->Type->Types; *P; ++P) {
 		if (*P == Gtk$GObject$Object$T) return 1;
 	};
 	return 0;
 };
 
-static inline int is_gtk_enum(Std$Object_t *Object) {
-	for (const Std$Type_t **P = Object->Type->Types; *P; ++P) {
+static inline int is_gtk_enum(Std$Object$t *Object) {
+	for (const Std$Type$t **P = Object->Type->Types; *P; ++P) {
 		if (*P == Gtk$GObject$Enum$T) return 1;
 	};
 	return 0;
 };
 
-TYPED_FUNCTION(void, _to_value, Std$Object_t const *Source, GValue *Dest) {
+TYPED_FUNCTION(void, _to_value, Std$Object$t const *Source, GValue *Dest) {
 	g_value_init(Dest, Gtk$GObject$Type$RIVA->Value);
 	Dest->data[0].v_pointer = Source;
 };
 
-TYPED_INSTANCE(void, _to_value, Std$Integer$SmallT, Std$Integer_smallt const *Source, GValue *Dest) {
+TYPED_INSTANCE(void, _to_value, Std$Integer$SmallT, Std$Integer$smallt const *Source, GValue *Dest) {
 	g_value_init(Dest, G_TYPE_LONG);
 	g_value_set_long(Dest, Source->Value);
 };
 
-TYPED_INSTANCE(void, _to_value, Std$String$T, Std$String_t const *Source, GValue *Dest) {
+TYPED_INSTANCE(void, _to_value, Std$String$T, Std$String$t const *Source, GValue *Dest) {
 	g_value_init(Dest, G_TYPE_STRING);
 	g_value_set_string(Dest, Std$String$flatten(Source));
 };
 
-TYPED_INSTANCE(void, _to_value, Std$Real$T, Std$Real_t const *Source, GValue *Dest) {
+TYPED_INSTANCE(void, _to_value, Std$Real$T, Std$Real$t const *Source, GValue *Dest) {
 	g_value_init(Dest, G_TYPE_DOUBLE);
 	g_value_set_double(Dest, Source->Value);
 };
 
-TYPED_INSTANCE(void, _to_value, Std$Address$T, Std$Address_t const *Source, GValue *Dest) {
+TYPED_INSTANCE(void, _to_value, Std$Address$T, Std$Address$t const *Source, GValue *Dest) {
 	g_value_init(Dest, G_TYPE_POINTER);
 	g_value_set_pointer(Dest, Source->Value);
 };
 
-void _to_gtk(Std$Object_t *Source, GValue *Dest) {
+void _to_gtk(Std$Object$t *Source, GValue *Dest) {
 	if (G_IS_VALUE(Dest)) g_value_unset(Dest);
 	if (Source == Std$Object$Nil) {
 		g_value_init(Dest, G_TYPE_NONE);
@@ -102,10 +102,10 @@ void _to_gtk(Std$Object_t *Source, GValue *Dest) {
 	};
 };
 
-va_list _valist(Agg$List_t *List) {
+va_list _valist(Agg$List$t *List) {
 	int Size = 0;
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Object_t *Value = Node->Value;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
+		Std$Object$t *Value = Node->Value;
 		if (Value->Type == Std$Integer$SmallT) {
 			Size += sizeof(int);
 		} else if (Value->Type == Std$String$T) {
@@ -121,16 +121,16 @@ va_list _valist(Agg$List_t *List) {
 	char *Valist = Riva$Memory$alloc(Size);
 	union {int *Integer; const char **String; double *Real; void **Other;} P;
 	P.Other = (void **)Valist;
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Object_t *Value = Node->Value;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
+		Std$Object$t *Value = Node->Value;
 		if (Value->Type == Std$Integer$SmallT) {
-			*(P.Integer++) = ((Std$Integer_smallt *)Value)->Value;
+			*(P.Integer++) = ((Std$Integer$smallt *)Value)->Value;
 		} else if (Value->Type == Std$String$T) {
 			*(P.String++) = Std$String$flatten(Value);
 		} else if (Value->Type == Std$Real$T) {
-			*(P.Real++) = ((Std$Real_t *)Value)->Value;
+			*(P.Real++) = ((Std$Real$t *)Value)->Value;
 		} else if (Value->Type == Std$Address$T) {
-			*(P.Other++) = ((Std$Address_t *)Value)->Value;
+			*(P.Other++) = ((Std$Address$t *)Value)->Value;
 		} else if (Value == $true) {
 			*(P.Integer++) = 1;
 		} else if (Value == $false) {
@@ -144,10 +144,10 @@ va_list _valist(Agg$List_t *List) {
 	return Valist;
 };
 
-va_list _varargs(int Count, Std$Function_argument *Args) {
+va_list _varargs(int Count, Std$Function$argument *Args) {
 	int Size = 0;
 	for (int I = 0; I < Count; ++I) {
-		Std$Object_t *Value = Args[I].Val;
+		Std$Object$t *Value = Args[I].Val;
 		if (Value->Type == Std$Integer$SmallT) {
 			Size += sizeof(int);
 		} else if (Value->Type == Std$String$T) {
@@ -164,15 +164,15 @@ va_list _varargs(int Count, Std$Function_argument *Args) {
 	union {int *Integer; const char **String; double *Real; void **Other;} P;
 	P.Other = (void **)Valist;
 	for (int I = 0; I < Count; ++I) {
-		Std$Object_t *Value = Args[I].Val;
+		Std$Object$t *Value = Args[I].Val;
 		if (Value->Type == Std$Integer$SmallT) {
-			*(P.Integer++) = ((Std$Integer_smallt *)Value)->Value;
+			*(P.Integer++) = ((Std$Integer$smallt *)Value)->Value;
 		} else if (Value->Type == Std$String$T) {
 			*(P.String++) = Std$String$flatten(Value);
 		} else if (Value->Type == Std$Real$T) {
-			*(P.Real++) = ((Std$Real_t *)Value)->Value;
+			*(P.Real++) = ((Std$Real$t *)Value)->Value;
 		} else if (Value->Type == Std$Address$T) {
-			*(P.Other++) = ((Std$Address_t *)Value)->Value;
+			*(P.Other++) = ((Std$Address$t *)Value)->Value;
 		} else if (Value == $true) {
 			*(P.Integer++) = 1;
 		} else if (Value == $false) {
@@ -186,10 +186,10 @@ va_list _varargs(int Count, Std$Function_argument *Args) {
 	return Valist;
 };
 
-va_list _valist_terminated(Agg$List_t *List, int Terminator) {
+va_list _valist_terminated(Agg$List$t *List, int Terminator) {
 	int Size = sizeof(int);
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Object_t *Value = Node->Value;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
+		Std$Object$t *Value = Node->Value;
 		if (Value->Type == Std$Integer$SmallT) {
 			Size += sizeof(int);
 		} else if (Value->Type == Std$String$T) {
@@ -205,16 +205,16 @@ va_list _valist_terminated(Agg$List_t *List, int Terminator) {
 	char *Valist = Riva$Memory$alloc(Size);
 	union {int *Integer; const char **String; double *Real; void **Other;} P;
 	P.Other = (void **)Valist;
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Object_t *Value = Node->Value;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
+		Std$Object$t *Value = Node->Value;
 		if (Value->Type == Std$Integer$SmallT) {
-			*(P.Integer++) = ((Std$Integer_smallt *)Value)->Value;
+			*(P.Integer++) = ((Std$Integer$smallt *)Value)->Value;
 		} else if (Value->Type == Std$String$T) {
 			*(P.String++) = Std$String$flatten(Value);
 		} else if (Value->Type == Std$Real$T) {
-			*(P.Real++) = ((Std$Real_t *)Value)->Value;
+			*(P.Real++) = ((Std$Real$t *)Value)->Value;
 		} else if (Value->Type == Std$Address$T) {
-			*(P.Other++) = ((Std$Address_t *)Value)->Value;
+			*(P.Other++) = ((Std$Address$t *)Value)->Value;
 		} else if (Value == $true) {
 			*(P.Integer++) = 1;
 		} else if (Value == $false) {
@@ -229,10 +229,10 @@ va_list _valist_terminated(Agg$List_t *List, int Terminator) {
 	return Valist;
 };
 
-va_list _varargs_terminated(int Count, Std$Function_argument *Args, int Terminator) {
+va_list _varargs_terminated(int Count, Std$Function$argument *Args, int Terminator) {
 	int Size = sizeof(int);
 	for (int I = 0; I < Count; ++I) {
-		Std$Object_t *Value = Args[I].Val;
+		Std$Object$t *Value = Args[I].Val;
 		if (Value->Type == Std$Integer$SmallT) {
 			Size += sizeof(int);
 		} else if (Value->Type == Std$String$T) {
@@ -249,15 +249,15 @@ va_list _varargs_terminated(int Count, Std$Function_argument *Args, int Terminat
 	union {int *Integer; const char **String; double *Real; void **Other;} P;
 	P.Other = (void **)Valist;
 	for (int I = 0; I < Count; ++I) {
-		Std$Object_t *Value = Args[I].Val;
+		Std$Object$t *Value = Args[I].Val;
 		if (Value->Type == Std$Integer$SmallT) {
-			*(P.Integer++) = ((Std$Integer_smallt *)Value)->Value;
+			*(P.Integer++) = ((Std$Integer$smallt *)Value)->Value;
 		} else if (Value->Type == Std$String$T) {
 			*(P.String++) = Std$String$flatten(Value);
 		} else if (Value->Type == Std$Real$T) {
-			*(P.Real++) = ((Std$Real_t *)Value)->Value;
+			*(P.Real++) = ((Std$Real$t *)Value)->Value;
 		} else if (Value->Type == Std$Address$T) {
-			*(P.Other++) = ((Std$Address_t *)Value)->Value;
+			*(P.Other++) = ((Std$Address$t *)Value)->Value;
 		} else if (Value == $true) {
 			*(P.Integer++) = 1;
 		} else if (Value == $false) {
@@ -278,13 +278,13 @@ GLOBAL_FUNCTION(New, 0) {
 	Value->Type = T;
 	Value->Value = new(GValue);
 	if (Count > 0) _to_gtk(Args[0].Val, Value->Value);
-	Result->Val = (Std$Object_t *)Value;
+	Result->Val = (Std$Object$t *)Value;
 	return SUCCESS;
 };
 
 METHOD("Get", TYP, T) {
 	Gtk$GObject$Value_t *Value = (Gtk$GObject$Value_t *)Args[0].Val;
-	Result->Val = (Std$Object_t *)_to_riva(Value->Value);
+	Result->Val = (Std$Object$t *)_to_riva(Value->Value);
 	return SUCCESS;
 };
 
@@ -313,7 +313,7 @@ METHOD("Set", TYP, T, VAL, Std$Object$Nil) {
 METHOD("Set", TYP, T, TYP, Std$Integer$SmallT) {
 	Gtk$GObject$Value_t *Value = (Gtk$GObject$Value_t *)Args[0].Val;
 	g_value_init(Value->Value, G_TYPE_LONG);
-	g_value_set_long(Value->Value, ((Std$Integer_smallt *)Args[1].Val)->Value);
+	g_value_set_long(Value->Value, ((Std$Integer$smallt *)Args[1].Val)->Value);
 	return SUCCESS;
 };
 
@@ -327,14 +327,14 @@ METHOD("Set", TYP, T, TYP, Std$String$T) {
 METHOD("Set", TYP, T, TYP, Std$Real$T) {
 	Gtk$GObject$Value_t *Value = (Gtk$GObject$Value_t *)Args[0].Val;
 	g_value_init(Value->Value, G_TYPE_DOUBLE);
-	g_value_set_double(Value->Value, ((Std$Real_t *)Args[1].Val)->Value);
+	g_value_set_double(Value->Value, ((Std$Real$t *)Args[1].Val)->Value);
 	return SUCCESS;
 };
 
 METHOD("Set", TYP, T, TYP, Std$Address$T) {
 	Gtk$GObject$Value_t *Value = (Gtk$GObject$Value_t *)Args[0].Val;
 	g_value_init(Value->Value, G_TYPE_POINTER);
-	g_value_set_pointer(Value->Value, ((Std$Address_t *)Args[1].Val)->Value);
+	g_value_set_pointer(Value->Value, ((Std$Address$t *)Args[1].Val)->Value);
 	return SUCCESS;
 };
 
@@ -371,6 +371,6 @@ METHOD("Copy", TYP, T) {
 	Copy->Type = T;
 	Copy->Value = new(GValue);
 	g_value_copy(Value->Value, Copy->Value);
-	Result->Val = (Std$Object_t *)Copy;
+	Result->Val = (Std$Object$t *)Copy;
 	return SUCCESS;
 };

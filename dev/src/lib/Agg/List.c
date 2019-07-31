@@ -10,8 +10,8 @@
 #include <pthread.h>
 
 typedef struct _list {
-	const Std$Type_t *Type;
-	Agg$List_node *Head, *Tail, *Cache, **Array;
+	const Std$Type$t *Type;
+	Agg$List$node *Head, *Tail, *Cache, **Array;
 	unsigned long Length;
 	unsigned long Index, Lower, Upper, Access;
 	pthread_rwlock_t Lock[1];
@@ -47,7 +47,7 @@ GLOBAL_FUNCTION(New, 0) {
 	List->Type = T;
 	if (Count > 0) {
 		long I, Size = Std$Integer$get_small(Args[0].Val);
-		Std$Object_t *Value = Std$Object$Nil;
+		Std$Object$t *Value = Std$Object$Nil;
 		_node *Node = new(_node);
 		if (Count > 1) Value = Args[1].Val;
 		Node->Value = Value;
@@ -68,23 +68,23 @@ GLOBAL_FUNCTION(New, 0) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	return SUCCESS;
 };
 #endif
 
-Std$Object_t *_new0() {
+Std$Object$t *_new0() {
 	_list *List = new(_list);
 	List->Type = T;
 	//GC_ZEROED: List->Length = 0;
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	return (Std$Object_t *)List;
+	return (Std$Object$t *)List;
 };
 
-Std$Object_t *_new(long Count, Std$Object_t *First, ...) {
-	Std$Object_t **Values = &First;
+Std$Object$t *_new(long Count, Std$Object$t *First, ...) {
+	Std$Object$t **Values = &First;
 	_list *List = new(_list);
 	List->Type = T;
 	if (Count > 0) {
@@ -107,10 +107,10 @@ Std$Object_t *_new(long Count, Std$Object_t *First, ...) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	return (Std$Object_t *)List;
+	return (Std$Object$t *)List;
 };
 
-Std$Object_t *_newv(long Count, Std$Object_t **Values) {
+Std$Object$t *_newv(long Count, Std$Object$t **Values) {
 	_list *List = new(_list);
 	List->Type = T;
 	if (Count > 0) {
@@ -133,7 +133,7 @@ Std$Object_t *_newv(long Count, Std$Object_t **Values) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	return (Std$Object_t *)List;
+	return (Std$Object$t *)List;
 };
 
 #ifdef THREADED
@@ -163,7 +163,7 @@ GLOBAL_FUNCTION(Make, 0) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	return SUCCESS;
 };
 #endif
@@ -230,8 +230,8 @@ METHOD("#", TYP, T) {
 	Agg$ObjectTable$t TempCache[1] = {Agg$ObjectTable$INIT};
 	Agg$ObjectTable$t *Cache;
 	if (Count > 1) {
-		Cache = (Agg$ObjectTable_t *)Args[1].Val;
-		Std$Object_t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
+		Cache = (Agg$ObjectTable$t *)Args[1].Val;
+		Std$Object$t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
 		if (Prior != (void *)0xFFFFFFFF) {
 			Result->Val = Prior;
 			return SUCCESS;
@@ -260,7 +260,7 @@ METHOD("?", TYP, T, TYP, T) {
 	Agg$ObjectTable$t TempCache[1] = {Agg$ObjectTable$INIT};
 	Agg$ObjectTable$t *Cache, *SubCache;
 	if (Count > 2) {
-		Cache = (Agg$ObjectTable_t *)Args[2].Val;
+		Cache = (Agg$ObjectTable$t *)Args[2].Val;
 		SubCache = Agg$ObjectTable$get(Cache, A);
 		if (SubCache != (void *)0xFFFFFFFF) {
 			Std$Object$t *Prior = Agg$ObjectTable$get(SubCache, B);
@@ -315,11 +315,11 @@ METHOD("empty", TYP, T) {
 	List->Length = 0;
 	List->Access = 4;
 	UNLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	return SUCCESS;
 };
 
-Std$Object_t *_empty(_list *List) {
+Std$Object$t *_empty(_list *List) {
 	WRLOCK(List);
 	List->Head = List->Tail = List->Cache = 0;
 	List->Index = List->Lower = List->Upper = 0;
@@ -327,7 +327,7 @@ Std$Object_t *_empty(_list *List) {
 	List->Length = 0;
 	List->Access = 4;
 	UNLOCK(List);
-	return (Std$Object_t *)List;
+	return (Std$Object$t *)List;
 };
 
 METHOD("copy", TYP, T) {
@@ -358,7 +358,7 @@ METHOD("copy", TYP, T) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	return SUCCESS;
 };
 
@@ -414,7 +414,7 @@ METHOD("+", TYP, T, TYP, T) {
 	//GC_ZEROED: List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	return SUCCESS;
 };
 
@@ -515,7 +515,7 @@ METHOD("pull", TYP, T) {
 };
 #endif
 
-void _push(_list *List, Std$Object_t *Value) {
+void _push(_list *List, Std$Object$t *Value) {
 	WRLOCK(List);
 	_node *Node = new(_node);
 	Node->Value = Value;
@@ -529,7 +529,7 @@ void _push(_list *List, Std$Object_t *Value) {
 	UNLOCK(List);
 };
 
-void _put(_list *List, Std$Object_t *Value) {
+void _put(_list *List, Std$Object$t *Value) {
 	WRLOCK(List);
 	_node *Node = new(_node);
 	Node->Value = Value;
@@ -542,7 +542,7 @@ void _put(_list *List, Std$Object_t *Value) {
 	UNLOCK(List);
 };
 
-Std$Object_t *_pop(_list *List) {
+Std$Object$t *_pop(_list *List) {
 	WRLOCK(List);
 	_node *Node = List->Head;
 	if (!Node) {
@@ -561,7 +561,7 @@ Std$Object_t *_pop(_list *List) {
 	return Node->Value;
 };
 
-Std$Object_t *_pull(_list *List) {
+Std$Object$t *_pull(_list *List) {
 	WRLOCK(List);
 	_node *Node = List->Tail;
 	if (!Node) {
@@ -734,7 +734,7 @@ METHOD("[]", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 		//GC_ZEROED: List2->Lower = List2->Upper = 0;
 		List2->Access = 4;
 		INITLOCK(List2);
-		Result->Val = (Std$Object_t *)List2;
+		Result->Val = (Std$Object$t *)List2;
 		return SUCCESS;
 	};
 
@@ -764,7 +764,7 @@ METHOD("[]", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	List2->Tail = Node;
 	List2->Access = 4;
 	INITLOCK(List2);
-	Result->Val = (Std$Object_t *)List2;
+	Result->Val = (Std$Object$t *)List2;
 	return SUCCESS;
 };
 
@@ -849,7 +849,7 @@ METHOD("split", TYP, T, TYP, Std$Integer$SmallT) {
 	};
 	UNLOCK(List);
 	INITLOCK(List2);
-	Result->Val = (Std$Object_t *)List2;
+	Result->Val = (Std$Object$t *)List2;
 	return SUCCESS;
 };
 
@@ -929,7 +929,7 @@ METHOD("split", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	};
 	UNLOCK(List);
 	INITLOCK(List2);
-	Result->Val = (Std$Object_t *)List2;
+	Result->Val = (Std$Object$t *)List2;
 	return SUCCESS;
 };
 
@@ -1038,11 +1038,11 @@ METHOD("shift", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
         };
     };
     UNLOCK(List);
-    Result->Val = (Std$Object_t *)List;
+    Result->Val = (Std$Object$t *)List;
     return SUCCESS;
 };
 
-static Std$Object_t *delete_node(_list *List, _node *Node) {
+static Std$Object$t *delete_node(_list *List, _node *Node) {
 	(Node->Prev->Next = Node->Next)->Prev = Node->Prev;
 	--List->Length;
 	List->Index = 1;
@@ -1167,7 +1167,7 @@ METHOD("insert", TYP, T, TYP, Std$Integer$SmallT, SKP) {
 	_list *List = (_list *)Args[0].Val;
 	WRLOCK(List);
 	long Index = Std$Integer$get_small(Args[1].Val);
-	Std$Object_t *Value = Args[2].Val;
+	Std$Object$t *Value = Args[2].Val;
 	long Cache = List->Index;
 	long Length = List->Length;
 	if (Index <= 0) Index += Length + 1;
@@ -1433,8 +1433,8 @@ AMETHOD(Std$String$Of, TYP, T) {
 	const _node *Node = List->Head;
 	RDLOCK(List);
 	if (Node) {
-		Std$Object_t *Final;
-		Std$Function_result Buffer;
+		Std$Object$t *Final;
+		Std$Function$result Buffer;
 		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 			Final = Std$String$add(LeftBracket, Buffer.Val);
 		} else {
@@ -1466,11 +1466,11 @@ AMETHOD(Std$String$Of, TYP, T, TYP, Std$String$T) {
 // converts each element of <var>list</var> to a string and joins them separating elements with <var>sep</var>.
 	_list *List = (_list *)Args[0].Val;
 	const _node *Node = List->Head;
-	Std$Object_t *Sep = Args[1].Val;
+	Std$Object$t *Sep = Args[1].Val;
 	RDLOCK(List);
 	if (Node) {
-		Std$Object_t *Final;
-		Std$Function_result Buffer;
+		Std$Object$t *Final;
+		Std$Function$result Buffer;
 		if (Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0) < FAILURE) {
 			Final = Buffer.Val;
 		} else {
@@ -1504,7 +1504,7 @@ METHOD("in", ANY, TYP, T) {
 	int Index = 0;
 	for (const _node *Node = ((_list *)Args[1].Val)->Head; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Args[0].Val, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Arg = Args[0];
@@ -1521,10 +1521,10 @@ METHOD("in", ANY, TYP, T) {
 };
 
 typedef struct find_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	const _node *Current;
 	long Index;
-	const Std$Object_t *Value;
+	const Std$Object$t *Value;
 } find_generator;
 
 static long resume_find_list(Std$Function$result *Result) {
@@ -1533,7 +1533,7 @@ static long resume_find_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Generator->Value, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
@@ -1563,14 +1563,14 @@ METHOD("find", TYP, T, ANY) {
 	int Index = 0;
 	for (const _node *Node = ((_list *)Args[0].Val)->Head; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Args[1].Val, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Next) {
 				find_generator *Generator = new(find_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_list;
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1623,7 +1623,7 @@ static long resume_find_object_list(Std$Function$result *Result) {
 			if (Node->Next) {
 				find_generator *Generator = new(find_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_object_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_object_list;
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1643,7 +1643,7 @@ static long resume_rfind_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Generator->Value, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
@@ -1673,14 +1673,14 @@ METHOD("rfind", TYP, T, ANY) {
 	int Index = ((_list *)Args[0].Val)->Length + 1;
 	for (const _node *Node = ((_list *)Args[0].Val)->Tail; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Args[1].Val, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
 			if (Node->Prev) {
 				find_generator *Generator = new(find_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_rfind_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_rfind_list;
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1733,7 +1733,7 @@ static long resume_rfind_object_list(Std$Function$result *Result) {
 			if (Node->Prev) {
 				find_generator *Generator = new(find_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_rfind_object_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_rfind_object_list;
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1748,12 +1748,12 @@ static long resume_rfind_object_list(Std$Function$result *Result) {
 };
 
 typedef struct applied_find_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	const _node *Current;
 	long Index;
 	size_t NumFunctions;
-	const Std$Object_t *Value;
-	const Std$Object_t *Functions[];
+	const Std$Object$t *Value;
+	const Std$Object$t *Functions[];
 } applied_find_generator;
 
 static long resume_applied_find_list(Std$Function$result *Result) {
@@ -1762,7 +1762,7 @@ static long resume_applied_find_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Result0.Val = Node->Value;
 		Result0.Ref = 0;
 		for (size_t I = 0; I < Generator->NumFunctions; ++I) {
@@ -1808,7 +1808,7 @@ METHOD("find", TYP, T, ANY, ANY) {
 	size_t NumFunctions = Count - 2;
 	for (const _node *Node = ((_list *)Args[0].Val)->Head; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Result0.Val = Node->Value;
 		Result0.Ref = 0;
 		for (size_t I = 0; I < NumFunctions; ++I) {
@@ -1828,7 +1828,7 @@ METHOD("find", TYP, T, ANY, ANY) {
 			if (Node->Next) {
 				applied_find_generator *Generator = (applied_find_generator *)Riva$Memory$alloc(sizeof(applied_find_generator) + NumFunctions * sizeof(Std$Object$t *));
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_applied_find_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_applied_find_list;
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1857,7 +1857,7 @@ static long resume_applied_rfind_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Result0.Val = Node->Value;
 		Result0.Ref = 0;
 		for (size_t I = 0; I < Generator->NumFunctions; ++I) {
@@ -1903,7 +1903,7 @@ METHOD("rfind", TYP, T, ANY, ANY) {
 	size_t NumFunctions = Count - 2;
 	for (const _node *Node = ((_list *)Args[0].Val)->Tail; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Result0.Val = Node->Value;
 		Result0.Ref = 0;
 		for (size_t I = 0; I < NumFunctions; ++I) {
@@ -1923,7 +1923,7 @@ METHOD("rfind", TYP, T, ANY, ANY) {
 			if (Node->Prev) {
 				applied_find_generator *Generator = (applied_find_generator *)Riva$Memory$alloc(sizeof(applied_find_generator) + NumFunctions * sizeof(Std$Object$t *));
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_applied_rfind_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_applied_rfind_list;
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
 				Generator->Value = Args[1].Val;
@@ -1978,10 +1978,10 @@ METHOD("bsearch", TYP, T, ANY) {
 };
 
 typedef struct where_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	const _node *Current;
 	long Index;
-	const Std$Object_t *Test;
+	const Std$Object$t *Test;
 } where_generator;
 
 static long resume_where_list(Std$Function$result *Result) {
@@ -1990,7 +1990,7 @@ static long resume_where_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
@@ -2021,7 +2021,7 @@ METHOD("where", TYP, T, TYP, Std$Function$T) {
 	_list *List = (_list *)Args[0].Val;
 	for (const _node *Node = List->Head; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Args[1].Val, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
@@ -2030,7 +2030,7 @@ METHOD("where", TYP, T, TYP, Std$Function$T) {
 			if (Node->Next) {
 				where_generator *Generator = new(where_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_where_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_where_list;
 				Generator->Current = Node->Next;
 				Generator->Index = Index;
 				Generator->Test = Args[1].Val;
@@ -2056,7 +2056,7 @@ static long resume_rwhere_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			Result->Val = Std$Integer$new_small(Index);
@@ -2087,7 +2087,7 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T) {
 	int Index = List->Length + 1;
 	for (const _node *Node = List->Tail; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Args[1].Val, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			List->Index = Index;
@@ -2096,7 +2096,7 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T) {
 			if (Node->Prev) {
 				where_generator *Generator = new(where_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_rwhere_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_rwhere_list;
 				Generator->Current = Node->Prev;
 				Generator->Index = Index;
 				Generator->Test = Args[1].Val;
@@ -2117,10 +2117,10 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T) {
 };
 
 typedef struct where_value_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	const _node *Current;
 	long Index;
-	const Std$Object_t *Test, *Value;
+	const Std$Object$t *Test, *Value;
 } where_value_generator;
 
 static long resume_where_value_list(Std$Function$result *Result) {
@@ -2129,7 +2129,7 @@ static long resume_where_value_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Generator->Value, 0)) {
@@ -2170,7 +2170,7 @@ METHOD("where", TYP, T, TYP, Std$Function$T, ANY) {
 	_list *List = (_list *)Args[0].Val;
 	for (const _node *Node = List->Head; Node; Node = Node->Next) {
 		++Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Args[1].Val, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Args[2].Val, 0)) {
@@ -2181,7 +2181,7 @@ METHOD("where", TYP, T, TYP, Std$Function$T, ANY) {
 				if (Node->Next) {
 					where_value_generator *Generator = new(where_value_generator);
 					Generator->State.Run = Std$Function$resume_c;
-					Generator->State.Invoke = (Std$Function_cresumefn)resume_where_value_list;
+					Generator->State.Invoke = (Std$Function$cresumefn)resume_where_value_list;
 					Generator->Current = Node->Next;
 					Generator->Index = Index;
 					Generator->Test = Args[1].Val;
@@ -2215,7 +2215,7 @@ static long resume_rwhere_value_list(Std$Function$result *Result) {
 	int Index = Generator->Index;
 	for (const _node *Node = Generator->Current; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Generator->Test, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Generator->Value, 0)) {
@@ -2256,7 +2256,7 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T, ANY) {
 	int Index = List->Length + 1;
 	for (const _node *Node = List->Tail; Node; Node = Node->Prev) {
 		--Index;
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Args[1].Val, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			switch (Std$Function$call($EQUAL, 2, &Result0, Result0.Val, 0, Args[2].Val, 0)) {
@@ -2267,7 +2267,7 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T, ANY) {
 				if (Node->Prev) {
 					where_value_generator *Generator = new(where_value_generator);
 					Generator->State.Run = Std$Function$resume_c;
-					Generator->State.Invoke = (Std$Function_cresumefn)resume_rwhere_value_list;
+					Generator->State.Invoke = (Std$Function$cresumefn)resume_rwhere_value_list;
 					Generator->Current = Node->Prev;
 					Generator->Index = Index;
 					Generator->Test = Args[1].Val;
@@ -2303,7 +2303,7 @@ METHOD("remove", TYP, T, ANY) {
 	_list *List = (_list *)Args[0].Val;
 	WRLOCK(List);
 	for (_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Args[1].Val, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
@@ -2368,7 +2368,7 @@ METHOD("remove", TYP, T, ANY, ANY) {
 	size_t NumFunctions = Count - 2;
 	WRLOCK(List);
 	for (_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Result0.Val = Node->Value;
 		Result0.Ref = 0;
 		for (size_t I = 0; I < NumFunctions; ++I) {
@@ -2434,10 +2434,10 @@ METHOD("remove", TYP, T, ANY, ANY) {
 };
 
 typedef struct filter_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	_list *List;
 	_node *Current;
-	const Std$Object_t *Function;
+	const Std$Object$t *Function;
 } filter_generator;
 
 static long resume_filter_list(Std$Function$result *Result) {
@@ -2445,7 +2445,7 @@ static long resume_filter_list(Std$Function$result *Result) {
 	_list *List = Generator->List;
 	WRLOCK(List);
 	for (_node *Node = Generator->Current; Node; Node = Node->Next) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Generator->Function, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
@@ -2510,7 +2510,7 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 	_list *List = (_list *)Args[0].Val;
 	WRLOCK(List);
 	for (_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call(Args[1].Val, 1, &Result0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
@@ -2550,7 +2550,7 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 			if (Node->Next) {
 				filter_generator *Generator = new(filter_generator);
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_filter_list;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_filter_list;
 				Generator->List = List;
 				Generator->Current = Node->Next;
 				Generator->Function = Args[1].Val;
@@ -2626,8 +2626,8 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 SYMBOL($to, "to");
 
 typedef struct list_loop_generator {
-	Std$Function_cstate State;
-	Std$Object_t **Key, **Value;
+	Std$Function$cstate State;
+	Std$Object$t **Key, **Value;
 	size_t Index;
 	_node *Current;
 } list_loop_generator;
@@ -2653,7 +2653,7 @@ METHOD("loop", TYP, T, ANY, ANY) {
 	if (Current == 0) return SUCCESS;
 	list_loop_generator *Generator = new(list_loop_generator);
 	Generator->State.Run = Std$Function$resume_c;
-	Generator->State.Invoke = (Std$Function_cresumefn)resume_list_loop;
+	Generator->State.Invoke = (Std$Function$cresumefn)resume_list_loop;
 	Generator->Index = 2;
 	Generator->Current = Current;
 	Generator->Key = Args[1].Ref;
@@ -2664,10 +2664,10 @@ METHOD("loop", TYP, T, ANY, ANY) {
 };
 
 typedef struct list_fill_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	unsigned long NoOfRefs;
 	_node *Current;
-	Std$Object_t **Refs[];
+	Std$Object$t **Refs[];
 } list_fill_generator;
 
 static long resume_fill_list(Std$Function$result *Result) {
@@ -2694,9 +2694,9 @@ METHOD("fill", TYP, T, ANY) {
 		Current = Current->Next;
 	};
 	if (Current == 0) return SUCCESS;
-	list_fill_generator *Generator = (list_fill_generator *)Riva$Memory$alloc(sizeof(list_fill_generator) + (Count - 1) * sizeof(Std$Object_t **));
+	list_fill_generator *Generator = (list_fill_generator *)Riva$Memory$alloc(sizeof(list_fill_generator) + (Count - 1) * sizeof(Std$Object$t **));
 	Generator->State.Run = Std$Function$resume_c;
-	Generator->State.Invoke = (Std$Function_cresumefn)resume_fill_list;
+	Generator->State.Invoke = (Std$Function$cresumefn)resume_fill_list;
 	Generator->Current = Current;
 	Generator->NoOfRefs = Count - 1;
 	for (unsigned long I = 0; I < Generator->NoOfRefs; ++I) {
@@ -2715,9 +2715,9 @@ METHOD("apply", TYP, T, TYP, Std$Function$T) {
 // References to the elements of <var>list</var> are passed so if <var>func</var> expects reference parameters, it will modify <var>list</var>.
 	const _list *List = (_list *)Args[0].Val;
 	int Count0 = List->Length;
-	Std$Function_argument *Args0 = (Std$Function_argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function_argument));
+	Std$Function$argument *Args0 = (Std$Function$argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function$argument));
 	_node *Node = List->Head;
-	Std$Function_argument *Cur = Args0;
+	Std$Function$argument *Cur = Args0;
 	for (; Node; Node = Node->Next, ++Cur) Cur->Val = *(Cur->Ref = &Node->Value);
 	return Std$Function$invoke(Args[1].Val, Count0, Result, Args0);
 };
@@ -2731,9 +2731,9 @@ GLOBAL_FUNCTION(Apply, 2) {
 	CHECK_EXACT_ARG_TYPE(0, T);
 	const _list *List = (_list *)Args[0].Val;
 	int Count0 = List->Length;
-	Std$Function_argument *Args0 = (Std$Function_argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function_argument));
+	Std$Function$argument *Args0 = (Std$Function$argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function$argument));
 	_node *Node = List->Head;
-	Std$Function_argument *Cur = Args0;
+	Std$Function$argument *Cur = Args0;
 	for (; Node; Node = Node->Next, ++Cur) Cur->Val = *(Cur->Ref = &Node->Value);
 	return Std$Function$invoke(Args[1].Val, Count0, Result, Args0);
 };
@@ -2746,9 +2746,9 @@ METHOD("apply", TYP, Std$Function$T, TYP, T) {
 // References to the elements of <var>list</var> are passed so if <var>func</var> expects reference parameters, it will modify <var>list</var>.
 	const _list *List = (_list *)Args[1].Val;
 	int Count0 = List->Length;
-	Std$Function_argument *Args0 = (Std$Function_argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function_argument));
+	Std$Function$argument *Args0 = (Std$Function$argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function$argument));
 	_node *Node = List->Head;
-	Std$Function_argument* Cur = Args0;
+	Std$Function$argument* Cur = Args0;
 	for (; Node; Node = Node->Next, ++Cur) Cur->Val = *(Cur->Ref = &Node->Value);
 	return Std$Function$invoke(Args[0].Val, Count0, Result, Args0);
 };
@@ -2759,14 +2759,14 @@ METHOD("map", TYP, T, TYP, Std$Function$T) {
 //:T
 // Returns the list or results obtained by calling <var>func</var> with each element in <var>list</var>.
 // Elements for which <code>func(value)</code> fail will not add any result to the list.
-	Std$Object_t *Function = Args[1].Val;
+	Std$Object$t *Function = Args[1].Val;
 	const _list *In = (_list *)Args[0].Val;
 	_list *Out = new(_list);
 	Out->Type = T;
 	_node *Node = 0;
 	long Length = 0;
 	for (_node *Arg = In->Head; Arg; Arg = Arg->Next) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		if (Std$Function$call(Function, 1, &Result, Arg->Value, 0) <= SUCCESS) {
 			if (Node) {
 				_node *Prev = Node;
@@ -2785,7 +2785,7 @@ METHOD("map", TYP, T, TYP, Std$Function$T) {
 	Out->Length = Length;
 	Out->Lower = Out->Upper = 0;
 	Out->Access = 4;
-	Result->Val = (Std$Object_t *)Out;
+	Result->Val = (Std$Object$t *)Out;
 	return SUCCESS;
 };
 
@@ -2795,20 +2795,20 @@ METHOD("map", TYP, Std$Function$T, TYP, T) {
 //:T
 // Returns the list or results obtained by calling <var>func</var> with each element in <var>list</var>.
 // Elements for which <code>func(value)</code> fail will not add any result to the list.
-	Std$Object_t *Function = Args[0].Val;
+	Std$Object$t *Function = Args[0].Val;
 	_list *Out = new(_list);
 	Out->Type = T;
 	_node *Node = 0;
 	long Length = 0;
 	long Count0 = Count - 1;
-	Std$Function_argument *Args0 = (Std$Function_argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function_argument));
+	Std$Function$argument *Args0 = (Std$Function$argument *)Riva$Memory$alloc(Count0 * sizeof(Std$Function$argument));
 	_node **Nodes = (_node **)Riva$Memory$alloc(Count0 * sizeof(_node *));
 	for (int I = 0; I < Count0; ++I) {
 		if ((Nodes[I] = ((_list *)Args[I + 1].Val)->Head) == 0) goto finished;
 		Args0[I].Val = *(Args0[I].Ref = &Nodes[I]->Value);
 	};
 	for (;;) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		if (Std$Function$invoke(Function, Count0, &Result, Args0) <= SUCCESS) {
 			if (Node) {
 				_node *Prev = Node;
@@ -2832,12 +2832,12 @@ finished:
 	Out->Length = Length;
 	Out->Lower = Out->Upper = 0;
 	Out->Access = 4;
-	Result->Val = (Std$Object_t *)Out;
+	Result->Val = (Std$Object$t *)Out;
 	return SUCCESS;
 };
 
 METHOD("foldl", TYP, Std$Function$T, TYP, T) {
-	Std$Object_t *Function = Args[0].Val;
+	Std$Object$t *Function = Args[0].Val;
 	const _list *List = (_list *)Args[1].Val;
 	_node *Node = List->Head;
 	if (Node == 0) return FAILURE;
@@ -2850,7 +2850,7 @@ METHOD("foldl", TYP, Std$Function$T, TYP, T) {
 };
 
 METHOD("foldr", TYP, Std$Function$T, TYP, T) {
-	Std$Object_t *Function = Args[0].Val;
+	Std$Object$t *Function = Args[0].Val;
 	const _list *List = (_list *)Args[1].Val;
 	_node *Node = List->Head;
 	if (Node == 0) return FAILURE;
@@ -2863,7 +2863,7 @@ METHOD("foldr", TYP, Std$Function$T, TYP, T) {
 };
 
 METHOD("foldl", TYP, T, TYP, Std$Function$T) {
-	Std$Object_t *Function = Args[1].Val;
+	Std$Object$t *Function = Args[1].Val;
 	const _list *List = (_list *)Args[0].Val;
 	_node *Node = List->Head;
 	if (Node == 0) return FAILURE;
@@ -2876,7 +2876,7 @@ METHOD("foldl", TYP, T, TYP, Std$Function$T) {
 };
 
 METHOD("foldr", TYP, T, TYP, Std$Function$T) {
-	Std$Object_t *Function = Args[1].Val;
+	Std$Object$t *Function = Args[1].Val;
 	const _list *List = (_list *)Args[0].Val;
 	_node *Node = List->Head;
 	if (Node == 0) return FAILURE;
@@ -2891,8 +2891,8 @@ METHOD("foldr", TYP, T, TYP, Std$Function$T) {
 SYMBOL($LESS, "<");
 
 METHOD("=", TYP, T, TYP, T, TYP, Agg$ObjectTable$T) {
-	Agg$ObjectTable_t *Cache = (Agg$ObjectTable_t *)Args[2].Val;
-	Std$Object_t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
+	Agg$ObjectTable$t *Cache = (Agg$ObjectTable$t *)Args[2].Val;
+	Std$Object$t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
 	if (Prior != (void *)0xFFFFFFFF) {
 		if (Prior == Args[1].Val) {
 			Result->Arg = Args[1];
@@ -2962,7 +2962,7 @@ METHOD("[]=", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, T) 
 	if (Length != List2->Length) return FAILURE;
 	_node *NodeA = _find_node(List, Index0);
 	_node *NodeB = List2->Head;
-	Agg$ObjectTable_t Cache[1] = {Agg$ObjectTable$INIT};
+	Agg$ObjectTable$t Cache[1] = {Agg$ObjectTable$INIT};
 	for (int I = Length; --I >= 0;) {
 		switch (Std$Function$call($EQUAL, 3, Result, NodeA->Value, 0, NodeB->Value, 0, Cache, 0)) {
 		case SUSPEND:
@@ -2982,15 +2982,15 @@ METHOD("[]=", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, T) 
 };
 
 /*
-static Std$Object_t *sort_list(Std$Object_t **First, Std$Object_t **Last) {
+static Std$Object$t *sort_list(Std$Object$t **First, Std$Object$t **Last) {
 	if (First == Last) return 0;
-	Std$Object_t **A = First;
-	Std$Object_t **B = Last;
-	Std$Object_t *S = *A;
-	Std$Object_t *T = *B;
+	Std$Object$t **A = First;
+	Std$Object$t **B = Last;
+	Std$Object$t *S = *A;
+	Std$Object$t *T = *B;
 
 	while (A != B) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call($LESS, 2, &Result, S, 0, T, 0)) {
 		case SUSPEND: case SUCCESS: {
 			*B = T; --B; T = *B;
@@ -3007,11 +3007,11 @@ static Std$Object_t *sort_list(Std$Object_t **First, Std$Object_t **Last) {
 	};
 	*A = S;
 	if (A != First) {
-		Std$Object_t *Error = sort_list(First, A - 1);
+		Std$Object$t *Error = sort_list(First, A - 1);
 		if (Error) return Error;
 	};
 	if (B != Last) {
-		Std$Object_t *Error = sort_list(B + 1, Last);
+		Std$Object$t *Error = sort_list(B + 1, Last);
 		if (Error) return Error;
 	};
 	return 0;
@@ -3025,10 +3025,10 @@ METHOD("sort", TYP, T) {
 	Result->Arg = Args[0];
 	if (List->Length == 0) return SUCCESS;
 	if (List->Length < 1024) {
-		Std$Object_t *First[List->Length];
-		Std$Object_t **Last = First - 1;
+		Std$Object$t *First[List->Length];
+		Std$Object$t **Last = First - 1;
 		for (_node *Node = List->Head; Node; Node = Node->Next) *(++Last) = Node->Value;
-		Std$Object_t *Error = sort_list(First, Last);
+		Std$Object$t *Error = sort_list(First, Last);
 		if (Error) {
 			Result->Val = Error;
 			return MESSAGE;
@@ -3037,10 +3037,10 @@ METHOD("sort", TYP, T) {
 		for (_node *Node = List->Head; Node; Node = Node->Next) Node->Value = *(++Last);
 		return SUCCESS;
 	} else {
-		Std$Object_t **First = Riva$Memory$alloc(List->Length * sizeof(Std$Object_t *));;
-		Std$Object_t **Last = First - 1;
+		Std$Object$t **First = Riva$Memory$alloc(List->Length * sizeof(Std$Object$t *));;
+		Std$Object$t **Last = First - 1;
 		for (_node *Node = List->Head; Node; Node = Node->Next) *(++Last) = Node->Value;
-		Std$Object_t *Error = sort_list(First, Last);
+		Std$Object$t *Error = sort_list(First, Last);
 		if (Error) {
 			Result->Val = Error;
 			return MESSAGE;
@@ -3051,15 +3051,15 @@ METHOD("sort", TYP, T) {
 	};
 };
 
-static Std$Object_t *sort_list_f(Std$Object_t **First, Std$Object_t **Last, Std$Object_t *Compare) {
+static Std$Object$t *sort_list_f(Std$Object$t **First, Std$Object$t **Last, Std$Object$t *Compare) {
 	if (First == Last) return 0;
-	Std$Object_t **A = First;
-	Std$Object_t **B = Last;
-	Std$Object_t *S = *A;
-	Std$Object_t *T = *B;
+	Std$Object$t **A = First;
+	Std$Object$t **B = Last;
+	Std$Object$t *S = *A;
+	Std$Object$t *T = *B;
 
 	while (A != B) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call(Compare, 2, &Result, S, 0, T, 0)) {
 		case SUSPEND: case SUCCESS:
                     *B = T; --B; T = *B;
@@ -3073,11 +3073,11 @@ static Std$Object_t *sort_list_f(Std$Object_t **First, Std$Object_t **Last, Std$
 	};
 	*A = S;
 	if (A != First) {
-		Std$Object_t *Error = sort_list_f(First, A - 1, Compare);
+		Std$Object$t *Error = sort_list_f(First, A - 1, Compare);
 		if (Error) return Error;
 	};
 	if (B != Last) {
-		Std$Object_t *Error = sort_list_f(B + 1, Last, Compare);
+		Std$Object$t *Error = sort_list_f(B + 1, Last, Compare);
 		if (Error) return Error;
 	};
 	return 0;
@@ -3092,10 +3092,10 @@ METHOD("sort", TYP, T, TYP, Std$Function$T) {
 	Result->Arg = Args[0];
 	if (List->Length == 0) return SUCCESS;
 	if (List->Length < 1024) {
-		Std$Object_t *First[List->Length];
-		Std$Object_t **Last = First - 1;
+		Std$Object$t *First[List->Length];
+		Std$Object$t **Last = First - 1;
 		for (_node *Node = List->Head; Node; Node = Node->Next) *(++Last) = Node->Value;
-		Std$Object_t *Error = sort_list_f(First, Last, Args[1].Val);
+		Std$Object$t *Error = sort_list_f(First, Last, Args[1].Val);
 		if (Error) {
 			Result->Val = Error;
 			return MESSAGE;
@@ -3104,10 +3104,10 @@ METHOD("sort", TYP, T, TYP, Std$Function$T) {
 		for (_node *Node = List->Head; Node; Node = Node->Next) Node->Value = *(++Last);
 		return SUCCESS;
 	} else {
-		Std$Object_t **First = Riva$Memory$alloc(List->Length * sizeof(Std$Object_t *));;
-		Std$Object_t **Last = First - 1;
+		Std$Object$t **First = Riva$Memory$alloc(List->Length * sizeof(Std$Object$t *));;
+		Std$Object$t **Last = First - 1;
 		for (_node *Node = List->Head; Node; Node = Node->Next) *(++Last) = Node->Value;
-		Std$Object_t *Error = sort_list_f(First, Last, Args[1].Val);
+		Std$Object$t *Error = sort_list_f(First, Last, Args[1].Val);
 		if (Error) {
 			Result->Val = Error;
 			return MESSAGE;
@@ -3129,7 +3129,7 @@ METHOD("sort2", TYP, T) {
 	WRLOCK(List);
 	if (List->Length <= 1) {
 		UNLOCK(List);
-		Result->Val = (Std$Object_t *)List;
+		Result->Val = (Std$Object$t *)List;
 		return SUCCESS;
 	};
 
@@ -3179,7 +3179,7 @@ METHOD("sort2", TYP, T) {
 					ChosenTape = Tape0;
 					N0--;
 				} else {
-					Std$Function_result Result0;
+					Std$Function$result Result0;
 					switch (Std$Function$call($LESS, 2, &Result0, Tape0->Head->Value, 0, Tape1->Head->Value, 0)) {
 					case SUSPEND: case SUCCESS:
 						ChosenTape = Tape0;
@@ -3221,7 +3221,7 @@ METHOD("sort2", TYP, T) {
 	List->Cache = Head;
 	List->Access = 4;
 	List->Array = 0;
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	UNLOCK(List);
 	return SUCCESS;
 };
@@ -3236,7 +3236,7 @@ METHOD("sort", TYP, T) {
 	WRLOCK(List);
 	if (List->Length <= 1) {
 		UNLOCK(List);
-		Result->Val = (Std$Object_t *)List;
+		Result->Val = (Std$Object$t *)List;
 		return SUCCESS;
 	};
 	_node *Head = List->Head;
@@ -3264,7 +3264,7 @@ METHOD("sort", TYP, T) {
 				} else if (QSize == 0 || !Q) {
 					E = P; P = P->Next; PSize--;
 				} else {
-					Std$Function_result Result0;
+					Std$Function$result Result0;
 					switch (Std$Function$call($LESS, 2, &Result0, P->Value, 0, Q->Value, 0)) {
 					case SUSPEND: case SUCCESS:
 						E = P; P = P->Next; PSize--;
@@ -3296,7 +3296,7 @@ METHOD("sort", TYP, T) {
 			List->Cache = Head;
 			List->Access = 4;
 			List->Array = 0;
-			Result->Val = (Std$Object_t *)List;
+			Result->Val = (Std$Object$t *)List;
 			UNLOCK(List);
 			return SUCCESS;
 		};
@@ -3314,10 +3314,10 @@ METHOD("sort2", TYP, T, TYP, Std$Function$T) {
 	WRLOCK(List);
 	if (List->Length <= 1) {
 		UNLOCK(List);
-		Result->Val = (Std$Object_t *)List;
+		Result->Val = (Std$Object$t *)List;
 		return SUCCESS;
 	};
-	Std$Object_t *Compare = Args[1].Val;
+	Std$Object$t *Compare = Args[1].Val;
 
 	struct _tape {
 		_node *Head, *Tail;
@@ -3365,7 +3365,7 @@ METHOD("sort2", TYP, T, TYP, Std$Function$T) {
 					ChosenTape = Tape0;
 					N0--;
 				} else {
-					Std$Function_result Result0;
+					Std$Function$result Result0;
 					switch (Std$Function$call(Compare, 2, &Result0, Tape0->Head->Value, 0, Tape1->Head->Value, 0)) {
 					case SUSPEND: case SUCCESS:
 						ChosenTape = Tape0;
@@ -3407,7 +3407,7 @@ METHOD("sort2", TYP, T, TYP, Std$Function$T) {
 	List->Cache = Head;
 	List->Access = 4;
 	List->Array = 0;
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	UNLOCK(List);
 	return SUCCESS;
 };
@@ -3422,10 +3422,10 @@ METHOD("sort", TYP, T, TYP, Std$Function$T) {
 	WRLOCK(List);
 	if (List->Length <= 1) {
 		UNLOCK(List);
-		Result->Val = (Std$Object_t *)List;
+		Result->Val = (Std$Object$t *)List;
 		return SUCCESS;
 	};
-	Std$Object_t *Compare = Args[1].Val;
+	Std$Object$t *Compare = Args[1].Val;
 	_node *Head = List->Head;
 	int InSize = 1;
 	for (;;) {
@@ -3451,7 +3451,7 @@ METHOD("sort", TYP, T, TYP, Std$Function$T) {
 				} else if (QSize == 0 || !Q) {
 					E = P; P = P->Next; PSize--;
 				} else {
-					Std$Function_result Result0;
+					Std$Function$result Result0;
 					switch (Std$Function$call(Compare, 2, &Result0, P->Value, 0, Q->Value, 0)) {
 					case SUSPEND: case SUCCESS:
 						E = P; P = P->Next; PSize--;
@@ -3483,7 +3483,7 @@ METHOD("sort", TYP, T, TYP, Std$Function$T) {
 			List->Cache = Head;
 			List->Access = 4;
 			List->Array = 0;
-			Result->Val = (Std$Object_t *)List;
+			Result->Val = (Std$Object$t *)List;
 			UNLOCK(List);
 			return SUCCESS;
 		};
@@ -3500,14 +3500,14 @@ METHOD("collect", TYP, Std$Function$T) {
 //@args...
 //:T
 // Returns a list of all values produced by <code>func(args)</code>.
-	Std$Function_result Result0;
+	Std$Function$result Result0;
 	_list *List = new(_list);
 	List->Type = T;
 	List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
-	Std$Object_t *Function = Args[0].Val;
+	Result->Val = (Std$Object$t *)List;
+	Std$Object$t *Function = Args[0].Val;
 	_node *Node, *Prev;
 	unsigned long NoOfElements;
 	switch (Std$Function$invoke(Function, Count - 1, &Result0, Args + 1)) {
@@ -3563,14 +3563,14 @@ GLOBAL_FUNCTION(Collect, 1) {
 //@args...
 //:T
 // Returns a list of all values produced by <code>func(args)</code>.
-	Std$Function_result Result0;
+	Std$Function$result Result0;
 	_list *List = new(_list);
 	List->Type = T;
 	List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
-	Std$Object_t *Function = Args[0].Val;
+	Result->Val = (Std$Object$t *)List;
+	Std$Object$t *Function = Args[0].Val;
 	_node *Node, *Prev;
 	unsigned long NoOfElements;
 	switch (Std$Function$invoke(Function, Count - 1, &Result0, Args + 1)) {
@@ -3626,16 +3626,16 @@ GLOBAL_FUNCTION(CollectN, 2) {
 //@list&lt;sub&gt;1&lt;/sub&gt;,&#160;...,&#160;list&lt;sub&gt;k&lt;/sub&gt;
 //:T
 // Returns a list of all values produced by <code>func(</code><var>arg<sub>1</sub></var><code>, ..., </code><var>arg<sub>k</sub></var><code>)</code> where <var>arg<sub>1</sub></var><code>, ..., </code><var>arg<sub>k</sub></var> are elements taken from <var>list<sub>1</sub></var><code>, ..., </code><var>list<sub>k</sub></var>
-	Std$Function_result Result0;
+	Std$Function$result Result0;
 	unsigned long Max = Std$Integer$get_small(Args[0].Val);
 	_list *List = new(_list);
 	List->Type = T;
 	List->Lower = List->Upper = 0;
 	List->Access = 4;
 	INITLOCK(List);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	if (Max == 0) return SUCCESS;
-	Std$Object_t *Function = Args[1].Val;
+	Std$Object$t *Function = Args[1].Val;
 	_node *Node, *Prev;
 	unsigned long NoOfElements;
 	switch (Std$Function$invoke(Function, Count - 2, &Result0, Args + 2)) {

@@ -42,22 +42,22 @@ typedef struct write_buffer_t {
 } write_buffer_t;
 
 typedef struct buffered_t {
-	const Std$Type_t *Type;
-	IO$Stream_t *Base;
-	IO$Stream_readfn read;
-	IO$Stream_writefn write;
+	const Std$Type$t *Type;
+	IO$Stream$t *Base;
+	IO$Stream$readfn read;
+	IO$Stream$writefn write;
 	read_buffer_t Read[1];
 	write_buffer_t Write[1];
 } buffered_t;
 
-IO$Stream_t *_new(IO$Stream_t *Base) {
-	static const Std$Type_t *Types[16] = {
+IO$Stream$t *_new(IO$Stream$t *Base) {
+	static const Std$Type$t *Types[16] = {
 		T, ReaderT, WriterT, ReaderWriterT, SeekerT, ReaderSeekerT, WriterSeekerT, ReaderWriterSeekerT,
 		0, TextReaderT, TextWriterT, TextReaderWriterT, SeekerT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
 	};
 	buffered_t *Stream = new(buffered_t);
 	int TypeNo = 0;
-	for (const Std$Type_t **Type = Base->Type->Types; *Type; ++Type) {
+	for (const Std$Type$t **Type = Base->Type->Types; *Type; ++Type) {
 		if (*Type == IO$Stream$ReaderT) TypeNo |= 1;
 		if (*Type == IO$Stream$WriterT) TypeNo |= 2;
 		if (*Type == IO$Stream$SeekerT) TypeNo |= 4;
@@ -74,7 +74,7 @@ IO$Stream_t *_new(IO$Stream_t *Base) {
 		Stream->write = Util$TypedFunction$get(IO$Stream$write, Base->Type);
 		Stream->Write->Tail = Stream->Write->Chars = Riva$Memory$alloc_atomic(Stream->Write->Space = Stream->Write->Length = 256);
 	};
-	return (Std$Object_t *)Stream;
+	return (Std$Object$t *)Stream;
 };
 
 GLOBAL_FUNCTION(New, 1) {
@@ -82,14 +82,14 @@ GLOBAL_FUNCTION(New, 1) {
 //:T
 // Creates and returns a new buffered stream with <var>base</var> as the underlying stream.
 	CHECK_ARG_TYPE(0, IO$Stream$T);
-	static const Std$Type_t *Types[16] = {
+	static const Std$Type$t *Types[16] = {
 		T, ReaderT, WriterT, ReaderWriterT, SeekerT, ReaderSeekerT, WriterSeekerT, ReaderWriterSeekerT,
 		0, TextReaderT, TextWriterT, TextReaderWriterT, SeekerT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
 	};
 	buffered_t *Stream = new(buffered_t);
-	IO$Stream_t *Base = Args[0].Val;
+	IO$Stream$t *Base = Args[0].Val;
 	int TypeNo = 0;
-	for (const Std$Type_t **Type = Base->Type->Types; *Type; ++Type) {
+	for (const Std$Type$t **Type = Base->Type->Types; *Type; ++Type) {
 		if (*Type == IO$Stream$ReaderT) TypeNo |= 1;
 		if (*Type == IO$Stream$WriterT) TypeNo |= 2;
 		if (*Type == IO$Stream$SeekerT) TypeNo |= 4;
@@ -111,7 +111,7 @@ GLOBAL_FUNCTION(New, 1) {
 		Stream->write = Util$TypedFunction$get(IO$Stream$write, Base->Type);
 		Stream->Write->Tail = Stream->Write->Chars = Riva$Memory$alloc_atomic(Stream->Write->Space = Stream->Write->Length = Length);
 	};
-	Result->Val = (Std$Object_t *)Stream;
+	Result->Val = (Std$Object$t *)Stream;
 	return SUCCESS;
 };
 
@@ -219,11 +219,11 @@ SYMBOL($block, "block");
 
 METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = buffered_read(Stream, Buffer, Count, (Count >= 3 && Args[3].Val == $block));
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -290,7 +290,7 @@ static char *chars_rest(buffered_t *Stream) {
 	};
 };
 
-static Std$Function_status string_rest(buffered_t *Stream, Std$Function_result *Result) {
+static Std$Function$status string_rest(buffered_t *Stream, Std$Function$result *Result) {
 	read_buffer_t *Read = Stream->Read;
 	char *InitialChars = 0;
 	int InitialLength = Read->Tail - Read->Head;
@@ -311,9 +311,9 @@ static Std$Function_status string_rest(buffered_t *Stream, Std$Function_result *
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -416,7 +416,7 @@ static char *buffered_reads(buffered_t *Stream, int Max) {
 	};
 };
 
-static Std$Function_status stringn(buffered_t *Stream, int Max, Std$Function_result *Result) {
+static Std$Function$status stringn(buffered_t *Stream, int Max, Std$Function$result *Result) {
 	if (Max == 0) return string_rest(Stream, Result);
 	read_buffer_t *Read = Stream->Read;
 	char *InitialChars = 0;
@@ -449,9 +449,9 @@ static Std$Function_status stringn(buffered_t *Stream, int Max, Std$Function_res
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -479,9 +479,9 @@ static Std$Function_status stringn(buffered_t *Stream, int Max, Std$Function_res
                 int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -714,10 +714,10 @@ TYPED_INSTANCE(char *, IO$Stream$readx, ReaderT, buffered_t *Stream, int Max, ch
 	};
 };
 
-static Std$Function_status stringx_nolimit(buffered_t *Stream, const Std$String_t *Term, Std$Function_result *Result) {
+static Std$Function$status stringx_nolimit(buffered_t *Stream, const Std$String$t *Term, Std$Function$result *Result) {
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -751,9 +751,9 @@ static Std$Function_status stringx_nolimit(buffered_t *Stream, const Std$String_
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -782,9 +782,9 @@ static Std$Function_status stringx_nolimit(buffered_t *Stream, const Std$String_
 	                int NoOfBlocks = InitialLength ? 1 : 0;
 					for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 					if (Ptr != Tail->Chars) ++NoOfBlocks;
-					Std$String_t *String = Std$String$alloc(NoOfBlocks);
+					Std$String$t *String = Std$String$alloc(NoOfBlocks);
 					String->Length.Value = TotalLength;
-					Std$String_block *Block = String->Blocks;
+					Std$String$block *Block = String->Blocks;
 					if (InitialLength) {
 						Block->Length.Value = InitialLength;
 						Block->Chars.Value = InitialChars;
@@ -822,13 +822,13 @@ static Std$Function_status stringx_nolimit(buffered_t *Stream, const Std$String_
 
 METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	const Std$String_t *Term = (Std$String_t *)Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const Std$String$t *Term = (Std$String$t *)Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (Term->Length.Value == 0) return stringn(Stream, Max, Result);
 	if (Max == 0) return stringx_nolimit(Stream, Term, Result);
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -884,9 +884,9 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -916,9 +916,9 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		                int NoOfBlocks = InitialLength ? 1 : 0;
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 						if (Ptr != Tail->Chars) ++NoOfBlocks;
-						Std$String_t *String = Std$String$alloc(NoOfBlocks);
+						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String_block *Block = String->Blocks;
+						Std$String$block *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
 							Block->Chars.Value = InitialChars;
@@ -947,9 +947,9 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
                 int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -979,9 +979,9 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		                int NoOfBlocks = InitialLength ? 1 : 0;
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 						if (Ptr != Tail->Chars) ++NoOfBlocks;
-						Std$String_t *String = Std$String$alloc(NoOfBlocks);
+						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String_block *Block = String->Blocks;
+						Std$String$block *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
 							Block->Chars.Value = InitialChars;
@@ -1210,10 +1210,10 @@ TYPED_INSTANCE(char *, IO$Stream$readi, ReaderT, buffered_t *Stream, int Max, ch
 	};
 };
 
-static Std$Function_status stringi_nolimit(buffered_t *Stream, const Std$String_t *Term, Std$Function_result *Result) {
+static Std$Function$status stringi_nolimit(buffered_t *Stream, const Std$String$t *Term, Std$Function$result *Result) {
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -1247,9 +1247,9 @@ static Std$Function_status stringi_nolimit(buffered_t *Stream, const Std$String_
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -1278,9 +1278,9 @@ static Std$Function_status stringi_nolimit(buffered_t *Stream, const Std$String_
 	                int NoOfBlocks = InitialLength ? 1 : 0;
 					for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 					++NoOfBlocks;
-					Std$String_t *String = Std$String$alloc(NoOfBlocks);
+					Std$String$t *String = Std$String$alloc(NoOfBlocks);
 					String->Length.Value = TotalLength;
-					Std$String_block *Block = String->Blocks;
+					Std$String$block *Block = String->Blocks;
 					if (InitialLength) {
 						Block->Length.Value = InitialLength;
 						Block->Chars.Value = InitialChars;
@@ -1316,13 +1316,13 @@ static Std$Function_status stringi_nolimit(buffered_t *Stream, const Std$String_
 
 METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	const const Std$String_t *Term = (Std$String_t *)Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const const Std$String$t *Term = (Std$String$t *)Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (Term->Length.Value == 0) return stringn(Stream, Max, Result);
 	if (Max == 0) return stringi_nolimit(Stream, Term, Result);
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -1378,9 +1378,9 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -1410,9 +1410,9 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		                int NoOfBlocks = InitialLength ? 1 : 0;
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 						++NoOfBlocks;
-						Std$String_t *String = Std$String$alloc(NoOfBlocks);
+						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String_block *Block = String->Blocks;
+						Std$String$block *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
 							Block->Chars.Value = InitialChars;
@@ -1439,9 +1439,9 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
                 int NoOfBlocks = InitialLength ? 1 : 0;
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
-				Std$String_t *String = Std$String$alloc(NoOfBlocks);
+				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String_block *Block = String->Blocks;
+				Std$String$block *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
 					Block->Chars.Value = InitialChars;
@@ -1471,9 +1471,9 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		                int NoOfBlocks = InitialLength ? 1 : 0;
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) ++NoOfBlocks;
 						++NoOfBlocks;
-						Std$String_t *String = Std$String$alloc(NoOfBlocks);
+						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String_block *Block = String->Blocks;
+						Std$String$block *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
 							Block->Chars.Value = InitialChars;
@@ -1607,11 +1607,11 @@ TYPED_INSTANCE(int, IO$Stream$write, WriterT, buffered_t *Stream, const char *Bu
 
 METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = buffered_write(Stream, Buffer, Size, (Count >= 3 && Args[3].Val == $block));
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -1631,7 +1631,7 @@ TYPED_INSTANCE(int, IO$Stream$writec, WriterT, buffered_t *Stream, char Char) {
 
 METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	const Std$String_t *String = (Std$String_t *)Args[1].Val;
+	const Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		if (buffered_write(Stream, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 1) < 0) {
 			Result->Val = IO$Stream$WriteMessage;

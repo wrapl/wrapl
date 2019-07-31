@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static Agg$StringTable_t GTypeModules[] = {Agg$StringTable$INIT};
+static Agg$StringTable$t GTypeModules[] = {Agg$StringTable$INIT};
 
 INITIAL() {
 	FILE *MapFile = fopen("Types.map", "r");
@@ -30,9 +30,9 @@ INITIAL() {
 	fclose(MapFile);
 	FILE *OutFile = fopen("TypeMap.c", "w");
 	fprintf(OutFile, "#include <Agg/StringTable.h>\n\n");
-	fprintf(OutFile, "static Agg$StringTable_node __Entries__[%d] = {\n", GTypeModules->Size);
+	fprintf(OutFile, "static Agg$StringTable$node __Entries__[%d] = {\n", GTypeModules->Size);
 	for (int I = 0; I < GTypeModules->Size; ++I) {
-		Agg$StringTable_node *Node = GTypeModules->Entries + I;
+		Agg$StringTable$node *Node = GTypeModules->Entries + I;
 		if (Node->Key) {
 			fprintf(OutFile, "\t{\"%s\", %d, 0x%x, \"%s\"},\n", Node->Key, Node->Length, Node->Hash, Node->Value);
 		} else {
@@ -40,7 +40,7 @@ INITIAL() {
 		};
 	};
 	fprintf(OutFile, "};\n\n");
-	fprintf(OutFile, "Agg$StringTable_t Table[] = {Agg$StringTable$T, %d, %d, __Entries__};\n", GTypeModules->Size, GTypeModules->Space);
+	fprintf(OutFile, "Agg$StringTable$t Table[] = {Agg$StringTable$T, %d, %d, __Entries__};\n", GTypeModules->Size, GTypeModules->Space);
 	fclose(OutFile);
 	exit(0);
 };

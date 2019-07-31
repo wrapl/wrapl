@@ -1,19 +1,19 @@
 #include <Std.h>
 #include <Util/TypedFunction.h>
 
-extern Std$Type_t T[];
+extern Std$Type$t T[];
 
 ASYMBOL(Of);
 
-TYPED_INSTANCE(int, Std$Number$is0, T, Std$Real_t *A) {
+TYPED_INSTANCE(int, Std$Number$is0, T, Std$Real$t *A) {
 	return A->Value == 0.0;
 };
 
-TYPED_INSTANCE(int, Std$Number$is1, T, Std$Real_t *A) {
+TYPED_INSTANCE(int, Std$Number$is1, T, Std$Real$t *A) {
 	return A->Value == 1.0;
 };
 
-TYPED_FUNCTION(double, _double, Std$Object_t *A) {
+TYPED_FUNCTION(double, _double, Std$Object$t *A) {
 	return 0.0 / 0.0;
 };
 

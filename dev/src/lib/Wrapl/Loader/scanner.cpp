@@ -109,7 +109,7 @@ const char *Tokens[] = {
 	"||" //tkPARALLEL                       92
 };
 
-scanner_t::scanner_t(IO$Stream_t *Source) {
+scanner_t::scanner_t(IO$Stream$t *Source) {
 	this->Source = Source;
 	NextChar = "";
 	NextToken.Type = 0;
@@ -360,19 +360,19 @@ static void scan_string_block0(scanner_t *Scanner) {
 	};
 };
 
-static Std$String_t *scan_string_block_next(scanner_t *Scanner, const char *End, int EndLength, const char **Current, int Index) {
+static Std$String$t *scan_string_block_next(scanner_t *Scanner, const char *End, int EndLength, const char **Current, int Index) {
 	const char *Line = Scanner->readl();
 	if (Line) {
 		++Scanner->NextToken.LineNo;
 	} else {
 		Scanner->raise_error(Scanner->NextToken.LineNo, SourceErrorMessageT, "Error: end of input in block string");
 	};
-	Std$String_t *String;
+	Std$String$t *String;
 	const char *Prefix = Line;
 	while (*Prefix && *Prefix <= ' ') ++Prefix;
 	if (strncmp(Prefix, End, EndLength) == 0) {
 		*Current = Prefix + EndLength;
-		String = (Std$String_t *)Riva$Memory$alloc_stubborn(sizeof(Std$String_t) + Index * sizeof(Std$String_block));
+		String = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + Index * sizeof(Std$String$block));
 		String->Type = Std$String$T;
 		String->Length.Type = Std$Integer$SmallT;
 		String->Count = Index;
@@ -391,7 +391,7 @@ static Std$String_t *scan_string_block_next(scanner_t *Scanner, const char *End,
 
 #include "keywords.c"
 
-extern Riva$Module_t Riva$Symbol[];
+extern Riva$Module$t Riva$Symbol[];
 
 int scanner_t::next() {
 	if (NextToken.Type == 0) {
@@ -581,7 +581,7 @@ int scanner_t::next() {
 					memcpy(Buffer, Start, Length);
 					Buffer[Length] = 0;
 					NextToken.Type = tkCONST;
-					NextToken.Const = (Std$Object_t *)Std$Real$new_string(Buffer);
+					NextToken.Const = (Std$Object$t *)Std$Real$new_string(Buffer);
 					goto scan_done;
 				};
 				};
@@ -602,7 +602,7 @@ int scanner_t::next() {
 					memcpy(Buffer, Start, Length);
 					Buffer[Length] = 0;
 					NextToken.Type = tkCONST;
-					NextToken.Const = (Std$Object_t *)Std$Real$new_string(Buffer);
+					NextToken.Const = (Std$Object$t *)Std$Real$new_string(Buffer);
 					goto scan_done;
 				};
 				};
@@ -634,7 +634,7 @@ int scanner_t::next() {
 				case '?': {
 					++Current;
 					NextToken.Type = tkSYMBOL;
-					NextToken.Const = (Std$Object_t *)Std$Symbol$new_string("<anon>");
+					NextToken.Const = (Std$Object$t *)Std$Symbol$new_string("<anon>");
 					goto scan_done;
 				};
 				case 'A' ... 'Z': case 'a' ... 'z': case '_': Start = Current++; goto scan_symbol_identifier;
@@ -646,7 +646,7 @@ int scanner_t::next() {
 					int Type; void *Value;
 					Riva$Module$import(Riva$Symbol, scan_cstring_next(this, &Current, 0), &Type, &Value);
 					NextToken.Type = tkSYMBOL;
-					NextToken.Const = (Std$Object_t *)Value;
+					NextToken.Const = (Std$Object$t *)Value;
 					goto scan_done;
 				};
 				default: raise_error(NextToken.LineNo, SourceErrorMessageT, "Error: invalid character in symbol");
@@ -666,7 +666,7 @@ int scanner_t::next() {
 					int Type; void *Value;
 					Riva$Module$import(Riva$Symbol, Identifier, &Type, &Value);
 					NextToken.Type = tkSYMBOL;
-					NextToken.Const = (Std$Object_t *)Value;
+					NextToken.Const = (Std$Object$t *)Value;
 					goto scan_done;
 				};
 				};
@@ -674,7 +674,7 @@ int scanner_t::next() {
 			scan_block_string: {
 				const char *End = Current;
 				NextToken.Type = tkCONST;
-				NextToken.Const = (Std$Object_t *)scan_string_block_next(this, End, strlen(End) - 1, &Current, 0);
+				NextToken.Const = (Std$Object$t *)scan_string_block_next(this, End, strlen(End) - 1, &Current, 0);
 				goto scan_done;
 			};
 			scan_comment: {
@@ -736,7 +736,7 @@ void scanner_t::accept(int Type) {
 	if (!parse(Type)) raise_error(NextToken.LineNo, ParseErrorMessageT, "Error: expected \"%s\" not \"%s\"", Tokens[Type], Tokens[NextToken.Type]);
 };
 
-void scanner_t::raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...) {
+void scanner_t::raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	vasprintf((char **)&Error.Message, Format, Args);
@@ -757,14 +757,14 @@ AMETHOD(Image, TYP, Std$Number$T) {
 AMETHOD(Image, TYP, Std$String$T) {
 //:Std$String$T
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	const Std$String_t *In = (Std$String_t *)Args[0].Val;
+	const Std$String$t *In = (Std$String$t *)Args[0].Val;
 	if (In->Length.Value == 0) {
 		Result->Val = Std$String$new("\"\"");
 		return SUCCESS;
 	};
-	Std$String_t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String_block *Src = In->Blocks;
-	Std$String_block *Dst = Out->Blocks;
+	Std$String$t *Out = Std$String$alloc(In->Count + 2);
+	const Std$String$block *Src = In->Blocks;
+	Std$String$block *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 1;
 	Dst->Chars.Value = "\"";
@@ -839,17 +839,17 @@ AMETHOD(Image, TYP, Std$String$T) {
 	Dst->Chars.Value = "\"";
 	Out->Length.Value = Length;
 	Std$String$freeze(Out);
-	Result->Val = (Std$Object_t *)Out;
+	Result->Val = (Std$Object$t *)Out;
 	return SUCCESS;
 };
 
 AMETHOD(Image, TYP, Std$Symbol$T) {
 //:Std$String$T
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	const Std$String_t *In = ((Std$Symbol_t *)Args[0].Val)->Name;
-	Std$String_t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String_block *Src = In->Blocks;
-	Std$String_block *Dst = Out->Blocks;
+	const Std$String$t *In = ((Std$Symbol$t *)Args[0].Val)->Name;
+	Std$String$t *Out = Std$String$alloc(In->Count + 2);
+	const Std$String$block *Src = In->Blocks;
+	Std$String$block *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 2;
 	Dst->Chars.Value = ":\"";
@@ -924,7 +924,7 @@ AMETHOD(Image, TYP, Std$Symbol$T) {
 	Dst->Chars.Value = "\"";
 	Out->Length.Value = Length;
 	Std$String$freeze(Out);
-	Result->Val = (Std$Object_t *)Out;
+	Result->Val = (Std$Object$t *)Out;
 	return SUCCESS;
 };
 
@@ -943,11 +943,11 @@ AMETHOD(Image, TYP, Agg$List$T) {
 	Std$Object$t **CacheSlot = Agg$Table$slot(Cache, Args[0].Val);
 	if (*CacheSlot) RETURN(*CacheSlot);
 	*CacheSlot = Std$String$new_format("#%d", Agg$Table$size(Cache));
-	Agg$List_node *Node = ((Agg$List_t *)Args[0].Val)->Head;
+	Agg$List$node *Node = ((Agg$List$t *)Args[0].Val)->Head;
 	if (Node) {
-		Std$Object_t *Final;
-		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
+		Std$Object$t *Final;
+		Std$Function$result Buffer;
+		switch (Std$Function$call((Std$Object$t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
 		case SUSPEND: case SUCCESS:
 			Final = Std$String$add(Std$String$new("["), Buffer.Val);
 			break;
@@ -960,7 +960,7 @@ AMETHOD(Image, TYP, Agg$List$T) {
 		};
 		while ((Node = Node->Next)) {
 			Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
-			switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
+			switch (Std$Function$call((Std$Object$t *)Image, 2, &Buffer, Node->Value, 0, Cache, 0)) {
 			case SUSPEND: case SUCCESS:
 				Final = Std$String$add(Final, Buffer.Val);
 				break;
@@ -999,11 +999,11 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 		return SUCCESS;
 	};
 	
-	Std$Object_t *Final = Std$String$new("{");
+	Std$Object$t *Final = Std$String$new("{");
 	bool Comma = false;
 	do {
-		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Agg$Table$node_key(Node), 0, Cache, 0)) {
+		Std$Function$result Buffer;
+		switch (Std$Function$call((Std$Object$t *)Image, 2, &Buffer, Agg$Table$node_key(Node), 0, Cache, 0)) {
 		case SUSPEND: case SUCCESS:
 			if (Comma) Final = Std$String$add(Final, (Std$Object$t *)CommaSpace);
 			Final = Std$String$add(Final, Buffer.Val);
@@ -1017,7 +1017,7 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 		};
 		Std$Object$t *Value = Agg$Table$node_value(Node);
 		if (Value != Std$Object$Nil) {
-			switch (Std$Function$call((Std$Object_t *)Image, 2, &Buffer, Value, 0, Cache, 0)) {
+			switch (Std$Function$call((Std$Object$t *)Image, 2, &Buffer, Value, 0, Cache, 0)) {
 			case SUSPEND: case SUCCESS:
 				Final = Std$String$add(Final, (Std$Object$t *)SpaceIsSpace);
 				Final = Std$String$add(Final, Buffer.Val);
@@ -1039,6 +1039,6 @@ AMETHOD(Image, TYP, Agg$Table$T) {
 
 AMETHOD(Image, VAL, Std$Object$Nil) {
 //:Std$String$T
-	Result->Val = (Std$Object_t *)Std$String$new("NIL");
+	Result->Val = (Std$Object$t *)Std$String$new("NIL");
 	return SUCCESS;
 };

@@ -21,7 +21,7 @@ struct entry_t {
 struct decoder_t {
 	const Std$Type$t *Type;
 	Std$Object$t *Base;
-	IO$Stream_readfn read;
+	IO$Stream$readfn read;
 	Agg$IntegerTable$t Entries[1];
 };
 
@@ -34,7 +34,7 @@ static void decoder_register(decoder_t *Decoder, size_t Index, decode_fn_t decod
 	Agg$IntegerTable$put(Decoder->Entries, Index, Entry);
 };
 
-static Std$Function$status decode_riva(decoder_t *Decoder, Std$Function_result *Result, Std$Object$t *Function) {
+static Std$Function$status decode_riva(decoder_t *Decoder, Std$Function$result *Result, Std$Object$t *Function) {
 	return Std$Function$call(Function, 2, Result, Decoder->Base, 0, Decoder, 0);
 };
 
@@ -46,10 +46,10 @@ METHOD("register", TYP, T, TYP, Std$Integer$SmallT, ANY) {
 	return SUCCESS;
 };
 
-static Std$Function$status decoder_read(decoder_t *Decoder, Std$Function_result *Result) {
+static Std$Function$status decoder_read(decoder_t *Decoder, Std$Function$result *Result) {
 	size_t Index;
 	if (Decoder->read(Decoder->Base, (char *)&Index, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	//printf("Decoding type %d\n", Index);
@@ -76,7 +76,7 @@ Std$Object$t *_read(decoder_t *Decoder) {
 	}
 }
 
-static Std$Function$status decode_nil(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_nil(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	Result->Val = Std$Object$Nil;
 	return SUCCESS;
 };
@@ -89,11 +89,11 @@ METHOD("register_nil", TYP, T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-static Std$Function$status decode_small(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_small(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int32_t Value = 0;
 	int Size = (int)Data;
 	if (Decoder->read(Decoder->Base, (char *)&Value, Size, 1) != Size) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Value);
@@ -131,10 +131,10 @@ GLOBAL_METHOD(ReadSmall, 1, "read_small", TYP, T) {
 	}
 };
 
-static Std$Function$status decode_real(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_real(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	double Value;
 	if (Decoder->read(Decoder->Base, (char *)&Value, 8, 1) != 8) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Real$new(Value);
@@ -156,16 +156,16 @@ GLOBAL_METHOD(ReadReal, 1, "read_real", TYP, T) {
 
 SYMBOL($read, "read");
 
-static Std$Function$status decode_string(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_string(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	//printf("String length = %d\n", Length);
 	/*char *String = Riva$Memory$alloc(Length);
 	if (Decoder->read(Decoder->Base, String, Length, 1) != Length) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$String$new_length(String, Length);
@@ -186,10 +186,10 @@ GLOBAL_METHOD(ReadString, 1, "read_string", TYP, T) {
 	return decode_string(Decoder, Result, 0);
 };
 
-static Std$Function$status decode_list(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_list(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Std$Object$t *List = Agg$List$new0();
@@ -217,10 +217,10 @@ GLOBAL_METHOD(ReadList, 1, "read_list", TYP, T) {
 	return decode_list(Decoder, Result, 0);
 };
 
-static Std$Function$status decode_table(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_table(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Std$Object$t *Table = Agg$Table$new(0, 0);
@@ -256,15 +256,15 @@ GLOBAL_METHOD(ReadTable, 1, "read_table", TYP, T) {
 
 extern Riva$Module$t Riva$Symbol[];
 
-static Std$Function$status decode_symbol(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_symbol(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	char *Name = Riva$Memory$alloc(Length);
 	if (Decoder->read(Decoder->Base, Name, Length, 1) != Length) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	int Type;
@@ -285,10 +285,10 @@ GLOBAL_METHOD(ReadSymbol, 1, "read_symbol", TYP, T) {
 	return decode_symbol(Decoder, Result, 0);
 };
 
-static Std$Function$status decode_big(decoder_t *Decoder, Std$Function_result *Result, void *Data) {
+static Std$Function$status decode_big(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Count;
 	if (Decoder->read(Decoder->Base, (char *)&Count, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	mpz_t Value;
@@ -297,7 +297,7 @@ static Std$Function$status decode_big(decoder_t *Decoder, Std$Function_result *R
 		Count = -Count;
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (Decoder->read(Decoder->Base, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);
@@ -305,7 +305,7 @@ static Std$Function$status decode_big(decoder_t *Decoder, Std$Function_result *R
 	} else {
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (Decoder->read(Decoder->Base, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);
@@ -358,6 +358,6 @@ decoder_t *decoder_new(Std$Object$t *Base) {
 };
 
 GLOBAL_FUNCTION(New, 1) {
-	Result->Val = (Std$Object_t *)decoder_new(Args[0].Val);
+	Result->Val = (Std$Object$t *)decoder_new(Args[0].Val);
 	return SUCCESS;
 };

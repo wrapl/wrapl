@@ -11,7 +11,7 @@ TYPE(T, Stat$Dist$T);
 #define HAS_RANDOM_GENERATOR
 
 struct dist_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	bernoulli Dist;
 	boost::bernoulli_distribution<double> Rand;
 	dist_t(double P) : Dist(P), Rand(P) {Type = T;};
@@ -20,9 +20,9 @@ struct dist_t {
 GLOBAL_FUNCTION(New, 1) {
 //@probability:Std$Real@T
 //:T
-	double P = ((Std$Real_t *)Args[0].Val)->Value;
+	double P = ((Std$Real$t *)Args[0].Val)->Value;
 	dist_t *Dist = new dist_t(P);
-	Result->Val = (Std$Object_t *)Dist;
+	Result->Val = (Std$Object$t *)Dist;
 	return SUCCESS;
 };
 

@@ -10,7 +10,7 @@ extern Std$Object$t *_add(Std$Object$t *A, Std$String$t *B);
 
 ASYMBOL(Of);
 
-Std$Object_t *_new_format(const char *Format, ...) {
+Std$Object$t *_new_format(const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	char *Chars;

@@ -8,7 +8,7 @@ RIVA_STRUCT(t);
 
 RIVA_TYPE(T);
 
-RIVA_CFUN(double, uniform01, Std$Object_t *);
+RIVA_CFUN(double, uniform01, Std$Object$t *);
 
 #undef RIVA_MODULE
 

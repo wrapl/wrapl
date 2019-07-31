@@ -32,7 +32,7 @@ static void deserializer_register(deserializer_t *Deserializer, size_t Index, de
 	Agg$IntegerTable$put(Deserializer->Entries, Index, Entry);
 };
 
-static Std$Function$status deserialize_riva(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, Std$Object$t *Function) {
+static Std$Function$status deserialize_riva(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, Std$Object$t *Function) {
 	return Std$Function$call(Function, 2, Result, Stream, 0, Deserializer, 0);
 };
 
@@ -44,10 +44,10 @@ METHOD("register", TYP, T, TYP, Std$Integer$SmallT, ANY) {
 	return SUCCESS;
 };
 
-static Std$Function$status deserializer_read(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result) {
+static Std$Function$status deserializer_read(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result) {
 	size_t Index = 0;
 	if (IO$Stream$read(Stream, (char *)&Index, 1, 1) != 1) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	//printf("Deserializing type %d\n", Index);
@@ -65,7 +65,7 @@ GLOBAL_METHOD(Read, 2, "read", TYP, T, TYP, IO$Stream$ReaderT) {
 	return deserializer_read(Deserializer, Args[1].Val, Result);
 };
 
-static Std$Function$status deserialize_nil(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_nil(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	Result->Val = Std$Object$Nil;
 	return SUCCESS;
 };
@@ -78,10 +78,10 @@ METHOD("register_nil", TYP, T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-static Std$Function$status deserialize_small(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_small(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	int32_t Value;
 	if (IO$Stream$read(Stream, (char *)&Value, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Value);
@@ -100,10 +100,10 @@ GLOBAL_FUNCTION(ReadSmall, 1) {
 	return deserialize_small(0, Args[0].Val, Result, 0);
 };
 
-static Std$Function$status deserialize_real(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_real(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	double Value;
 	if (IO$Stream$read(Stream, (char *)&Value, 8, 1) != 8) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Real$new(Value);
@@ -124,16 +124,16 @@ GLOBAL_FUNCTION(ReadReal, 1) {
 
 SYMBOL($read, "read");
 
-static Std$Function$status deserialize_string(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_string(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (IO$Stream$read(Stream, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	//printf("String length = %d\n", Length);
 	/*char *String = Riva$Memory$alloc(Length);
 	if (IO$Stream$read(Stream, String, Length, 1) != Length) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$String$new_length(String, Length);
@@ -153,10 +153,10 @@ GLOBAL_FUNCTION(ReadString, 1) {
 	return deserialize_string(0, Args[0].Val, Result, 0);
 };
 
-static Std$Function$status deserialize_list(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_list(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (IO$Stream$read(Stream, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Std$Object$t *List = Agg$List$new0();
@@ -184,10 +184,10 @@ GLOBAL_FUNCTION(ReadList, 2) {
 	return deserialize_list(Deserializer, Args[0].Val, Result, 0);
 };
 
-static Std$Function$status deserialize_table(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_table(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (IO$Stream$read(Stream, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Std$Object$t *Table = Agg$Table$new(0, 0);
@@ -223,15 +223,15 @@ GLOBAL_FUNCTION(ReadTable, 2) {
 
 extern Riva$Module$t Riva$Symbol[];
 
-static Std$Function$status deserialize_symbol(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_symbol(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (IO$Stream$read(Stream, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	char *Name = Riva$Memory$alloc(Length);
 	if (IO$Stream$read(Stream, Name, Length, 1) != Length) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	int Type;
@@ -251,10 +251,10 @@ GLOBAL_FUNCTION(ReadSymbol, 1) {
 	return deserialize_symbol(0, Args[0].Val, Result, 0);
 };
 
-static Std$Function$status deserialize_big(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function_result *Result, void *Data) {
+static Std$Function$status deserialize_big(deserializer_t *Deserializer, IO$Stream$t *Stream, Std$Function$result *Result, void *Data) {
 	int Count;
 	if (IO$Stream$read(Stream, (char *)&Count, 4, 1) != 4) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	mpz_t Value;
@@ -263,7 +263,7 @@ static Std$Function$status deserialize_big(deserializer_t *Deserializer, IO$Stre
 		Count = -Count;
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (IO$Stream$read(Stream, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);
@@ -271,7 +271,7 @@ static Std$Function$status deserialize_big(deserializer_t *Deserializer, IO$Stre
 	} else {
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (IO$Stream$read(Stream, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);
@@ -316,6 +316,6 @@ deserializer_t *deserializer_new() {
 };
 
 GLOBAL_FUNCTION(New, 0) {
-	Result->Val = (Std$Object_t *)deserializer_new();
+	Result->Val = (Std$Object$t *)deserializer_new();
 	return SUCCESS;
 };

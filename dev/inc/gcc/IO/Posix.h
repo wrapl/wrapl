@@ -9,7 +9,7 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int Handle;
 };
 
@@ -34,9 +34,9 @@ RIVA_TYPE(SeekMessageT);
 RIVA_TYPE(CloseMessageT);
 RIVA_TYPE(PollMessageT);
 
-RIVA_CFUN(Std$Object_t *, new, const Std$Type_t *, int);
-RIVA_CFUN(void, register_finalizer, IO$Posix_t *);
-RIVA_CFUN(void, unregister_finalizer, IO$Posix_t *);
+RIVA_CFUN(Std$Object$t *, new, const Std$Type$t *, int);
+RIVA_CFUN(void, register_finalizer, IO$Posix$t *);
+RIVA_CFUN(void, unregister_finalizer, IO$Posix$t *);
 
 #undef RIVA_MODULE
 

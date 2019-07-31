@@ -8,7 +8,7 @@ void *__dso_handle = &__dso_handle;
 TYPE(T, Stat$Dist$T);
 
 struct dist_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	negative_binomial Dist;
 	dist_t(double R, double P) : Dist(R, P) {Type = T;};
 };
@@ -17,18 +17,18 @@ GLOBAL_FUNCTION(New, 2) {
 //@successes:Std$Real$T
 //@probability:Std$Real@T
 //:T
-	Std$Object_t *Arg = Args[0].Val;
+	Std$Object$t *Arg = Args[0].Val;
 	double R;
 	if (Arg->Type == Std$Integer$SmallT) {
-		R = ((Std$Integer_smallt *)Arg)->Value;
+		R = ((Std$Integer$smallt *)Arg)->Value;
 	} else if (Arg->Type == Std$Real$T) {
-		R = ((Std$Real_t *)Arg)->Value;
+		R = ((Std$Real$t *)Arg)->Value;
 	} else {
 		R = 0;
 	};
-	double P = ((Std$Real_t *)Args[1].Val)->Value;
+	double P = ((Std$Real$t *)Args[1].Val)->Value;
 	dist_t *Dist = new dist_t(R, P);
-	Result->Val = (Std$Object_t *)Dist;
+	Result->Val = (Std$Object$t *)Dist;
 	return SUCCESS;
 };
 

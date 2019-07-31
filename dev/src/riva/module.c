@@ -109,7 +109,7 @@ int module_lookup(void *Address, const char **ModuleName, const char **SymbolNam
 
 static int ModuleLevel = 0;
 
-const struct Std$Type_t *ModuleT = 0;
+const struct Std$Type$t *ModuleT = 0;
 
 struct module_lock_t {
 	pthread_t Thread;

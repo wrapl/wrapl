@@ -7,9 +7,9 @@
 
 extern "C" {
 
-extern Std$Type_t WraplT[];
-extern Std$Type_t WraplPreT[];
-extern Std$Type_t CodeT[];
+extern Std$Type$t WraplT[];
+extern Std$Type$t WraplPreT[];
+extern Std$Type$t CodeT[];
 
 extern void run_state();
 extern void alloc_local();
@@ -38,8 +38,8 @@ extern void debug_exit();
 
 extern bool CmovSupport;
 
-extern Std$Type_t IncorrectTypeMessageT[];
-extern Std$Object_t IncorrectTypeMessage[];
+extern Std$Type$t IncorrectTypeMessageT[];
+extern Std$Object$t IncorrectTypeMessage[];
 
 };
 

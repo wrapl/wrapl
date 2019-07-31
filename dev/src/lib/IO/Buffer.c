@@ -15,7 +15,7 @@ typedef struct node_t {
 } node_t;
 
 typedef struct buffer_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	node_t *Head, *Tail;
 	uint32_t Position;
 } buffer_t;
@@ -30,7 +30,7 @@ TYPED_INSTANCE(int, IO$Stream$eoi, T, buffer_t *Stream) {
 TYPED_INSTANCE(int, IO$Stream$close, T, buffer_t *Stream, int Mode) {
 };
 
-static Std$Integer_smallt Zero[] = {{Std$Integer$SmallT, 0}};
+static Std$Integer$smallt Zero[] = {{Std$Integer$SmallT, 0}};
 
 /*#ifdef WINDOWS
 
@@ -440,7 +440,7 @@ GLOBAL_FUNCTION(New, 0) {
 // Creates and returns an empty buffer
 	buffer_t *Stream = new(buffer_t);
 	Stream->Type = T;
-	Result->Val = (Std$Object_t *)Stream;
+	Result->Val = (Std$Object$t *)Stream;
 	return SUCCESS;
 };
 
@@ -452,14 +452,14 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	node_t *Node = Stream->Head;
 	if (Node == 0) {
-		Result->Val = (Std$Object_t *)Zero;
+		Result->Val = (Std$Object$t *)Zero;
 		return SUCCESS;
 	};
 	uint32_t Total = 0;
 	const char *Src = Node->Chars;
-	char *Dst = ((Std$Address_t *)Args[1].Val)->Value;
+	char *Dst = ((Std$Address$t *)Args[1].Val)->Value;
 	uint32_t Rem0 = Node->Length;
-	uint32_t Rem1 = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	uint32_t Rem1 = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	while (Rem0 <= Rem1) {
 		Dst = mempcpy(Dst, Src, Rem0);
 		Rem1 -= Rem0;
@@ -484,11 +484,11 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-static Std$Object_t *extract_string_rest(buffer_t *Stream) {
+static Std$Object$t *extract_string_rest(buffer_t *Stream) {
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
-	Std$String_block *Block = String->Blocks;
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -503,8 +503,8 @@ METHOD("rest", TYP, T) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
-	Std$String_block *Block = String->Blocks;
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -527,12 +527,12 @@ METHOD("md5", TYP, T) {
 	return SUCCESS;
 };
 
-static Std$Object_t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOffset) {
+static Std$Object$t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOffset) {
 	int NoOfBlocks = EndOffset ? 1 : 0;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	int Length = 0;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) {
 		Length += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -554,7 +554,7 @@ static Std$Object_t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOf
 	return Std$String$freeze(String);
 };
 
-static Std$Object_t *read_string_length(buffer_t *Stream, int Max) {
+static Std$Object$t *read_string_length(buffer_t *Stream, int Max) {
 	node_t *Node = Stream->Head;
 	int Remaining = Max;
 	while (Node) {
@@ -570,8 +570,8 @@ static Std$Object_t *read_string_length(buffer_t *Stream, int Max) {
 
 METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
-	const Std$String_t *Term = (Std$String_t *)Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const Std$String$t *Term = (Std$String$t *)Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	node_t *Node = Stream->Head;
 	if (Node == 0) return FAILURE;
 	if (Term->Length.Value == 0) {
@@ -631,7 +631,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+		for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 			const unsigned char *Chars = Block->Chars.Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
@@ -693,8 +693,8 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 
 METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
-	const Std$String_t *Term = (Std$String_t *)Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const Std$String$t *Term = (Std$String$t *)Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	node_t *Node = Stream->Head;
 	if (Node == 0) return FAILURE;
 	if (Term->Length.Value == 0) {
@@ -744,7 +744,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+		for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 			const unsigned char *Chars = Block->Chars.Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
@@ -792,7 +792,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 METHOD("read", TYP, T, TYP, Std$Integer$SmallT) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	if (Stream->Head) {
-		Result->Val = read_string_length(Stream, ((Std$Integer_smallt *)Args[1].Val)->Value);
+		Result->Val = read_string_length(Stream, ((Std$Integer$smallt *)Args[1].Val)->Value);
 		return SUCCESS;
 	} else {
 		return FAILURE;
@@ -824,9 +824,9 @@ METHOD("read", TYP, T) {
 
 METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
-	long Length = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	long Length = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	char *Chars = Riva$Memory$alloc_atomic(Length);
-	memcpy(Chars, ((Std$Address_t *)Args[1].Val)->Value, Length);
+	memcpy(Chars, ((Std$Address$t *)Args[1].Val)->Value, Length);
 	node_t *Node = new(node_t);
 	Node->Length = Length;
 	Node->Chars = Chars;
@@ -843,8 +843,8 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("write", TYP, T, TYP, Std$String$T) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
-	int NoOfBlocks = ((Std$String_t *)Args[1].Val)->Count;
-	Std$String_block *Block = ((Std$String_t *)Args[1].Val)->Blocks;
+	int NoOfBlocks = ((Std$String$t *)Args[1].Val)->Count;
+	Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks;
 	if (Block->Length.Value) {
 		node_t *Node = new(node_t);
 		Node->Chars = Block->Chars.Value;
@@ -908,8 +908,8 @@ METHOD("remaining", TYP, T) {
 
 METHOD("copy", TYP, T, TYP, IO$Stream$WriterT) {
 	buffer_t *Rd = (buffer_t *)Args[0].Val;
-	IO$Stream_t *Wr = Args[1].Val;
-	IO$Stream_writefn write = Util$TypedFunction$get(IO$Stream$write, Wr->Type);
+	IO$Stream$t *Wr = Args[1].Val;
+	IO$Stream$writefn write = Util$TypedFunction$get(IO$Stream$write, Wr->Type);
 	int Total = 0;
 	for (node_t *Node = Rd->Head; Node; Node = Node->Next) {
 		const char *Buffer = Node->Chars;
@@ -943,8 +943,8 @@ METHOD("copy", TYP, T, TYP, IO$Stream$WriterT) {
 
 METHOD("copy", TYP, T, TYP, IO$Stream$WriterT, TYP, Std$Integer$SmallT) {
 	buffer_t *Rd = (buffer_t *)Args[0].Val;
-	IO$Stream_t *Wr = Args[1].Val;
-	IO$Stream_writefn write = Util$TypedFunction$get(IO$Stream$write, Wr->Type);
+	IO$Stream$t *Wr = Args[1].Val;
+	IO$Stream$writefn write = Util$TypedFunction$get(IO$Stream$write, Wr->Type);
 	int Required = Std$Integer$get_small(Args[2].Val);
 	
 	Result->Val = Std$String$new("Not implemented yet!");
@@ -982,8 +982,8 @@ METHOD("copy", TYP, T, TYP, IO$Stream$WriterT, TYP, Std$Integer$SmallT) {
 };
 
 METHOD("copy", TYP, IO$Stream$ReaderT, TYP, T, TYP, Std$Integer$SmallT) {
-	IO$Stream_t *Rd = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(IO$Stream$read, Rd->Type);
+	IO$Stream$t *Rd = Args[0].Val;
+	IO$Stream$readfn read = Util$TypedFunction$get(IO$Stream$read, Rd->Type);
 	buffer_t *Wr = (buffer_t *)Args[1].Val;
 	int Required = Std$Integer$get_small(Args[2].Val);
 	int Total = 0;

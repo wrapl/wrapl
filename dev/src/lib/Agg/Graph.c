@@ -34,29 +34,29 @@ typedef struct vertex_selection_t vertex_selection_t;
 typedef struct edge_selection_t edge_selection_t;
 
 struct graph_t {
-	const Std$Type_t *Type;
-	Std$Object_t *VertexList;
-	Std$Object_t *EdgeList;
-	Agg$ObjectTable_t VertexTable[1];
-	Agg$ObjectTable_t EdgeTable[1];
+	const Std$Type$t *Type;
+	Std$Object$t *VertexList;
+	Std$Object$t *EdgeList;
+	Agg$ObjectTable$t VertexTable[1];
+	Agg$ObjectTable$t EdgeTable[1];
 	igraph_t Handle[1];
 };
 
 struct vertex_selection_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	igraph_vs_t Handle[1];
 };
 
 struct edge_selection_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	igraph_es_t Handle[1];
 };
 
-static inline igraph_integer_t get_id(Agg$ObjectTable_t *Table, Std$Object_t *Object) {
-	return ((Std$Real_t *)Agg$ObjectTable$get(Table, Object))->Value;
+static inline igraph_integer_t get_id(Agg$ObjectTable$t *Table, Std$Object$t *Object) {
+	return ((Std$Real$t *)Agg$ObjectTable$get(Table, Object))->Value;
 };
 
-static inline void set_id(Agg$ObjectTable_t *Table, Std$Object_t *Object, igraph_integer_t ID) {
+static inline void set_id(Agg$ObjectTable$t *Table, Std$Object$t *Object, igraph_integer_t ID) {
 	Agg$ObjectTable$put(Table, Object, Std$Real$new(ID));
 };
 
@@ -66,7 +66,7 @@ GLOBAL_FUNCTION(New, 0) {
 	igraph_empty_attrs(Graph->Handle, 0, 0, Graph);
 	Graph->VertexList= Agg$List$new(0);
 	Graph->EdgeList = Agg$List$new(0);
-	Result->Val = (Std$Object_t *)Graph;
+	Result->Val = (Std$Object$t *)Graph;
 	return SUCCESS;
 };
 
@@ -76,7 +76,7 @@ GLOBAL_FUNCTION(DirectedNew, 0) {
 	igraph_empty_attrs(Graph->Handle, 0, 1, Graph);
 	Graph->VertexList= Agg$List$new(0);
 	Graph->EdgeList = Agg$List$new(0);
-	Result->Val = (Std$Object_t *)Graph;
+	Result->Val = (Std$Object$t *)Graph;
 	return SUCCESS;
 };
 
@@ -86,14 +86,14 @@ METHOD("addv", TYP, T, TYP, Agg$List$T) {
 //:T
 // adds <code>vertices:length</code> new vertices to <var>graph</var>
 	graph_t *Graph = (graph_t *)Args[0].Val;
-	Agg$List_t *Vertices = (Agg$List_t *)Args[1].Val;
+	Agg$List$t *Vertices = (Agg$List$t *)Args[1].Val;
 	if (Vertices->Length) {
 		int N0 = igraph_vcount(Graph->Handle);
 		int N1 = N0 + Vertices->Length;
 		igraph_add_vertices(Graph->Handle, Vertices->Length, 0);
-		Agg$List_node *Node = Vertices->Head;
+		Agg$List$node *Node = Vertices->Head;
 		for (int ID = N0; ID < N1; ++ID, Node = Node->Next) {
-			Std$Object_t *Value = Node->Value;
+			Std$Object$t *Value = Node->Value;
 // 			printf("Adding Vertex: ID = %d, Object = %x\n", ID, Value);
 			set_id(Graph->VertexTable, Value, ID);
 			Agg$List$put(Graph->VertexList, Value);
@@ -113,7 +113,7 @@ METHOD("join", TYP, T, ANY, ANY, ANY) {
 	graph_t *Graph = (graph_t *)Args[0].Val;
 	igraph_integer_t VertexID1 = get_id(Graph->VertexTable, Args[1].Val);
 	igraph_integer_t VertexID2 = get_id(Graph->VertexTable, Args[2].Val);
-	Std$Object_t *Value = Args[3].Val;
+	Std$Object$t *Value = Args[3].Val;
 	int ID = igraph_ecount(Graph->Handle);
 	igraph_add_edge(Graph->Handle, VertexID1, VertexID2);
 	set_id(Graph->EdgeTable, Value, ID);
@@ -122,56 +122,56 @@ METHOD("join", TYP, T, ANY, ANY, ANY) {
 	return SUCCESS;
 };
 
-static Std$Object_t *vertex_vector_to_list(graph_t *Graph, igraph_vector_t *Vector) {
-	Std$Object_t *List = Agg$List$new0();
+static Std$Object$t *vertex_vector_to_list(graph_t *Graph, igraph_vector_t *Vector) {
+	Std$Object$t *List = Agg$List$new0();
 	for (int I = 0; I < igraph_vector_size(Vector); ++I) {
 		int ID = VECTOR(Vector[0])[I];
-		Std$Object_t *Object = Agg$List$find_node(Graph->VertexList, ID + 1)->Value;
+		Std$Object$t *Object = Agg$List$find_node(Graph->VertexList, ID + 1)->Value;
 		Agg$List$put(List, Object);
 	};
 	return List;
 };
 
-static void vertex_list_to_vector(graph_t *Graph, Agg$List_t *List, igraph_vector_t *Vector) {
+static void vertex_list_to_vector(graph_t *Graph, Agg$List$t *List, igraph_vector_t *Vector) {
 	igraph_vector_resize(Vector, List->Length);
 	int I = 0;
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
 		VECTOR(Vector[0])[I] = get_id(Graph->VertexTable, Node->Value);
 	};
 };
 
-static Std$Object_t *edge_vector_to_list(graph_t *Graph, igraph_vector_t *Vector) {
-	Std$Object_t *List = Agg$List$new0();
+static Std$Object$t *edge_vector_to_list(graph_t *Graph, igraph_vector_t *Vector) {
+	Std$Object$t *List = Agg$List$new0();
 	for (int I = 0; I < igraph_vector_size(Vector); ++I) {
 		int ID = VECTOR(Vector[0])[I];
-		Std$Object_t *Object = Agg$List$find_node(Graph->EdgeList, ID + 1)->Value;
+		Std$Object$t *Object = Agg$List$find_node(Graph->EdgeList, ID + 1)->Value;
 		Agg$List$put(List, Object);
 	};
 	return List;
 };
 
-/*static void edge_weights_by_function(graph_t *Graph, Std$Function_t *Function, igraph_vector_t *Vector) {
+/*static void edge_weights_by_function(graph_t *Graph, Std$Function$t *Function, igraph_vector_t *Vector) {
 	igraph_vector_resize(Vector, igraph_ecount(Graph->Handle));
 	for (int I = 0; I < igraph_ecount(Graph->Handle); ++I) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		Std$Function$call(Function, 1, &Result, VECTOR(Graph->EdgeVector[0])[I], 0);
 		if (Result.Val->Type == Std$Integer$SmallT) {
-			VECTOR(Vector[0])[I] = (double)((Std$Integer_smallt *)Result.Val)->Value;
+			VECTOR(Vector[0])[I] = (double)((Std$Integer$smallt *)Result.Val)->Value;
 		} else if (Result.Val->Type == Std$Real$T) {
-			VECTOR(Vector[0])[I] = ((Std$Real_t *)Result.Val)->Value;
+			VECTOR(Vector[0])[I] = ((Std$Real$t *)Result.Val)->Value;
 		};
 	};
 };
 
-static void edge_weights_by_list(graph_t *Graph, Agg$List_t *List, igraph_vector_t *Vector) {
+static void edge_weights_by_list(graph_t *Graph, Agg$List$t *List, igraph_vector_t *Vector) {
 	igraph_vector_resize(Vector, List->Length);
 	int I = 0;
-	for (Agg$List_node *Node = List->Head; Node; Node = Node->Next) {
-		Std$Object_t *Value = Node->Value;
+	for (Agg$List$node *Node = List->Head; Node; Node = Node->Next) {
+		Std$Object$t *Value = Node->Value;
 		if (Value->Type == Std$Integer$SmallT) {
-			VECTOR(Vector[0])[I] = (double)((Std$Integer_smallt *)Value)->Value;
+			VECTOR(Vector[0])[I] = (double)((Std$Integer$smallt *)Value)->Value;
 		} else if (Value->Type == Std$Real$T) {
-			VECTOR(Vector[0])[I] = ((Std$Real_t *)Value)->Value;
+			VECTOR(Vector[0])[I] = ((Std$Real$t *)Value)->Value;
 		};
 	};
 };*/
@@ -186,7 +186,7 @@ METHOD("vs", TYP, T, ANY) {
 	vertex_selection_t *Selection = new(vertex_selection_t);
 	Selection->Type = VertexSelectionT;
 	igraph_vs_1(Selection->Handle, ID);
-	Result->Val = (Std$Object_t *)Selection;
+	Result->Val = (Std$Object$t *)Selection;
 	return SUCCESS;
 };
 
@@ -194,11 +194,11 @@ METHOD("vs", TYP, T, TYP, Agg$List$T) {
 	graph_t *Graph = (graph_t *)Args[0].Val;
 	igraph_vector_t *Vector = new(igraph_vector_t);
 	igraph_vector_init(Vector, 0);
-	vertex_list_to_vector(Graph, (Agg$List_t *)Args[1].Val, Vector);
+	vertex_list_to_vector(Graph, (Agg$List$t *)Args[1].Val, Vector);
 	vertex_selection_t *Selection = new(vertex_selection_t);
 	Selection->Type = VertexSelectionT;
 	igraph_vs_vector(Selection->Handle, Vector);
-	Result->Val = (Std$Object_t *)Selection;
+	Result->Val = (Std$Object$t *)Selection;
 	return SUCCESS;
 };
 
@@ -210,7 +210,7 @@ METHOD("vs", TYP, T, TYP, Std$Symbol$T) {
 	} else {
 		igraph_vs_none(Selection->Handle);
 	};
-	Result->Val = (Std$Object_t *)Selection;
+	Result->Val = (Std$Object$t *)Selection;
 	return SUCCESS;
 };
 
@@ -258,13 +258,13 @@ static int graph_add_vertices(igraph_t *Handle, long int NV, igraph_vector_ptr_t
 	return IGRAPH_SUCCESS;
 };
 
-static void permute(const igraph_vector_t *Permute, Agg$List_t *List, Agg$ObjectTable_t *Table) {
+static void permute(const igraph_vector_t *Permute, Agg$List$t *List, Agg$ObjectTable$t *Table) {
 	Agg$List$empty(List);
 	Agg$ObjectTable$init(Table);
 	if (igraph_vector_size(Permute)) {
 		int NoOfNodes = igraph_vector_max(Permute);
-		Agg$List_node *Nodes[NoOfNodes];
-		Agg$List_node *Node = List->Head;
+		Agg$List$node *Nodes[NoOfNodes];
+		Agg$List$node *Node = List->Head;
 		for (int Old = 0; Old < igraph_vector_size(Permute); ++Old, Node = Node->Next) {
 			int New = VECTOR(*Permute)[Old];
 			if (New) {

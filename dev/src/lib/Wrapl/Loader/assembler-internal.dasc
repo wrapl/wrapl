@@ -7,17 +7,17 @@
 |.type THREAD, debug_thread_t
 |.type CLOSURE, closure_t
 |.type CODE, code_t
-|.type VALUE, Std$Object_t
-|.type TYPE, Std$Type_t
-|.type LIST, Agg$List_t
-|.type LISTNODE, Agg$List_node
-|.type SMALL, Std$Integer_smallt
+|.type VALUE, Std$Object$t
+|.type TYPE, Std$Type$t
+|.type LIST, Agg$List$t
+|.type LISTNODE, Agg$List$node
+|.type SMALL, Std$Integer$smallt
 |.type VARIADIC, variadic_t
 
 |.actionlist ActionList
 |.globals Globals_
 
-extern Std$Type_t VariadicT[];
+extern Std$Type$t VariadicT[];
 static variadic_t EmptyVariadic[1] = {{VariadicT, {Std$Integer$SmallT, 0}}};
 
 void encode_entry(assembler_t *Assembler) {
@@ -1182,7 +1182,7 @@ void value_of_inst_t::encode(assembler_t *Assembler) {
 }
 
 void new_list_inst_t::encode(assembler_t *Assembler) {
-	| push sizeof(Agg$List_t);
+	| push sizeof(Agg$List$t);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov dword LIST:eax->Type, Agg$List$T
@@ -1193,7 +1193,7 @@ void new_list_inst_t::encode(assembler_t *Assembler) {
 
 void store_list_inst_t::encode(assembler_t *Assembler) {
 	| mov ebx, ecx
-	| push sizeof(Agg$List_node);
+	| push sizeof(Agg$List$node);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov LISTNODE:eax->Value, ebx
@@ -1243,7 +1243,7 @@ void store_table2_inst_t::encode(assembler_t *Assembler) {
 }
 
 void new_count_inst_t::encode(assembler_t *Assembler) {
-	| push sizeof(Std$Integer_smallt);
+	| push sizeof(Std$Integer$smallt);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov dword SMALL:eax->Type, Std$Integer$SmallT

@@ -382,7 +382,7 @@ TO :generate_c(field@ArrayFieldT) (
 	'//@index',
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;',
-	'\tint index = ((Std$Integer_smallt *)Args[1].Val)->Value;'
+	'\tint index = ((Std$Integer$smallt *)Args[1].Val)->Value;'
 	] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
 	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}[index]', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',

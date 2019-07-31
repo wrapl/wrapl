@@ -6,7 +6,7 @@
 #define RIVA_MODULE Gir$TypeMap
 #include <Riva-Header.h>
 
-extern Agg$StringTable_t Gir$TypeMap$Table[];
+extern Agg$StringTable$t Gir$TypeMap$Table[];
 
 #undef RIVA_MODULE
 

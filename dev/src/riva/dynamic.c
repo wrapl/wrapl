@@ -3,7 +3,7 @@
 #include "log.h"
 #include "path.h"
 
-extern const struct Std$Type_t *ModuleT;
+extern const struct Std$Type$t *ModuleT;
 
 static void *dynamic_find(const char *Base) {
 	//printf("Base = <%s>\n", Base);

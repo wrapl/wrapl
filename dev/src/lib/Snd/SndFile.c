@@ -4,31 +4,32 @@
 #include <Riva/Memory.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
+#include <Num/Array.h>
 #include <sndfile.h>
 
 typedef struct sndfile_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	SNDFILE *Handle;
-	IO$Stream_t *Stream;
-	Std$Object_t *SampleRate, *Channels, *Format;
-	int (*read)(IO$Stream_t *, char *, int, int);
-	int (*write)(IO$Stream_t *, char *, int, int);
-	int (*tell)(IO$Stream_t *);
-	int (*seek)(IO$Stream_t *, int, int);
+	IO$Stream$t *Stream;
+	Std$Object$t *SampleRate, *Channels, *Format;
+	int (*read)(IO$Stream$t *, char *, int, int);
+	int (*write)(IO$Stream$t *, char *, int, int);
+	int (*tell)(IO$Stream$t *);
+	int (*seek)(IO$Stream$t *, int, int);
 } sndfile_t;
 
 TYPE(T, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$T);
 
 CONSTANT(Mode, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Mode");
+	Sys$Module$t *Module = Sys$Module$new("Mode");
 	Sys$Module$export(Module, "Read", 0, Std$Integer$new_small(SFM_READ));
 	Sys$Module$export(Module, "Write", 0, Std$Integer$new_small(SFM_WRITE));
 	Sys$Module$export(Module, "ReadWrite", 0, Std$Integer$new_small(SFM_RDWR));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 CONSTANT(Format, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Format");
+	Sys$Module$t *Module = Sys$Module$new("Format");
 	Sys$Module$export(Module, "WAV", 0, Std$Integer$new_small(SF_FORMAT_WAV));
 	Sys$Module$export(Module, "AIFF", 0, Std$Integer$new_small(SF_FORMAT_AIFF));
 	Sys$Module$export(Module, "AU", 0, Std$Integer$new_small(SF_FORMAT_AU));
@@ -80,16 +81,16 @@ CONSTANT(Format, Sys$Module$T) {
 	Sys$Module$export(Module, "SubMask", 0, Std$Integer$new_small(SF_FORMAT_SUBMASK));
 	Sys$Module$export(Module, "TypeMask", 0, Std$Integer$new_small(SF_FORMAT_TYPEMASK));
 	Sys$Module$export(Module, "EndMask", 0, Std$Integer$new_small(SF_FORMAT_ENDMASK));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 CONSTANT(Endian, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Endian");
+	Sys$Module$t *Module = Sys$Module$new("Endian");
 	Sys$Module$export(Module, "File", 0, Std$Integer$new_small(SF_ENDIAN_FILE));
 	Sys$Module$export(Module, "Little", 0, Std$Integer$new_small(SF_ENDIAN_LITTLE));
 	Sys$Module$export(Module, "Big", 0, Std$Integer$new_small(SF_ENDIAN_BIG));
 	Sys$Module$export(Module, "CPU", 0, Std$Integer$new_small(SF_ENDIAN_CPU));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 STRING(StrSampleRate, "sample_rate");
@@ -100,7 +101,7 @@ STRING(StrSeekable, "seekable");
 GLOBAL_FUNCTION(FormatCheck, 1) {
 	CHECK_ARG_TYPE(0, Agg$Table$T);
 	SF_INFO Info = {0,};
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 	if (Value = Agg$Table$index(Args[0].Val, StrSampleRate)) Info.samplerate = Std$Integer$get_small(Value);
 	if (Value = Agg$Table$index(Args[0].Val, StrChannels)) Info.channels = Std$Integer$get_small(Value);
 	if (Value = Agg$Table$index(Args[0].Val, StrFormat)) Info.format = Std$Integer$get_small(Value);
@@ -144,7 +145,7 @@ GLOBAL_FUNCTION(Open, 3) {
 	CHECK_ARG_TYPE(0, IO$Stream$T);
 	CHECK_ARG_TYPE(1, Std$Integer$SmallT);
 	CHECK_ARG_TYPE(2, Agg$Table$T);
-	IO$Stream_t *Stream = (IO$Stream_t *)Args[0].Val;
+	IO$Stream$t *Stream = (IO$Stream$t *)Args[0].Val;
 	sndfile_t *SndFile = new(sndfile_t);
 	SndFile->Type = T;
 	SndFile->Stream = Stream;
@@ -165,7 +166,7 @@ GLOBAL_FUNCTION(Open, 3) {
 	};
 	int Mode = Std$Integer$get_small(Args[1].Val);
 	SF_INFO Info = {0,};
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 	if (Value = Agg$Table$index(Args[2].Val, StrSampleRate)) Info.samplerate = Std$Integer$get_small(Value);
 	if (Value = Agg$Table$index(Args[2].Val, StrChannels)) Info.channels = Std$Integer$get_small(Value);
 	if (Value = Agg$Table$index(Args[2].Val, StrFormat)) Info.format = Std$Integer$get_small(Value);
@@ -174,7 +175,7 @@ GLOBAL_FUNCTION(Open, 3) {
 		SndFile->SampleRate = Std$Integer$new_small(Info.samplerate);
 		SndFile->Channels = Std$Integer$new_small(Info.channels);
 		SndFile->Format = Std$Integer$new_small(Info.format);
-		Result->Val = (Std$Object_t *)SndFile;
+		Result->Val = (Std$Object$t *)SndFile;
 		return SUCCESS;
 	} else {
 		Result->Val = Std$String$copy(sf_strerror(0));
@@ -378,7 +379,7 @@ TYPED_INSTANCE(void, IO$Stream$close, T, sndfile_t *Stream, int Mode) {
 };
 
 CONSTANT(String, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("String");
+	Sys$Module$t *Module = Sys$Module$new("String");
 	Sys$Module$export(Module, "Title", 0, Std$Integer$new_small(SF_STR_TITLE));
 	Sys$Module$export(Module, "Copyright", 0, Std$Integer$new_small(SF_STR_COPYRIGHT));
 	Sys$Module$export(Module, "Software", 0, Std$Integer$new_small(SF_STR_SOFTWARE));
@@ -389,7 +390,7 @@ CONSTANT(String, Sys$Module$T) {
 	Sys$Module$export(Module, "License", 0, Std$Integer$new_small(SF_STR_LICENSE));
 	Sys$Module$export(Module, "TrackNumber", 0, Std$Integer$new_small(SF_STR_TRACKNUMBER));
 	Sys$Module$export(Module, "Genre", 0, Std$Integer$new_small(SF_STR_GENRE));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 METHOD("get_string", TYP, T, TYP, Std$Integer$SmallT) {

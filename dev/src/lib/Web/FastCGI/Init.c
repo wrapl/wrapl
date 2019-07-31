@@ -7,7 +7,7 @@
 #include <string.h>
 
 typedef struct stream_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	FCGX_Stream *Handle;
 } stream_t;
 
@@ -40,11 +40,11 @@ static int fcgi_read(stream_t *Stream, char *Buffer, int Count, int Block) {
 
 METHOD("read", TYP, StreamT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	stream_t *Stream = (stream_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = fcgi_read(Stream, Buffer, Size, Count > 3 && Args[3].Val == $true);
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -78,11 +78,11 @@ static int fcgi_write(stream_t *Stream, char *Buffer, int Count, int Block) {
 
 METHOD("write", TYP, StreamT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	stream_t *Stream = (stream_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = fcgi_write(Stream, Buffer, Size, Count > 3 && Args[3].Val == $true);
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -102,7 +102,7 @@ METHOD("flush", TYP, StreamT) {
 };
 
 typedef struct socket_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int Handle;
 } socket_t;
 
@@ -119,13 +119,13 @@ GLOBAL_FUNCTION(SocketNew, 1) {
 		socket_t *Socket = new(socket_t);
 		Socket->Type = SocketT;
 		Socket->Handle = Handle;
-		Result->Val = (Std$Object_t *)Socket;
+		Result->Val = (Std$Object$t *)Socket;
 		return SUCCESS;
 	};
 };
 
 typedef struct request_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	stream_t *In, *Out, *Err;
 	FCGX_Request Handle[1];
 } request_t;
@@ -236,7 +236,7 @@ METHOD("envs", TYP, RequestT) {
 //:Agg$Table$T
 // Returns a table of all environment variables in the current request.
 	request_t *Request = Args[0].Val;
-	Std$Object_t *Env = Agg$Table$new(0, 0);
+	Std$Object$t *Env = Agg$Table$new(0, 0);
 	if (Request->Handle->envp) for (char **Ptr = Request->Handle->envp; *Ptr; ++Ptr) {
 		char *Key = *Ptr;
 		char *Value = strchr(Key, '=');

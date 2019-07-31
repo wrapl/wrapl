@@ -22,8 +22,8 @@ extern int Riva$Symbol[];
 
 static void startelementhandler(parser_t *Parser, const XML_Char *Name, const XML_Char **Attrs) {
 	if (Parser->StartElementHandler != Std$Object$Nil) {
-		Std$Function_result Result0;
-		Std$Object_t *Table = Agg$Table$new(0, 0);
+		Std$Function$result Result0;
+		Std$Object$t *Table = Agg$Table$new(0, 0);
 		int Type; void *Value;
 		Riva$Module$import(Riva$Symbol, Name, &Type, &Value);
 		for (const XML_Char **Attr = Attrs; Attr[0]; Attr += 2) {
@@ -35,7 +35,7 @@ static void startelementhandler(parser_t *Parser, const XML_Char *Name, const XM
 
 static void endelementhandler(parser_t *Parser, const XML_Char *Name) {
 	if (Parser->EndElementHandler != Std$Object$Nil) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		int Type; void *Value;
 		Riva$Module$import(Riva$Symbol, Name, &Type, &Value);
 		Std$Function$call(Parser->EndElementHandler, 2, &Result0, Parser->UserData, &Parser->UserData, Value, 0);
@@ -44,21 +44,21 @@ static void endelementhandler(parser_t *Parser, const XML_Char *Name) {
 
 static void characterdatahandler(parser_t *Parser, const XML_Char *String, int Length) {
 	if (Parser->CharacterDataHandler != Std$Object$Nil) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Std$Function$call(Parser->CharacterDataHandler, 2, &Result0, Parser->UserData, &Parser->UserData, Std$String$copy_length(String, Length), 0);
 	}
 }
 
 static void skippedentityhandler(parser_t *Parser, const XML_Char *EntityName, int IsParameterEntity) {
 	if (Parser->SkippedEntityHandler != Std$Object$Nil) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Std$Function$call(Parser->SkippedEntityHandler, 3, &Result0, Parser->UserData, &Parser->UserData, Std$String$copy(EntityName), 0, IsParameterEntity ? $true : $false, 0);
 	}
 }
 
 static void defaulthandler(parser_t *Parser, const XML_Char *String, int Length) {
 	if (Parser->DefaultHandler != Std$Object$Nil) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		Std$Function$call(Parser->DefaultHandler, 2, &Result0, Parser->UserData, &Parser->UserData, Std$String$copy_length(String, Length), 0);
 	}
 }
@@ -105,7 +105,7 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 //:T
 //  Parses string and calls the appropriate event handlers
 	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
-	Std$String_t *String = Args[1].Val;
+	Std$String$t *String = Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		switch (XML_Parse(Parser, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 0)) {
 		case XML_STATUS_ERROR: {

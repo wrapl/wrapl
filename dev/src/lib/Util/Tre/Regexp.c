@@ -4,7 +4,7 @@
 #include <tre/tre.h>
 
 typedef struct regexp_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	Std$Object$t *Pattern;
 	regex_t Handle[1];
 } regexp_t;
@@ -41,9 +41,9 @@ AMETHOD(Std$String$Of, TYP, T) {
 	regexp_t *R = (regexp_t *)Args[0].Val;
 	Std$String$t *In = (Std$String$t *)R->Pattern;
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	Std$String_t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String_block *Src = In->Blocks;
-	Std$String_block *Dst = Out->Blocks;
+	Std$String$t *Out = Std$String$alloc(In->Count + 2);
+	const Std$String$block *Src = In->Blocks;
+	Std$String$block *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 1;
 	Dst->Chars.Value = "/";
@@ -122,8 +122,8 @@ AMETHOD(Std$String$Of, TYP, T) {
 }
 
 typedef struct context_t {
-	Std$String_block *Head;
-	Std$String_block *Block;
+	Std$String$block *Head;
+	Std$String$block *Block;
 	char *Chars;
 	int Rem;
 	int Offset;
@@ -142,7 +142,7 @@ static int get_next_char(tre_char_t *Char, unsigned int *PosAdd, context_t *Cont
 };
 
 static void rewind(size_t Pos, context_t *Context) {
-	Std$String_block *Block = Context->Head;
+	Std$String$block *Block = Context->Head;
 	Pos += Context->Offset;
 	while (Pos >= Block->Length.Value) {
 		Pos -= Block->Length.Value;
@@ -156,14 +156,14 @@ static void rewind(size_t Pos, context_t *Context) {
 static int compare(size_t Pos1, size_t Pos2, size_t Len, context_t *Context) {
 	Pos1 += Context->Offset;
 	Pos2 += Context->Offset;
-	Std$String_block *Block1 = Context->Head;
+	Std$String$block *Block1 = Context->Head;
 	while (Pos1 >= Block1->Length.Value) {
 		Pos1 -= Block1->Length.Value;
 		Block1++;
 	};
 	int Rem1 = Block1->Length.Value - Pos1;
 	char *Chars1 = Block1->Chars.Value + Pos1;
-	Std$String_block *Block2 = Context->Head;
+	Std$String$block *Block2 = Context->Head;
 	while (Pos2 >= Block2->Length.Value) {
 		Pos2 -= Block2->Length.Value;
 		Block2++;
@@ -189,9 +189,9 @@ static int compare(size_t Pos1, size_t Pos2, size_t Len, context_t *Context) {
 };
 
 typedef struct result_t {
-	Std$Type_t *Type;
-	Std$String_t *String;
-	Std$Integer_smallt *Start, *End;
+	Std$Type$t *Type;
+	Std$String$t *String;
+	Std$Integer$smallt *Start, *End;
 } result_t;
 
 TYPE(ResultT);
@@ -241,7 +241,7 @@ METHOD("match", TYP, T, TYP, Std$String$T, ANY) {
 METHOD("match", TYP, T, TYP, Std$String$T) {
 #endif
 	regex_t *PReg = ((regexp_t *)Args[0].Val)->Handle;
-	Std$String_t *String = Args[1].Val;
+	Std$String$t *String = Args[1].Val;
 	context_t Context[1] = {{
 		String->Blocks,
 		String->Blocks,
@@ -257,7 +257,7 @@ METHOD("match", TYP, T, TYP, Std$String$T) {
 	}};
 	regmatch_t PMatch[PReg->re_nsub + 1];
 	if (tre_reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
-	Std$Function_argument *Out = Args + 2;
+	Std$Function$argument *Out = Args + 2;
 	int Max = Count - 2;
 	if (Max > PReg->re_nsub) Max = PReg->re_nsub + 1;
 	for (int I = 1; I < Max; ++I) {
@@ -288,10 +288,10 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT, ANY) {
 METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 #endif
 	regex_t *PReg = ((regexp_t *)Args[0].Val)->Handle;
-	Std$String_t *String = Args[1].Val;
-	uint32_t Offset = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	Std$String$t *String = Args[1].Val;
+	uint32_t Offset = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	uint32_t Start = Offset;
-	Std$String_block *Subject = String->Blocks;
+	Std$String$block *Subject = String->Blocks;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
 		++Subject;
@@ -312,7 +312,7 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	}};
 	regmatch_t PMatch[PReg->re_nsub + 1];
 	if (tre_reguexec(PReg, Source, PReg->re_nsub + 1, PMatch, 0)) return FAILURE;
-	Std$Function_argument *Out = Args + 2;
+	Std$Function$argument *Out = Args + 2;
 	int Max = Count - 2;
 	if (Max > PReg->re_nsub) Max = PReg->re_nsub + 1;
 	for (int I = 1; I < Max; ++I) {

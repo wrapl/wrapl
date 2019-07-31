@@ -7,20 +7,15 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	void *Value;
-};
-
-RIVA_STRUCT(constt) {
-	const Std$Type_t *Type;
-	const void *Value;
 };
 
 RIVA_TYPE(T);
 
-RIVA_CFUN(Std$Object_t *, new, void *) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void *) __attribute__ ((malloc));
 
-#define Std$Address$get_value(A) ((Std$Address_t *)A)->Value
+#define Std$Address$get_value(A) ((Std$Address$t *)A)->Value
 
 #undef RIVA_MODULE
 

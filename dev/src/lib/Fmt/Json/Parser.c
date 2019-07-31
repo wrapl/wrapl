@@ -10,29 +10,29 @@
 
 typedef struct map_key_t {
 	struct map_key_t *Prev;
-	Std$Object_t *Key;
+	Std$Object$t *Key;
 } map_key_t;
 
 typedef struct parser_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	yajl_handle *Handle;
-	Std$Object_t *UserData;
+	Std$Object$t *UserData;
 	map_key_t *MapKey;
-	Std$Function_t *FinalHandler;
-	Std$Function_t *ValueHandler;
-	Std$Function_t *MapStartHandler;
-	Std$Function_t *MapPairHandler;
-	Std$Function_t *MapEndHandler;
-	Std$Function_t *ArrayStartHandler;
-	Std$Function_t *ArrayEndHandler;
+	Std$Function$t *FinalHandler;
+	Std$Function$t *ValueHandler;
+	Std$Function$t *MapStartHandler;
+	Std$Function$t *MapPairHandler;
+	Std$Function$t *MapEndHandler;
+	Std$Function$t *ArrayStartHandler;
+	Std$Function$t *ArrayEndHandler;
 } parser_t;
 
 TYPE(T, IO$Stream$WriterT, IO$Stream$T);
 
-int value_handler(parser_t *Parser, Std$Object_t *Value) {
+int value_handler(parser_t *Parser, Std$Object$t *Value) {
 	if (Parser->MapKey == 0) {
 		if (Parser->FinalHandler != Std$Object$Nil) {
-			Std$Function_result Result;
+			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->FinalHandler, 2, &Result, Parser->UserData, &Parser->UserData, Value, 0);
 			return Status < FAILURE;
 		} else {
@@ -40,7 +40,7 @@ int value_handler(parser_t *Parser, Std$Object_t *Value) {
 		};
 	} else if (Parser->MapKey->Key) {
 		if (Parser->MapPairHandler != Std$Object$Nil) {
-			Std$Function_result Result;
+			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->MapPairHandler, 3, &Result, Parser->UserData, &Parser->UserData, Parser->MapKey->Key, 0, Value, 0);
 			return Status < FAILURE;
 		} else {
@@ -48,7 +48,7 @@ int value_handler(parser_t *Parser, Std$Object_t *Value) {
 		};
 	} else {
 		if (Parser->ValueHandler != Std$Object$Nil) {
-			Std$Function_result Result;
+			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->ValueHandler, 2, &Result, Parser->UserData, &Parser->UserData, Value, 0);
 			return Status < FAILURE;
 		} else {
@@ -65,7 +65,7 @@ int boolean_handler(parser_t *Parser, int BoolVal) {
 	return value_handler(Parser, BoolVal ? $true : $false);
 };
 
-static inline Std$Object_t *finish_rational(mpq_t R) {
+static inline Std$Object$t *finish_rational(mpq_t R) {
 	if (mpz_cmp_si(mpq_denref(R), 1)) {
 		return Std$Rational$new(R);
 	} else if (mpz_fits_slong_p(mpq_numref(R))) {
@@ -76,7 +76,7 @@ static inline Std$Object_t *finish_rational(mpq_t R) {
 };
 
 int number_handler(parser_t *Parser, const char *NumberVal, unsigned int NumberLen) {
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 	char Buffer[NumberLen + 1];
 	memcpy(Buffer, NumberVal, NumberLen);
 	Buffer[NumberLen] = 0;
@@ -106,7 +106,7 @@ int start_map_handler(parser_t *Parser) {
 	MapKey->Key = 0;
 	Parser->MapKey = MapKey;
 	if (Parser->MapStartHandler != Std$Object$Nil) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		int Status = Std$Function$call(Parser->MapStartHandler, 1, &Result, Parser->UserData, &Parser->UserData);
 		return Status < FAILURE;
 	} else {
@@ -122,7 +122,7 @@ int map_key_handler(parser_t *Parser, const unsigned char *Key, unsigned int Str
 int end_map_handler(parser_t *Parser) {
 	Parser->MapKey = Parser->MapKey->Prev;
 	if (Parser->MapEndHandler != Std$Object$Nil) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call(Parser->MapEndHandler, 1, &Result, Parser->UserData, &Parser->UserData)) {
 		case SUSPEND: case SUCCESS: return value_handler(Parser, Result.Val);
 		case FAILURE: return 1;
@@ -139,7 +139,7 @@ int start_array_handler(parser_t *Parser) {
 	MapKey->Key = 0;
 	Parser->MapKey = MapKey;
 	if (Parser->ArrayStartHandler != Std$Object$Nil) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		int Status = Std$Function$call(Parser->ArrayStartHandler, 1, &Result, Parser->UserData, &Parser->UserData);
 		return Status < FAILURE;
 	} else {
@@ -150,7 +150,7 @@ int start_array_handler(parser_t *Parser) {
 int end_array_handler(parser_t *Parser) {
 	Parser->MapKey = Parser->MapKey->Prev;
 	if (Parser->ArrayEndHandler != Std$Object$Nil) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call(Parser->ArrayEndHandler, 1, &Result, Parser->UserData, &Parser->UserData)) {
 		case SUSPEND: case SUCCESS: return value_handler(Parser, Result.Val);
 		case FAILURE: return 1;
@@ -214,7 +214,7 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 //:T
 //  Parses string and calls the appropiate event handlers
 	yajl_handle *Handle = ((parser_t *)Args[0].Val)->Handle;
-	Std$String_t *String = Args[1].Val;
+	Std$String$t *String = Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		switch (yajl_parse(Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value)) {
 		case yajl_status_ok: break;

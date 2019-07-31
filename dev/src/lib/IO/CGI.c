@@ -7,14 +7,14 @@
 #include <unistd.h>
 
 typedef struct cgi_reader_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	int Length, Remaining;
 } cgi_reader_t;
 
 TYPE(ReaderT, IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$T);
 
-static IO$Stream_messaget OpenMessage[] = {{IO$Stream$MessageT, "Open Error"}};
-static IO$Stream_messaget ReadMessage[] = {{IO$Stream$MessageT, "Read Error"}};
+static IO$Stream$messaget OpenMessage[] = {{IO$Stream$MessageT, "Open Error"}};
+static IO$Stream$messaget ReadMessage[] = {{IO$Stream$MessageT, "Read Error"}};
 
 GLOBAL_FUNCTION(Open, 0) {
 	char *LengthStr = getenv("CONTENT_LENGTH");
@@ -35,8 +35,8 @@ static int cgi_reader_eoi(cgi_reader_t *Stream) {
 
 METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	cgi_reader_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	if (Size > Stream->Remaining) Size = Stream->Remaining;
 	size_t BytesRead = read(STDIN_FILENO, Buffer, Size);
 	if (BytesRead < 0) {
@@ -67,7 +67,7 @@ static char cgi_reader_readc(cgi_reader_t *Stream) {
 
 METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 	cgi_reader_t *Stream = Args[0].Val;
-	unsigned long Length = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	unsigned long Length = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (Length > Stream->Remaining) Length = Stream->Remaining;
 	char *Buffer = Riva$Memory$alloc_atomic(Length);
 	size_t BytesRead = read(STDIN_FILENO, Buffer, Length);
@@ -167,7 +167,7 @@ static char *cgi_reader_readl(cgi_reader_t *Stream) {
 	return _read_line_next(Stream, 0);
 };
 
-static IO$Stream_reader_methods _ReaderT_Methods = {
+static IO$Stream$reader_methods _ReaderT_Methods = {
 	cgi_reader_eoi,
 	cgi_reader_read,
 	cgi_reader_readc,

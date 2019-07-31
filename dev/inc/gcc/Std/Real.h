@@ -7,7 +7,7 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	double Value;
 };
 
@@ -17,10 +17,10 @@ RIVA_OBJECT(Zero);
 RIVA_OBJECT(One);
 RIVA_OBJECT(Of);
 
-RIVA_CFUN(Std$Object_t *, new, double) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, new_string, const char *) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, double) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new_string, const char *) __attribute__ ((malloc));
 
-#define Std$Real$get_value(A) ((Std$Real_t *)A)->Value
+#define Std$Real$get_value(A) ((Std$Real$t *)A)->Value
 
 RIVA_CFUN(double, double, Std$Object$t *);
 

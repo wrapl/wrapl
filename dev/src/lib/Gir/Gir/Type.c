@@ -44,7 +44,7 @@ Gtk$GObject$Type_t OBJECT[] = {{T, G_TYPE_OBJECT}};
 Gtk$GObject$Type_t RIVA[] = {{T, G_TYPE_INVALID}};
 
 CONSTANT(Fundamental, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Fundamental");
+	Sys$Module$t *Module = Sys$Module$new("Fundamental");
 	Sys$Module$export(Module, "Invalid", 0, INVALID);
 	Sys$Module$export(Module, "None", 0, NONE);
 	Sys$Module$export(Module, "Interface", 0, INTERFACE);
@@ -67,25 +67,25 @@ CONSTANT(Fundamental, Sys$Module$T) {
 	Sys$Module$export(Module, "Param", 0, PARAM);
 	Sys$Module$export(Module, "Object", 0, OBJECT);
 	Sys$Module$export(Module, "Riva", 0, RIVA);
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
-static Agg$ObjectTable_t GTypeToRiva[] = {Agg$ObjectTable$INIT};
+static Agg$ObjectTable$t GTypeToRiva[] = {Agg$ObjectTable$INIT};
 
-void _register_type(GType GtkType, Std$Type_t *RivaType) {
+void _register_type(GType GtkType, Std$Type$t *RivaType) {
 	Agg$ObjectTable$put(GTypeToRiva, (void *)GtkType, RivaType);
 };
 
-Std$Type_t *_to_riva(GType GtkType) {
-	Std$Type_t *RivaType = Agg$ObjectTable$get(GTypeToRiva, (void *)GtkType);
-	if (RivaType != (Std$Type_t *)0xFFFFFFFF) return RivaType;
+Std$Type$t *_to_riva(GType GtkType) {
+	Std$Type$t *RivaType = Agg$ObjectTable$get(GTypeToRiva, (void *)GtkType);
+	if (RivaType != (Std$Type$t *)0xFFFFFFFF) return RivaType;
 	const char *GtkName = g_type_name(GtkType);
 	const char *RivaName = Agg$StringTable$get(Gtk$TypeMap$Table, GtkName, strlen(GtkName));
 	if (RivaName == 0) {
 		Riva$Log$errorf("Warning: Gtk type is not mapped: %s\n", GtkName);
 		return 0;
 	};
-	Riva$Module_t *Module = Riva$Module$load(0, RivaName);
+	Riva$Module$t *Module = Riva$Module$load(0, RivaName);
 	if (Module == 0) {
 		Riva$Log$errorf("Error: Module not found: %s\n", RivaName);
 		return 0;

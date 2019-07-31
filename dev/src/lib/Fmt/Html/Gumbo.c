@@ -203,7 +203,7 @@ AMETHOD(Std$String$Of, TYP, ElementNodeT) {
 	return SUCCESS;
 }
 
-static int write_node(GumboNode *Node, IO$Stream$t *Stream, IO$Stream_writefn write) {
+static int write_node(GumboNode *Node, IO$Stream$t *Stream, IO$Stream$writefn write) {
 	switch (Node->type) {
 	case GUMBO_NODE_DOCUMENT: {
 		break;
@@ -253,7 +253,7 @@ static int write_node(GumboNode *Node, IO$Stream$t *Stream, IO$Stream_writefn wr
 
 METHOD("write", TYP, IO$Stream$T, TYP, NodeT) {
 	IO$Stream$t *Stream = Args[0].Val;
-	IO$Stream_writefn write = Util$TypedFunction$get(IO$Stream$write, Stream->Type);
+	IO$Stream$writefn write = Util$TypedFunction$get(IO$Stream$write, Stream->Type);
 	gumbo_node_t *Node = (gumbo_node_t *)Args[1].Val;
 	write_node(Node->Handle, Stream, write);
 	Result->Arg = Args[0];
@@ -342,7 +342,7 @@ METHOD("[]", TYP, VectorT, TYP, Std$Integer$SmallT) {
 }
 
 typedef struct vector_values_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	GumboVector *Vector;
 	int Index;
 } vector_values_generator;
@@ -394,7 +394,7 @@ METHOD("values", TYP, VectorT) {
 	if (Vector->Handle->length == 1) return SUCCESS;
 	vector_values_generator *Generator = new(vector_values_generator);
 	Generator->State.Run = Std$Function$resume_c;
-	Generator->State.Invoke = (Std$Function_cresumefn)resume_vector_values;
+	Generator->State.Invoke = (Std$Function$cresumefn)resume_vector_values;
 	Generator->Index = 1;
 	Generator->Vector = Vector->Handle;
 	Result->State = Generator;
@@ -443,7 +443,7 @@ METHOD("values", TYP, ElementNodeT) {
 	if (Element->Handle->v.element.children.length == 1) return SUCCESS;
 	vector_values_generator *Generator = new(vector_values_generator);
 	Generator->State.Run = Std$Function$resume_c;
-	Generator->State.Invoke = (Std$Function_cresumefn)resume_vector_values;
+	Generator->State.Invoke = (Std$Function$cresumefn)resume_vector_values;
 	Generator->Index = 1;
 	Generator->Vector = &Element->Handle->v.element.children;
 	Result->State = Generator;
@@ -460,7 +460,7 @@ struct find_node_t {
 };
 
 typedef struct element_find_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	find_node_t *FindNode;
 	Std$Object$t *Filter;
 } element_find_generator;
@@ -568,7 +568,7 @@ METHOD("find", TYP, ElementNodeT, ANY) {
 		case SUSPEND: case SUCCESS: {
 			element_find_generator *Generator = new(element_find_generator);
 			Generator->State.Run = Std$Function$resume_c;
-			Generator->State.Invoke = (Std$Function_cresumefn)resume_element_find;
+			Generator->State.Invoke = (Std$Function$cresumefn)resume_element_find;
 			Generator->FindNode = FindNode;
 			Generator->Filter = Filter;
 			Result->State = Generator;

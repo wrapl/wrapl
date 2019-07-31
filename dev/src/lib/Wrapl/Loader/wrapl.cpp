@@ -17,7 +17,7 @@
 
 CONSTANT(Message, Sys$Module$T) {
 // Possible error messages sent by the compiler.
-	Sys$Module_t *Module = (Sys$Module_t *)Sys$Module$new("Message");
+	Sys$Module$t *Module = (Sys$Module$t *)Sys$Module$new("Message");
 	Sys$Module$export(Module, "Error", 0, (void *)ErrorMessageT);
 	Sys$Module$export(Module, "SourceError", 0, (void *)SourceErrorMessageT);
 	Sys$Module$export(Module, "ParseError", 0, (void *)ParseErrorMessageT);
@@ -25,7 +25,7 @@ CONSTANT(Message, Sys$Module$T) {
 	Sys$Module$export(Module, "TypeError", 0, (void *)TypeErrorMessageT);
 	Sys$Module$export(Module, "ExternError", 0, (void *)ExternErrorMessageT);
 	Sys$Module$export(Module, "ScopeErrorT", 0, (void *)ScopeErrorMessageT);
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 }
 
 #if defined(WINDOWS) && !defined(CYGWIN)
@@ -54,7 +54,7 @@ static const char *wrapl_find(const char *Base) {
 static int wrapl_load(Riva$Module$provider_t *Provider, const char *Path) {
 	Riva$Module$t *Module = Provider->Module;
 	if (Module->Type == 0) Module->Type = Sys$Module$T;
-	IO$Stream_t *Source = (IO$Stream_t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
+	IO$Stream$t *Source = (IO$Stream$t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
 	if (Source == 0) return 0;
 	scanner_t *Scanner = new scanner_t(Source);
 	if (setjmp(Scanner->Error.Handler)) {
@@ -97,7 +97,7 @@ TYPE(ErrorMessageT);
 // The type of error messages sent by the compiler.
 
 struct errormessage_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int LineNo;
 	const char *Message;
 };
@@ -106,15 +106,15 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 //@filename:Std$String$T
 //:Sys$Module$T
 // Loads and compiles the module contained in the file <var>filename</var> and returns the module handle.
-	Sys$Module_t *Module = Sys$Module$new(0);
+	Sys$Module$t *Module = Sys$Module$new(0);
 	const char *Path = Std$String$flatten(Args[0].Val);
-	IO$Stream_t *Source = (IO$Stream_t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
+	IO$Stream$t *Source = (IO$Stream$t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
 	if (Source == 0) {
 		errormessage_t *Error = new errormessage_t;
 		Error->Type = SourceErrorMessageT;
 		Error->LineNo = 0;
 		Error->Message = "Error: error opening file";
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	scanner_t *Scanner = new scanner_t(Source);
@@ -124,7 +124,7 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 		Error->Type = Scanner->Error.Type;
 		Error->LineNo = Scanner->Error.LineNo;
 		Error->Message = Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	if (Debugger) Scanner->DebugInfo = debug_module(Path);
@@ -142,11 +142,11 @@ GLOBAL_FUNCTION(LoadModule, 1) {
 		Error->Type = Compiler->Error.Type;
 		Error->LineNo = Compiler->Error.LineNo;
 		Error->Message = Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	Expr->compile(Compiler);
-	Result->Val = (Std$Object_t *)Module;
+	Result->Val = (Std$Object$t *)Module;
 	return SUCCESS;
 }
 
@@ -155,13 +155,13 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 //:ANY
 // Evaluates the expression contained in the file <var>filename</var> and returns the result.
 	const char *Path = Std$String$flatten(Args[0].Val);
-	IO$Stream_t *Source = (IO$Stream_t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
+	IO$Stream$t *Source = (IO$Stream$t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_READ | IO$File$OPEN_TEXT));
 	if (Source == 0) {
 		errormessage_t *Error = new errormessage_t;
 		Error->Type = SourceErrorMessageT;
 		Error->LineNo = 0;
 		Error->Message = "Error: error opening file";
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	scanner_t *Scanner = new scanner_t(Source);
@@ -171,7 +171,7 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Error->Type = Scanner->Error.Type;
 		Error->LineNo = Scanner->Error.LineNo;
 		Error->Message = Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	expr_t *Expr = accept_expr(Scanner);
@@ -183,7 +183,7 @@ GLOBAL_FUNCTION(LoadExpr, 1) {
 		Error->Type = Compiler->Error.Type;
 		Error->LineNo = Compiler->Error.LineNo;
 		Error->Message = Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	if (Count > 1) Compiler->MissingIDFunc = Args[1].Val;
@@ -194,14 +194,14 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 //@source:IO$Stream$T
 //:ANY
 // Evaluates the expression read from <var>source</var> and returns the result.
-	IO$Stream_t *Source = Args[0].Val;
+	IO$Stream$t *Source = Args[0].Val;
 	scanner_t *Scanner = new scanner_t(Source);
 	if (setjmp(Scanner->Error.Handler)) {
 		errormessage_t *Error = new errormessage_t;
 		Error->Type = Scanner->Error.Type;
 		Error->LineNo = Scanner->Error.LineNo;
 		Error->Message = Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	expr_t *Expr = accept_expr(Scanner);
@@ -212,7 +212,7 @@ GLOBAL_FUNCTION(ReadExpr, 1) {
 		Error->Type = Compiler->Error.Type;
 		Error->LineNo = Compiler->Error.LineNo;
 		Error->Message = Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	if (Count > 1) Compiler->MissingIDFunc = Args[1].Val;
@@ -297,8 +297,8 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$List$T) {
 	Agg$List$node *Node = ((Agg$List$t *)Args[1].Val)->Head;
 	if (Node) {
 		IO$Stream$write(Stream, "[", 1, 1);
-		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
+		Std$Function$result Buffer;
+		switch (Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS:
 			break;
 		case FAILURE:
@@ -308,7 +308,7 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$List$T) {
 		};
 		while (Node = Node->Next) {
 			IO$Stream$write(Stream, ", ", 2, 1);
-			switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
+			switch (Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Node->Value, 0)) {
 			case SUSPEND: case SUCCESS:
 				break;
 			case FAILURE:
@@ -338,8 +338,8 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$Table$T) {
 
 	IO$Stream$write(Stream, "{", 1, 1);
 	do {
-		Std$Function_result Buffer;
-		switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Agg$Table$node_key(Node), 0)) {
+		Std$Function$result Buffer;
+		switch (Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Agg$Table$node_key(Node), 0)) {
 		case SUSPEND: case SUCCESS:
 			break;
 		case FAILURE:
@@ -350,7 +350,7 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Agg$Table$T) {
 		Std$Object$t *Value = Agg$Table$node_value(Node);
 		if (Value != Std$Object$Nil) {
 			IO$Stream$write(Stream, " IS ", 4, 1);
-			switch (Std$Function$call((Std$Object_t *)WriteExpr, 2, Result, Stream, 0, Value, 0)) {
+			switch (Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Value, 0)) {
 			case SUSPEND: case SUCCESS:
 				break;
 			case FAILURE:
@@ -380,13 +380,13 @@ GLOBAL_FUNCTION(SaveExpr, 2) {
 //:ANY
 // Evaluates the expression contained in the file <var>filename</var> and returns the result.
 	const char *Path = Std$String$flatten(Args[0].Val);
-	IO$Stream_t *Stream = (IO$Stream_t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_WRITE | IO$File$OPEN_TEXT));
+	IO$Stream$t *Stream = (IO$Stream$t *)IO$File$open(Path, (IO$File_openflag)(IO$File$OPEN_WRITE | IO$File$OPEN_TEXT));
 	if (Stream == 0) {
 		errormessage_t *Error = new errormessage_t;
 		Error->Type = SourceErrorMessageT;
 		Error->LineNo = 0;
 		Error->Message = "Error: error opening file";
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	Std$Function$status Status = Std$Function$call((Std$Object$t *)WriteExpr, 2, Result, Stream, 0, Args[1].Val, 0);
@@ -404,7 +404,7 @@ GLOBAL_FUNCTION(SaveExpr, 2) {
 
 
 struct session_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	scanner_t *Scanner;
 	compiler_t *Compiler;
 };
@@ -415,7 +415,7 @@ TYPE(SessionT);
 AMETHOD(Std$String$Of, TYP, ErrorMessageT) {
 	errormessage_t *Error = (errormessage_t *)Args[0].Val;
 	char *Buffer;
-	Result->Val = (Std$Object_t *)Std$String$new_length(Buffer, asprintf(&Buffer, "(%d): %s", Error->LineNo, Error->Message));
+	Result->Val = (Std$Object$t *)Std$String$new_length(Buffer, asprintf(&Buffer, "(%d): %s", Error->LineNo, Error->Message));
 	return SUCCESS;
 }
 
@@ -434,7 +434,7 @@ GLOBAL_FUNCTION(SessionNew, 1) {
 		Session->Compiler = new compiler_t("console");
 	}
 	Session->Compiler->DebugInfo = Session->Scanner->DebugInfo;
-	Result->Val = (Std$Object_t *)Session;
+	Result->Val = (Std$Object$t *)Session;
 	return SUCCESS;
 }
 
@@ -449,7 +449,7 @@ GLOBAL_FUNCTION(SessionEval, 1) {
 		Error->Type = Session->Scanner->Error.Type;
 		Error->LineNo = Session->Scanner->Error.LineNo;
 		Error->Message = Session->Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	command_expr_t *Command = accept_command(Session->Scanner);
@@ -462,7 +462,7 @@ GLOBAL_FUNCTION(SessionEval, 1) {
 		Error->Type = Session->Compiler->Error.Type;
 		Error->LineNo = Session->Compiler->Error.LineNo;
 		Error->Message = Session->Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	return Command->compile(Session->Compiler, Result);
@@ -480,7 +480,7 @@ GLOBAL_FUNCTION(SessionLine, 1) {
 //: Std$String$T
 // Returns the rest of the current line stored by the scanner in <var>session</var>.
 	session_t *Session = (session_t *)Args[0].Val;
-	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
+	Result->Val = (Std$Object$t *)Std$String$new(Session->Scanner->NextChar);
 	Session->Scanner->NextChar = "";
 	return SUCCESS;
 }
@@ -572,7 +572,7 @@ METHOD("eval", TYP, SessionT) {
 		Error->Type = Session->Scanner->Error.Type;
 		Error->LineNo = Session->Scanner->Error.LineNo;
 		Error->Message = Session->Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	command_expr_t *Command = accept_command(Session->Scanner);
@@ -585,7 +585,7 @@ METHOD("eval", TYP, SessionT) {
 		Error->Type = Session->Compiler->Error.Type;
 		Error->LineNo = Session->Compiler->Error.LineNo;
 		Error->Message = Session->Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	return Command->compile(Session->Compiler, Result);
@@ -602,14 +602,14 @@ METHOD("eval_line", TYP, SessionT, ANY) {
 		Error->Type = Session->Scanner->Error.Type;
 		Error->LineNo = Session->Scanner->Error.LineNo;
 		Error->Message = Session->Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	command_expr_t *Command = accept_command(Session->Scanner);
 #ifdef PARSER_LISTING
 	Command->print(0);
 #endif
-	Args[1].Ref[0] = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
+	Args[1].Ref[0] = (Std$Object$t *)Std$String$new(Session->Scanner->NextChar);
 	Session->Scanner->NextChar = "";
 	if (setjmp(Session->Compiler->Error.Handler)) {
 		Session->Compiler->flush();
@@ -617,7 +617,7 @@ METHOD("eval_line", TYP, SessionT, ANY) {
 		Error->Type = Session->Compiler->Error.Type;
 		Error->LineNo = Session->Compiler->Error.LineNo;
 		Error->Message = Session->Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	return Command->compile(Session->Compiler, Result);
@@ -634,7 +634,7 @@ METHOD("expr", TYP, SessionT) {
 		Error->Type = Session->Scanner->Error.Type;
 		Error->LineNo = Session->Scanner->Error.LineNo;
 		Error->Message = Session->Scanner->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	expr_t *Expr = accept_expr(Session->Scanner);
@@ -648,7 +648,7 @@ METHOD("expr", TYP, SessionT) {
 		Error->Type = Session->Compiler->Error.Type;
 		Error->LineNo = Session->Compiler->Error.LineNo;
 		Error->Message = Session->Compiler->Error.Message;
-		Result->Val = (Std$Object_t *)Error;
+		Result->Val = (Std$Object$t *)Error;
 		return MESSAGE;
 	}
 	return Expr->evaluate(Session->Compiler, Result);
@@ -659,7 +659,7 @@ METHOD("line", TYP, SessionT) {
 //:Std$String$T
 // The same as <code>SessionLine(session)</code>.
 	session_t *Session = (session_t *)Args[0].Val;
-	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
+	Result->Val = (Std$Object$t *)Std$String$new(Session->Scanner->NextChar);
 	Session->Scanner->NextChar = "";
 	return SUCCESS;
 }
@@ -672,7 +672,7 @@ METHOD("lineno", TYP, SessionT, TYP, Std$Integer$SmallT) {
 
 GLOBAL_METHOD(SessionPeek, 1, "peek", TYP, SessionT) {
 	session_t *Session = (session_t *)Args[0].Val;
-	Result->Val = (Std$Object_t *)Std$String$new(Session->Scanner->NextChar);
+	Result->Val = (Std$Object$t *)Std$String$new(Session->Scanner->NextChar);
 	return SUCCESS;
 }
 
@@ -756,7 +756,7 @@ METHOD("suggest", TYP, SessionT, TYP, Std$String$T) {
 	RETURN(Matches);
 }
 
-extern Std$Type_t ScopeT[];
+extern Std$Type$t ScopeT[];
 
 METHOD("add", TYP, SessionT, TYP, ScopeT) {
 //@session

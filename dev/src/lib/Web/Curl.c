@@ -13,22 +13,22 @@ typedef struct share_t {
 } share_t;
 
 typedef struct curl_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	CURL *Handle;
 } curl_t;
 
 typedef struct multi_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	CURLM *Handle;
 } multi_t;
 
 typedef struct curl_option_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	CURLoption Value;
 } curl_option_t;
 
 typedef struct curl_info_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	CURLINFO Value;
 } curl_info_t;
 
@@ -38,7 +38,7 @@ TYPE(MultiT);
 TYPE(OptionT);
 TYPE(InfoT);
 
-static inline void register_option(Sys$Module_t *Module, char *Name, CURLoption Value) {
+static inline void register_option(Sys$Module$t *Module, char *Name, CURLoption Value) {
 	curl_option_t *Option = new(curl_option_t);
 	Option->Type = OptionT;
 	Option->Value = Value;
@@ -51,12 +51,12 @@ static inline void register_option(Sys$Module_t *Module, char *Name, CURLoption 
 static curl_option_t WriteStreamOption[] = {{OptionT, FAKEOPT_WRITE_STREAM}};
 static curl_option_t ReadStreamOption[] = {{OptionT, FAKEOPT_READ_STREAM}};
 
-static inline void register_fake_option(Sys$Module_t *Module, char *Name, curl_option_t *Option) {
+static inline void register_fake_option(Sys$Module$t *Module, char *Name, curl_option_t *Option) {
 	Sys$Module$export(Module, Name, 0, Option);
 }
 
 CONSTANT(Option, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Option");
+	Sys$Module$t *Module = Sys$Module$new("Option");
 	Sys$Module$export(Module, "T", 0, OptionT);
 	register_option(Module, "Verbose", CURLOPT_VERBOSE);
 	register_option(Module, "Header", CURLOPT_HEADER);
@@ -244,7 +244,7 @@ Std$Integer$smallt UseSslTry[1] = {{Std$Integer$SmallT, CURLUSESSL_TRY}};
 Std$Integer$smallt UseSslControl[1] = {{Std$Integer$SmallT, CURLUSESSL_CONTROL}};
 Std$Integer$smallt UseSslAll[1] = {{Std$Integer$SmallT, CURLUSESSL_ALL}};
 
-static inline void register_info(Sys$Module_t *Module, char *Name, CURLINFO Value) {
+static inline void register_info(Sys$Module$t *Module, char *Name, CURLINFO Value) {
 	curl_info_t *Info = new(curl_info_t);
 	Info->Type = InfoT;
 	Info->Value = Value;
@@ -252,7 +252,7 @@ static inline void register_info(Sys$Module_t *Module, char *Name, CURLINFO Valu
 }
 
 CONSTANT(Info, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Info");
+	Sys$Module$t *Module = Sys$Module$new("Info");
 	Sys$Module$export(Module, "T", 0, OptionT);
 //	register_info(Module, "", CURLINFO_);
 	register_info(Module, "EffectiveUrl", CURLINFO_EFFECTIVE_URL);
@@ -282,7 +282,7 @@ GLOBAL_METHOD(Escape, 2, "escape", TYP, T, TYP, Std$String$T) {
 	Result->Val = Std$String$new(curl_easy_escape(
 		((curl_t *)Args[0].Val)->Handle,
 		Std$String$flatten(Args[1].Val),
-		((Std$String_t *)Args[1].Val)->Length.Value
+		((Std$String$t *)Args[1].Val)->Length.Value
 	));
 	return SUCCESS;
 }
@@ -333,22 +333,22 @@ GLOBAL_METHOD(Get, 2, "get", TYP, T, TYP, InfoT) {
 	FAIL;
 }
 
-static size_t write_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream_t *Stream) {
+static size_t write_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream$t *Stream) {
 	return IO$Stream$write(Stream, Buffer, Size * Count, 1);
 }
 
-static size_t read_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream_t *Stream) {
+static size_t read_stream_function(void *Buffer, size_t Size, size_t Count, IO$Stream$t *Stream) {
 	return IO$Stream$read(Stream, Buffer, Size * Count, 1);
 }
 
-static size_t readwrite_function(void *Buffer, size_t Size, size_t Count, Std$Object_t *Func) {
+static size_t readwrite_function(void *Buffer, size_t Size, size_t Count, Std$Object$t *Func) {
 	Std$Function$result Result;
 	Std$Function$status Status = Std$Function$call(Func, 2, &Result, Std$Address$new(Buffer), 0, Std$Integer$new_small(Size * Count), 0);
 	if (Status == MESSAGE) return CURL_READFUNC_ABORT;
 	return ((Std$Integer$smallt *)Result.Val)->Value;
 }
 
-static int xferinfo_function(Std$Object_t *Func, curl_off_t DLTotal, curl_off_t DLNow, curl_off_t ULTotal, curl_off_t ULNow) {
+static int xferinfo_function(Std$Object$t *Func, curl_off_t DLTotal, curl_off_t DLNow, curl_off_t ULTotal, curl_off_t ULNow) {
 	Std$Function$result Result;
 	Std$Function$status Status = Std$Function$call(Func, 4, &Result,
 		Std$Integer$new_small(DLTotal), 0,
@@ -406,7 +406,7 @@ GLOBAL_METHOD(Set, 3, "set", TYP, T, TYP, OptionT, ANY) {
 	curl_t *Curl = (curl_t *)Args[0].Val;
 	for (size_t I = 2; I < Count; I += 2) {
 		curl_option_t *Option = (curl_option_t *)Args[I - 1].Val;
-		Std$Object_t *Param = Args[I].Val;
+		Std$Object$t *Param = Args[I].Val;
 		if (Param->Type == Std$Integer$SmallT) {
 			curl_easy_setopt(Curl->Handle, Option->Value, ((Std$Integer$smallt *)Param)->Value);
 		} else if (Param->Type == Std$Integer$BigT) {

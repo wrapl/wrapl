@@ -38,7 +38,7 @@ SYMBOL($LOGICALAND, "and");
 SYMBOL($LOGICALOR, "or");
 SYMBOL($PARALLEL, "||");
 
-extern Riva$Module_t Riva$Symbol[];
+extern Riva$Module$t Riva$Symbol[];
 
 expr_t *accept_expr(scanner_t *Scanner);
 static expr_t *parse_expr(scanner_t *Scanner);
@@ -152,16 +152,16 @@ expr_t *accept_expr_list(scanner_t *Scanner) {
 	return List;
 };
 
-expr_t *accept_named_arguments_rest(scanner_t *Scanner, Std$Symbol_array *&Symbols, int Index) {
+expr_t *accept_named_arguments_rest(scanner_t *Scanner, Std$Symbol$array *&Symbols, int Index) {
 	if (!Scanner->parse(tkCOMMA)) {
-		Symbols = (Std$Symbol_array *)Riva$Memory$alloc(sizeof(Std$Symbol_array) + (Index + 1) * sizeof(Std$Symbol_t *));
+		Symbols = (Std$Symbol$array *)Riva$Memory$alloc(sizeof(Std$Symbol$array) + (Index + 1) * sizeof(Std$Symbol$t *));
 		Symbols->Type = Std$Symbol$ArrayT;
 		Symbols->Count = Index;
 		return 0;
 	};
-	Std$Symbol_t *Symbol;
+	Std$Symbol$t *Symbol;
 	if (Scanner->parse(tkSYMBOL)) {
-		Symbol = (Std$Symbol_t *)Scanner->Token.Const;
+		Symbol = (Std$Symbol$t *)Scanner->Token.Const;
 	} else {
 		Scanner->accept(tkIDENT);
 		int Type;
@@ -181,10 +181,10 @@ expr_t *accept_arguments_rest(scanner_t *Scanner) {
 		//if (ident_expr_t *Ident = dynamic_cast<ident_expr_t *>(List)) {
 		if (!strcmp(List->classid(), ident_expr_t::_classid())) {
 			ident_expr_t *Ident = (ident_expr_t *)List;
-			Std$Symbol_t *Symbol;
+			Std$Symbol$t *Symbol;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Ident->Name, &Type, (void **)&Symbol);
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -192,9 +192,9 @@ expr_t *accept_arguments_rest(scanner_t *Scanner) {
 			Names->Next = List;
 			return Names;
 		} else if (!strcmp(List->classid(), const_expr_t::_classid())) {
-			Std$Symbol_t *Symbol = (Std$Symbol_t *)((const_expr_t *)List)->Operand->Value;
+			Std$Symbol$t *Symbol = (Std$Symbol$t *)((const_expr_t *)List)->Operand->Value;
 			if (Symbol->Type != Std$Symbol$T) Scanner->raise_error(List->LineNo, ParseErrorMessageT, "Parameter names must be identifiers");
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -217,10 +217,10 @@ expr_t *accept_arguments(scanner_t *Scanner) {
 		//if (ident_expr_t *Ident = dynamic_cast<ident_expr_t *>(List)) {
 		if (!strcmp(List->classid(), ident_expr_t::_classid())) {
 			ident_expr_t *Ident = (ident_expr_t *)(List);
-			Std$Symbol_t *Symbol;
+			Std$Symbol$t *Symbol;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Ident->Name, &Type, (void **)&Symbol);
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -228,9 +228,9 @@ expr_t *accept_arguments(scanner_t *Scanner) {
 			Names->Next = List;
 			return Names;
 		} else if (!strcmp(List->classid(), const_expr_t::_classid())) {
-			Std$Symbol_t *Symbol = (Std$Symbol_t *)((const_expr_t *)List)->Operand->Value;
+			Std$Symbol$t *Symbol = (Std$Symbol$t *)((const_expr_t *)List)->Operand->Value;
 			if (Symbol->Type != Std$Symbol$T) Scanner->raise_error(List->LineNo, ParseErrorMessageT, "Parameter names must be identifiers");
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -269,18 +269,18 @@ static expr_t *accept_table_list(scanner_t *Scanner) {
 	return List;
 };
 
-static Std$Array_t *accept_fields(scanner_t *Scanner, int Index = 0) {
-	Std$Object_t *Field;
+static Std$Array$t *accept_fields(scanner_t *Scanner, int Index = 0) {
+	Std$Object$t *Field;
 	if (Scanner->parse(tkIDENT)) {
 		int Type;
 		Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 	} else if (Scanner->parse(tkSYMBOL)) {
 		Field = Scanner->Token.Const;
 	} else {
-		return (Std$Array_t *)Std$Array$new(Index);
+		return (Std$Array$t *)Std$Array$new(Index);
 	};
 	Scanner->parse(tkCOMMA);
-	Std$Array_t *Fields = accept_fields(Scanner, Index + 1);
+	Std$Array$t *Fields = accept_fields(Scanner, Index + 1);
 	Fields->Values[Index] = Field;
 	return Fields;
 };
@@ -289,12 +289,12 @@ static expr_t *accept_field_list(scanner_t *Scanner) {
 	if (Scanner->parse(tkGREATER)) return 0;
 	expr_t *List;
 	if (Scanner->parse(tkIDENT)) {
-		Std$Object_t *Field;
+		Std$Object$t *Field;
 		int Type;
 		Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 		List = new const_expr_t(Scanner->Token.LineNo, Field);
 	} else if ((Scanner->NextToken.Type == tkCONST) && (Scanner->NextToken.Const->Type == Std$String$T)) {
-		Std$Object_t *Field;
+		Std$Object$t *Field;
 		int Type;
 		Riva$Module$import(Riva$Symbol, Std$String$flatten(Scanner->NextToken.Const), &Type, (void **)&Field);
 		Scanner->accept(tkCONST);
@@ -306,12 +306,12 @@ static expr_t *accept_field_list(scanner_t *Scanner) {
 	while (!Scanner->parse(tkGREATER)) {
 		Scanner->parse(tkCOMMA);
 		if (Scanner->parse(tkIDENT)) {
-			Std$Object_t *Field;
+			Std$Object$t *Field;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 			Tail->Next = new const_expr_t(Scanner->Token.LineNo, Field);
 		} else if ((Scanner->NextToken.Type == tkCONST) && (Scanner->NextToken.Const->Type == Std$String$T)) {
-			Std$Object_t *Field;
+			Std$Object$t *Field;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Std$String$flatten(Scanner->NextToken.Const), &Type, (void **)&Field);
 			Scanner->accept(tkCONST);
@@ -385,7 +385,7 @@ static expr_t *accept_when_expr(scanner_t *Scanner) {
 	};
 };
 
-extern Std$Object_t Std$Type$New[];
+extern Std$Object$t Std$Type$New[];
 
 static block_expr_t *accept_localstatement(scanner_t *Scanner);
 
@@ -677,7 +677,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 				Expr = new invoke_expr_t(Scanner->Token.LineNo, new const_expr_t(Scanner->Token.LineNo, $DOT), Expr);
 				while (Scanner->parse(tkDOT)) {
 					if (Scanner->parse(tkIDENT)) {
-						Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object_t *)Std$String$new(Scanner->Token.Ident));
+						Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object$t *)Std$String$new(Scanner->Token.Ident));
 					} else {
 						Expr->Next = accept_factor(Scanner);
 					};
@@ -1148,7 +1148,7 @@ start:
 	};
 	if (Scanner->parse(tkDOT)) {
 		if (Scanner->parse(tkIDENT)) {
-			Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object_t *)Std$String$new(Scanner->Token.Ident));
+			Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object$t *)Std$String$new(Scanner->Token.Ident));
 		} else {
 			Expr->Next = accept_factor(Scanner);
 		};

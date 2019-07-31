@@ -74,7 +74,7 @@ struct compiler_t {
 	};
 
 	struct scope_t {
-		const Std$Type_t *Type0;
+		const Std$Type$t *Type0;
 		enum type_t {SC_GLOBAL, SC_LOCAL} Type;
 		scope_t *Up;
 		int LastIndex;
@@ -142,16 +142,16 @@ struct compiler_t {
 
 	struct {
 		jmp_buf Handler;
-		const Std$Type_t *Type;
+		const Std$Type$t *Type;
 		const char *Message;
 		int LineNo;
 		int Count;
 		char *Stack[12];
 	} Error;
 
-	Std$Object_t *MissingIDFunc;
+	Std$Object$t *MissingIDFunc;
 
-	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...);
+	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...);
 };
 
 #define CLASSID \
@@ -176,8 +176,8 @@ struct expr_t {
 		if (Operand) Type = _PC_FULL;
 		return Operand;
 	}
-	Std$Object_t *evaluate(compiler_t *Compiler);
-	Std$Function_status evaluate(compiler_t *Compiler, Std$Function_result *Result);
+	Std$Object$t *evaluate(compiler_t *Compiler);
+	Std$Function$status evaluate(compiler_t *Compiler, Std$Function$result *Result);
 	
 	virtual ~expr_t() {}
 	static const char *_classid() {
@@ -249,7 +249,7 @@ struct const_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Value;
+		Operand->Value = (Std$Object$t *)Value;
 	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
@@ -766,7 +766,7 @@ struct command_expr_t : expr_t {CLASSID
 	expr_t *Body;
 
 	PRINT_METHOD
-	Std$Function_status compile(compiler_t *Compiler, Std$Function_result *Result);
+	Std$Function$status compile(compiler_t *Compiler, Std$Function$result *Result);
 };
 
 #endif

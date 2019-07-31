@@ -17,9 +17,9 @@ static gboolean griva_check(GRivaSource *Source) {
 };
 
 static gboolean griva_dispatch(GRivaSource *Source, GSourceFunc Callback, gpointer Data) {
-	Std$Function_t *Function;
+	Std$Function$t *Function;
 	if (read(Source->Read->fd, &Function, sizeof(Function)) == sizeof(Function)) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		Std$Function$call(Function, 0, &Result);
 	};
 	return TRUE;
@@ -34,7 +34,7 @@ static GSourceFuncs Funcs = {
 };
 
 typedef struct grivasource_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	GRivaSource *Value;
 	int Write;
 } grivasource_t;
@@ -58,7 +58,7 @@ GLOBAL_FUNCTION(New, 0) {
 
 METHOD("Send", TYP, T, ANY) {
 	grivasource_t *Source = Args[0].Val;
-	Std$Function_t *Function = Args[1].Val;
+	Std$Function$t *Function = Args[1].Val;
 	write(Source->Write, &Function, sizeof(Function));
 	Result->Arg = Args[0];
 	return SUCCESS;

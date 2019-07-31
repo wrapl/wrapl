@@ -4,8 +4,8 @@
 #define RIVA_MODULE Alg$Digest
 #include <Riva-Header.h>
 
-extern Std$Type_t Alg$Digest$Md5T[];
-extern Std$Type_t Alg$Digest$Sha1T[];
+extern Std$Type$t Alg$Digest$Md5T[];
+extern Std$Type$t Alg$Digest$Sha1T[];
 
 #undef RIVA_MODULE
 

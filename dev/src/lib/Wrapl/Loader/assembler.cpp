@@ -19,16 +19,16 @@ struct bstate_t {
 	void *Run;
 	Std$Function$state_t *Chain;
 	void *Resume;
-	Std$Object_t *Val;
-	Std$Object_t **Ref;
+	Std$Object$t *Val;
+	Std$Object$t **Ref;
 	void *Code;
 	void *Handler;
 };
 
 struct variadic_t {
-	Std$Type_t *Type;
-	Std$Integer_smallt Length;
-	Std$Function_argument Args[];
+	Std$Type$t *Type;
+	Std$Integer$smallt Length;
+	Std$Function$argument Args[];
 };
 
 struct trap_t {
@@ -453,7 +453,7 @@ void label_t::store_reg(uint32_t LineNo, operand_t *Operand) {DEBUG
 };
 
 struct store_con_inst_t : load_inst_t {
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 	void add_source(load_inst_t *Load) {
 		if (Operand == Register) Load->load_ref();
 	};
@@ -471,7 +471,7 @@ struct store_con_inst_t : load_inst_t {
 	void encode(assembler_t *Assembler);
 };
 
-void label_t::store_con(uint32_t LineNo, operand_t *Operand, Std$Object_t *Value) {DEBUG
+void label_t::store_con(uint32_t LineNo, operand_t *Operand, Std$Object$t *Value) {DEBUG
 	store_con_inst_t *Inst = new store_con_inst_t;
 	Inst->Operand = Operand;
 	Inst->Value = Value;
@@ -1592,7 +1592,7 @@ static void dasm_m_free(Dst_DECL, void *p, size_t sz) {
 };
 
 typedef struct code_header_t {
-	Riva$Debug_hdr Hdr;
+	Riva$Debug$hdr Hdr;
 	const void **Consts;
 	unsigned long Size;
 } code_header_t;
@@ -1748,7 +1748,7 @@ operand_t *label_t::assemble(const frame_t *Frame, const char *StrInfo, int IntI
 		Closure->Entry = Code;
 		Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Closure;
+		Operand->Value = (Std$Object$t *)Closure;
 	} else {
 		Operand = new operand_t;
 		Operand->Type = operand_t::CLSR;

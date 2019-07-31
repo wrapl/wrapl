@@ -4,29 +4,29 @@
 
 #include <string.h>
 
-static Std$Integer_smallt ZERO[1] = {{Std$Integer$SmallT, 0}};
+static Std$Integer$smallt ZERO[1] = {{Std$Integer$SmallT, 0}};
 
 typedef struct special_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 } special_t;	
 
 /*
 TYPE(ZeroT, IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
 GLOBAL(ZeroT, special_t, Zero)[1] = {{ZeroT}};
 
-TYPED_INSTANCE(void, IO$Stream$close, ZeroT, IO$Stream_t *Stream, int Mode) {
+TYPED_INSTANCE(void, IO$Stream$close, ZeroT, IO$Stream$t *Stream, int Mode) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$eoi, ZeroT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(int, IO$Stream$eoi, ZeroT, IO$Stream$t *Stream) {
 	return 0;
 };
 
-TYPED_INSTANCE(int, IO$Stream$read, ZeroT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$read, ZeroT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	memset(Buffer, 0, Count);
 	return Count;
 };
 
-TYPED_INSTANCE(int, IO$Stream$seek, ZeroT, IO$Stream_t *Stream, int Position, int Mode) {
+TYPED_INSTANCE(int, IO$Stream$seek, ZeroT, IO$Stream$t *Stream, int Position, int Mode) {
 	return 0;
 };
 
@@ -40,7 +40,7 @@ METHOD("eoi", TYP, ZeroT) {
 };
 
 METHOD("read", TYP, ZeroT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	memset(((Std$Address_t *)Args[1].Val)->Value, 0, ((Std$Integer_smallt *)Args[2].Val)->Value);
+	memset(((Std$Address$t *)Args[1].Val)->Value, 0, ((Std$Integer$smallt *)Args[2].Val)->Value);
 	Result->Val = Args[2].Val;
 	return SUCCESS;
 };
@@ -53,17 +53,17 @@ METHOD("seek", TYP, ZeroT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
 TYPE(NullT, IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 GLOBAL(NullT, special_t, Null)[1] = {{NullT}};
 
-TYPED_INSTANCE(void, IO$Stream$close, NullT, IO$Stream_t *Stream, int Mode) {
+TYPED_INSTANCE(void, IO$Stream$close, NullT, IO$Stream$t *Stream, int Mode) {
 };
 
-TYPED_INSTANCE(void, IO$Stream$flush, NullT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(void, IO$Stream$flush, NullT, IO$Stream$t *Stream) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$write, NullT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$write, NullT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	return Count;
 };
 
-TYPED_INSTANCE(int, IO$Stream$seek, NullT, IO$Stream_t *Stream, int Position, int Mode) {
+TYPED_INSTANCE(int, IO$Stream$seek, NullT, IO$Stream$t *Stream, int Position, int Mode) {
 	return 0;
 };
 
@@ -91,25 +91,25 @@ METHOD("seek", TYP, NullT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
 TYPE(EmptyT, IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 GLOBAL(EmptyT, special_t, Empty)[1] = {{EmptyT}};
 
-TYPED_INSTANCE(void, IO$Stream$close, EmptyT, IO$Stream_t *Stream, int Mode) {
+TYPED_INSTANCE(void, IO$Stream$close, EmptyT, IO$Stream$t *Stream, int Mode) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$eoi, EmptyT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(int, IO$Stream$eoi, EmptyT, IO$Stream$t *Stream) {
 	return 1;
 };
 
-TYPED_INSTANCE(int, IO$Stream$read, EmptyT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$read, EmptyT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	return 0;
 };
 
-TYPED_INSTANCE(void, IO$Stream$flush, EmptyT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(void, IO$Stream$flush, EmptyT, IO$Stream$t *Stream) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$write, EmptyT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$write, EmptyT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	return Count;
 };
 
-TYPED_INSTANCE(int, IO$Stream$seek, EmptyT, IO$Stream_t *Stream, int Position, int Mode) {
+TYPED_INSTANCE(int, IO$Stream$seek, EmptyT, IO$Stream$t *Stream, int Position, int Mode) {
 	return 0;
 };
 
@@ -137,33 +137,33 @@ METHOD("write", TYP, EmptyT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 };
 
 METHOD("seek", TYP, EmptyT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
-	Result->Val = (Std$Object_t *)ZERO;
+	Result->Val = (Std$Object$t *)ZERO;
 	return SUCCESS;
 };
 
 TYPE(FullT, IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 GLOBAL(FullT, special_t, Full)[1] = {{FullT}};
 
-TYPED_INSTANCE(void, IO$Stream$close, FullT, IO$Stream_t *Stream, int Mode) {
+TYPED_INSTANCE(void, IO$Stream$close, FullT, IO$Stream$t *Stream, int Mode) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$eoi, FullT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(int, IO$Stream$eoi, FullT, IO$Stream$t *Stream) {
 	return 0;
 };
 
-TYPED_INSTANCE(int, IO$Stream$read, FullT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$read, FullT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	memset(Buffer, 0, Count);
 	return Count;
 };
 
-TYPED_INSTANCE(void, IO$Stream$flush, FullT, IO$Stream_t *Stream) {
+TYPED_INSTANCE(void, IO$Stream$flush, FullT, IO$Stream$t *Stream) {
 };
 
-TYPED_INSTANCE(int, IO$Stream$write, FullT, IO$Stream_t *Stream, char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, IO$Stream$write, FullT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
 	return -1;
 };
 
-TYPED_INSTANCE(int, IO$Stream$seek, FullT, IO$Stream_t *Stream, int Position, int Mode) {
+TYPED_INSTANCE(int, IO$Stream$seek, FullT, IO$Stream$t *Stream, int Position, int Mode) {
 	return 0;
 };
 
@@ -177,7 +177,7 @@ METHOD("eoi", TYP, FullT) {
 };
 
 METHOD("read", TYP, FullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	memset(((Std$Address_t *)Args[1].Val)->Value, 0, ((Std$Integer_smallt *)Args[2].Val)->Value);
+	memset(((Std$Address$t *)Args[1].Val)->Value, 0, ((Std$Integer$smallt *)Args[2].Val)->Value);
 	Result->Val = Args[2].Val;
 	return SUCCESS;
 };
@@ -193,7 +193,7 @@ METHOD("write", TYP, FullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 };
 
 METHOD("seek", TYP, FullT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
-	Result->Val = (Std$Object_t *)ZERO;
+	Result->Val = (Std$Object$t *)ZERO;
 	return SUCCESS;
 };
 

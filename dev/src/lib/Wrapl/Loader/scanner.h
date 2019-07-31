@@ -101,17 +101,17 @@ extern const char *Tokens[];
 #include <setjmp.h>
 #include "debugger.h"
 
-extern const Std$Type_t ParseErrorMessageT[];
+extern const Std$Type$t ParseErrorMessageT[];
 
 struct scanner_t {
-	IO$Stream_t *Source;
+	IO$Stream$t *Source;
 	const char *NextChar;
 
 	struct {
 		int Type;
 		int LineNo;
 		union {
-			Std$Object_t *Const;
+			Std$Object$t *Const;
 			const char *Ident;
 			struct expr_t *Expr;
 		};
@@ -119,14 +119,14 @@ struct scanner_t {
 
 	struct {
 		jmp_buf Handler;
-		const Std$Type_t *Type;
+		const Std$Type$t *Type;
 		const char *Message;
 		int LineNo;
 	} Error;
 
 	debug_module_t *DebugInfo;
 
-	scanner_t(IO$Stream_t *Source);
+	scanner_t(IO$Stream$t *Source);
 	const char *readl(void);
 	void flush();
 	int next();
@@ -137,7 +137,7 @@ struct scanner_t {
 	bool parse(int Type);
 	void accept(int Type);
 	void unparse();
-	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...);
+	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...);
 };
 
 #endif

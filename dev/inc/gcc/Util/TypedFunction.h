@@ -6,8 +6,8 @@
 #define RIVA_MODULE Util$TypedFunction
 #include <Riva-Header.h>
 
-RIVA_CFUN(void *, get, void *, const Std$Type_t *);
-RIVA_CFUN(void, set, void *, const Std$Type_t *, void *);
+RIVA_CFUN(void *, get, void *, const Std$Type$t *);
+RIVA_CFUN(void, set, void *, const Std$Type$t *, void *);
 
 RIVA_STRUCT(t) {
 	uint8_t _Part1[34];
@@ -31,7 +31,7 @@ RIVA_STRUCT(t) {
 	extern RETURN NAME(PARAMS) __asmify(NAME);\
 	static RETURN __concat(__invoke, __LINE__)(PARAMS);\
 	void *__concat(__initial, __LINE__)[8] = {0, 0, 0, (void *)&__concat(__invoke, __LINE__), 0, 0, 0, 0};\
-	Util$TypedFunction_t __concat(__typedfn, __LINE__) __asmify(NAME) = {\
+	Util$TypedFunction$t __concat(__typedfn, __LINE__) __asmify(NAME) = {\
 		{0x53, 0x8B, 0x44, 0x24, 0x08, 0x8B, 0x18, 0x8B, 0x5B, 0x04,\
 		 0x8B, 0x0B, 0x83, 0xC3, 0x04, 0x89, 0xCA, 0x89, 0xC8, 0xC1,\
 		 0xCA, 0x04, 0x8D, 0x44, 0x50, 0x01, 0x25, 0x01, 0x00, 0x00,\

@@ -91,7 +91,7 @@ TYPED_FUNCTION(void, _to_value, Std$Object$t const *Source, GValue *Dest) {
 	Dest->data[0].v_pointer = Source;
 };
 
-TYPED_INSTANCE(void, _to_value, Std$Integer$SmallT, Std$Integer_smallt const *Source, GValue *Dest) {
+TYPED_INSTANCE(void, _to_value, Std$Integer$SmallT, Std$Integer$smallt const *Source, GValue *Dest) {
 	g_value_init(Dest, G_TYPE_LONG);
 	g_value_set_long(Dest, Source->Value);
 };
@@ -154,12 +154,12 @@ typedef struct val_closure_t {
 } val_closure_t;
 
 static void __marshal_val(val_closure_t *Closure, GValue *Result, guint NoOfArgs, const GValue *Args, gpointer Hint, gpointer Data) {
-	Std$Function_argument Args0[NoOfArgs];
+	Std$Function$argument Args0[NoOfArgs];
 	for (guint I = 0; I < NoOfArgs; ++I) {
 		Args0[I].Val = _value_to_riva(Args + I);
 		Args0[I].Ref = 0;
 	};
-	Std$Function_result Result0;
+	Std$Function$result Result0;
 	switch (Std$Function$invoke(Closure->Function, NoOfArgs, &Result0, Args0)) {
 	case MESSAGE:
 		if (Result0.Val->Type == Std$Symbol$NoMethodMessageT) {
@@ -199,12 +199,12 @@ typedef struct ref_closure_t {
 } ref_closure_t;
 
 static void __marshal_ref(ref_closure_t *Closure, GValue *Result, guint NoOfArgs, const GValue *Args, gpointer Hint, gpointer Data) {
-	Std$Function_argument Args0[NoOfArgs];
+	Std$Function$argument Args0[NoOfArgs];
 	for (guint I = 0; I < NoOfArgs; ++I) {
 		Args0[I].Val = _value_to_riva(Args + I);
 		Args0[I].Ref = 0;
 	};
-	Std$Function_result Result0;
+	Std$Function$result Result0;
 	switch (Std$Function$invoke(Closure->Function[0], NoOfArgs, &Result0, Args0)) {
 	case MESSAGE:
 		if (Std$Function$call(Std$String$Of, 1, &Result0, Result0.Val, 0) < FAILURE) {

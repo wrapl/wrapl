@@ -4,7 +4,7 @@
 #include <jack/jack.h>
 
 typedef struct client_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	jack_client_t *Handle;
 	jack_status_t Status;
 } client_t;
@@ -12,7 +12,7 @@ typedef struct client_t {
 TYPE(ClientT);
 
 typedef struct position_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	jack_position_t Value[1];
 } position_t;
 
@@ -21,7 +21,7 @@ TYPE(PositionT);
 TYPE(StatusT, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);
 
 CONSTANT(Option, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Option");
+	Sys$Module$t *Module = Sys$Module$new("Option");
 	Sys$Module$export(Module, "NullOption", 0, Std$Integer$new_small(JackNullOption));
 	Sys$Module$export(Module, "NoStartServer", 0, Std$Integer$new_small(JackNoStartServer));
 	Sys$Module$export(Module, "UseExactName", 0, Std$Integer$new_small(JackUseExactName));
@@ -29,11 +29,11 @@ CONSTANT(Option, Sys$Module$T) {
 	Sys$Module$export(Module, "LoadName", 0, Std$Integer$new_small(JackLoadName));
 	Sys$Module$export(Module, "LoadInit", 0, Std$Integer$new_small(JackLoadInit));
 	Sys$Module$export(Module, "SessionID", 0, Std$Integer$new_small(JackSessionID));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 CONSTANT(Status, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("Status");
+	Sys$Module$t *Module = Sys$Module$new("Status");
 	Sys$Module$export(Module, "Failure", 0, Std$Integer$new_small(JackFailure));
 	Sys$Module$export(Module, "InvalidOption", 0, Std$Integer$new_small(JackInvalidOption));
 	Sys$Module$export(Module, "NameNotUnique", 0, Std$Integer$new_small(JackNameNotUnique));
@@ -47,16 +47,16 @@ CONSTANT(Status, Sys$Module$T) {
 	Sys$Module$export(Module, "VersionError", 0, Std$Integer$new_small(JackVersionError));
 	Sys$Module$export(Module, "BackendError", 0, Std$Integer$new_small(JackBackendError));
 	Sys$Module$export(Module, "ClientZombie", 0, Std$Integer$new_small(JackClientZombie));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 CONSTANT(TransportState, Sys$Module$T) {
-	Sys$Module_t *Module = Sys$Module$new("TransportState");
+	Sys$Module$t *Module = Sys$Module$new("TransportState");
 	Sys$Module$export(Module, "Stopped", 0, Std$Integer$new_small(JackTransportStopped));
 	Sys$Module$export(Module, "Rolling", 0, Std$Integer$new_small(JackTransportRolling));
 	Sys$Module$export(Module, "Looping", 0, Std$Integer$new_small(JackTransportLooping));
 	Sys$Module$export(Module, "Starting", 0, Std$Integer$new_small(JackTransportStarting));
-	return (Std$Object_t *)Module;
+	return (Std$Object$t *)Module;
 };
 
 GLOBAL_FUNCTION(Open, 3) {
@@ -83,7 +83,7 @@ GLOBAL_FUNCTION(Open, 3) {
 		Client->Type = ClientT;
 		Client->Handle = Handle;
 		Client->Status = 0;
-		Result->Val = (Std$Object_t *)Client;
+		Result->Val = (Std$Object$t *)Client;
 		return SUCCESS;
 	};
 };
@@ -132,7 +132,7 @@ METHOD("disconnect", TYP, ClientT, TYP, Std$String$T, TYP, Std$String$T) {
 
 METHOD("transport_locate", TYP, ClientT, TYP, Std$Integer$SmallT) {
 	client_t *Client = (client_t *)Args[0].Val;
-	Std$Integer_smallt *Frame = (Std$Integer_smallt *)Args[1].Val;
+	Std$Integer$smallt *Frame = (Std$Integer$smallt *)Args[1].Val;
 	return jack_transport_locate(Client->Handle, Frame->Value) ? FAILURE : SUCCESS;
 };
 
@@ -141,7 +141,7 @@ METHOD("transport_query", TYP, ClientT) {
 	if (Count > 1 && Args[1].Ref) {
 		position_t *Position = new(position_t);
 		Position->Type = PositionT;
-		Args[1].Ref[0] = (Std$Object_t *)Position;
+		Args[1].Ref[0] = (Std$Object$t *)Position;
 		Result->Val = Std$Integer$new_small(jack_transport_query(Client->Handle, Position->Value));
 		return SUCCESS;
 	} else {

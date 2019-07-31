@@ -5,7 +5,7 @@
 #include "ow-crypt.h"
 
 typedef struct md5_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	struct md5_ctx Context[1];
 } md5_t;
 
@@ -21,8 +21,8 @@ GLOBAL_FUNCTION(Md5New, 0) {
 
 METHOD("update", TYP, Md5T, TYP, Std$String$T) {
 	md5_t *Digest = Args[0].Val;
-	Std$String_t *String = Args[1].Val;
-	for (Std$String_block *Block = String->Blocks; Block->Length.Value; Block++) {
+	Std$String$t *String = Args[1].Val;
+	for (Std$String$block *Block = String->Blocks; Block->Length.Value; Block++) {
 		md5_update(Digest->Context, Block->Length.Value, Block->Chars.Value);
 	};
 	Result->Arg = Args[0];
@@ -31,8 +31,8 @@ METHOD("update", TYP, Md5T, TYP, Std$String$T) {
 
 METHOD("update", TYP, Md5T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	md5_t *Digest = Args[0].Val;
-	Std$Address_t *Chars = Args[1].Val;
-	Std$Integer_smallt *Length = Args[2].Val;
+	Std$Address$t *Chars = Args[1].Val;
+	Std$Integer$smallt *Length = Args[2].Val;
 	md5_update(Digest->Context, Length->Value, Chars->Value);
 	Result->Arg = Args[0];
 	return SUCCESS;
@@ -48,7 +48,7 @@ METHOD("digest", TYP, Md5T) {
 
 METHOD("digest", TYP, Md5T, TYP, Std$Integer$SmallT) {
 	md5_t *Digest = Args[0].Val;
-	int Length = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	int Length = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	char *Buffer = Riva$Memory$alloc_atomic(Length);
 	md5_digest(Digest->Context, Length, Buffer);
 	Result->Val = Std$String$new_length(Buffer, Length);

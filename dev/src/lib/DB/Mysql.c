@@ -5,7 +5,7 @@
 #include <mysql/mysql.h>
 
 typedef struct {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	int Open;
 	MYSQL Handle[1];
 } connection_t;
@@ -13,12 +13,12 @@ typedef struct {
 TYPE(T);
 
 typedef struct {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	MYSQL_RES *Handle;
 	int FieldCount;
 	MYSQL_FIELD *Fields;
-	Agg$List_t *FieldList;
-	Std$Symbol_t **FieldSymbols;
+	Agg$List$t *FieldList;
+	Std$Symbol$t **FieldSymbols;
 } result_t;
 
 TYPE(ResultT);
@@ -44,7 +44,7 @@ GLOBAL_FUNCTION(Open, 4) {
 		if (Args[4].Val->Type == Std$String$T) {
 			Socket = Std$String$flatten(Args[4].Val);
 		} else if (Args[4].Val->Type == Std$Integer$SmallT) {
-			Port = ((Std$Integer_smallt *)Args[4].Val)->Value;
+			Port = ((Std$Integer$smallt *)Args[4].Val)->Value;
 		};
 	};
 	if (mysql_real_connect(Connection->Handle,
@@ -101,7 +101,7 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
 //@connection
 //@query
 	MYSQL *Handle = ((connection_t *)Args[0].Val)->Handle;
-	if (mysql_real_query(Handle, Std$String$flatten(Args[1].Val), ((Std$String_t *)Args[1].Val)->Length.Value)) {
+	if (mysql_real_query(Handle, Std$String$flatten(Args[1].Val), ((Std$String$t *)Args[1].Val)->Length.Value)) {
 		Result->Val = Std$String$new(mysql_error(Handle));
 		return MESSAGE;
 	};
@@ -121,7 +121,7 @@ METHOD("fetch", TYP, T, TYP, Std$String$T) {
 //@mode
 //@query
 	MYSQL *Handle = ((connection_t *)Args[0].Val)->Handle;
-	if (mysql_real_query(Handle, Std$String$flatten(Args[1].Val), ((Std$String_t *)Args[1].Val)->Length.Value)) {
+	if (mysql_real_query(Handle, Std$String$flatten(Args[1].Val), ((Std$String$t *)Args[1].Val)->Length.Value)) {
 		Result->Val = Std$String$new(mysql_error(Handle));
 		return MESSAGE;
 	};
@@ -139,7 +139,7 @@ METHOD("fetch", TYP, T, TYP, Std$String$T) {
 	Res->Type = ResultT;
 	Res->Handle = ResultHandle;
 	Res->FieldCount = FieldCount;
-	Std$Object_t *FieldList = Res->FieldList = Agg$List$new(0);
+	Std$Object$t *FieldList = Res->FieldList = Agg$List$new(0);
 	MYSQL_FIELD *Fields = Res->Fields = mysql_fetch_fields(ResultHandle);
 	for (int I = 0; I < FieldCount; ++I) {
 		Agg$List$put(FieldList, Std$String$copy_length(Fields[I].name, Fields[I].name_length));
@@ -157,7 +157,7 @@ METHOD("query", TYP, T, TYP, Std$Symbol$T, TYP, Std$String$T) {
 //@mode
 //@query
 	MYSQL *Handle = ((connection_t *)Args[0].Val)->Handle;
-	if (mysql_real_query(Handle, Std$String$flatten(Args[2].Val), ((Std$String_t *)Args[2].Val)->Length.Value)) {
+	if (mysql_real_query(Handle, Std$String$flatten(Args[2].Val), ((Std$String$t *)Args[2].Val)->Length.Value)) {
 		Result->Val = Std$String$new(mysql_error(Handle));
 		return MESSAGE;
 	};
@@ -176,7 +176,7 @@ METHOD("query", TYP, T, TYP, Std$Symbol$T, TYP, Std$String$T) {
 		Res->Type = ResultT;
 		Res->Handle = ResultHandle;
 		Res->FieldCount = FieldCount;
-		Std$Object_t *FieldList = Res->FieldList = Agg$List$new(0);
+		Std$Object$t *FieldList = Res->FieldList = Agg$List$new(0);
 		MYSQL_FIELD *Fields = Res->Fields = mysql_fetch_fields(ResultHandle);
 		for (int I = 0; I < FieldCount; ++I) {
 			Agg$List$put(FieldList, Std$String$copy_length(Fields[I].name, Fields[I].name_length));
@@ -194,7 +194,7 @@ METHOD("query", TYP, T, TYP, Std$Symbol$T, TYP, Std$String$T) {
 		Res->Type = ResultT;
 		Res->Handle = ResultHandle;
 		int FieldCount = Res->FieldCount = mysql_field_count(Handle);
-		Std$Object_t *FieldList = Res->FieldList = Agg$List$new(0);
+		Std$Object$t *FieldList = Res->FieldList = Agg$List$new(0);
 		MYSQL_FIELD *Fields = Res->Fields = mysql_fetch_fields(ResultHandle);
 		for (int I = 0; I < FieldCount; ++I) {
 			Agg$List$put(FieldList, Std$String$copy_length(Fields[I].name, Fields[I].name_length));
@@ -218,7 +218,7 @@ METHOD("fields", TYP, ResultT) {
 	return SUCCESS;
 };
 
-static inline Std$Object_t *convert_field(int Type, void *Data, unsigned long Length) {
+static inline Std$Object$t *convert_field(int Type, void *Data, unsigned long Length) {
 	if (Data == 0) return Std$Object$Nil;
 	switch (Type) {
 	case MYSQL_TYPE_TINY:
@@ -246,7 +246,7 @@ static inline Std$Object_t *convert_field(int Type, void *Data, unsigned long Le
 	};
 };
 
-extern Riva$Module_t Riva$Symbol[];
+extern Riva$Module$t Riva$Symbol[];
 
 METHOD("list", TYP, ResultT) {
 	result_t *Res = Args[0].Val;
@@ -256,7 +256,7 @@ METHOD("list", TYP, ResultT) {
 	MYSQL_FIELD *Fields = Res->Fields;
 	int FieldCount = Res->FieldCount;
 	
-	Std$Object_t *List = Agg$List$new(0);
+	Std$Object$t *List = Agg$List$new(0);
 	for (int I = 0; I < FieldCount; ++I) {
 		Agg$List$put(List, convert_field(Fields[I].type, Row[I], Lengths[I]));
 	};
@@ -272,9 +272,9 @@ METHOD("table", TYP, ResultT) {
 	MYSQL_FIELD *Fields = Res->Fields;
 	int FieldCount = Res->FieldCount;
 	
-	Std$Object_t *Table = Agg$Table$new(0, 0);
+	Std$Object$t *Table = Agg$Table$new(0, 0);
 	int I = 0;
-	for (Agg$List_node *Node = Res->FieldList->Head; Node; Node = Node->Next, ++I) {
+	for (Agg$List$node *Node = Res->FieldList->Head; Node; Node = Node->Next, ++I) {
 		Agg$Table$insert(Table, Node->Value, convert_field(Fields[I].type, Row[I], Lengths[I]));
 	};
 	Result->Val = Table;
@@ -311,7 +311,7 @@ METHOD("call", TYP, ResultT, ANY) {
 	int FieldCount = Res->FieldCount;
 	
 	int I = 0;
-	for (Agg$List_node *Node = Res->FieldList->Head; Node; Node = Node->Next, ++I) {
+	for (Agg$List$node *Node = Res->FieldList->Head; Node; Node = Node->Next, ++I) {
 		switch (Std$Function$call(Args[1].Val, 2, Result, Node->Value, 0, convert_field(Fields[I].type, Row[I], Lengths[I]), 0)) {
 		case SUSPEND: case SUCCESS: break;
 		case FAILURE: return FAILURE;

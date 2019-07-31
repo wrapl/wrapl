@@ -12,7 +12,7 @@ typedef struct parser_t {
 
 TYPE(T);
 
-static int read_stream(IO$Stream_t *Stream, char *Buffer, int Size, int *Length) {
+static int read_stream(IO$Stream$t *Stream, char *Buffer, int Size, int *Length) {
 	int Bytes = *Length = IO$Stream$read(Stream, Buffer, Size, 0);
 	return (Bytes == -1) ? 0 : 1;
 }
@@ -26,7 +26,7 @@ GLOBAL_FUNCTION(New, 1) {
 }
 
 METHOD("next", TYP, T) {
-	static const Std$Type_t *EventTypes[] = {
+	static const Std$Type$t *EventTypes[] = {
 		[YAML_NO_EVENT] = Fmt$Yaml$Event$NoT,
 		[YAML_STREAM_START_EVENT] = Fmt$Yaml$Event$StreamStartT,
 		[YAML_STREAM_END_EVENT] = Fmt$Yaml$Event$StreamEndT,

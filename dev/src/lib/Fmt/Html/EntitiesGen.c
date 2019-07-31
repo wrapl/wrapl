@@ -11,7 +11,7 @@ INITIAL() {
 	fprintf(OutFile, "#include <Std/String.h>\n");
 	fprintf(OutFile, "#include <Agg/StringTable.h>\n\n");
 
-	Agg$StringTable_t ByName[] = {Agg$StringTable$INIT};
+	Agg$StringTable$t ByName[] = {Agg$StringTable$INIT};
 	json_error_t JsonError;
 	json_t *EntitiesJson = json_load_file(Riva$System$_Args[0], 0, &JsonError);
 	const char *EntityName;
@@ -48,9 +48,9 @@ INITIAL() {
 		++J;
 	}
 
-	fprintf(OutFile, "static Agg$StringTable_node __Entries__[%d] = {\n", ByName->Size);
+	fprintf(OutFile, "static Agg$StringTable$node __Entries__[%d] = {\n", ByName->Size);
 	for (int I = 0; I < ByName->Size; ++I) {
-		Agg$StringTable_node *Node = ByName->Entries + I;
+		Agg$StringTable$node *Node = ByName->Entries + I;
 		if (Node->Key) {
 			fprintf(OutFile, "\t{\"%s\", %d, 0x%x, String%d},\n", Node->Key, Node->Length, Node->Hash, (int)Node->Value);
 		} else {
@@ -58,7 +58,7 @@ INITIAL() {
 		};
 	};
 	fprintf(OutFile, "};\n\n");
-	fprintf(OutFile, "Agg$StringTable_t ByName[] = {Agg$StringTable$T, %d, %d, __Entries__};\n", ByName->Size, ByName->Space);
+	fprintf(OutFile, "Agg$StringTable$t ByName[] = {Agg$StringTable$T, %d, %d, __Entries__};\n", ByName->Size, ByName->Space);
 	fclose(OutFile);
 	exit(0);
 };
