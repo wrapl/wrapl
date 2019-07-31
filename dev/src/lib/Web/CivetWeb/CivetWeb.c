@@ -249,12 +249,12 @@ METHOD("handle_form_request", TYP, ConnectionT) {
 
 TYPE(OpcodeT, Std$Integer$SmallT, Std$Integer$T, Std$Number$T);
 
-Std$Integer_smallt OPCODE_CONTINUATION[] = {{OpcodeT, WEBSOCKET_OPCODE_CONTINUATION}};
-Std$Integer_smallt OPCODE_TEXT[] = {{OpcodeT, WEBSOCKET_OPCODE_TEXT}};
-Std$Integer_smallt OPCODE_BINARY[] = {{OpcodeT, WEBSOCKET_OPCODE_BINARY}};
-Std$Integer_smallt OPCODE_CONNECTION_CLOSE[] = {{OpcodeT, WEBSOCKET_OPCODE_CONNECTION_CLOSE}};
-Std$Integer_smallt OPCODE_PING[] = {{OpcodeT, WEBSOCKET_OPCODE_PING}};
-Std$Integer_smallt OPCODE_PONG[] = {{OpcodeT, WEBSOCKET_OPCODE_PONG}};
+Std$Integer$smallt OPCODE_CONTINUATION[] = {{OpcodeT, WEBSOCKET_OPCODE_CONTINUATION}};
+Std$Integer$smallt OPCODE_TEXT[] = {{OpcodeT, WEBSOCKET_OPCODE_TEXT}};
+Std$Integer$smallt OPCODE_BINARY[] = {{OpcodeT, WEBSOCKET_OPCODE_BINARY}};
+Std$Integer$smallt OPCODE_CONNECTION_CLOSE[] = {{OpcodeT, WEBSOCKET_OPCODE_CONNECTION_CLOSE}};
+Std$Integer$smallt OPCODE_PING[] = {{OpcodeT, WEBSOCKET_OPCODE_PING}};
+Std$Integer$smallt OPCODE_PONG[] = {{OpcodeT, WEBSOCKET_OPCODE_PONG}};
 
 METHOD("write", TYP, ConnectionT, TYP, OpcodeT, TYP, Std$String$T) {
 	connection_t *Connection = (connection_t *)Args[0].Val;

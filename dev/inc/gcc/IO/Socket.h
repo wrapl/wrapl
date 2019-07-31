@@ -8,7 +8,7 @@
 
 RIVA_TYPE(T);
 
-//RIVA_CFUN(IO$Posix_t *, new, const char *, int);
+//RIVA_CFUN(IO$Posix$t *, new, const char *, int);
 
 #define IO$Socket$SOCK_STREAM	1
 #define IO$Socket$SOCK_DGRAM	2

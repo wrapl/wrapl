@@ -69,7 +69,7 @@ GLOBAL_FUNCTION(SetCwd, 1) {
 #ifdef WINDOWS
 	if (SetCurrentDirectory(Std$String$flatten(Args[0].Val))) {
 #else
-	char DirName[((Std$String_t *)Args[0].Val)->Length.Value + 1];
+	char DirName[((Std$String$t *)Args[0].Val)->Length.Value + 1];
 	Std$String$flatten_to(Args[0].Val, DirName);
 	if (chdir(DirName)) {
 #endif

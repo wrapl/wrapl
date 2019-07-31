@@ -14,7 +14,7 @@ TYPE(PreciseT, T);
 GLOBAL_FUNCTION(Now, 0) {
 //:T
 // The current time.
-	Sys$Time_t *Time = new(Sys$Time_t);
+	Sys$Time$t *Time = new(Sys$Time$t);
 	Time->Type = T;
 	Time->Value = time(0);
 	Result->Val = Time;
@@ -23,12 +23,12 @@ GLOBAL_FUNCTION(Now, 0) {
 
 GLOBAL_FUNCTION(New, 1) {
 	if (Args[0].Val->Type == Std$Integer$SmallT) {
-		Sys$Time_t *Time = new(Sys$Time_t);
+		Sys$Time$t *Time = new(Sys$Time$t);
 		Time->Type = T;
 		Time->Value = Std$Integer$get_small(Args[0].Val);
 		RETURN(Time);
 	} else if (Args[0].Val->Type == Std$Real$T) {
-		Sys$Time_t *Time = new(Sys$Time_t);
+		Sys$Time$t *Time = new(Sys$Time$t);
 		Time->Type = T;
 		Time->Value = Std$Real$get_value(Args[0].Val);
 		RETURN(Time);
@@ -40,7 +40,7 @@ GLOBAL_FUNCTION(New, 1) {
 		if (!strptime(String, Format, Tm)) {
 			SEND(Std$String$new("Error parsing time"));
 		}
-		Sys$Time_t *Time = new(Sys$Time_t);
+		Sys$Time$t *Time = new(Sys$Time$t);
 		Time->Type = T;
 		Time->Value = timegm(Tm);
 		RETURN(Time);
@@ -48,16 +48,16 @@ GLOBAL_FUNCTION(New, 1) {
 	SEND(Std$String$new("Invalid parameter type"));
 };
 
-Sys$Time_t *_new(time_t Value) {
-	Sys$Time_t *Time = new(Sys$Time_t);
+Sys$Time$t *_new(time_t Value) {
+	Sys$Time$t *Time = new(Sys$Time$t);
 	Time->Type = T;
 	Time->Value = Value;
 	return Time;
 };
 
 METHOD("?", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value > B->Value) {
 		Result->Val = Std$Object$Greater;
 	} else if (A->Value < B->Value) {
@@ -69,8 +69,8 @@ METHOD("?", TYP, T, TYP, T) {
 };
 
 /*METHOD(">", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value > B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -80,8 +80,8 @@ METHOD("?", TYP, T, TYP, T) {
 };
 
 METHOD("<", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value < B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -91,8 +91,8 @@ METHOD("<", TYP, T, TYP, T) {
 };
 
 METHOD(">=", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value >= B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -102,8 +102,8 @@ METHOD(">=", TYP, T, TYP, T) {
 };
 
 METHOD("<=", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value <= B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -113,8 +113,8 @@ METHOD("<=", TYP, T, TYP, T) {
 };
 
 METHOD("=", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value == B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -124,8 +124,8 @@ METHOD("=", TYP, T, TYP, T) {
 };
 
 METHOD("~=", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	if (A->Value != B->Value) {
 		Result->Arg = Args[1];
 		return SUCCESS;
@@ -135,7 +135,7 @@ METHOD("~=", TYP, T, TYP, T) {
 };*/
 
 AMETHOD(Std$String$Of, TYP, T) {
-	Sys$Time_t *Time = Args[0].Val;
+	Sys$Time$t *Time = Args[0].Val;
 	/*char *Buffer = Riva$Memory$alloc_atomic(26);
 	ctime_r(&Time->Value, Buffer);
 	Buffer[strlen(Buffer) - 1] = 0;*/
@@ -148,35 +148,35 @@ AMETHOD(Std$String$Of, TYP, T) {
 };
 
 AMETHOD(Std$Integer$Of, TYP, T) {
-	Sys$Time_t *Time = Args[0].Val;
+	Sys$Time$t *Time = Args[0].Val;
 	Result->Val = Std$Integer$new_small(Time->Value);
 	return SUCCESS;
 };
 
 METHOD("-", TYP, T, TYP, T) {
-	Sys$Time_t *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	Result->Val = Std$Integer$new_small(A->Value - B->Value);
 	return SUCCESS;
 };
 
 METHOD("-", TYP, T, TYP, Std$Integer$SmallT) {
-	Sys$Time_t *A = Args[0].Val;
-	Std$Integer_smallt *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Std$Integer$smallt *B = Args[1].Val;
 	Result->Val = _new(A->Value - B->Value);
 	return SUCCESS;
 };
 
 METHOD("+", TYP, T, TYP, Std$Integer$SmallT) {
-	Sys$Time_t *A = Args[0].Val;
-	Std$Integer_smallt *B = Args[1].Val;
+	Sys$Time$t *A = Args[0].Val;
+	Std$Integer$smallt *B = Args[1].Val;
 	Result->Val = _new(A->Value + B->Value);
 	return SUCCESS;
 };
 
 METHOD("+", TYP, Std$Integer$SmallT, TYP, T) {
-	Std$Integer_smallt *A = Args[0].Val;
-	Sys$Time_t *B = Args[1].Val;
+	Std$Integer$smallt *A = Args[0].Val;
+	Sys$Time$t *B = Args[1].Val;
 	Result->Val = _new(A->Value + B->Value);
 	return SUCCESS;
 };
@@ -241,7 +241,7 @@ METHOD("-", TYP, PreciseT, TYP, PreciseT) {
 METHOD("-", TYP, PreciseT, TYP, Std$Integer$SmallT) {
 	Sys$Time$precise_t *A = Args[0].Val;
 	int64_t AMicros = A->Value.tv_sec * 1000000LL + A->Value.tv_usec;
-	Std$Integer_smallt *B = Args[1].Val;
+	Std$Integer$smallt *B = Args[1].Val;
 	Result->Val = _precise_new(AMicros - B->Value);
 	return SUCCESS;
 };
@@ -249,7 +249,7 @@ METHOD("-", TYP, PreciseT, TYP, Std$Integer$SmallT) {
 METHOD("-", TYP, PreciseT, TYP, Std$Integer$BigT) {
 	Sys$Time$precise_t *A = Args[0].Val;
 	int64_t AMicros = A->Value.tv_sec * 1000000LL + A->Value.tv_usec;
-	Std$Integer_bigt *B = Args[1].Val;
+	Std$Integer$bigt *B = Args[1].Val;
 	Result->Val = _precise_new(AMicros - Std$Integer$get_s64(B));
 	return SUCCESS;
 };
@@ -257,13 +257,13 @@ METHOD("-", TYP, PreciseT, TYP, Std$Integer$BigT) {
 METHOD("+", TYP, PreciseT, TYP, Std$Integer$SmallT) {
 	Sys$Time$precise_t *A = Args[0].Val;
 	int64_t AMicros = A->Value.tv_sec * 1000000LL + A->Value.tv_usec;
-	Std$Integer_smallt *B = Args[1].Val;
+	Std$Integer$smallt *B = Args[1].Val;
 	Result->Val = _precise_new(AMicros + B->Value);
 	return SUCCESS;
 };
 
 METHOD("+", TYP, Std$Integer$SmallT, TYP, PreciseT) {
-	Std$Integer_smallt *A = Args[0].Val;
+	Std$Integer$smallt *A = Args[0].Val;
 	Sys$Time$precise_t *B = Args[1].Val;
 	int64_t BMicros = B->Value.tv_sec * 1000000LL + B->Value.tv_usec;
 	Result->Val = _precise_new(A->Value + BMicros);
@@ -273,13 +273,13 @@ METHOD("+", TYP, Std$Integer$SmallT, TYP, PreciseT) {
 METHOD("+", TYP, PreciseT, TYP, Std$Integer$BigT) {
 	Sys$Time$precise_t *A = Args[0].Val;
 	int64_t AMicros = A->Value.tv_sec * 1000000LL + A->Value.tv_usec;
-	Std$Integer_bigt *B = Args[1].Val;
+	Std$Integer$bigt *B = Args[1].Val;
 	Result->Val = _precise_new(AMicros + Std$Integer$get_s64(B));
 	return SUCCESS;
 };
 
 METHOD("+", TYP, Std$Integer$BigT, TYP, PreciseT) {
-	Std$Integer_bigt *A = Args[0].Val;
+	Std$Integer$bigt *A = Args[0].Val;
 	Sys$Time$precise_t *B = Args[1].Val;
 	int64_t BMicros = B->Value.tv_sec * 1000000LL + B->Value.tv_usec;
 	Result->Val = _precise_new(Std$Integer$get_s64(A) + BMicros);

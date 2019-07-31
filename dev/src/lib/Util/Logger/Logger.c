@@ -26,7 +26,7 @@ static const char *MainModule = 0;
 typedef struct {
 	Std$Function$CFields
 	Std$Object$t *Stream;
-	IO$Stream_writefn write;
+	IO$Stream$writefn write;
 	const char *LoggerName;
 	pthread_mutex_t Mutex[1];
 	int Level;
@@ -34,7 +34,7 @@ typedef struct {
 
 static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream, IO$Stream_writefn write) {
+static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream, IO$Stream$writefn write) {
 	const char *I = Chars;
 	const char *J = I;
 	const char *L = I + Length;
@@ -70,7 +70,7 @@ static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream
 	if (I < J) write(Stream, I, J - I, 1);
 }
 
-static inline write_json_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream_writefn write) {
+static inline write_json_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream$writefn write) {
 	if (Val->Type == Std$String$T) {
 		for (Std$String$block *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
 			write_json_chars(Block->Chars.Value, Block->Length.Value, Stream, write);
@@ -85,7 +85,7 @@ static Std$Function$status json_stream_writer(FUNCTION_PARAMS) {
 	if (StreamWriter->Level < LogLevel) return SUCCESS;
 	pthread_mutex_lock(StreamWriter->Mutex);
 	Std$Object$t *Stream = StreamWriter->Stream;
-	IO$Stream_writefn write = StreamWriter->write;
+	IO$Stream$writefn write = StreamWriter->write;
 	write(Stream, "{\"@timestamp\":\"", strlen("{\"@timestamp\":\""), 1);
 	char Buffer[256];
 	struct timeval Time;
@@ -165,7 +165,7 @@ GLOBAL_FUNCTION(JsonStream, 2) {
 	return SUCCESS;
 }
 
-static inline write_text_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream_writefn write) {
+static inline write_text_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream$writefn write) {
 	if (Val->Type == Std$String$T) {
 		for (Std$String$block *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
 			write(Stream, Block->Chars.Value, Block->Length.Value, 1);
@@ -180,7 +180,7 @@ static Std$Function$status text_stream_writer(FUNCTION_PARAMS) {
 	if (StreamWriter->Level < LogLevel) return SUCCESS;
 	pthread_mutex_lock(StreamWriter->Mutex);
 	Std$Object$t *Stream = StreamWriter->Stream;
-	IO$Stream_writefn write = StreamWriter->write;
+	IO$Stream$writefn write = StreamWriter->write;
 	write(Stream, "[", 1, 1);
 	write(Stream, LevelNames[StreamWriter->Level], strlen(LevelNames[StreamWriter->Level]), 1);
 	write(Stream, "] ", 2, 1);

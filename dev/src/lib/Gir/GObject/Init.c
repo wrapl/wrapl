@@ -158,7 +158,7 @@ static GThreadFunctions ThreadVTable = {
 };
 
 INITIAL(Riva$Module$provider_t *Provider) {
-	Sys$Service_t *Service = Sys$Service$new("gobject");
+	Sys$Service$t *Service = Sys$Service$new("gobject");
 	if (Service) {
 		//printf("Initializing gobject system...\n");
 		//g_slice_set_config(G_SLICE_CONFIG_ALWAYS_MALLOC, 1);

@@ -128,7 +128,7 @@ TYPED_INSTANCE(void, to_duktape, ObjectT, object_t *Object, duk_context *Context
 	duk_push_heapptr(Context, Object->Handle);
 }
 
-extern Riva$Module_t Riva$Symbol[];
+extern Riva$Module$t Riva$Symbol[];
 
 static Std$Object$t *to_riva(duk_context *Context, duk_idx_t Index) {
 	if (duk_is_boolean(Context, Index)) {
