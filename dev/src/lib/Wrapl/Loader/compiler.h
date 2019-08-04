@@ -3,6 +3,7 @@
 
 #include <Riva/Memory.h>
 #include <Std/Function.h>
+#include <Std/Type.h>
 
 #include "assembler.h"
 #include "bitset.h"
@@ -19,6 +20,8 @@
 #else
 #define PRINT_METHOD
 #endif
+
+extern const Std$Type$t ScopeT[];
 
 struct compiler_t {
 	struct function_t {
@@ -74,11 +77,11 @@ struct compiler_t {
 	};
 
 	struct scope_t {
-		const Std$Type$t *Type0;
+		const Std$Type$t *Type0 = ScopeT;
 		enum type_t {SC_GLOBAL, SC_LOCAL} Type;
 		scope_t *Up;
-		int LastIndex;
-		function_t *Function;
+		int LastIndex = 0;
+		function_t *Function = 0;
 		stringtable_t NameTable[1];
 		scope_t(type_t Type, scope_t *Up = 0) {
 			this->Type = Type;
@@ -88,7 +91,8 @@ struct compiler_t {
 
 	function_t *Function;
 	scope_t *Scope, *Global;
-	debug_module_t *DebugInfo;
+	debug_module_t *DebugInfo = 0;
+	Std$Object$t *MissingIDFunc = 0;
 
 	const char *SourceName;
 
@@ -148,8 +152,6 @@ struct compiler_t {
 		int Count;
 		char *Stack[12];
 	} Error;
-
-	Std$Object$t *MissingIDFunc;
 
 	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...);
 };

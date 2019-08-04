@@ -2,9 +2,8 @@
 #include <Riva.h>
 #include <Num/Array.h>
 #include <Num/Bitset.h>
+#include <Num/Range.h>
 #include <Agg/List.h>
-
-#include "roaring.c"
 
 METHOD("shape", TYP, Num$Array$T) {
 	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
@@ -13,6 +12,15 @@ METHOD("shape", TYP, Num$Array$T) {
 		Agg$List$put(Shape, Std$Integer$new_small(Array->Dimensions[I].Size));
 	}
 	RETURN(Shape);
+}
+
+METHOD("strides", TYP, Num$Array$T) {
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
+	Std$Object$t *Strides = Agg$List$new0();
+	for (int I = 0; I < Array->Degree; ++I) {
+		Agg$List$put(Strides, Std$Integer$new_small(Array->Dimensions[I].Stride));
+	}
+	RETURN(Strides);
 }
 
 METHOD("degree", TYP, Num$Array$T) {
@@ -31,12 +39,22 @@ METHOD("transpose", TYP, Num$Array$T) {
 	RETURN(Target);
 }
 
-static bool bitmap_select_iterator(uint32_t Index, roaring_bitmap_t **Bitmaps) {
-	uint32_t Value;
-	if (roaring_bitmap_select(Bitmaps[0], Index, &Value)) {
-		roaring_bitmap_add(Bitmaps[1], Value);
+METHOD("permute", TYP, Num$Array$T, TYP, Agg$List$T) {
+	Num$Array$t *Source = (Num$Array$t *)Args[0].Val;
+	int Degree = Source->Degree;
+	if (Agg$List$length(Args[1].Val) != Degree) SEND("List length must match degree");
+	Num$Array$t *Target = Num$Array$new(Source->Format, Degree);
+	Agg$List$node *Node = Agg$List$head(Args[1].Val);
+	for (int I = 0; I < Degree; ++I) {
+		if (Node->Value->Type != Std$Integer$SmallT) SEND("Invalid index");
+		int J = Std$Integer$get_small(Node->Value);
+		if (J <= 0) J += Degree + 1;
+		if (J < 1 || J > Degree) SEND("Invalid index");
+		Target->Dimensions[I] = Source->Dimensions[J - 1];
+		Node = Node->Next;
 	}
-	return true;
+	Target->Data = Source->Data;
+	RETURN(Target);
 }
 
 METHOD("[]", TYP, Num$Array$T) {
@@ -46,6 +64,7 @@ METHOD("[]", TYP, Num$Array$T) {
 	Num$Array$dimension_t *TargetDimension = TargetDimensions;
 	Num$Array$dimension_t *SourceDimension = Source->Dimensions;
 	void *Data = Source->Data;
+	int Min, Max, Step;
 	for (int I = 1; I < Count; ++I) {
 		Std$Object$t *Index = Args[I].Val;
 		if (Index->Type == Std$Integer$SmallT) {
@@ -53,22 +72,56 @@ METHOD("[]", TYP, Num$Array$T) {
 			if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 			if (--IndexValue < 0) FAIL;
 			if (IndexValue >= SourceDimension->Size) FAIL;
-			if (SourceDimension->Bitmap) {
-				roaring_bitmap_select(SourceDimension->Bitmap, IndexValue, &IndexValue);
-			}
+			if (SourceDimension->Indices) IndexValue = SourceDimension->Indices[IndexValue];
 			Data += SourceDimension->Stride * IndexValue;
-		} else if (Index->Type == Num$Bitset$T) {
-			roaring_bitmap_t *IndexValue = ((Num$Bitset$t *)Index)->Value;
-			TargetDimension->Stride = SourceDimension->Stride;
-			if (SourceDimension->Bitmap) {
-				roaring_bitmap_t **Bitmaps = {SourceDimension->Bitmap, roaring_bitmap_create()};
-				roaring_iterate(IndexValue, bitmap_select_iterator, Bitmaps);
-				TargetDimension->Size = roaring_bitmap_get_cardinality(Bitmaps[0]);
-				TargetDimension->Bitmap = Bitmaps[0];
-			} else {
-				TargetDimension->Size = roaring_bitmap_get_cardinality(IndexValue);
-				TargetDimension->Bitmap = IndexValue;
+		} else if (Index->Type == Agg$List$T) {
+			int Size = TargetDimension->Size = Agg$List$length(Index);
+			// TODO: Check if list can be replaced by a range
+			if (Size == 1) {
+				Agg$List$node *Node = Agg$List$head(Index);
+				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
+				Max = Min = Std$Integer$get_small(Node->Value);
+				Step = 1;
+				goto as_range;
+			} else if (Size == 2) {
+				Agg$List$node *Node = Agg$List$head(Index);
+				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
+				Min = Std$Integer$get_small(Node->Value);
+				Node = Node->Next;
+				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
+				Max = Std$Integer$get_small(Node->Value);
+				Step = Max - Min;
+				goto as_range;
 			}
+			int *Indices = TargetDimension->Indices = (int *)Riva$Memory$alloc_atomic(Size * sizeof(int));
+			int *IndexPtr = Indices;
+			for (Agg$List$node *Node = Agg$List$head(Index); Node; Node = Node->Next) {
+				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
+				int IndexValue = Std$Integer$get_small(Node->Value);
+				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+				if (--IndexValue < 0) FAIL;
+				if (IndexValue >= SourceDimension->Size) FAIL;
+				*IndexPtr++ = IndexValue;
+			}
+			TargetDimension->Stride = SourceDimension->Stride;
+			++TargetDimension;
+		} else if (Index->Type == Num$Range$T) {
+			Num$Range$t *IndexValue = (Num$Range$t *)Index;
+			Min = IndexValue->Min;
+			Max = IndexValue->Max;
+			Step = IndexValue->Step;
+			if (Min <= 1) Min += SourceDimension->Size + 1;
+			if (Max <= 1) Max += SourceDimension->Size + 1;
+		as_range:
+			if (--Min <= 0) FAIL;
+			if (Min >= SourceDimension->Size) FAIL;
+			if (--Max <= 0) FAIL;
+			if (Max >= SourceDimension->Size) FAIL;
+			if (Step == 0) FAIL;
+			int Size = TargetDimension->Size = (IndexValue->Max - IndexValue->Min) / IndexValue->Step + 1;
+			if (Size < 0) FAIL;
+			TargetDimension->Stride = SourceDimension->Stride * IndexValue->Step;
+			Data += SourceDimension->Stride * IndexValue->Min;
 			++TargetDimension;
 		} else if (Index == Std$Object$Nil) {
 			*TargetDimension = *SourceDimension;
@@ -93,40 +146,32 @@ METHOD("[]", TYP, Num$Array$T) {
 #define UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, NAME, OP) \
 \
 static void NAME ## _array_suffix_ ## CTYPE1 ## _ ## CTYPE2(Num$Array$dimension_t *TargetDimension, void *TargetData, Num$Array$dimension_t *SourceDimension, void *SourceData) { \
-	if (TargetDimension->Bitmap) { \
-		if (SourceDimension->Bitmap) { \
-			roaring_uint32_iterator_t TargetIterator[1]; \
-			roaring_init_iterator(TargetDimension->Bitmap, TargetIterator); \
-			roaring_uint32_iterator_t SourceIterator[1]; \
-			roaring_init_iterator(SourceDimension->Bitmap, SourceIterator); \
-			while (TargetIterator->has_value && SourceIterator->has_value) { \
-				*(CTYPE1 *)(TargetData + (TargetIterator->current_value - 1) * TargetDimension->Stride) OP *(CTYPE2 *)(SourceData + (SourceIterator->current_value - 1) * SourceDimension->Stride); \
-				roaring_advance_uint32_iterator(TargetIterator); \
-				roaring_advance_uint32_iterator(SourceIterator); \
+	int Size = TargetDimension->Size; \
+	if (TargetDimension->Indices) { \
+		int *TargetIndices = TargetDimension->Indices; \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				*(CTYPE1 *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(CTYPE2 *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
-			roaring_uint32_iterator_t TargetIterator[1]; \
-			roaring_init_iterator(TargetDimension->Bitmap, TargetIterator); \
-			while (TargetIterator->has_value) { \
-				*(CTYPE1 *)(TargetData + (TargetIterator->current_value - 1) * TargetDimension->Stride) OP *(CTYPE2 *)SourceData; \
-				roaring_advance_uint32_iterator(TargetIterator); \
+			for (int I = 0; I < Size; ++I) { \
+				*(CTYPE1 *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(CTYPE2 *)SourceData; \
 				SourceData += SourceStride; \
 			} \
 		} \
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
-		if (SourceDimension->Bitmap) { \
-			roaring_uint32_iterator_t SourceIterator[1]; \
-			roaring_init_iterator(SourceDimension->Bitmap, SourceIterator); \
-			while (SourceIterator->has_value) { \
-				*(CTYPE1 *)TargetData OP *(CTYPE2 *)(SourceData + (SourceIterator->current_value - 1) * SourceDimension->Stride); \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				*(CTYPE1 *)TargetData OP *(CTYPE2 *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
 				TargetData += TargetStride; \
-				roaring_advance_uint32_iterator(SourceIterator); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
-			for (int I = TargetDimension->Size; --I >= 0;) { \
+			for (int I = Size; --I >= 0;) { \
 				*(CTYPE1 *)TargetData OP *(CTYPE2 *)SourceData; \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
@@ -138,40 +183,32 @@ static void NAME ## _array_suffix_ ## CTYPE1 ## _ ## CTYPE2(Num$Array$dimension_
 static void NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(Num$Array$dimension_t *TargetDimension, void *TargetData, int SourceDegree, Num$Array$dimension_t *SourceDimension, void *SourceData) { \
 	if (SourceDegree == 0) return NAME ## _value_array0_ ## CTYPE1(TargetDimension, TargetData, *(CTYPE2 *)SourceData); \
 	if (SourceDegree == 1) return NAME ## _array_suffix_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension, TargetData, SourceDimension, SourceData); \
-	if (TargetDimension->Bitmap) { \
-		if (SourceDimension->Bitmap) { \
-			roaring_uint32_iterator_t TargetIterator[1]; \
-			roaring_init_iterator(TargetDimension->Bitmap, TargetIterator); \
-			roaring_uint32_iterator_t SourceIterator[1]; \
-			roaring_init_iterator(SourceDimension->Bitmap, SourceIterator); \
-			while (TargetIterator->has_value && SourceIterator->has_value) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + (TargetIterator->current_value - 1) * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData + (SourceIterator->current_value - 1) * SourceDimension->Stride); \
-				roaring_advance_uint32_iterator(TargetIterator); \
-				roaring_advance_uint32_iterator(SourceIterator); \
+	int Size = TargetDimension->Size; \
+	if (TargetDimension->Indices) { \
+		int *TargetIndices = TargetDimension->Indices; \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
-			roaring_uint32_iterator_t TargetIterator[1]; \
-			roaring_init_iterator(TargetDimension->Bitmap, TargetIterator); \
-			while (TargetIterator->has_value) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + (TargetIterator->current_value - 1) * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData); \
-				roaring_advance_uint32_iterator(TargetIterator); \
+			for (int I = 0; I < Size; ++I) { \
+				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData); \
 				SourceData += SourceStride; \
 			} \
 		} \
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
-		if (SourceDimension->Bitmap) { \
-			roaring_uint32_iterator_t SourceIterator[1]; \
-			roaring_init_iterator(SourceDimension->Bitmap, SourceIterator); \
-			while (SourceIterator->has_value) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData + (SourceIterator->current_value - 1) * SourceDimension->Stride); \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride); \
 				TargetData += TargetStride; \
-				roaring_advance_uint32_iterator(SourceIterator); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
-			for (int I = TargetDimension->Size; --I >= 0;) { \
+			for (int I = Size; --I >= 0;) { \
 				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData); \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
@@ -182,16 +219,15 @@ static void NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(Num$Array$dimension_t *Targ
 \
 static void NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(int PrefixDegree, Num$Array$dimension_t *TargetDimension, void *TargetData, int SourceDegree, Num$Array$dimension_t *SourceDimension, void *SourceData) { \
 	if (PrefixDegree == 0) return NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension, TargetData, SourceDegree, SourceDimension, SourceData); \
-	if (TargetDimension->Bitmap) { \
-		roaring_uint32_iterator_t TargetIterator[1]; \
-		roaring_init_iterator(TargetDimension->Bitmap, TargetIterator); \
-		while (TargetIterator->has_value) { \
-			NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree - 1, TargetDimension + 1, TargetData + (TargetIterator->current_value - 1) * TargetDimension->Stride, SourceDegree, SourceDimension, SourceData); \
-			roaring_advance_uint32_iterator(TargetIterator); \
+	int Size = TargetDimension->Size; \
+	if (TargetDimension->Indices) { \
+		int *TargetIndices = TargetDimension->Indices; \
+		for (int I = Size; --I >= 0;) { \
+			NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree - 1, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree, SourceDimension, SourceData); \
 		} \
 	} else { \
 		int Stride = TargetDimension->Stride; \
-		for (int I = TargetDimension->Size; --I >= 0;) { \
+		for (int I = Size; --I >= 0;) { \
 			NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree - 1, TargetDimension + 1, TargetData, SourceDegree, SourceDimension, SourceData); \
 			TargetData += Stride; \
 		} \
@@ -222,12 +258,10 @@ UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, div, /=);
 \
 static void NAME ## _value_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data, CTYPE Value) { \
 	Std$Object$t *String = LeftSquare; \
-	if (Dimension->Bitmap) { \
-		roaring_uint32_iterator_t Iterator[1]; \
-		roaring_init_iterator(Dimension->Bitmap, Iterator); \
-		while (Iterator->has_value) { \
-			*(CTYPE *)(Data + (Iterator->current_value - 1) * Dimension->Stride) OP Value; \
-			roaring_advance_uint32_iterator(Iterator); \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		for (int I = 0; I < Dimension->Size; ++I) { \
+			*(CTYPE *)(Data + (Indices[I]) * Dimension->Stride) OP Value; \
 		} \
 	} else { \
 		int Stride = Dimension->Stride; \
@@ -241,12 +275,10 @@ static void NAME ## _value_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, vo
 static void NAME ## _value_array_ ## CTYPE(int Degree, Num$Array$dimension_t *Dimension, void *Data, CTYPE Value) { \
 	if (Degree == 1) return set_value_array0_ ## CTYPE(Dimension, Data, Value); \
 	int Stride = Dimension->Stride; \
-	if (Dimension->Bitmap) { \
-		roaring_uint32_iterator_t Iterator[1]; \
-		roaring_init_iterator(Dimension->Bitmap, Iterator); \
-		while (Iterator->has_value) { \
-			NAME ## _value_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Iterator->current_value - 1) * Dimension->Stride, Value); \
-			roaring_advance_uint32_iterator(Iterator); \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		for (int I = 0; I < Dimension->Size; ++I) { \
+			NAME ## _value_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Indices[I]) * Dimension->Stride, Value); \
 		} \
 	} else { \
 		for (int I = Dimension->Size; --I >= 0;) { \
@@ -274,13 +306,12 @@ STRING(RightSquare, "]");
 \
 static Std$Object$t *to_string_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data) { \
 	Std$Object$t *String = LeftSquare; \
-	if (Dimension->Bitmap) { \
-		roaring_uint32_iterator_t Iterator[1]; \
-		roaring_init_iterator(Dimension->Bitmap, Iterator); \
-		if (Iterator->has_value) { \
-			String = Std$String$add_format(String, FORMAT, *(CTYPE *)(Data + (Iterator->current_value - 1) * Dimension->Stride)); \
-			while (roaring_advance_uint32_iterator(Iterator)) { \
-				String = Std$String$add_format(String, ", "FORMAT, *(CTYPE *)(Data + (Iterator->current_value - 1) * Dimension->Stride)); \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		if (Dimension->Size) { \
+			String = Std$String$add_format(String, FORMAT, *(CTYPE *)(Data + (Indices[0]) * Dimension->Stride)); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				String = Std$String$add_format(String, ", "FORMAT, *(CTYPE *)(Data + (Indices[I]) * Dimension->Stride)); \
 			} \
 		} \
 	} else { \
@@ -300,14 +331,13 @@ static Std$Object$t *to_string_array_ ## CTYPE(int Degree, Num$Array$dimension_t
 	if (Degree == 1) return to_string_array0_ ## CTYPE(Dimension, Data); \
 	Std$Object$t *String = LeftSquare; \
 	int Stride = Dimension->Stride; \
-	if (Dimension->Bitmap) { \
-		roaring_uint32_iterator_t Iterator[1]; \
-		roaring_init_iterator(Dimension->Bitmap, Iterator); \
-		if (Iterator->has_value) { \
-			String = Std$String$add(String, to_string_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Iterator->current_value - 1) * Dimension->Stride)); \
-			while (roaring_advance_uint32_iterator(Iterator)) { \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		if (Dimension->Size) { \
+			String = Std$String$add(String, to_string_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Indices[0]) * Dimension->Stride)); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
 				String = Std$String$add_chars(String, ", ", 2); \
-				String = Std$String$add(String, to_string_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Iterator->current_value - 1) * Dimension->Stride)); \
+				String = Std$String$add(String, to_string_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Indices[I]) * Dimension->Stride)); \
 			} \
 		} \
 	} else { \

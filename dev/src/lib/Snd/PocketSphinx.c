@@ -1,7 +1,7 @@
 #include <Std.h>
 #include <Riva.h>
 #include <Agg/List.h>
-#include <Agg/Buffer.h>
+#include <Num/Array.h>
 
 #include <pocketsphinx.h>
 
@@ -80,16 +80,18 @@ METHOD("end_utt", TYP, T) {
 	return SUCCESS;
 }
 
-METHOD("process", TYP, T, TYP, Agg$Buffer$Int16$T) {
+METHOD("process", TYP, T, TYP, Num$Array$Int16T) {
 	decoder_t *Decoder = (decoder_t *)Args[0].Val;
-	Agg$Buffer$t *Buffer = (Agg$Buffer$t *)Args[1].Val;
-	int Processed = ps_process_raw(Decoder->Handle, Buffer->Value, Buffer->Length.Value, 0, 0);
-	if (Processed < 0) {
-		Result->Val = Std$String$new("Error processing data");
-		return MESSAGE;
+	Num$Array$t *Array = (Num$Array$t *)Args[1].Val;
+	if (Array->Degree != 1) SEND(Std$String$new("Only single channel audio supported"));
+	int Processed;
+	if (Array->Dimensions[0].Stride == sizeof(int16_t)) {
+		Processed = ps_process_raw(Decoder->Handle, Array->Data, Array->Dimensions[0].Size * sizeof(int16_t), 0, 0);
+	} else {
+		SEND(Std$String$new("Sparse arrays not implemented yet"));
 	}
-	Result->Val = Std$Integer$new_small(Processed);
-	return SUCCESS;
+	if (Processed < 0) SEND(Std$String$new("Error processing data"));
+	RETURN(Std$Integer$new_small(Processed));
 }
 
 METHOD("hypothesis", TYP, T) {

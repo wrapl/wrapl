@@ -1,6 +1,6 @@
 include("Std.rlib")
 include("Riva/Memory.rlib")
-include("Agg/Buffer.rlib")
+include("Num/Array.rlink")
 
 export("New")
 export("Convert")

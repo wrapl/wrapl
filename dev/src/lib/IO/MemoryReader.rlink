@@ -1,4 +1,2 @@
-include("Agg/Buffer.rlib")
-
 export("T")
 export("New")

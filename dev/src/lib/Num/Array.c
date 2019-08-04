@@ -78,7 +78,6 @@ GLOBAL_FUNCTION(New, 2) {
 		SEND(Std$String$new("Unknown type for array"));
 	}
 	if (Count < 2) SEND(Std$String$new("Missing dimensions for array"));
-	int DataSize = ItemSize;
 	Num$Array$t *Array;
 	if (Args[1].Val->Type == Agg$List$T) {
 		int Degree = Agg$List$length(Args[1].Val);
@@ -86,19 +85,22 @@ GLOBAL_FUNCTION(New, 2) {
 		Agg$List$node *Node = Agg$List$head(Args[1].Val);
 		for (int I = 0; I < Degree; ++I, Node = Node->Next) {
 			if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Dimension is not an integer"));
-			Array->Dimensions[I].Stride = DataSize;
-			int Size = Array->Dimensions[I].Size = Std$Integer$get_small(Node->Value);
-			DataSize *= Size;
+			Array->Dimensions[I].Size = Std$Integer$get_small(Node->Value);
 		}
 	} else {
-		Array = _new(Format, Count - 1);
+		int Degree = Count - 1;
+		Array = _new(Format, Degree);
 		for (int I = 1; I < Count; ++I) {
 			CHECK_EXACT_ARG_TYPE(I, Std$Integer$SmallT);
-			Array->Dimensions[I].Stride = DataSize;
-			int Size = Array->Dimensions[I - 1].Size = Std$Integer$get_small(Args[I].Val);
-			DataSize *= Size;
+			Array->Dimensions[I - 1].Size = Std$Integer$get_small(Args[I].Val);
 		}
-	}	Array->Data = Riva$Memory$alloc_atomic(DataSize);
+	}
+	int DataSize = ItemSize;
+	for (int I = Array->Degree; --I >= 0;) {
+		Array->Dimensions[I].Stride = DataSize;
+		DataSize *= Array->Dimensions[I].Size;
+	}
+	Array->Data = Riva$Memory$alloc_atomic(DataSize);
 	RETURN(Array);
 }
 

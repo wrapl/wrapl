@@ -144,6 +144,7 @@ var SOX_LIB := (EXT_DIR / "lib/libsox.a") => fun() do
 		'--prefix={EXT_DIR}',
 		"--without-man-pages",
 		"--without-pulseaudio",
+		"--without-alsa",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"',
 		'PKG_CONFIG_LIBDIR=\"{EXT_DIR / "lib/pkgconfig"}\"'
@@ -152,11 +153,14 @@ var SOX_LIB := (EXT_DIR / "lib/libsox.a") => fun() do
 	execute("make install")
 end
 
-CFLAGS := old + ['-I{EXT_DIR / "include/lilv-0"}']
-
-riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
+scope("lilv";) do
+	CFLAGS := old + ['-I{EXT_DIR / "include/lilv-0"}']
+	riva_module("Snd/Lilv", [file("Lilv.o")], [SERD_LIB, SORD_LIB, LILV_LIB])
+end
 riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
 riva_module("Snd/SndFile", [file("SndFile.o")], [SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB, VORBISENC_LIB, VORBISFILE_LIB])
---riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
-CFLAGS := old + ["-I/usr/include/pocketsphinx", "-I/usr/include/sphinxbase"]
-riva_module("Snd/PocketSphinx", [file("PocketSphinx.o")])
+riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
+scope("pocketsphinx";) do
+	CFLAGS := old + ["-I/usr/include/pocketsphinx", "-I/usr/include/sphinxbase"]
+	riva_module("Snd/PocketSphinx", [file("PocketSphinx.o")])
+end

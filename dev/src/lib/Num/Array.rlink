@@ -5,6 +5,7 @@ include("Agg/List.rlib")
 
 export("_new")
 export("New")
+export("Wrap")
 export("T")
 export("AnyT")
 export("Int8T")

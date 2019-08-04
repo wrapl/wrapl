@@ -18,4 +18,16 @@ riva_extern Hash
 riva_extern _alloc
 riva_extern _new
 
+riva_struct sizedt, Std$Address_t
+	.Length: resb sizeof(Std$Integer_smallt)
+endstruct
+
+riva_extern SizedT
+
+riva_extern CompareSized
+riva_extern HashSized
+
+riva_extern _alloc_sized
+riva_extern _new_sized
+
 %endif

@@ -1,6 +1,6 @@
 #include <Std.h>
 #include <Riva.h>
-#include <Agg/Buffer.h>
+#include <Num/Array.h>
 #include <samplerate.h>
 #include <math.h>
 
@@ -10,7 +10,7 @@ typedef struct converter_t {
 	const Std$Type$t *Type;
 	SRC_STATE *State;
 	SRC_DATA Data[1];
-	int CachedSamples;
+	int CachedSamples, Channels;
 	float Buffer[BUFFER_SIZE];
 } converter_t;
 
@@ -45,22 +45,34 @@ GLOBAL_FUNCTION(New, 3) {
 	}
 	Converter->Data->data_in = Converter->Buffer;
 	Converter->Data->src_ratio = SrcRatio;
+	Converter->Channels = Channels;
 	Result->Val = (Std$Object$t *)Converter;
 	return SUCCESS;
 }
 
-METHOD("process", TYP, T, TYP, Agg$Buffer$Int16$T) {
+METHOD("process", TYP, T, TYP, Num$Array$Int16T) {
 	converter_t *Converter = (converter_t *)Args[0].Val;
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[1].Val;
-	int OutputFrames = ceil(Input->Length.Value * Converter->Data->src_ratio);
+	Num$Array$t *Input = (Num$Array$t *)Args[1].Val;
+	int Channels = Converter->Channels;
+	if (Input->Degree == 1) {
+		if (Channels != 1) SEND(Std$String$new("Invalid shape for sample rate conversion"));
+		if (Input->Dimensions[0].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Input->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else {
+		SEND(Std$String$new("Invalid shape for sample rate conversion"));
+	}
+	int InputFrames = Input->Dimensions[0].Size;
+	int OutputFrames = ceil(InputFrames * Converter->Data->src_ratio);
 	float *OutputBuffer = (float *)Riva$Memory$alloc_atomic(OutputFrames * sizeof(float));
 	float *InputBuffer = Converter->Buffer + Converter->CachedSamples;
 	int InputSpace = BUFFER_SIZE - Converter->CachedSamples;
-	int InputFrames = Input->Length.Value;
 	Converter->Data->end_of_input = 0;
 	Converter->Data->output_frames = OutputFrames;
 	Converter->Data->data_out = OutputBuffer;
-	const short *InputSamples = (short *)Input->Value;
+	const short *InputSamples = (short *)Input->Data;
 	while (InputFrames >= InputSpace) {
 		src_short_to_float_array(InputSamples, InputBuffer, InputSpace);
 		Converter->Data->input_frames = InputSpace;
@@ -105,22 +117,41 @@ METHOD("process", TYP, T, TYP, Agg$Buffer$Int16$T) {
 		Converter->Data->data_out += Converter->Data->output_frames_gen;
 		Converter->Data->output_frames -= Converter->Data->output_frames_gen;
 	}
-	Result->Val = Agg$Buffer$Float32$new(OutputBuffer, Converter->Data->data_out - OutputBuffer);
-	return SUCCESS;
+	Num$Array$t *Output = Num$Array$new(Num$Array$FORMAT_F32, Input->Degree);
+	Output->Data = OutputBuffer;
+	int Samples = Converter->Data->data_out - OutputBuffer;
+	Output->Dimensions[0].Size = Samples / Channels;
+	Output->Dimensions[0].Stride = Channels * sizeof(float);
+	if (Output->Degree > 1) {
+		Output->Dimensions[1].Size = Channels;
+		Output->Dimensions[1].Stride = sizeof(float);
+	}
+	RETURN(Output);
 }
 
-METHOD("process", TYP, T, TYP, Agg$Buffer$Int32$T) {
+METHOD("process", TYP, T, TYP, Num$Array$Int32T) {
 	converter_t *Converter = (converter_t *)Args[0].Val;
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[1].Val;
-	int OutputFrames = ceil(Input->Length.Value * Converter->Data->src_ratio);
+	Num$Array$t *Input = (Num$Array$t *)Args[1].Val;
+	int Channels = Converter->Channels;
+	if (Input->Degree == 1) {
+		if (Channels != 1) SEND(Std$String$new("Invalid shape for sample rate conversion"));
+		if (Input->Dimensions[0].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Input->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else {
+		SEND(Std$String$new("Invalid shape for sample rate conversion"));
+	}
+	int InputFrames = Input->Dimensions[0].Size;
+	int OutputFrames = ceil(InputFrames * Converter->Data->src_ratio);
 	float *OutputBuffer = (float *)Riva$Memory$alloc_atomic(OutputFrames * sizeof(float));
 	float *InputBuffer = Converter->Buffer + Converter->CachedSamples;
 	int InputSpace = BUFFER_SIZE - Converter->CachedSamples;
-	int InputFrames = Input->Length.Value;
 	Converter->Data->end_of_input = 0;
 	Converter->Data->output_frames = OutputFrames;
 	Converter->Data->data_out = OutputBuffer;
-	const int *InputSamples = (int *)Input->Value;
+	const int *InputSamples = (int *)Input->Data;
 	while (InputFrames >= InputSpace) {
 		src_int_to_float_array(InputSamples, InputBuffer, InputSpace);
 		Converter->Data->input_frames = InputSpace;
@@ -165,71 +196,162 @@ METHOD("process", TYP, T, TYP, Agg$Buffer$Int32$T) {
 		Converter->Data->data_out += Converter->Data->output_frames_gen;
 		Converter->Data->output_frames -= Converter->Data->output_frames_gen;
 	}
-	Result->Val = Agg$Buffer$Float32$new(OutputBuffer, Converter->Data->data_out - OutputBuffer);
-	return SUCCESS;
+	Num$Array$t *Output = Num$Array$new(Num$Array$FORMAT_F32, Input->Degree);
+	Output->Data = OutputBuffer;
+	int Samples = Converter->Data->data_out - OutputBuffer;
+	Output->Dimensions[0].Size = Samples / Channels;
+	Output->Dimensions[0].Stride = Channels * sizeof(float);
+	if (Output->Degree > 1) {
+		Output->Dimensions[1].Size = Channels;
+		Output->Dimensions[1].Stride = sizeof(float);
+	}
+	RETURN(Output);
 }
 
-METHOD("process", TYP, T, TYP, Agg$Buffer$Float32$T) {
+METHOD("process", TYP, T, TYP, Num$Array$Float32T) {
 	converter_t *Converter = (converter_t *)Args[0].Val;
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[1].Val;
-	int OutputFrames = ceil(Input->Length.Value / Converter->Data->src_ratio);
+	Num$Array$t *Input = (Num$Array$t *)Args[1].Val;
+	int Channels = Converter->Channels;
+	if (Input->Degree == 1) {
+		if (Channels != 1) SEND(Std$String$new("Invalid shape for sample rate conversion"));
+		if (Input->Dimensions[0].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Input->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+	} else {
+		SEND(Std$String$new("Invalid shape for sample rate conversion"));
+	}
+	int InputFrames = Input->Dimensions[0].Size;
+	int OutputFrames = ceil(InputFrames * Converter->Data->src_ratio);
 	float *OutputBuffer = (float *)Riva$Memory$alloc_atomic(OutputFrames * sizeof(float));
 	float *InputBuffer = Converter->Buffer + Converter->CachedSamples;
-	int InputFrames = Input->Length.Value;
 	Converter->Data->output_frames = OutputFrames;
 	Converter->Data->data_out = OutputBuffer;
-	const float *InputSamples = (float *)Input->Value;
+	const float *InputSamples = (float *)Input->Data;
 	src_process(Converter->State, Converter->Data);
-	Result->Val = Agg$Buffer$Float32$new(OutputBuffer, Converter->Data->data_out - OutputBuffer);
-	return SUCCESS;
+	Num$Array$t *Output = Num$Array$new(Num$Array$FORMAT_F32, Input->Degree);
+	Output->Data = OutputBuffer;
+	int Samples = Converter->Data->data_out - OutputBuffer;
+	Output->Dimensions[0].Size = Samples / Channels;
+	Output->Dimensions[0].Stride = Channels * sizeof(float);
+	if (Output->Degree > 1) {
+		Output->Dimensions[1].Size = Channels;
+		Output->Dimensions[1].Stride = sizeof(float);
+	}
+	RETURN(Output);
 }
 
 ASYMBOL(Convert);
 
-AMETHOD(Convert, TYP, Agg$Buffer$Int16$T, TYP, Agg$Buffer$Float32$T) {
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[0].Val;
-	Agg$Buffer$t *Output = (Agg$Buffer$t *)Args[1].Val;
-	if (Input->Length.Value != Output->Length.Value) {
-		Result->Val = Std$String$new("Buffer lengths do not match");
+AMETHOD(Convert, TYP, Num$Array$Int16T, TYP, Num$Array$Float32T) {
+	Num$Array$t *Input = (Num$Array$t *)Args[0].Val;
+	Num$Array$t *Output = (Num$Array$t *)Args[1].Val;
+	if (Input->Degree != Output->Degree) {
+		Result->Val = Std$String$new("Array shapes do not match");
 		return MESSAGE;
 	}
-	src_short_to_float_array(Input->Value, Output->Value, Input->Length.Value);
-	Result->Arg = Args[1];
-	return SUCCESS;
+	int Length;
+	if (Input->Degree == 1) {
+		if (Input->Dimensions[0].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[1].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		int Channels = Input->Dimensions[1].Size;
+		if (Output->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != Channels * sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+		Length *= Channels;
+	}
+	src_short_to_float_array(Input->Data, Output->Data, Length);
+	RETURN1;
 }
 
-AMETHOD(Convert, TYP, Agg$Buffer$Int32$T, TYP, Agg$Buffer$Float32$T) {
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[0].Val;
-	Agg$Buffer$t *Output = (Agg$Buffer$t *)Args[1].Val;
-	if (Input->Length.Value != Output->Length.Value) {
-		Result->Val = Std$String$new("Buffer lengths do not match");
+AMETHOD(Convert, TYP, Num$Array$Int32T, TYP, Num$Array$Float32T) {
+	Num$Array$t *Input = (Num$Array$t *)Args[0].Val;
+	Num$Array$t *Output = (Num$Array$t *)Args[1].Val;
+	if (Input->Degree != Output->Degree) {
+		Result->Val = Std$String$new("Array shapes do not match");
 		return MESSAGE;
 	}
-	src_int_to_float_array(Input->Value, Output->Value, Input->Length.Value);
-	Result->Arg = Args[1];
-	return SUCCESS;
+	int Length;
+	if (Input->Degree == 1) {
+		if (Input->Dimensions[0].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[1].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		int Channels = Input->Dimensions[1].Size;
+		if (Output->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != Channels * sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+		Length *= Channels;
+	}
+	src_int_to_float_array(Input->Data, Output->Data, Length);
+	RETURN1;
 }
 
-AMETHOD(Convert, TYP, Agg$Buffer$Float32$T, TYP, Agg$Buffer$Int16$T) {
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[0].Val;
-	Agg$Buffer$t *Output = (Agg$Buffer$t *)Args[1].Val;
-	if (Input->Length.Value != Output->Length.Value) {
-		Result->Val = Std$String$new("Buffer lengths do not match");
+AMETHOD(Convert, TYP, Num$Array$Float32T, TYP, Num$Array$Int16T) {
+	Num$Array$t *Input = (Num$Array$t *)Args[0].Val;
+	Num$Array$t *Output = (Num$Array$t *)Args[1].Val;
+	if (Input->Degree != Output->Degree) {
+		Result->Val = Std$String$new("Array shapes do not match");
 		return MESSAGE;
 	}
-	src_float_to_short_array(Input->Value, Output->Value, Input->Length.Value);
-	Result->Arg = Args[1];
-	return SUCCESS;
+	int Length;
+	if (Input->Degree == 1) {
+		if (Input->Dimensions[0].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[1].Stride != sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		int Channels = Input->Dimensions[1].Size;
+		if (Output->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != Channels * sizeof(int16_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+		Length *= Channels;
+	}
+	src_float_to_short_array(Input->Data, Output->Data, Length);
+	RETURN1;
 }
 
-AMETHOD(Convert, TYP, Agg$Buffer$Float32$T, TYP, Agg$Buffer$Int32$T) {
-	Agg$Buffer$t *Input = (Agg$Buffer$t *)Args[0].Val;
-	Agg$Buffer$t *Output = (Agg$Buffer$t *)Args[1].Val;
-	if (Input->Length.Value != Output->Length.Value) {
-		Result->Val = Std$String$new("Buffer lengths do not match");
+AMETHOD(Convert, TYP, Num$Array$Float32T, TYP, Num$Array$Int32T) {
+	Num$Array$t *Input = (Num$Array$t *)Args[0].Val;
+	Num$Array$t *Output = (Num$Array$t *)Args[1].Val;
+	if (Input->Degree != Output->Degree) {
+		Result->Val = Std$String$new("Array shapes do not match");
 		return MESSAGE;
 	}
-	src_float_to_int_array(Input->Value, Output->Value, Input->Length.Value);
-	Result->Arg = Args[1];
-	return SUCCESS;
+	int Length;
+	if (Input->Degree == 1) {
+		if (Input->Dimensions[0].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+	} else if (Input->Degree == 2) {
+		if (Input->Dimensions[1].Stride != sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[1].Stride != sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		int Channels = Input->Dimensions[1].Size;
+		if (Output->Dimensions[1].Size != Channels) SEND(Std$String$new("Number of channels do not match"));
+		if (Input->Dimensions[0].Stride != Channels * sizeof(float)) SEND(Std$String$new("Only compact arrays are supported"));
+		if (Output->Dimensions[0].Stride != Channels * sizeof(int32_t)) SEND(Std$String$new("Only compact arrays are supported"));
+		Length = Input->Dimensions[0].Size;
+		if (Output->Dimensions[0].Size != Length) SEND(Std$String$new("Number of samples do not match"));
+		Length *= Channels;
+	}
+	src_float_to_int_array(Input->Data, Output->Data, Length);
+	RETURN1;
 }

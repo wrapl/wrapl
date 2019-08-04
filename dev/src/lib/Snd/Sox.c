@@ -1,5 +1,4 @@
 #include <Std.h>
-#include <Agg/Buffer.h>
 #include <Agg/Table.h>
 #include <Agg/List.h>
 #include <Sys/Module.h>
@@ -52,10 +51,10 @@ AMETHOD(OpenRead, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-AMETHOD(OpenRead, TYP, Agg$Buffer$T) {
+AMETHOD(OpenRead, TYP, Std$Address$SizedT) {
 	format_t *Format = new(format_t);
 	Format->Type = FormatT;
-	Agg$Buffer$t *Buffer = (Agg$Buffer$t *)Args[0].Val;
+	Std$Address$sizedt *Buffer = (Std$Address$sizedt *)Args[0].Val;
 	// TODO: Support optional parameters
 	sox_signalinfo_t *Signal = 0;
 	sox_encodinginfo_t *Encoding = 0;
@@ -213,8 +212,8 @@ static int riva_effect_flow(sox_effect_t *E, sox_sample_t *IBuf, sox_sample_t *O
 	Std$Object$t *OSampVal = Std$Integer$new_small(OSamp[0]);
 	Std$Function$argument Args[5] = {
 		{Effect, 0},
-		{Agg$Buffer$Int32$new(IBuf, ISamp[0]), 0},
-		{Agg$Buffer$Int32$new(OBuf, OSamp[0]), 0},
+		{Std$Address$new_sized(IBuf, ISamp[0] * sizeof(sox_sample_t)), 0},
+		{Std$Address$new_sized(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
 		{ISampVal, &ISampVal},
 		{OSampVal, &OSampVal}
 	};
@@ -230,7 +229,7 @@ static int riva_effect_drain(sox_effect_t *E, sox_sample_t *OBuf, size_t *OSamp)
 	Std$Object$t *OSampVal = Std$Integer$new_small(OSamp[0]);
 	Std$Function$argument Args[3] = {
 		{Effect, 0},
-		{Agg$Buffer$Int32$new(OBuf, OSamp[0]), 0},
+		{Std$Address$new_sized(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
 		{OSampVal, &OSampVal}
 	};
 	Std$Function$result Result[1];
@@ -304,6 +303,7 @@ METHOD("add", TYP, T, TYP, EffectT) {
 
 INITIAL() {
 	sox_init();
+	sox_format_init();
 }
 
 /*

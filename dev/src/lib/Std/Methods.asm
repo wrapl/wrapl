@@ -896,8 +896,6 @@ amethod Std$String$Of, ADDRESS
 	push byte 12
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
-	mov [eax], byte '#'
-	inc eax
 	mov ebx, [Std$Function_argument(edi).Val]
 	push dword [Std$Address_t(ebx).Value]
 	push .format
@@ -912,7 +910,35 @@ amethod Std$String$Of, ADDRESS
 	ret
 datasect
 .format:
-	db "%x", 0, 0
+	db "#%x", 0
+
+amethod Std$String$Of, TYP, Std$Address$SizedT
+	push byte 24
+	call Riva$Memory$_alloc_atomic
+	mov [esp], eax
+	mov ebx, [Std$Function_argument(edi).Val]
+	push dword [Std$Integer_smallt(Std$Address_sizedt(ebx).Length).Value]
+	push dword [Std$Address_t(ebx).Value]
+	push .format
+	push eax
+	call sprintf
+	add esp, byte 16
+	call Std$String$_new
+	add esp, byte 4
+	mov ecx, eax
+	xor edx, edx
+	xor eax, eax
+	ret
+datasect
+.format:
+	db "#%x:%d", 0, 0
+
+method "length", TYP, Std$Address$SizedT
+	mov eax, [Std$Function_argument(edi).Val]
+	lea ecx, [Std$Address_sizedt(eax).Length]
+	xor edx, edx
+	xor eax, eax
+	ret
 
 extern Riva$Debug$_stack_trace
 

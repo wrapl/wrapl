@@ -31,8 +31,6 @@ WRAPL_MODULES[
 	riva_module("Agg/Methods", [file("Methods.o")])
 ]
 
-riva_module("Agg/Buffer", [file("Buffer.o"), file("Buffer2.o")])
-
 riva_module("Agg/Grid", [file("Grid.o")])
 --riva_module("Agg/Graph", {file("Graph.o"), file("../dso_handle.o")})
 

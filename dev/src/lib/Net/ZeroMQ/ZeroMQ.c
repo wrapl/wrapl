@@ -1,6 +1,5 @@
 #include <Std.h>
 #include <Riva/Memory.h>
-#include <Agg/Buffer.h>
 #include <czmq.h>
 
 typedef struct ctx_t {
@@ -476,18 +475,18 @@ METHOD("append", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	RETURN0;
 }
 
-METHOD("prepend", TYP, MsgT, TYP, Agg$Buffer$T) {
+METHOD("prepend", TYP, MsgT, TYP, Std$Address$SizedT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
-	const char *Mem = Agg$Buffer$get_value(Args[1].Val);
-	size_t *Size = Agg$Buffer$get_length(Args[1].Val);
+	const char *Mem = Std$Address$get_value(Args[1].Val);
+	size_t *Size = Std$Address$get_size(Args[1].Val);
 	zmsg_pushmem(Msg->Handle, Mem, Size);
 	RETURN0;
 }
 
-METHOD("append", TYP, MsgT, TYP, Agg$Buffer$T) {
+METHOD("append", TYP, MsgT, TYP, Std$Address$SizedT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
-	const char *Mem = Agg$Buffer$get_value(Args[1].Val);
-	size_t *Size = Agg$Buffer$get_length(Args[1].Val);
+	const char *Mem = Std$Address$get_value(Args[1].Val);
+	size_t *Size = Std$Address$get_size(Args[1].Val);
 	zmsg_addmem(Msg->Handle, Mem, Size);
 	RETURN0;
 }

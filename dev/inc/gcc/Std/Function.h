@@ -22,12 +22,12 @@ RIVA_STRUCT(result) {
 	void *State;
 };
 
-typedef enum {
-	SUSPEND = -1,
-	SUCCESS = 0,
-	FAILURE = 1,
-	MESSAGE = 2
-} Std$Function$status;
+#define SUSPEND -1
+#define SUCCESS 0
+#define FAILURE 1
+#define MESSAGE 2
+
+typedef int Std$Function$status;
 
 typedef Std$Object$t Std$Function$t;
 

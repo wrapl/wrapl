@@ -1,7 +1,7 @@
 include("Std.rlib")
 include("Riva.rlib")
 include("Agg/List.rlib")
-include("Agg/Buffer.rlib")
+include("Num/Array.rlink")
 include("libsphinxbase.so")
 include("libpocketsphinx.so")
 

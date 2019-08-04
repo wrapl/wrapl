@@ -756,8 +756,6 @@ METHOD("suggest", TYP, SessionT, TYP, Std$String$T) {
 	RETURN(Matches);
 }
 
-extern Std$Type$t ScopeT[];
-
 METHOD("add", TYP, SessionT, TYP, ScopeT) {
 //@session
 //@scope
