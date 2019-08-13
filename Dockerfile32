@@ -55,7 +55,8 @@ RUN apt-get update && apt-get install -y \
 	texinfo \
 	libmad0-dev \
 	libmp3lame-dev \
-	libid3tag0-dev
+	libid3tag0-dev \
+	libmagic-dev
 
 RUN apt-get clean
 

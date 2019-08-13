@@ -55,7 +55,8 @@ RUN apt-get update && apt-get install -y \
 	texinfo \
 	libmad0-dev \
 	libmp3lame-dev \
-	libid3tag0-dev
+	libid3tag0-dev \
+	libmagic-dev
 
 RUN apt-get clean
 
@@ -92,7 +93,11 @@ RUN apt-get update && apt-get install -y \
 	libgcrypt20:i386 \
 	libesmtp6:i386 \
 	libcurl4:i386 \
-	libssh-4:i386
+	libssh-4:i386 \
+	ibmad0:i386 \
+	libmp3lame0:i386 \
+	libid3tag0:i386 \
+	libmagic1:i386
 
 RUN apt-get clean
 
