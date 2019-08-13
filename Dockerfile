@@ -52,7 +52,10 @@ RUN apt-get update && apt-get install -y \
 	libssh-dev \
 	libpocketsphinx-dev \
 	libsphinxbase-dev \
-	texinfo
+	texinfo \
+	libmad0-dev \
+	libmp3lame-dev \
+	libid3tag0-dev
 
 RUN apt-get clean
 

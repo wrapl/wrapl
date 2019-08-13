@@ -159,7 +159,7 @@ scope("lilv";) do
 end
 riva_module("Snd/SampleRate", [file("SampleRate.o")], [SAMPLERATE_LIB])
 riva_module("Snd/SndFile", [file("SndFile.o")], [SNDFILE_LIB, OGG_LIB, VORBIS_LIB, FLAC_LIB, VORBISENC_LIB, VORBISFILE_LIB])
-riva_module("Snd/Sox", [file("Sox.o")], [SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
+riva_module("Snd/Sox", [file("Sox.o")], [SNDFILE_LIB, SOX_LIB, FLAC_LIB, OGG_LIB, VORBIS_LIB])
 scope("pocketsphinx";) do
 	CFLAGS := old + ["-I/usr/include/pocketsphinx", "-I/usr/include/sphinxbase"]
 	riva_module("Snd/PocketSphinx", [file("PocketSphinx.o")])
