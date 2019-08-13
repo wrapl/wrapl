@@ -96,7 +96,7 @@ RUN apt-get update && apt-get install -y \
 	libesmtp6:i386 \
 	libcurl4:i386 \
 	libssh-4:i386 \
-	ibmad0:i386 \
+	libmad0:i386 \
 	libmp3lame0:i386 \
 	libid3tag0:i386 \
 	libmagic1:i386 \
