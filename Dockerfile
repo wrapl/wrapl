@@ -56,7 +56,9 @@ RUN apt-get update && apt-get install -y \
 	libmad0-dev \
 	libmp3lame-dev \
 	libid3tag0-dev \
-	libmagic-dev
+	libmagic-dev \
+	libopencore-amrnb-dev \
+	libopencore-amrwb-dev
 
 RUN apt-get clean
 
@@ -97,7 +99,9 @@ RUN apt-get update && apt-get install -y \
 	ibmad0:i386 \
 	libmp3lame0:i386 \
 	libid3tag0:i386 \
-	libmagic1:i386
+	libmagic1:i386 \
+	libopencore-amrnb0:i386 \
+	libopencore-amrwb0:i386
 
 RUN apt-get clean
 
