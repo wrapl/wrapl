@@ -257,7 +257,6 @@ UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, div, /=);
 #define UPDATE_METHOD(ATYPE, CTYPE, RFUNC, NAME, OP) \
 \
 static void NAME ## _value_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data, CTYPE Value) { \
-	Std$Object$t *String = LeftSquare; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
 		for (int I = 0; I < Dimension->Size; ++I) { \
@@ -273,7 +272,7 @@ static void NAME ## _value_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, vo
 } \
 \
 static void NAME ## _value_array_ ## CTYPE(int Degree, Num$Array$dimension_t *Dimension, void *Data, CTYPE Value) { \
-	if (Degree == 1) return set_value_array0_ ## CTYPE(Dimension, Data, Value); \
+	if (Degree == 1) return NAME ## _value_array0_ ## CTYPE(Dimension, Data, Value); \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
