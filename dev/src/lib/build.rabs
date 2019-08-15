@@ -131,6 +131,7 @@ scope("lib";) do
 	if PLATFORM = "Linux" then
 		subdir("Gir")
 		subdir("Snd")
+		subdir("Img")
 	end
 end
 
