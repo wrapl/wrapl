@@ -5,3 +5,5 @@ subdir("Markdown")
 subdir("Xml")
 subdir("Yaml")
 subdir("LaTeX")
+
+wrapl_module("Fmt/Xe")

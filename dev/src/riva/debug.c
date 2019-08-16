@@ -37,11 +37,11 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 	return 0;
 };
 
-#ifdef LINUX || MACOSX
+#if defined(LINUX) || defined(MACOSX)
 int stack_trace(void **Stack, char **Buffer, int BufferSize) {
 	int Count = 0;
 	for (int I = 0; (Count < BufferSize) && (I < MaxStackScan); ++I) {
-		unsigned const char *Code = Stack[I];
+		unsigned char *Code = Stack[I];
 		const char **Base = GC_base(Code);
 		if (Base) {
 			if (Base[DEBUG_HDR_INDEX] == DebugKey) {
