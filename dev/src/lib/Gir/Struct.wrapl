@@ -27,8 +27,8 @@ DEF New!(namespace, name, cname, gname, parent) (
     type:items <- [];
     type:ctype <- cname + " *";
     type:rtype <- 'Gir${namespace}${name}$T';
-    type:headers <- {'Gir/{namespace}/{name}.h', 'Gir/{namespace}/{name}.h'};
-    type:libraries <- {'Gir/{namespace}/{name}.rlib', 'Gir/{namespace}/{name}.rlib'};
+    type:headers <- {'Gir/{namespace}/{name}.h'};
+    type:libraries <- {'Gir/{namespace}/{name}.rlib'};
     type:parent <- parent;
     type:interfaces <- [];
     
