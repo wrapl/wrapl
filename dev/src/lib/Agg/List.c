@@ -1402,13 +1402,16 @@ METHOD("splice", TYP, T, TYP, Std$Integer$SmallT, TYP, T) {
 	};
 }
 
-/*
+#ifdef THREADED
+
 METHOD("length", TYP, T) {
 //@list
 //:Std$Integer$SmallT
 // returns the length of <var>list</var>
 	const _list *List = (_list *)Args[0].Val;
+	RDLOCK(List);
 	Result->Val = Std$Integer$new_small(List->Length);
+	UNLOCK(List);
 	return SUCCESS;
 };
 
@@ -1417,10 +1420,13 @@ METHOD("size", TYP, T) {
 //:Std$Integer$SmallT
 // returns the length of <var>list</var>
 	const _list *List = (_list *)Args[0].Val;
+	RDLOCK(List);
 	Result->Val = Std$Integer$new_small(List->Length);
+	UNLOCK(List);
 	return SUCCESS;
 };
-*/
+
+#endif
 
 STRING(LeftBracket, "[");
 STRING(RightBracket, "]");
