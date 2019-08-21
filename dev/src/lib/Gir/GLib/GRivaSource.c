@@ -1,10 +1,21 @@
 #include <Std.h>
 #include <Riva.h>
 #include <Gir/GLib/Source.h>
+#include <pthread.h>
+
+typedef struct event_t event_t;
+
+struct event_t {
+	struct event_t *Next;
+	Std$Object$t *Function;
+};
 
 typedef struct GRivaSource {
 	GSource Base;
+	event_t *Head, **Tail;
+	pthread_mutex_t Mutex[1];
 	GPollFD Read[1];
+	int Write;
 } GRivaSource;
 
 static gboolean griva_prepare(GRivaSource *Source, gint *Timeout) {
@@ -17,13 +28,15 @@ static gboolean griva_check(GRivaSource *Source) {
 };
 
 static gboolean griva_dispatch(GRivaSource *Source, GSourceFunc Callback, gpointer Data) {
-	Std$Function$t *Function;
-	if (read(Source->Read->fd, &Function, sizeof(Function)) == sizeof(Function)) {
-		Std$Function$result Result;
-		Std$Function$call(Function, 0, &Result);
-	};
+	char Ignore;
+	read(Source->Read->fd, &Ignore, 1);
+	pthread_mutex_lock(Source->Mutex);
+	event_t *Event = Source->Head;
+	if (!(Source->Head = Event->Next)) Source->Tail = &Source->Head;
+	pthread_mutex_unlock(Source->Mutex);
+	Std$Function$result Result;
+	Std$Function$call(Event->Function, 0, &Result);
 	return TRUE;
-	
 };
 
 static GSourceFuncs Funcs = {
@@ -35,8 +48,7 @@ static GSourceFuncs Funcs = {
 
 typedef struct grivasource_t {
 	Std$Type$t *Type;
-	GRivaSource *Value;
-	int Write;
+	GRivaSource *Handle;
 } grivasource_t;
 
 TYPE(T, Gir$GLib$Source$T);
@@ -44,22 +56,30 @@ TYPE(T, Gir$GLib$Source$T);
 GLOBAL_FUNCTION(New, 0) {
 	grivasource_t *Source = new(grivasource_t);
 	Source->Type = T;
-	Source->Value = g_source_new(&Funcs, sizeof(GRivaSource));
+	Source->Handle = g_source_new(&Funcs, sizeof(GRivaSource));
 	int Pipe[2];
 	pipe(Pipe);
-	Source->Write = Pipe[1];
-	GPollFD *Read = Source->Value->Read;
+	Source->Handle->Write = Pipe[1];
+	GPollFD *Read = Source->Handle->Read;
 	Read->fd = Pipe[0];
 	Read->events = G_IO_IN;
-	g_source_add_poll(Source->Value, Read);
+	Source->Handle->Head = 0;
+	Source->Handle->Tail = &Source->Handle->Head;
+	g_source_add_poll(Source->Handle, Read);
 	Result->Val = Source;
 	return SUCCESS;
 };
 
-METHOD("Send", TYP, T, ANY) {
-	grivasource_t *Source = Args[0].Val;
-	Std$Function$t *Function = Args[1].Val;
-	write(Source->Write, &Function, sizeof(Function));
+METHOD("send", TYP, T, ANY) {
+	GRivaSource *Source = ((grivasource_t *)Args[0].Val)->Handle;
+	event_t *Event = new(event_t);
+	Event->Function = Args[1].Val;
+	pthread_mutex_lock(Source->Mutex);
+	Source->Tail[0] = Event;
+	Source->Tail = &Event->Next;
+	if (!Source->Head) Source->Head = Event;
+	pthread_mutex_unlock(Source->Mutex);
+	write(Source->Write, " ", 1);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };
