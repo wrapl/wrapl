@@ -396,6 +396,37 @@ METHOD("copy", TYP, ATYPE) { \
 METHOD("get", TYP, ATYPE) { \
 	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
 	RETURN(RNEW(*(CTYPE *)Array->Data)); \
+} \
+
+void partial_sums_int32_t(int Degree, Num$Array$dimension_t *Dimension, void *Data, int32_t *Sums) {
+	if (Degree == 0) {
+		*(int32_t *)Data = Sums[0];
+	} else {
+		Sums[Degree - 1] = Sums[Degree];
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			void *Data2 = Data;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				Data2 = ((char *)Data + Indices[I] * Dimension->Stride);
+				partial_sums_int32_t(Degree - 1, Dimension + 1, Data2, Sums);
+				Sums[Degree - 1] += *(int32_t *)Data2;
+			}
+		} else {
+			for (int I = 0; I < Dimension->Size; ++I) {
+				partial_sums_int32_t(Degree - 1, Dimension + 1, Data, Sums);
+				Data += Dimension->Stride;
+				Sums[Degree - 1] += *(int32_t *)Data;
+			}
+		}
+	}
+}
+
+METHOD("partial_sums", TYP, Num$Array$Int32T) {
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
+	int32_t Sums[Array->Degree + 1];
+	Sums[Array->Degree] = 0;
+	partial_sums_int32_t(Array->Degree, Array->Dimensions, Array->Data, Sums);
+	RETURN0;
 }
 
 METHODS(Num$Array$Int8T, int8_t, "%d", Std$Integer$int, Std$Integer$new_small);

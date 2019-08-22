@@ -63,6 +63,7 @@ GLOBAL_FUNCTION(New, 0) {
 	GPollFD *Read = Source->Handle->Read;
 	Read->fd = Pipe[0];
 	Read->events = G_IO_IN;
+	pthread_mutex_init(Source->Handle->Mutex, NULL);
 	Source->Handle->Head = 0;
 	Source->Handle->Tail = &Source->Handle->Head;
 	g_source_add_poll(Source->Handle, Read);

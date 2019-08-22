@@ -1,4 +1,5 @@
 library("Gir/GLib/Source.rlib")
+library("libpthread.rlib")
 
 export("T")
 export("New")
