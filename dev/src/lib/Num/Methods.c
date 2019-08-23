@@ -301,6 +301,13 @@ METHOD(#NAME, TYP, ATYPE, TYP, Std$Number$T) { \
 STRING(LeftSquare, "[");
 STRING(RightSquare, "]");
 
+typedef struct call_info_t {
+	int Count;
+	Std$Object$t *Function;
+	Std$Function$result Result[1];
+	Std$Function$argument Args[];
+} call_info_t;
+
 #define METHODS(ATYPE, CTYPE, FORMAT, RFUNC, RNEW) \
 \
 static Std$Object$t *to_string_array0_ ## CTYPE(Num$Array$dimension_t *Dimension, void *Data) { \
@@ -367,6 +374,57 @@ UPDATE_METHOD(ATYPE, CTYPE, RFUNC, sub, -=); \
 UPDATE_METHOD(ATYPE, CTYPE, RFUNC, mul, *=); \
 UPDATE_METHOD(ATYPE, CTYPE, RFUNC, div, /=); \
 \
+static int set_function_array_ ## CTYPE(int Degree, Num$Array$dimension_t *Dimension, void *Data, call_info_t *Info) { \
+	if (Degree == 0) { \
+		Info->Args[0].Val = RNEW(*(CTYPE *)Data); \
+		switch (Std$Function$invoke(Info->Function, Info->Count, Info->Result, Info->Args)) { \
+		case SUSPEND: case SUCCESS: *(CTYPE *)Data = RFUNC(Info->Result->Val); \
+		case FAILURE: break; \
+		case MESSAGE: return 1; \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Info->Args[Degree].Val = Std$Integer$new_small(Indices[I] + 1); \
+				if (set_function_array_ ## CTYPE(Degree - 1, Dimension + 1, Data + (Indices[I]) * Dimension->Stride, Info)) { \
+					return 1; \
+				} \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Info->Args[Degree].Val = Std$Integer$new_small(I + 1); \
+				if (set_function_array_ ## CTYPE(Degree - 1, Dimension + 1, Data, Info)) { \
+					return 1; \
+				} \
+				Data += Stride; \
+			} \
+		} \
+	} \
+	return 0; \
+} \
+\
+METHOD("setf", TYP, ATYPE, ANY) { \
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
+	if (Array->Degree == 0) { \
+		switch (Std$Function$call(Args[1].Val, 1, Result, RNEW(*(CTYPE *)Array->Data), 0)) { \
+		case SUSPEND: case SUCCESS: *(CTYPE *)Array->Data = RFUNC(Result->Val); \
+		case FAILURE: break; \
+		case MESSAGE: return MESSAGE; \
+		} \
+	} else { \
+		call_info_t *Info = Riva$Memory$alloc(sizeof(call_info_t) + (Array->Degree + 1) * sizeof(Std$Function$argument)); \
+		Info->Count = Array->Degree + 1; \
+		Info->Function = Args[1].Val; \
+		if (set_function_array_ ## CTYPE(Array->Degree, Array->Dimensions, Array->Data, Info)) { \
+			Result->Val = Info->Result->Val; \
+			return MESSAGE; \
+		} \
+	} \
+	RETURN0; \
+}\
+\
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, Num$Array$Int8T, int8_t); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, Num$Array$UInt8T, uint8_t); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, Num$Array$Int16T, int16_t); \
@@ -397,36 +455,47 @@ METHOD("get", TYP, ATYPE) { \
 	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
 	RETURN(RNEW(*(CTYPE *)Array->Data)); \
 } \
-
-void partial_sums_int32_t(int Degree, Num$Array$dimension_t *Dimension, void *Data, int32_t *Sums) {
-	if (Degree == 0) {
-		*(int32_t *)Data = Sums[0];
-	} else {
-		Sums[Degree - 1] = Sums[Degree];
-		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
-			void *Data2 = Data;
-			for (int I = 0; I < Dimension->Size; ++I) {
-				Data2 = ((char *)Data + Indices[I] * Dimension->Stride);
-				partial_sums_int32_t(Degree - 1, Dimension + 1, Data2, Sums);
-				Sums[Degree - 1] += *(int32_t *)Data2;
-			}
-		} else {
-			for (int I = 0; I < Dimension->Size; ++I) {
-				partial_sums_int32_t(Degree - 1, Dimension + 1, Data, Sums);
-				Data += Dimension->Stride;
-				Sums[Degree - 1] += *(int32_t *)Data;
-			}
-		}
-	}
-}
-
-METHOD("partial_sums", TYP, Num$Array$Int32T) {
-	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
-	int32_t Sums[Array->Degree + 1];
-	Sums[Array->Degree] = 0;
-	partial_sums_int32_t(Array->Degree, Array->Dimensions, Array->Data, Sums);
-	RETURN0;
+\
+void partial_sums_ ## CTYPE(int Target, int Degree, Num$Array$dimension_t *Dimension, void *Data, int LastRow) { \
+	if (Degree == 0) { \
+		*(CTYPE *)Data += *(CTYPE *)(Data - LastRow); \
+	} else if (Target == Degree) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Data + Indices[I] * Stride, (Indices[I] - Indices[I - 1]) * Stride); \
+			} \
+		} else { \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				Data += Stride; \
+				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Data, Stride); \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Data + Indices[I] * Stride, LastRow); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				partial_sums_ ## CTYPE(Target, Degree - 1, Dimension + 1, Data, LastRow); \
+				Data += Stride; \
+			} \
+		} \
+	} \
+} \
+\
+METHOD("partial_sums", TYP, ATYPE, TYP, Std$Integer$SmallT) { \
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val; \
+	int Target = Std$Integer$get_small(Args[1].Val); \
+	if (Target <= 0) Target += Array->Degree + 1; \
+	if (Target < 1 || Target > Array->Degree) SEND(Std$String$new("Dimension index invalid")); \
+	Target = Array->Degree + 1 - Target; \
+	partial_sums_ ## CTYPE(Target, Array->Degree, Array->Dimensions, Array->Data, 0); \
+	RETURN0; \
 }
 
 METHODS(Num$Array$Int8T, int8_t, "%d", Std$Integer$int, Std$Integer$new_small);
