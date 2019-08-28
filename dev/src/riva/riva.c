@@ -321,7 +321,7 @@ static uint32_t fixup_bss_section(section_t *Section, jmp_buf OnError) {
 };
 
 static uint32_t fixup_tbss_section(section_t *Section, jmp_buf OnError) {
-	printf("TBSS SECTION: 0x%x\n", Section->Data);
+	//printf("TBSS SECTION: 0x%x\n", Section->Data);
 	return (uint32_t)Section->Data;
 };
 
