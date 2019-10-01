@@ -209,6 +209,13 @@ static Std$Object$t *recv_timestamp_text(char *Data, int Length) {
 	return (Std$Object$t *)Time;
 }
 
+static Std$Object$t *recv_uuid_text(char *Data, int Length) {
+	Alg$UUID$t *UUID = new(Alg$UUID$t);
+	UUID->Type = Alg$UUID$T;
+	uuid_parse(Data, UUID->Value);
+	return (Std$Object$t *)UUID;
+}
+
 recv_value_fn lookup_recv_value_fn(const PGresult *Res, int Col) {
 	switch (PQfformat(Res, Col)) {
 	case 0:
@@ -228,6 +235,8 @@ recv_value_fn lookup_recv_value_fn(const PGresult *Res, int Col) {
 		case TIMESTAMPOID:
 		case TIMESTAMPTZOID:
 			return recv_timestamp_text;
+		case UUIDOID:
+			return recv_uuid_text;
 		}
 		printf("Unknown OID: %d\n", PQftype(Res, Col));
 		return recv_nil;
