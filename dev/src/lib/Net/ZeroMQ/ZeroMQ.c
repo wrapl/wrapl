@@ -366,6 +366,7 @@ Std$Integer$smallt SockOptReqRelaxed[] = {{SockOptT, ZMQ_REQ_RELAXED}};
 Std$Integer$smallt SockOptRouterHandover[] = {{SockOptT, ZMQ_ROUTER_HANDOVER}};
 Std$Integer$smallt SockOptRouterMandatory[] = {{SockOptT, ZMQ_ROUTER_MANDATORY}};
 Std$Integer$smallt SockOptRouterRaw[] = {{SockOptT, ZMQ_ROUTER_RAW}};
+Std$Integer$smallt SockOptRoutingID[] = {{SockOptT, ZMQ_ROUTING_ID}};
 Std$Integer$smallt SockOptSendBuffer[] = {{SockOptT, ZMQ_SNDBUF}};
 Std$Integer$smallt SockOptSendHWM[] = {{SockOptT, ZMQ_SNDHWM}};
 Std$Integer$smallt SockOptSendTimeout[] = {{SockOptT, ZMQ_SNDTIMEO}};
@@ -447,9 +448,10 @@ METHOD("set", TYP, SockT, TYP, SockOptT, ANY) {
 	case ZMQ_CURVE_SECRETKEY:
 	case ZMQ_CURVE_SERVERKEY:
 	case ZMQ_GSSAPI_PRINCIPAL:
-	case ZMQ_IDENTITY:
+	//case ZMQ_IDENTITY:
 	case ZMQ_PLAIN_PASSWORD:
 	case ZMQ_PLAIN_USERNAME:
+	case ZMQ_ROUTING_ID:
 	case ZMQ_SUBSCRIBE:
 	case ZMQ_UNSUBSCRIBE:
 	case ZMQ_ZAP_DOMAIN:
