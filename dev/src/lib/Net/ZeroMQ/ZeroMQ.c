@@ -636,6 +636,19 @@ METHOD("pop", TYP, MsgT, VAL, Std$String$T) {
 	}
 }
 
+METHOD("pop", TYP, MsgT, VAL, FrameT) {
+	msg_t *Msg = (msg_t *)Args[0].Val;
+	zframe_t *Handle = zmsg_pop(Msg->Handle);
+	if (Handle) {
+		frame_t *Frame = new(frame_t);
+		Frame->Type = FrameT;
+		Frame->Handle = Handle;
+		RETURN(Frame);
+	} else {
+		FAIL;
+	}
+}
+
 METHOD("pop", TYP, MsgT, VAL, MsgT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	zmsg_t *Handle = zmsg_popmsg(Msg->Handle);
