@@ -331,6 +331,139 @@ METHOD("proxy", TYP, SockT, TYP, SockT, TYP, SockT) {
 	return SUCCESS;
 }
 
+TYPE(SockOptT);
+Std$Integer$smallt SockOptAffinity[] = {{SockOptT, ZMQ_AFFINITY}};
+Std$Integer$smallt SockOptBacklog[] = {{SockOptT, ZMQ_BACKLOG}};
+Std$Integer$smallt SockOptConnectRID[] = {{SockOptT, ZMQ_CONNECT_RID}};
+Std$Integer$smallt SockOptConflate[] = {{SockOptT, ZMQ_CONFLATE}};
+Std$Integer$smallt SockOptCurvePublicKey[] = {{SockOptT, ZMQ_CURVE_PUBLICKEY}};
+Std$Integer$smallt SockOptCurveSecretKey[] = {{SockOptT, ZMQ_CURVE_SECRETKEY}};
+Std$Integer$smallt SockOptCurveServer[] = {{SockOptT, ZMQ_CURVE_SERVER}};
+Std$Integer$smallt SockOptCurveServerKey[] = {{SockOptT, ZMQ_CURVE_SERVERKEY}};
+Std$Integer$smallt SockOptGSSAPIPlainText[] = {{SockOptT, ZMQ_GSSAPI_PLAINTEXT}};
+Std$Integer$smallt SockOptGSSAPIPrincipal[] = {{SockOptT, ZMQ_GSSAPI_PRINCIPAL}};
+Std$Integer$smallt SockOptGSSAPIServer[] = {{SockOptT, ZMQ_GSSAPI_SERVER}};
+Std$Integer$smallt SockOptGSSAPIServicePrincipal[] = {{SockOptT, ZMQ_GSSAPI_SERVICE_PRINCIPAL}};
+Std$Integer$smallt SockOptHandshakeInterval[] = {{SockOptT, ZMQ_HANDSHAKE_IVL}};
+Std$Integer$smallt SockOptIdentity[] = {{SockOptT, ZMQ_IDENTITY}};
+Std$Integer$smallt SockOptImmediate[] = {{SockOptT, ZMQ_IMMEDIATE}};
+Std$Integer$smallt SockOptIPv6[] = {{SockOptT, ZMQ_IPV6}};
+Std$Integer$smallt SockOptLinger[] = {{SockOptT, ZMQ_LINGER}};
+Std$Integer$smallt SockOptMaxMsgSize[] = {{SockOptT, ZMQ_MAXMSGSIZE}};
+Std$Integer$smallt SockOptMulticastHops[] = {{SockOptT, ZMQ_MULTICAST_HOPS}};
+Std$Integer$smallt SockOptPlainPassword[] = {{SockOptT, ZMQ_PLAIN_PASSWORD}};
+Std$Integer$smallt SockOptPlainServer[] = {{SockOptT, ZMQ_PLAIN_SERVER}};
+Std$Integer$smallt SockOptPlainUsername[] = {{SockOptT, ZMQ_PLAIN_USERNAME}};
+Std$Integer$smallt SockOptProbeRouter[] = {{SockOptT, ZMQ_PROBE_ROUTER}};
+Std$Integer$smallt SockOptRate[] = {{SockOptT, ZMQ_RATE}};
+Std$Integer$smallt SockOptReceiveBuffer[] = {{SockOptT, ZMQ_RCVBUF}};
+Std$Integer$smallt SockOptReceiveHWM[] = {{SockOptT, ZMQ_RCVHWM}};
+Std$Integer$smallt SockOptReceiveTimeout[] = {{SockOptT, ZMQ_RCVTIMEO}};
+Std$Integer$smallt SockOptReconnectIntervalMax[] = {{SockOptT, ZMQ_RECONNECT_IVL_MAX}};
+Std$Integer$smallt SockOptRecoveryInterval[] = {{SockOptT, ZMQ_RECOVERY_IVL}};
+Std$Integer$smallt SockOptReqCorrelate[] = {{SockOptT, ZMQ_REQ_CORRELATE}};
+Std$Integer$smallt SockOptReqRelaxed[] = {{SockOptT, ZMQ_REQ_RELAXED}};
+Std$Integer$smallt SockOptRouterHandover[] = {{SockOptT, ZMQ_ROUTER_HANDOVER}};
+Std$Integer$smallt SockOptRouterMandatory[] = {{SockOptT, ZMQ_ROUTER_MANDATORY}};
+Std$Integer$smallt SockOptRouterRaw[] = {{SockOptT, ZMQ_ROUTER_RAW}};
+Std$Integer$smallt SockOptSendBuffer[] = {{SockOptT, ZMQ_SNDBUF}};
+Std$Integer$smallt SockOptSendHWM[] = {{SockOptT, ZMQ_SNDHWM}};
+Std$Integer$smallt SockOptSendTimeout[] = {{SockOptT, ZMQ_SNDTIMEO}};
+Std$Integer$smallt SockOptSubscribe[] = {{SockOptT, ZMQ_SUBSCRIBE}};
+Std$Integer$smallt SockOptTCPKeepAlive[] = {{SockOptT, ZMQ_TCP_KEEPALIVE}};
+Std$Integer$smallt SockOptTCPKeepAliveCount[] = {{SockOptT, ZMQ_TCP_KEEPALIVE_CNT}};
+Std$Integer$smallt SockOptTCPKeepAliveIdle[] = {{SockOptT, ZMQ_TCP_KEEPALIVE_IDLE}};
+Std$Integer$smallt SockOptTCPKeepAliveInterval[] = {{SockOptT, ZMQ_TCP_KEEPALIVE_INTVL}};
+Std$Integer$smallt SockOptTypeOfService[] = {{SockOptT, ZMQ_TOS}};
+Std$Integer$smallt SockOptUnsubscribe[] = {{SockOptT, ZMQ_UNSUBSCRIBE}};
+Std$Integer$smallt SockOptXPubVerbose[] = {{SockOptT, ZMQ_XPUB_VERBOSE}};
+Std$Integer$smallt SockOptZapDomain[] = {{SockOptT, ZMQ_ZAP_DOMAIN}};
+Std$Integer$smallt SockOptTCPAcceptFilter[] = {{SockOptT, ZMQ_TCP_ACCEPT_FILTER}};
+Std$Integer$smallt SockOptIPCFilterGID[] = {{SockOptT, ZMQ_IPC_FILTER_GID}};
+Std$Integer$smallt SockOptIPCFilterPID[] = {{SockOptT, ZMQ_IPC_FILTER_PID}};
+Std$Integer$smallt SockOptIPCFilterUID[] = {{SockOptT, ZMQ_IPC_FILTER_UID}};
+Std$Integer$smallt SockOptIPv4Only[] = {{SockOptT, ZMQ_IPV4ONLY}};
+
+METHOD("set", TYP, SockT, TYP, SockOptT, ANY) {
+	sock_t *Sock = (sock_t *)Args[0].Val;
+	int Option = Std$Integer$get_small(Args[1].Val);
+	switch (Option) {
+	case ZMQ_AFFINITY:
+	{
+		uint64_t Value = Std$Integer$get_u64(Args[2].Val);
+		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(uint64_t));
+		break;
+	}
+	case ZMQ_MAXMSGSIZE:
+	{
+		int64_t Value = Std$Integer$get_s64(Args[2].Val);
+		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(uint64_t));
+		break;
+	}
+	case ZMQ_BACKLOG:
+	case ZMQ_CONFLATE:
+	case ZMQ_CURVE_SERVER:
+	case ZMQ_GSSAPI_PLAINTEXT:
+	case ZMQ_GSSAPI_SERVER:
+	case ZMQ_HANDSHAKE_IVL:
+	case ZMQ_IMMEDIATE:
+	case ZMQ_IPV6:
+	case ZMQ_LINGER:
+	case ZMQ_MULTICAST_HOPS:
+	case ZMQ_PLAIN_SERVER:
+	case ZMQ_PROBE_ROUTER:
+	case ZMQ_RATE:
+	case ZMQ_RCVBUF:
+	case ZMQ_RCVHWM:
+	case ZMQ_RCVTIMEO:
+	case ZMQ_RECONNECT_IVL:
+	case ZMQ_RECONNECT_IVL_MAX:
+	case ZMQ_RECOVERY_IVL:
+	case ZMQ_REQ_CORRELATE:
+	case ZMQ_REQ_RELAXED:
+	case ZMQ_ROUTER_HANDOVER:
+	case ZMQ_ROUTER_MANDATORY:
+	case ZMQ_ROUTER_RAW:
+	case ZMQ_SNDBUF:
+	case ZMQ_SNDHWM:
+	case ZMQ_SNDTIMEO:
+	case ZMQ_TCP_KEEPALIVE:
+	case ZMQ_TCP_KEEPALIVE_CNT:
+	case ZMQ_TCP_KEEPALIVE_IDLE:
+	case ZMQ_TCP_KEEPALIVE_INTVL:
+	case ZMQ_TOS:
+	case ZMQ_XPUB_VERBOSE:
+	case ZMQ_IPC_FILTER_GID:
+	case ZMQ_IPC_FILTER_PID:
+	case ZMQ_IPC_FILTER_UID:
+	case ZMQ_IPV4ONLY:
+	{
+		int Value = Std$Integer$get_small(Args[2].Val);
+		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(int));
+		break;
+	}
+	case ZMQ_CONNECT_RID:
+	case ZMQ_CURVE_PUBLICKEY:
+	case ZMQ_CURVE_SECRETKEY:
+	case ZMQ_CURVE_SERVERKEY:
+	case ZMQ_GSSAPI_PRINCIPAL:
+	case ZMQ_IDENTITY:
+	case ZMQ_PLAIN_PASSWORD:
+	case ZMQ_PLAIN_USERNAME:
+	case ZMQ_SUBSCRIBE:
+	case ZMQ_UNSUBSCRIBE:
+	case ZMQ_ZAP_DOMAIN:
+	case ZMQ_TCP_ACCEPT_FILTER:
+	{
+		void *Value = Std$String$flatten(Args[2].Val);
+		int Length = Std$String$get_length(Args[2].Val);
+		zmq_setsockopt(Sock->Handle, Option, Value, Length);
+		break;
+	}
+	}
+	RETURN0;
+}
+
 typedef struct frame_t {
 	const Std$Type$t *Type;
 	zframe_t *Handle;
