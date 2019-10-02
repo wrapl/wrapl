@@ -14,10 +14,11 @@ FUNCTIONAL_TYPE(T, Std$Function$CT);
 
 typedef struct redis_async_t {
 	const Std$Type$t *Type;
+	Std$Function$status (*Invoke)(FUNCTION_PARAMS);
 	redisAsyncContext *Handle;
 } redis_async_t;
 
-TYPE(AsyncT);
+FUNCTIONAL_TYPE(AsyncT, Std$Function$CT);
 
 TYPE(StatusT, Std$String$T);
 TYPE(ErrorT, Std$String$T);
@@ -110,20 +111,6 @@ METHOD("command", TYP, T, TYP, Std$String$T) {
 	};
 };
 
-GLOBAL_FUNCTION(NewAsync, 2) {
-	redis_async_t *Redis = new(redis_async_t);
-	Redis->Type = AsyncT;
-	Redis->Handle = redisAsyncConnect(Std$String$flatten(Args[0].Val), Std$Integer$get_small(Args[1].Val));
-	if (Redis->Handle->err) {
-		Result->Val = Std$String$copy(Redis->Handle->errstr);
-		return MESSAGE;
-	} else {
-		Redis->Handle->data = Redis;
-		Result->Val = (Std$Object$t *)Redis;
-		return SUCCESS;
-	};
-};
-
 static void async_callback(redisAsyncContext *Context, redisReply *Reply, Std$Object$t *Function) {
 	printf("At least we get here!\n");
 	Std$Function$result Result;
@@ -137,14 +124,14 @@ static void async_callback(redisAsyncContext *Context, redisReply *Reply, Std$Ob
 	};
 };
 
-METHOD("command", TYP, AsyncT, ANY, TYP, Std$String$T) {
-	redis_async_t *Redis = (redis_async_t *)Args[0].Val;
-	int Argc = Count - 2;
+static Std$Function$status redis_async_invoke(FUNCTION_PARAMS) {
+	redis_async_t *Redis = (redis_async_t *)Fun;
+	int Argc = Count - 1;
 	const char **Argv = (const char **)Riva$Memory$alloc(Argc * sizeof(const char *));
 	size_t *ArgvLen = (size_t *)Riva$Memory$alloc(Argc * sizeof(size_t));
 	for (size_t I = 0; I < Argc; ++I) {
 		Std$Function$result Result0;
-		switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[I + 2].Val, Args[I + 2].Ref)) {
+		switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[I].Val, Args[I].Ref)) {
 		case SUSPEND: case SUCCESS:
 			Argv[I] = Std$String$flatten(Result0.Val);
 			ArgvLen[I] = ((Std$String$t *)Result0.Val)->Length.Value;
@@ -156,10 +143,52 @@ METHOD("command", TYP, AsyncT, ANY, TYP, Std$String$T) {
 	};
 	Result->Arg = Args[0];
 	int Status;
-	if (Args[1].Val == Std$Object$Nil) {
+	if (Args[Count - 1].Val == Std$Object$Nil) {
 		Status = redisAsyncCommandArgv(Redis->Handle, 0, 0, Argc, Argv, ArgvLen);
 	} else {
-		Status = redisAsyncCommandArgv(Redis->Handle, (void *)async_callback, Args[1].Val, Argc, Argv, ArgvLen);
+		Status = redisAsyncCommandArgv(Redis->Handle, (void *)async_callback, Args[Count - 1].Val, Argc, Argv, ArgvLen);
+	};
+	return (Status == REDIS_OK) ? SUCCESS : FAILURE;
+};
+
+GLOBAL_FUNCTION(NewAsync, 2) {
+	redis_async_t *Redis = new(redis_async_t);
+	Redis->Type = AsyncT;
+	Redis->Invoke = redis_async_invoke;
+	Redis->Handle = redisAsyncConnect(Std$String$flatten(Args[0].Val), Std$Integer$get_small(Args[1].Val));
+	if (Redis->Handle->err) {
+		Result->Val = Std$String$copy(Redis->Handle->errstr);
+		return MESSAGE;
+	} else {
+		Redis->Handle->data = Redis;
+		Result->Val = (Std$Object$t *)Redis;
+		return SUCCESS;
+	};
+};
+
+METHOD("command", TYP, AsyncT, ANY, TYP, Std$String$T) {
+	redis_async_t *Redis = (redis_async_t *)Args[0].Val;
+	int Argc = Count - 2;
+	const char **Argv = (const char **)Riva$Memory$alloc(Argc * sizeof(const char *));
+	size_t *ArgvLen = (size_t *)Riva$Memory$alloc(Argc * sizeof(size_t));
+	for (size_t I = 0; I < Argc; ++I) {
+		Std$Function$result Result0;
+		switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[I + 1].Val, Args[I + 1].Ref)) {
+		case SUSPEND: case SUCCESS:
+			Argv[I] = Std$String$flatten(Result0.Val);
+			ArgvLen[I] = ((Std$String$t *)Result0.Val)->Length.Value;
+			break;
+		case FAILURE: case MESSAGE:
+			Result->Val = Std$String$new("Could not convert parameter to string");
+			return MESSAGE;
+		};
+	};
+	Result->Arg = Args[0];
+	int Status;
+	if (Args[Count - 1].Val == Std$Object$Nil) {
+		Status = redisAsyncCommandArgv(Redis->Handle, 0, 0, Argc, Argv, ArgvLen);
+	} else {
+		Status = redisAsyncCommandArgv(Redis->Handle, (void *)async_callback, Args[Count - 1].Val, Argc, Argv, ArgvLen);
 	};
 	return (Status == REDIS_OK) ? SUCCESS : FAILURE;
 };
