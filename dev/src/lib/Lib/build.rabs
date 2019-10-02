@@ -6,7 +6,7 @@ var GMP_LIB := EXT_DIR / "lib/libgmp.a" => fun() do
 	GMP_DIR:chdir
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={EXT_DIR}',
-		"ABI=32",
+		'ABI={if MACHINE = "x86_64" then "64" else "32" end}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'

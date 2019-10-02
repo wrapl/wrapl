@@ -16,6 +16,13 @@ POSTGRES_LIB := EXT_DIR / "lib/libpq.a" => fun() do
 	execute('make install PREFIX={EXT_DIR}')
 end
 
+HIREDIS_LIB := EXT_DIR / "lib/libhiredis.a" => fun() do
+	file("hiredis"):rmdir:mkdir:chdir
+	execute('wget -nv https://github.com/redis/hiredis/archive/v0.14.0.tar.gz -O- | tar xzP --strip-components=1')
+	--execute('make CFLAGS=\"{LIBCFLAGS}\" static')
+	execute('make install CFLAGS=\"{LIBCFLAGS}\" PREFIX={EXT_DIR}')
+end
+
 PREBUILDS := old + [POSTGRES_LIB]
 CFLAGS := old + ["-std=gnu99", '-I{file("include")}', '-I{file("postgres/src/include")}']
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
@@ -23,3 +30,4 @@ LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedF
 riva_module("DB/Sqlite", [file("SqliteRiva.o")])
 riva_module("DB/LMDB", [file("LMDB.o")])
 riva_module("DB/Postgres", [file("Postgres.o")], [POSTGRES_LIB])
+riva_module("DB/Redis", [file("Redis.o")], [HIREDIS_LIB])
