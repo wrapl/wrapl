@@ -136,13 +136,21 @@ METHOD("~=", TYP, T, TYP, T) {
 
 AMETHOD(Std$String$Of, TYP, T) {
 	Sys$Time$t *Time = Args[0].Val;
-	/*char *Buffer = Riva$Memory$alloc_atomic(26);
-	ctime_r(&Time->Value, Buffer);
-	Buffer[strlen(Buffer) - 1] = 0;*/
 	struct tm TM[1];
 	gmtime_r(&Time->Value, TM);
 	char *Buffer = Riva$Memory$alloc_atomic(40);
 	int Length = strftime(Buffer, 40, "%F %T%z", TM);
+	Result->Val = Std$String$new_length(Buffer, Length);
+	return SUCCESS;
+};
+
+AMETHOD(Std$String$Of, TYP, T, TYP, Std$String$T) {
+	Sys$Time$t *Time = Args[0].Val;
+	const char *Format = Std$String$flatten(Args[1].Val);
+	struct tm TM[1];
+	gmtime_r(&Time->Value, TM);
+	char *Buffer = Riva$Memory$alloc_atomic(60);
+	int Length = strftime(Buffer, 60, Format, TM);
 	Result->Val = Std$String$new_length(Buffer, Length);
 	return SUCCESS;
 };

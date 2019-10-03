@@ -45,8 +45,9 @@ static Std$Object$t IsString[1];
 static Std$Object$t IsList[1];
 
 static void value_handler(parser_t *Parser, Std$Object$t *Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	for (tag_t *Tag = Parser->Tags; Tag; Tag = Tag->Prev) {
+		//printf("%s:%d\n", __func__, __LINE__);
 		Std$Function$result Result;
 		int Status = Std$Function$call(Tag->Handler, 2, &Result, Parser->UserData, &Parser->UserData, Value, 0);
 		if (Status < FAILURE) Value = Result.Val;
@@ -54,11 +55,13 @@ static void value_handler(parser_t *Parser, Std$Object$t *Value) {
 	Parser->Tags = 0;
 	collection_t *Collection = Parser->Collection;
 	if (!Collection) {
+		//printf("%s:%d\n", __func__, __LINE__);
 		if (Parser->FinalHandler != Std$Object$Nil) {
 			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->FinalHandler, 2, &Result, Parser->UserData, &Parser->UserData, Value, 0);
 		}
 	} else if (Collection->Key == IsList) {
+		//printf("%s:%d\n", __func__, __LINE__);
 		if (Parser->ArrayValueHandler != Std$Object$Nil) {
 			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->ArrayValueHandler, 2, &Result, Parser->UserData, &Parser->UserData, Value, 0);
@@ -73,6 +76,7 @@ static void value_handler(parser_t *Parser, Std$Object$t *Value) {
 			}
 		}
 	} else if (Collection->Key) {
+		//printf("%s:%d\n", __func__, __LINE__);
 		if (Parser->MapPairHandler != Std$Object$Nil) {
 			Std$Function$result Result;
 			int Status = Std$Function$call(Parser->MapPairHandler, 3, &Result, Parser->UserData, &Parser->UserData, Parser->Collection->Key, 0, Value, 0);
@@ -89,22 +93,23 @@ static void value_handler(parser_t *Parser, Std$Object$t *Value) {
 			Collection->Key = 0;
 		}
 	} else {
+		//printf("%s:%d\n", __func__, __LINE__);
 		Collection->Key = Value;
 	}
 }
 
 static void riva_uint8_cb(parser_t *Parser, uint8_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Std$Integer$new_small(Value));
 }
 
 static void riva_uint16_cb(parser_t *Parser, uint16_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Std$Integer$new_small(Value));
 }
 
 static void riva_uint32_cb(parser_t *Parser, uint32_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFF) {
 		value_handler(Parser, Std$Integer$new_small(Value));
 	} else {
@@ -115,7 +120,7 @@ static void riva_uint32_cb(parser_t *Parser, uint32_t Value) {
 }
 
 static void riva_uint64_cb(parser_t *Parser, uint64_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
 		value_handler(Parser, Std$Integer$new_small((uint32_t)Value));
 	} else {
@@ -124,25 +129,25 @@ static void riva_uint64_cb(parser_t *Parser, uint64_t Value) {
 }
 
 static void riva_int8_cb(parser_t *Parser, uint8_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	int32_t Value0 = (int32_t)Value;
 	value_handler(Parser, Std$Integer$new_small(~Value0));
 }
 
 static void riva_int16_cb(parser_t *Parser, uint16_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	int32_t Value0 = (int32_t)Value;
 	value_handler(Parser, Std$Integer$new_small(~Value0));
 }
 
 static void riva_int32_cb(parser_t *Parser, uint32_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	int32_t Value0 = (int32_t)Value;
 	value_handler(Parser, Std$Integer$new_small(~Value));
 }
 
 static void riva_int64_cb(parser_t *Parser, uint64_t Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
 		value_handler(Parser, Std$Integer$new_small(~(uint32_t)Value));
 	} else {
@@ -156,7 +161,7 @@ static void riva_int64_cb(parser_t *Parser, uint64_t Value) {
 }
 
 static void riva_byte_string_start_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = new(collection_t);
 	Collection->Prev = Parser->Collection;
 	Collection->Tags = Parser->Tags;
@@ -168,7 +173,7 @@ static void riva_byte_string_start_cb(parser_t *Parser) {
 }
 
 static void riva_byte_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	void *Copy = Riva$Memory$alloc_atomic(Length);
 	memcpy(Copy, Data, Length);
 	if (Parser->Collection && Parser->Collection->Key == IsByteString) {
@@ -184,7 +189,7 @@ static void riva_byte_string_cb(parser_t *Parser, cbor_data Data, size_t Length)
 }
 
 static void riva_string_start_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = new(collection_t);
 	Collection->Prev = Parser->Collection;
 	Collection->Tags = Parser->Tags;
@@ -196,7 +201,7 @@ static void riva_string_start_cb(parser_t *Parser) {
 }
 
 static void riva_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	void *Copy = Riva$Memory$alloc_atomic(Length);
 	memcpy(Copy, Data, Length);
 	if (Parser->Collection && Parser->Collection->Key == IsString) {
@@ -212,7 +217,7 @@ static void riva_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
 }
 
 static void riva_indef_array_start_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = new(collection_t);
 	Collection->Prev = Parser->Collection;
 	Collection->Tags = Parser->Tags;
@@ -227,7 +232,7 @@ static void riva_indef_array_start_cb(parser_t *Parser) {
 }
 
 static void riva_array_start_cb(parser_t *Parser, size_t Length) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Length > 0) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Parser->Collection;
@@ -254,7 +259,7 @@ static void riva_array_start_cb(parser_t *Parser, size_t Length) {
 }
 
 static void riva_indef_map_start_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = new(collection_t);
 	Collection->Prev = Parser->Collection;
 	Collection->Tags = Parser->Tags;
@@ -269,7 +274,7 @@ static void riva_indef_map_start_cb(parser_t *Parser) {
 }
 
 static void riva_map_start_cb(parser_t *Parser, size_t Length) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Length > 0) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Parser->Collection;
@@ -296,7 +301,7 @@ static void riva_map_start_cb(parser_t *Parser, size_t Length) {
 }
 
 static void riva_tag_cb(parser_t *Parser, uint64_t Tag) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	if (Parser->TagHandler != Std$Object$Nil) {
 		Std$Function$result Result;
 		int Status = Std$Function$call(Parser->TagHandler, 2, &Result, Parser->UserData, &Parser->UserData, Std$Integer$new_u64(Tag), 0);
@@ -310,27 +315,27 @@ static void riva_tag_cb(parser_t *Parser, uint64_t Tag) {
 }
 
 static void riva_float_cb(parser_t *Parser, float Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Std$Real$new(Value));
 }
 
 static void riva_double_cb(parser_t *Parser, double Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Std$Real$new(Value));
 }
 
 static void riva_null_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Std$Object$Nil);
 }
 
 static void riva_boolean_cb(parser_t *Parser, bool Value) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Parser, Value ? $true : $false);
 }
 
 static void riva_indef_break_cb(parser_t *Parser) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Parser->Collection;
 	Parser->Collection = Collection->Prev;
 	Parser->Tags = Collection->Tags;
@@ -412,34 +417,53 @@ GLOBAL_FUNCTION(New, 0) {
 }
 
 METHOD("parse", TYP, T, TYP, Std$String$T) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	parser_t *Parser = (parser_t *)Args[0].Val;
 	Std$String$t *String = Args[1].Val;
-	for (int I = 0; I < String->Count; ++I) {
-		struct cbor_decoder_result DecoderResult = cbor_stream_decode(
-			String->Blocks[I].Chars.Value,
-			String->Blocks[I].Length.Value,
-			&Callbacks, Parser
-		);
-		if (DecoderResult.status != CBOR_DECODER_FINISHED) {
-			SEND(Std$String$new("Cbor parse error"));
+	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
+		cbor_data Data = Block->Chars.Value;
+		size_t Length = Block->Length.Value;
+		while (Length) {
+			struct cbor_decoder_result DecoderResult = cbor_stream_decode(
+				Data, Length, &Callbacks, Parser
+			);
+			if (DecoderResult.status != CBOR_DECODER_FINISHED) {
+				SEND(Std$String$new("Cbor parse error"));
+			}
+			Length -= DecoderResult.read;
+			Data += DecoderResult.read;
 		}
 	}
 	RETURN0;
 }
 
 METHOD("parse", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	//printf("%s()\n", __func__);
+	//printf("%s:%d\n", __func__, __LINE__);
 	parser_t *Parser = (parser_t *)Args[0].Val;
-	struct cbor_decoder_result DecoderResult = cbor_stream_decode(
-		Std$Address$get_value(Args[1].Val),
-		Std$Integer$get_small(Args[2].Val),
-		&Callbacks, Parser
-	);
-	if (DecoderResult.status != CBOR_DECODER_FINISHED) {
-		SEND(Std$String$new("Cbor parse error"));
+	cbor_data Data = Std$Address$get_value(Args[1].Val);
+	size_t Length = Std$Integer$get_small(Args[2].Val);
+	while (Length) {
+		struct cbor_decoder_result DecoderResult = cbor_stream_decode(
+			Data, Length, &Callbacks, Parser
+		);
+		if (DecoderResult.status != CBOR_DECODER_FINISHED) {
+			SEND(Std$String$new("Cbor parse error"));
+		}
+		Length -= DecoderResult.read;
+		Data += DecoderResult.read;
 	}
 	RETURN0;
+}
+
+TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Stream, const char *Buffer, int Count, int Blocks) {
+	struct cbor_decoder_result DecoderResult = cbor_stream_decode(
+		Buffer, Count, &Callbacks, Stream
+	);
+	if (DecoderResult.status != CBOR_DECODER_FINISHED) {
+		return -1;
+	} else {
+		return DecoderResult.read;
+	}
 }
 
 METHOD("userdata", TYP, T) {
@@ -494,17 +518,6 @@ METHOD("ontag", TYP, T) {
 	parser_t *Parser = Args[0].Val;
 	Result->Val = *(Result->Ref = &Parser->TagHandler);
 	return SUCCESS;
-}
-
-TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Stream, const char *Buffer, int Count, int Blocks) {
-	struct cbor_decoder_result DecoderResult = cbor_stream_decode(
-		Buffer, Count, &Callbacks, Stream
-	);
-	if (DecoderResult.status != CBOR_DECODER_FINISHED) {
-		return -1;
-	} else {
-		return DecoderResult.read;
-	}
 }
 
 static void nop_free(void *Ptr) {}

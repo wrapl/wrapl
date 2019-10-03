@@ -64,6 +64,33 @@ GLOBAL_FUNCTION(BuildInt32, 1) {
 	RETURN(Item);
 }
 
+GLOBAL_FUNCTION(BuildSmallInt, 1) {
+	//printf("%s()\n", __func__);
+	int32_t Value = Std$Integer$get_small(Args[0].Val);
+	item_t *Item = new(item_t);
+	Item->Type = ItemT;
+	if (Value < 0) {
+		Value = ~Value;
+		if (Value < 256) {
+			Item->Handle = cbor_build_uint8(Value);
+		} else if (Value < 65536) {
+			Item->Handle = cbor_build_uint16(Value);
+		} else {
+			Item->Handle = cbor_build_uint32(Value);
+		}
+		cbor_mark_negint(Item->Handle);
+	} else {
+		if (Value < 256) {
+			Item->Handle = cbor_build_uint8(Value);
+		} else if (Value < 65536) {
+			Item->Handle = cbor_build_uint16(Value);
+		} else {
+			Item->Handle = cbor_build_uint32(Value);
+		}
+	}
+	RETURN(Item);
+}
+
 GLOBAL_FUNCTION(BuildInt64, 1) {
 	//printf("%s()\n", __func__);
 	item_t *Item = new(item_t);
@@ -81,11 +108,53 @@ GLOBAL_FUNCTION(BuildInt64, 1) {
 		Std$Integer$bigt *Arg = (Std$Integer$bigt *)Args[0].Val;
 		mpz_t Temp;
 		mpz_init_set(Temp, Arg->Value);
+		int Neg = mpz_sgn(Temp) < 0;
+		if (Neg) mpz_com(Temp, Temp);
 		mpz_tdiv_r_2exp(Temp, Temp, 64);
 		uint64_t Value = 0;
 		mpz_export(&Value, 0, -1, 1, 0, 0, Temp);
 		Item->Handle = cbor_build_uint64(Value);
-		if (mpz_sgn(Arg->Value) < 0) cbor_mark_negint(Item->Handle);
+		if (Neg) cbor_mark_negint(Item->Handle);
+		RETURN(Item);
+	} else {
+		CHECK_EXACT_ARG_TYPE(0, Std$Integer$T);
+		RETURN(Std$Object$Nil);
+	}
+}
+
+GLOBAL_FUNCTION(BuildBigInt, 1) {
+	//printf("%s()\n", __func__);
+	item_t *Item = new(item_t);
+	Item->Type = ItemT;
+	if (Args[0].Val->Type == Std$Integer$SmallT) {
+		int64_t Value = Std$Integer$get_small(Args[0].Val);
+		if (Value < 0) {
+			Item->Handle = cbor_build_uint64(~Value);
+			cbor_mark_negint(Item->Handle);
+		} else {
+			Item->Handle = cbor_build_uint64(Value);
+		}
+		RETURN(Item);
+	} else if (Args[0].Val->Type == Std$Integer$BigT) {
+		Std$Integer$bigt *Arg = (Std$Integer$bigt *)Args[0].Val;
+		mpz_t Temp;
+		mpz_init_set(Temp, Arg->Value);
+		int Neg = mpz_sgn(Temp) < 0;
+		if (Neg) mpz_com(Temp, Temp);
+		size_t BitCount = mpz_sizeinbase(Temp, 2);
+		if (BitCount > 64) {
+			size_t ByteCount = (BitCount + 7) / 8;
+			void *Bytes = Riva$Memory$alloc_atomic(ByteCount);
+			mpz_export(Bytes, 0, 1, 1, 0, 0, Temp);
+			cbor_item_t *Handle = Item->Handle = cbor_new_tag(2 + Neg);
+			cbor_tag_set_item(Handle, cbor_build_bytestring(Bytes, ByteCount));
+		} else {
+			mpz_tdiv_r_2exp(Temp, Temp, 64);
+			uint64_t Value = 0;
+			mpz_export(&Value, 0, -1, 1, 0, 0, Temp);
+			Item->Handle = cbor_build_uint64(Value);
+			if (Neg) cbor_mark_negint(Item->Handle);
+		}
 		RETURN(Item);
 	} else {
 		CHECK_EXACT_ARG_TYPE(0, Std$Integer$T);
@@ -156,7 +225,7 @@ GLOBAL_FUNCTION(BuildTag, 2) {
 	item_t *Item = new(item_t);
 	Item->Type = ItemT;
 	cbor_item_t *Handle = Item->Handle = cbor_new_tag(Std$Integer$get_u64(Args[0].Val));
-	cbor_tag_set_item(Handle,((item_t *)Args[1].Val)->Handle);
+	cbor_tag_set_item(Handle, ((item_t *)Args[1].Val)->Handle);
 	RETURN(Item);
 }
 
@@ -172,7 +241,7 @@ GLOBAL_FUNCTION(BuildFloat4, 1) {
 	//printf("%s()\n", __func__);
 	item_t *Item = new(item_t);
 	Item->Type = ItemT;
-	Item->Handle = cbor_build_float2(Std$Real$get_value(Args[0].Val));
+	Item->Handle = cbor_build_float4(Std$Real$get_value(Args[0].Val));
 	RETURN(Item);
 }
 
@@ -180,7 +249,7 @@ GLOBAL_FUNCTION(BuildFloat8, 1) {
 	//printf("%s()\n", __func__);
 	item_t *Item = new(item_t);
 	Item->Type = ItemT;
-	Item->Handle = cbor_build_float2(Std$Real$get_value(Args[0].Val));
+	Item->Handle = cbor_build_float8(Std$Real$get_value(Args[0].Val));
 	RETURN(Item);
 }
 
@@ -216,8 +285,8 @@ GLOBAL_FUNCTION(BuildSymbol, 1) {
 	RETURN(Item);
 }
 
-SET_AMETHOD(Build, BuildInt32, TYP, Std$Integer$SmallT);
-SET_AMETHOD(Build, BuildInt64, TYP, Std$Integer$BigT);
+SET_AMETHOD(Build, BuildSmallInt, TYP, Std$Integer$SmallT);
+SET_AMETHOD(Build, BuildBigInt, TYP, Std$Integer$BigT);
 SET_AMETHOD(Build, BuildFloat8, TYP, Std$Real$T);
 SET_AMETHOD(Build, BuildByteString, TYP, Std$Address$SizedT);
 SET_AMETHOD(Build, BuildString, TYP, Std$String$T);

@@ -1,10 +1,39 @@
 MOD Cbor;
 
+IMP IO.Terminal USE Out;
 IMP Std USE Number, String, Symbol, Address;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
+IMP Sys.Time;
 DEF Decoder Cbor.Decoder;
 DEF Encoder Cbor.Encoder;
+
+DEF TagT! <[] tag, value>;
+
+METH String.Of(value @ TagT) '{value:tag}({value:value})';
+
+METH Encoder.Build(value @ TagT) (
+	Encoder.BuildTag(value:tag, Encoder.Build(value:value));
+);
+
+METH Encoder.Build(value @ Time.T) (
+	Encoder.BuildTag(0, Encoder.BuildString(String.Of(value, "%FT%T%Z")));
+);
+
+DEF Tags {
+	0 IS <stack, value> Time.New(value, "%FT%T%Z"),
+	1 IS <stack, value> Time.New(value),
+	2 IS <stack, value> (
+		VAR result <- 0, i;
+		EVERY i <- 0:to(value:length - 1) DO result <- result:sal(8) + value:get8(i);
+		RET result;
+	),
+	3 IS <stack, value> (
+		VAR result <- 0, i;
+		EVERY i <- 0:to(value:length - 1) DO result <- result:sal(8) + value:get8(i);
+		RET ~result;
+	)
+};
 
 DEF Loader! MOD
 	DEF New!(flags | 0) (
@@ -17,7 +46,7 @@ DEF Loader! MOD
 		parser:onarraystart <- <stack> stack:push([]);
 		parser:onarrayvalue <- <stack, value> stack[1]:put(value);
 		parser:onarrayend <- <stack> stack:pop;
-		parser:ontag <- <stack, tag> <stack, value> [tag, value];
+		parser:ontag <- <stack, tag> (Tags[tag] | <stack, value> TagT(tag, value));
 		RET parser;
 	);
 END;
@@ -32,7 +61,7 @@ METH Decode(@Stream.ReaderT) IS <stream, flags> (
 
 METH Decode(@String.T) IS <string, flags> (
 	VAR loader <- Loader.New(flags);
-	loader:write(string);
+	loader:parse(string);
 	RET loader:userdata;
 );
 
