@@ -1,0 +1,29 @@
+var CBOR_LIB := EXT_DIR / "lib/libcbor.a"
+
+CBOR_LIB => fun() do
+	var Path := file("cbor"):rmdir:mkdir:chdir
+	execute('wget -nv https://github.com/PJK/libcbor/archive/v0.5.0.tar.gz -O- | tar xvzP --strip-components=1')
+	var Input := (Path / "CMakeLists.txt"):open("r")
+	var Output := (Path / "CMakeLists.txt.new"):open("w")
+	loop
+		var Line := while Input:read
+		if Line:find("CMAKE_C_FLAGS_RELEASE") then
+			Output:write('\tset(CMAKE_C_FLAGS_RELEASE \"{CFLAGS}\")\n')
+		else
+			Output:write(Line, "\n")
+		end
+	end
+	Input:close
+	Output:close 
+	execute('mv CMakeLists.txt.new CMakeLists.txt')
+	execute('cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} -DCMAKE_BUILD_TYPE=Release -DCBOR_CUSTOM_ALLOC=ON .')
+	execute('make -j4')
+	execute('make install PREFIX={EXT_DIR}')
+end
+
+CFLAGS := old + ["-I", file("include")]
+LDFLAGS := old + ["Riva/Memory.rlib"]
+PREBUILDS := old + [CBOR_LIB]
+riva_module("Fmt/Cbor/Decoder", [file("Decoder.o")], [CBOR_LIB])
+riva_module("Fmt/Cbor/Encoder", [file("Encoder.o")], [CBOR_LIB])
+wrapl_module("Fmt/Cbor")

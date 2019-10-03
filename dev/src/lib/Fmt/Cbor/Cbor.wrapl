@@ -1,0 +1,72 @@
+MOD Cbor;
+
+IMP Std USE Number, String, Symbol, Address;
+IMP Agg USE List, Table;
+IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
+DEF Decoder Cbor.Decoder;
+DEF Encoder Cbor.Encoder;
+
+DEF Loader! MOD
+	DEF New!(flags | 0) (
+		VAR parser <- Decoder.New();
+		parser:userdata <- [];
+		parser:onfinal <- <userdata+, value> userdata <- value;
+		parser:onmapstart <- <stack> stack:push({});
+		parser:onmappair <- <stack, key, value> stack[1]:insert(key, value);
+		parser:onmapend <- <stack> stack:pop;
+		parser:onarraystart <- <stack> stack:push([]);
+		parser:onarrayvalue <- <stack, value> stack[1]:put(value);
+		parser:onarrayend <- <stack> stack:pop;
+		parser:ontag <- <stack, tag> <stack, value> [tag, value];
+		RET parser;
+	);
+END;
+
+DEF Decode! :?;
+
+METH Decode(@Stream.ReaderT) IS <stream, flags> (
+	VAR loader <- Loader.New(flags);
+	stream:copy(loader);
+	RET loader:userdata;
+);
+
+METH Decode(@String.T) IS <string, flags> (
+	VAR loader <- Loader.New(flags);
+	loader:write(string);
+	RET loader:userdata;
+);
+
+METH Decode(@Address.SizedT) IS <address, flags> (
+	VAR parser <- Loader.New(flags);
+	parser:parse(address, address:length);
+	RET parser:userdata;
+);
+
+DEF LoadFile!(filename, flags) (
+	VAR file <- File.Open(filename, File.Flag.Read);
+	VAR parser <- Loader.New(flags);
+	REP WHILE parser:parse(file:read(128));
+	file:close;
+	RET parser:userdata;
+);
+
+DEF LoadString!(string, flags) (
+	VAR parser <- Loader.New(flags);
+	VAR i; EVERY i <- 1:to(string:length + 1, 128) DO parser:parse(string[i, i + 128]);
+	parser:parse(string[i, 0]);
+	RET parser:userdata;
+);
+
+DEF Encode!(stream, value) (
+	VAR encoded <- Encoder.Build(value):encode;
+	stream:write(encoded, encoded:size);
+);
+
+DEF EncodeBuffer!(stream, value) Encoder.Build(value):encode;
+
+DEF EncodeString!(value) (
+	VAR encoded <- Encoder.Build(value):encode;
+	RET String.FromAddress(encoded, encoded:length);
+);
+
+END Cbor.

@@ -1,0 +1,4 @@
+include("Std.rlib")
+include("IO/Stream.rlib")
+
+export("New")

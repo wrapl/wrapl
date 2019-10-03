@@ -175,7 +175,7 @@ cfunction _alloc_sized
 	push byte sizeof(Std$Address_sizedt)
 	call Riva$Memory$_alloc
 	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
+	mov [Std$Object_t(eax).Type], dword SizedT
 	mov [Std$Object_t(Std$Address_sizedt(eax).Length).Type], dword Std$Integer$SmallT
 	ret
 
@@ -183,7 +183,7 @@ cfunction _new_sized ;(long  Value)
 	push byte sizeof(Std$Address_sizedt)
 	call Riva$Memory$_alloc
 	pop ecx
-	mov [Std$Object_t(eax).Type], dword T
+	mov [Std$Object_t(eax).Type], dword SizedT
 	mov ecx, [esp + 4]
 	mov [Std$Address_t(eax).Value], ecx
 	mov ecx, [esp + 8]

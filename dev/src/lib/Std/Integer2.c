@@ -80,7 +80,7 @@ int64_t _get_s64(Std$Object$t *Integer) {
 };
 
 Std$Object$t *_new_u64(uint64_t Value) {
-	int32_t Value0 = (int32_t)Value;
+	uint32_t Value0 = (uint32_t)Value;
 	if (Value0 == Value) return _new_small(Value0);
 	mpz_t Temp;
 	mpz_init_set_ui(Temp, (uint32_t)(Value >> 32));
