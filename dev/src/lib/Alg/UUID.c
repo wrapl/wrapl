@@ -51,9 +51,15 @@ GLOBAL_FUNCTION(New, 0) {
 	_uuid_t *UUID = new(_uuid_t);
 	UUID->Type = T;
 	if (Count > 0) {
-		if (uuid_parse(Std$String$flatten(Args[0].Val), UUID->Value)) {
-			Result->Val = Std$String$new("UUID parse error");
-			return MESSAGE;
+		if (Args[0].Val->Type == Std$String$T) {
+			if (uuid_parse(Std$String$flatten(Args[0].Val), UUID->Value)) {
+				SEND(Std$String$new("UUID parse error"));
+			}
+		} else if (Args[0].Val->Type == Std$Address$SizedT) {
+			if (Std$Address$get_size(Args[0].Val) < 16) {
+				SEND(Std$String$new("UUID size error"));
+			}
+			memcpy(UUID->Value, Std$Address$get_value(Args[0].Val), 16);
 		}
 	} else {
 		uuid_generate(UUID->Value);

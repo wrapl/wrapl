@@ -23,6 +23,14 @@ METHOD("strides", TYP, Num$Array$T) {
 	RETURN(Strides);
 }
 
+METHOD("size", TYP, Num$Array$T) {
+	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
+	size_t Size = Array->Dimensions[Array->Degree - 1].Stride;
+	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
+	if (Array->Dimensions[0].Stride == Size) RETURN(Std$Integer$new_small(Size * Array->Dimensions[0].Size));
+	FAIL;
+}
+
 METHOD("degree", TYP, Num$Array$T) {
 	Num$Array$t *Array = (Num$Array$t *)Args[0].Val;
 	RETURN(Std$Integer$new_small(Array->Degree));
