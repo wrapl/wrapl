@@ -1,28 +1,29 @@
 MOD Cbor;
 
 IMP IO.Terminal USE Out;
-IMP Std USE Number, String, Symbol, Address;
+IMP Std USE Number, String, Symbol, Address, Real;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
 IMP Sys.Time;
 DEF Decoder Cbor.Decoder;
 DEF Encoder Cbor.Encoder;
+DEF Item Cbor.Item;
 
 DEF TagT! <[] tag, value>;
 
 METH String.Of(value @ TagT) '{value:tag}({value:value})';
 
-METH Encoder.Build(value @ TagT) (
-	Encoder.BuildTag(value:tag, Encoder.Build(value:value));
+METH Item.Build(value @ TagT) (
+	Item.BuildTag(value:tag, Item.Build(value:value));
 );
 
-METH Encoder.Build(value @ Time.T) (
-	Encoder.BuildTag(0, Encoder.BuildString(String.Of(value, "%FT%T%Z")));
+METH Item.Build(value @ Time.T) (
+	Item.BuildTag(0, Item.BuildString(String.Of(value, "%FT%T%Z")));
 );
 
 DEF Tags {
 	0 IS <stack, value> Time.New(value, "%FT%T%Z"),
-	1 IS <stack, value> Time.New(value),
+	1 IS <stack, value> Time.New(Number.Of(value)),
 	2 IS <stack, value> (
 		VAR result <- 0, i;
 		EVERY i <- 0:to(value:length - 1) DO result <- result:sal(8) + value:get8(i);
@@ -87,14 +88,14 @@ DEF LoadString!(string, flags) (
 );
 
 DEF Encode!(stream, value) (
-	VAR encoded <- Encoder.Build(value):encode;
+	VAR encoded <- Item.Build(value):encode;
 	stream:write(encoded, encoded:size);
 );
 
-DEF EncodeBuffer!(stream, value) Encoder.Build(value):encode;
+DEF EncodeBuffer!(stream, value) Item.Build(value):encode;
 
 DEF EncodeString!(value) (
-	VAR encoded <- Encoder.Build(value):encode;
+	VAR encoded <- Item.Build(value):encode;
 	RET String.FromAddress(encoded, encoded:length);
 );
 

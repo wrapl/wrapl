@@ -174,8 +174,6 @@ static void riva_byte_string_start_cb(parser_t *Parser) {
 
 static void riva_byte_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	void *Copy = Riva$Memory$alloc_atomic(Length);
-	memcpy(Copy, Data, Length);
 	if (Parser->Collection && Parser->Collection->Key == IsByteString) {
 		block_t *Block = new(block_t);
 		Block->Prev = Parser->Collection->Blocks;
@@ -184,7 +182,7 @@ static void riva_byte_string_cb(parser_t *Parser, cbor_data Data, size_t Length)
 		Parser->Collection->Blocks = Block;
 		Parser->Collection->Remaining += Length;
 	} else {
-		value_handler(Parser, Std$Address$new_sized(Copy, Length));
+		value_handler(Parser, Std$Address$new_sized(Data, Length));
 	}
 }
 
@@ -202,8 +200,6 @@ static void riva_string_start_cb(parser_t *Parser) {
 
 static void riva_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	void *Copy = Riva$Memory$alloc_atomic(Length);
-	memcpy(Copy, Data, Length);
 	if (Parser->Collection && Parser->Collection->Key == IsString) {
 		block_t *Block = new(block_t);
 		Block->Prev = Parser->Collection->Blocks;
@@ -212,7 +208,7 @@ static void riva_string_cb(parser_t *Parser, cbor_data Data, size_t Length) {
 		Parser->Collection->Blocks = Block;
 		++Parser->Collection->Remaining;
 	} else {
-		value_handler(Parser, Std$String$new_length(Copy, Length));
+		value_handler(Parser, Std$String$new_length(Data, Length));
 	}
 }
 

@@ -278,6 +278,8 @@ _function HashSized
 	xor eax, eax
 	ret
 
+asymbol Of
+
 %ifdef DOCUMENTING
 
 %define T T

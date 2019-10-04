@@ -28,6 +28,8 @@ RIVA_TYPE(SizedT);
 
 RIVA_CFUN(Std$Object$t *, new_sized, void *, size_t) __attribute__ ((malloc));
 
+RIVA_OBJECT(Of);
+
 #define Std$Address$get_size(A) ((Std$Address$sizedt *)A)->Length.Value
 
 

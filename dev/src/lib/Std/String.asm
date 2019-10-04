@@ -932,7 +932,7 @@ function Compare, 2
 	xor eax, eax
 	ret
 
-extern Of
+asymbol Of
 
 _function Create
 ;@value&lt;sub&gt;1&lt;/sub&gt;,...,value&lt;sub&gt;k&lt;/sub&gt;

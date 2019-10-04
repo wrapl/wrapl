@@ -16,7 +16,12 @@ AMETHOD(Std$String$Of, TYP, T) {
 	uuid_unparse_lower(UUID->Value, Buffer);
 	Result->Val = Std$String$new_length(Buffer, 36);
 	return SUCCESS;
-};
+}
+
+AMETHOD(Std$Address$Of, TYP, T) {
+	_uuid_t *UUID = (_uuid_t *)Args[0].Val;
+	RETURN(Std$Address$new_sized(UUID->Value, 16));
+}
 
 GLOBAL_METHOD(Hash, 1, "#", TYP, T) {
 	_uuid_t *UUID = (_uuid_t *)Args[0].Val;
@@ -24,7 +29,7 @@ GLOBAL_METHOD(Hash, 1, "#", TYP, T) {
 	int Hash = Value[0] ^ Value[1] ^ Value[2] ^ Value[3];
 	Result->Val = Std$Integer$new_small(Hash);
 	return SUCCESS;
-};
+}
 
 GLOBAL_METHOD(Compare, 2, "?", TYP, T, TYP, T) {
 	_uuid_t *A = (_uuid_t *)Args[0].Val;
@@ -36,11 +41,11 @@ GLOBAL_METHOD(Compare, 2, "?", TYP, T, TYP, T) {
 		} else if (A->Value[I] > B->Value[I]) {
 			Result->Val = Std$Object$Greater;
 			return SUCCESS;
-		};
-	};
+		}
+	}
 	Result->Val = Std$Object$Equal;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(New, 0) {
 	_uuid_t *UUID = new(_uuid_t);
@@ -49,13 +54,13 @@ GLOBAL_FUNCTION(New, 0) {
 		if (uuid_parse(Std$String$flatten(Args[0].Val), UUID->Value)) {
 			Result->Val = Std$String$new("UUID parse error");
 			return MESSAGE;
-		};
+		}
 	} else {
 		uuid_generate(UUID->Value);
-	};
+	}
 	Result->Val = (Std$Object$t *)UUID;
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(Encode, 2) {
 	CHECK_EXACT_ARG_TYPE(1, T);
@@ -68,12 +73,12 @@ GLOBAL_FUNCTION(Encode, 2) {
 		if (Written < 0) {
 			Result->Val = Std$String$new("Write Error");
 			return MESSAGE;
-		};
+		}
 		Buffer += Written;
 		Remaining -= Written;
-	};
+	}
 	return SUCCESS;
-};
+}
 
 GLOBAL_FUNCTION(Decode, 1) {
 	Std$Object$t *Stream = Args[0].Val;
@@ -86,11 +91,11 @@ GLOBAL_FUNCTION(Decode, 1) {
 		if (Read < 0) {
 			Result->Val = Std$String$new("Read Error");
 			return MESSAGE;
-		};
+		}
 		Buffer += Read;
 		Remaining -= Read;
-	};
+	}
 	Result->Val = (Std$Object$t *)UUID;
 	return SUCCESS;
-};
+}
 

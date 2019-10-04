@@ -26,4 +26,5 @@ LDFLAGS := old + ["Riva/Memory.rlib"]
 PREBUILDS := old + [CBOR_LIB]
 riva_module("Fmt/Cbor/Decoder", [file("Decoder.o")], [CBOR_LIB])
 riva_module("Fmt/Cbor/Encoder", [file("Encoder.o")], [CBOR_LIB])
+riva_module("Fmt/Cbor/Item", [file("Item.o")], [CBOR_LIB])
 wrapl_module("Fmt/Cbor")

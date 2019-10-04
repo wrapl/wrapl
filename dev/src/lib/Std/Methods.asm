@@ -62,6 +62,31 @@ amethod Std$Real$Of, TYP, Std$Real$T
 	xor eax, eax
 	ret
 
+amethod Std$Number$Of, TYP, Std$Integer$SmallT
+	mov ecx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
+	xor eax, eax
+	ret
+
+amethod Std$Number$Of, TYP, Std$Integer$BigT
+	mov ecx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
+	xor eax, eax
+	ret
+
+amethod Std$Number$Of, TYP, Std$Real$T
+	mov ecx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
+	xor eax, eax
+	ret
+
+amethod Std$Number$Of, TYP, Std$Rational$T
+	mov ecx, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi).Ref]
+	xor eax, eax
+	ret
+
+
 symbol ?COMP, "?"
 symbol ?HASH, "#"
 symbol ?EQUAL, "="
