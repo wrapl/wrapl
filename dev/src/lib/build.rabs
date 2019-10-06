@@ -135,6 +135,13 @@ scope("lib";) do
 	end
 end
 
+var DevBinaries := [
+	(PREFIX / "bin/rlink")[RLINK] => fun(Target) do
+		RLINK:copy(Target, "a+x")
+		execute("chmod", "a+x", Target)
+	end 
+]
+
 var DevHeaders := DEFAULT:scan("DevHeaders") => fun() do
 	var Targets := []
 	var TargetDir := PREFIX / "include/riva-dev"
@@ -183,4 +190,4 @@ var DevLibraries := DEFAULT:scan("DevLibraries") => fun() do
 	return Targets
 end
 
-INSTALL[DevHeaders, DevLibraries]
+INSTALL[DevBinaries, DevHeaders, DevLibraries]

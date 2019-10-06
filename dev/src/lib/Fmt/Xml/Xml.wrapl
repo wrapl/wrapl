@@ -130,6 +130,11 @@ METH :"[]"(node+ @ NodeT, tag @ Symbol.T, attrs @ Table.T) (
 	EVERY child <- node[tag] DO (child:attrs[attrs:keys(value)] ~= value) // SUSP child;
 );
 
+METH :"[]"(node+ @ NodeT, attrs @ Table.T) (
+	VAR child, value;
+	EVERY child <- node[] DO (child:attrs[attrs:keys(value)] ~= value) // SUSP child;
+);
+
 METH :"[]"(node+ @ NodeT, tag @ Symbol.T, filter) EVERY SUSP node:content:values \ (?$ == NodeT & $:tag == tag & filter($));
 
 METH :text(node @ NodeT) (
