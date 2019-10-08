@@ -548,7 +548,7 @@ METHOD("recv", TYP, SockT, VAL, MsgT) {
 METHOD("send", TYP, SockT, TYP, MsgT) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
 	msg_t *Msg = (msg_t *)Args[1].Val;
-	if (zmsg_send(&Msg->Handle, Sock) == -1) {
+	if (zmsg_send(&Msg->Handle, Sock->Handle) == -1) {
 		SEND(Std$String$new("Send error"));
 	}
 	RETURN0;
@@ -556,16 +556,19 @@ METHOD("send", TYP, SockT, TYP, MsgT) {
 
 METHOD("size", TYP, MsgT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	RETURN(Std$Integer$new_small(zmsg_size(Msg->Handle)));
 }
 
 METHOD("length", TYP, MsgT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	RETURN(Std$Integer$new_small(zmsg_content_size(Msg->Handle)));
 }
 
 METHOD("prepend", TYP, MsgT, TYP, FrameT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	frame_t *Frame = (frame_t *)Args[1].Val;
 	zmsg_prepend(Msg->Handle, &Frame->Handle);
 	RETURN0;
@@ -573,6 +576,7 @@ METHOD("prepend", TYP, MsgT, TYP, FrameT) {
 
 METHOD("append", TYP, MsgT, TYP, FrameT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	frame_t *Frame = (frame_t *)Args[1].Val;
 	zmsg_append(Msg->Handle, &Frame->Handle);
 	RETURN0;
@@ -580,6 +584,7 @@ METHOD("append", TYP, MsgT, TYP, FrameT) {
 
 METHOD("prepend", TYP, MsgT, TYP, Std$String$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$String$flatten(Args[1].Val);
 	size_t *Size = Std$String$get_length(Args[1].Val);
 	zmsg_pushmem(Msg->Handle, Mem, Size);
@@ -588,6 +593,7 @@ METHOD("prepend", TYP, MsgT, TYP, Std$String$T) {
 
 METHOD("append", TYP, MsgT, TYP, Std$String$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$String$flatten(Args[1].Val);
 	size_t *Size = Std$String$get_length(Args[1].Val);
 	zmsg_addmem(Msg->Handle, Mem, Size);
@@ -596,6 +602,7 @@ METHOD("append", TYP, MsgT, TYP, Std$String$T) {
 
 METHOD("prepend", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
 	size_t *Size = Std$Integer$get_small(Args[2].Val);
 	zmsg_pushmem(Msg->Handle, Mem, Size);
@@ -604,6 +611,7 @@ METHOD("prepend", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("append", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
 	size_t *Size = Std$Integer$get_small(Args[2].Val);
 	zmsg_addmem(Msg->Handle, Mem, Size);
@@ -612,6 +620,7 @@ METHOD("append", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("prepend", TYP, MsgT, TYP, Std$Address$SizedT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
 	size_t *Size = Std$Address$get_size(Args[1].Val);
 	zmsg_pushmem(Msg->Handle, Mem, Size);
@@ -620,6 +629,7 @@ METHOD("prepend", TYP, MsgT, TYP, Std$Address$SizedT) {
 
 METHOD("append", TYP, MsgT, TYP, Std$Address$SizedT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
 	size_t *Size = Std$Address$get_size(Args[1].Val);
 	zmsg_addmem(Msg->Handle, Mem, Size);
@@ -628,6 +638,7 @@ METHOD("append", TYP, MsgT, TYP, Std$Address$SizedT) {
 
 METHOD("pop", TYP, MsgT, VAL, Std$String$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	zframe_t *Frame = zmsg_pop(Msg->Handle);
 	if (Frame) {
 		Std$Object$t *String = Std$String$copy_length(zframe_data(Frame), zframe_size(Frame));
@@ -638,8 +649,24 @@ METHOD("pop", TYP, MsgT, VAL, Std$String$T) {
 	}
 }
 
+METHOD("pop", TYP, MsgT, VAL, Std$Address$SizedT) {
+	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
+	zframe_t *Frame = zmsg_pop(Msg->Handle);
+	if (Frame) {
+		size_t *Size = zframe_size(Frame);
+		void *Address = Riva$Memory$alloc_atomic(Size);
+		memcpy(Address, zframe_data(Frame), Size);
+		zframe_destroy(&Frame);
+		RETURN(Std$Address$new_sized(Address, Size));
+	} else {
+		FAIL;
+	}
+}
+
 METHOD("pop", TYP, MsgT, VAL, FrameT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	zframe_t *Handle = zmsg_pop(Msg->Handle);
 	if (Handle) {
 		frame_t *Frame = new(frame_t);
@@ -653,6 +680,7 @@ METHOD("pop", TYP, MsgT, VAL, FrameT) {
 
 METHOD("pop", TYP, MsgT, VAL, MsgT) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
+	if (!Msg->Handle) FAIL;
 	zmsg_t *Handle = zmsg_popmsg(Msg->Handle);
 	if (Handle) {
 		msg_t *Msg2 = new(msg_t);
