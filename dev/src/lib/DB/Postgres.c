@@ -276,10 +276,11 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
 	case PGRES_EMPTY_QUERY:
 		PQclear(Res);
 		return FAILURE;
-	case PGRES_COMMAND_OK:
+	case PGRES_COMMAND_OK: {
+		Result->Val = Std$Integer$new_small(atoi(PQcmdTuples(Res)));
 		PQclear(Res);
-		Result->Arg = Args[0];
 		return SUCCESS;
+	}
 	case PGRES_TUPLES_OK:
 	case PGRES_SINGLE_TUPLE: {
 		result_t *Results = new(result_t);
@@ -307,7 +308,7 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
 	}
 }
 
-METHOD("rows", TYP, ResultT) {
+METHOD("count", TYP, ResultT) {
 	result_t *Results = (result_t *)Args[0].Val;
 	Result->Val = Std$Integer$new_small(Results->RowCount);
 	return SUCCESS;

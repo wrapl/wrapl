@@ -387,18 +387,23 @@ Std$Integer$smallt SockOptIPv4Only[] = {{SockOptT, ZMQ_IPV4ONLY}};
 
 METHOD("set", TYP, SockT, TYP, SockOptT, ANY) {
 	sock_t *Sock = (sock_t *)Args[0].Val;
+	void *Socket = zsock_resolve(Sock->Handle);
 	int Option = Std$Integer$get_small(Args[1].Val);
 	switch (Option) {
 	case ZMQ_AFFINITY:
 	{
 		uint64_t Value = Std$Integer$get_u64(Args[2].Val);
-		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(uint64_t));
+		if (zmq_setsockopt(Socket, Option, &Value, sizeof(uint64_t))) {
+			SEND(Std$String$new_format("ZeroMQ error: %s", strerror(errno)));
+		}
 		break;
 	}
 	case ZMQ_MAXMSGSIZE:
 	{
 		int64_t Value = Std$Integer$get_s64(Args[2].Val);
-		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(uint64_t));
+		if (zmq_setsockopt(Socket, Option, &Value, sizeof(uint64_t))) {
+			SEND(Std$String$new_format("ZeroMQ error: %s", strerror(errno)));
+		}
 		break;
 	}
 	case ZMQ_BACKLOG:
@@ -440,7 +445,9 @@ METHOD("set", TYP, SockT, TYP, SockOptT, ANY) {
 	case ZMQ_IPV4ONLY:
 	{
 		int Value = Std$Integer$get_small(Args[2].Val);
-		zmq_setsockopt(Sock->Handle, Option, &Value, sizeof(int));
+		if (zmq_setsockopt(Socket, Option, &Value, sizeof(int))) {
+			SEND(Std$String$new_format("ZeroMQ error: %s", strerror(errno)));
+		}
 		break;
 	}
 	case ZMQ_CONNECT_RID:
@@ -459,7 +466,9 @@ METHOD("set", TYP, SockT, TYP, SockOptT, ANY) {
 	{
 		void *Value = Std$String$flatten(Args[2].Val);
 		int Length = Std$String$get_length(Args[2].Val);
-		zmq_setsockopt(Sock->Handle, Option, Value, Length);
+		if (zmq_setsockopt(Socket, Option, Value, Length)) {
+			SEND(Std$String$new_format("ZeroMQ error: %s", strerror(errno)));
+		}
 		break;
 	}
 	}
