@@ -13,6 +13,7 @@ RIVA_TYPE(T);
 #define IO$Socket$SOCK_STREAM	1
 #define IO$Socket$SOCK_DGRAM	2
 #define IO$Socket$SOCK_RAW		4
+#define IO$Socket$SOCK_NOBLOCK	32
 
 #define IO$Socket$PF_INET		8
 #define IO$Socket$PF_LOCAL		16
