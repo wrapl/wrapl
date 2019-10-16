@@ -358,6 +358,23 @@ METHOD("setopt", TYP, T, TYP, OptionT) {
 	return SUCCESS;
 };
 
+METHOD("sockname", TYP, InetT, ANY, ANY) {
+	int Socket = ((IO$Posix$t *)Args[0].Val)->Handle;
+	struct sockaddr_in Name;
+	socklen_t Length = sizeof(Name);
+	if (getsockname(Socket, (struct sockaddr*)&Name, &Length)) {
+		Result->Val = (Std$Object$t *)PeerNameMessage;
+		return MESSAGE;
+	} else {
+		if (Args[1].Ref) {
+			Args[1].Ref[0] = Std$String$copy(inet_ntoa(Name.sin_addr));
+		};
+		if (Args[2].Ref) Args[2].Ref[0] = Std$Integer$new_small(ntohs(Name.sin_port));
+		Result->Arg = Args[0];
+		return SUCCESS;
+	};
+}
+
 METHOD("peername", TYP, InetT, ANY, ANY) {
 	int Socket = ((IO$Posix$t *)Args[0].Val)->Handle;
 	struct sockaddr_in Name;
