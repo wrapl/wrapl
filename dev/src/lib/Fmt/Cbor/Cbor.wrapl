@@ -100,7 +100,7 @@ DEF Encode!(stream, value) (
 	stream:write(encoded, encoded:size);
 );
 
-DEF EncodeBuffer!(stream, value) Item.Build(value):encode;
+DEF EncodeBuffer!(value) Item.Build(value):encode;
 
 DEF EncodeString!(value) (
 	VAR encoded <- Item.Build(value):encode;
