@@ -1068,7 +1068,7 @@ static void *_link_thread_func(pair_t * restrict Pair) {
 	Pair = 0;
 	for (;;) {
 		int BytesRead = read(Rd, Buffer, 256, 0);
-		if (BytesRead <= 0) {
+		if (BytesRead == -1) {
 			_t_close(Wr, 1);
 			return 0;
 		};

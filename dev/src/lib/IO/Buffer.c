@@ -990,25 +990,29 @@ METHOD("copy", TYP, IO$Stream$ReaderT, TYP, T, TYP, Std$Integer$SmallT) {
 	node_t Tail[1] = {0,};
 	node_t *Node = Tail;
 	while (Required > 256) {
-		Node = Node->Next = new(node_t);
-		Node->Chars = Riva$Memory$alloc_atomic(256);
-		Node->Length = read(Rd, Node->Chars, 256, 0);
-		if (Node->Length == -1) {
+		unsigned char *Chars = Riva$Memory$alloc_atomic(256);
+		int Length = read(Rd, Chars, 256, 0);
+		if (Length == -1) {
 			Result->Val = IO$Stream$ReadMessage;
 			return MESSAGE;
 		};
-		Total += Node->Length;
-		if (Node->Length < 256) goto done;
+		Total += Length;
+		Node = Node->Next = new(node_t);
+		Node->Length = Length;
+		Node->Chars = Chars;
+		if (Length < 256) goto done;
 		Required -= 256;
 	};
-	Node = Node->Next = new(node_t);
-	Node->Chars = Riva$Memory$alloc_atomic(Required);
-	Node->Length = read(Rd, Node->Chars, Required, 0);
-	if (Node->Length == -1) {
+	unsigned char *Chars = Riva$Memory$alloc_atomic(Required);
+	int Length = read(Rd, Node->Chars, Required, 0);
+	if (Length == -1) {
 		Result->Val = IO$Stream$ReadMessage;
 		return MESSAGE;
 	};
-	Total += Node->Length;
+	Total += Length;
+	Node = Node->Next = new(node_t);
+	Node->Length = Length;
+	Node->Chars = Chars;
 done:
 	if (Wr->Tail) {
 		Wr->Tail->Next = Tail->Next;
