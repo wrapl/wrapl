@@ -2131,6 +2131,7 @@ int main(int Argc, char **Argv) {
 	char *ListFile = 0;
 	char *ExportFile = 0;
 	char *ModuleName = 0;
+	char *Prefix = "";
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -2187,6 +2188,13 @@ int main(int Argc, char **Argv) {
 					ModuleName = Argv[I] + 2;
 				} else {
 					ModuleName = Argv[++I];
+				}
+				break;
+			case 'P':
+				if (Argv[I][2]) {
+					Prefix = Argv[I] + 2;
+				} else {
+					Prefix = Argv[++I];
 				}
 				break;
 			case 'v':
@@ -2257,6 +2265,7 @@ int main(int Argc, char **Argv) {
 			}
 			fprintf(File, "\"%s\")\n", PartStart);
 		}
+		fprintf(File, "prefix(\"%s\")\n", Prefix);
 		for (export_t *Export = Exports.Head; Export; Export = Export->Next) {
 			if (Export->Section) fprintf(File, "import(\"%s\")\n", Export->External);
 		}

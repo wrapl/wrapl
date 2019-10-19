@@ -20,7 +20,7 @@ typedef struct process_t {
 	pid_t Pid;
 } process_t;
 
-TYPE(T, IO$Socket$T, NATIVE(TextReaderT), NATIVE(TextWriterT), NATIVE(ReaderT), NATIVE(WriterT), NATIVE(SeekerT), NATIVE(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(T, IO$Socket$T, IO$Native$(TextReaderT), IO$Native$(TextWriterT), IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
 TYPE(PipeMessageT, IO$Stream$MessageT);
 TYPE(ForkMessageT, IO$Stream$MessageT);

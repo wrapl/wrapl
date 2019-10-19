@@ -18,11 +18,11 @@
 #else
 #endif
 
-TYPE(T, NATIVE(TextReaderT), NATIVE(TextWriterT), NATIVE(ReaderT), NATIVE(WriterT), NATIVE(SeekerT), NATIVE(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(T, IO$Native$(TextReaderT), IO$Native$(TextWriterT), IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 // A handle to one end of a connection
-TYPE(LocalT, T, NATIVE(TextReaderT), NATIVE(TextWriterT), NATIVE(ReaderT), NATIVE(WriterT), NATIVE(SeekerT), NATIVE(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(LocalT, T, IO$Native$(TextReaderT), IO$Native$(TextWriterT), IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 // Sockets for connections between processes on the same machine
-TYPE(InetT, T, NATIVE(TextReaderT), NATIVE(TextWriterT), NATIVE(ReaderT), NATIVE(WriterT), NATIVE(SeekerT), NATIVE(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(InetT, T, IO$Native$(TextReaderT), IO$Native$(TextWriterT), IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 // Sockets for internet connections
 
 TYPE(CreateMessageT, IO$Stream$MessageT);
@@ -100,7 +100,7 @@ GLOBAL_FUNCTION(New, 2) {
 		Result->Val = (Std$Object$t *)CreateMessage;
 		return MESSAGE;
 	};
-	Result->Val = NATIVE(new)(Type, Handle);
+	Result->Val = IO$Native$(new)(Type, Handle);
 	return SUCCESS;
 #else
 #endif
@@ -261,7 +261,7 @@ METHOD("accept", TYP, T) {
 		Result->Val = (Std$Object$t *)AcceptMessage;
 		return MESSAGE;
 	};
-	Result->Val = NATIVE(new)(Args[0].Val->Type, Socket0);
+	Result->Val = IO$Native$(new)(Args[0].Val->Type, Socket0);
 	return SUCCESS;
 };
 

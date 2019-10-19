@@ -1,0 +1,20 @@
+include("IO/Native.rlink")
+include("Sys/Time.rlib")
+
+export("New")
+export("T")
+
+submodule("Flag")
+subexport("Flag", "EventFlagTimeout", "Timeout")
+subexport("Flag", "EventFlagRead", "Read")
+subexport("Flag", "EventFlagWrite", "Write")
+subexport("Flag", "EventFlagSignal", "Signal")
+subexport("Flag", "EventFlagPersist", "Persist")
+subexport("Flag", "EventFlagET", "ET")
+subexport("Flag", "EventFlagFinalize", "Finalize")
+subexport("Flag", "EventFlagClosed", "Closed")
+
+submodule("Loop")
+subexport("Loop", "LoopFlagOnce", "Once")
+subexport("Loop", "LoopFlagNonBlock", "NonBlock")
+subexport("Loop", "LoopFlagNoExitOnEmpty", "NoExitOnEmpty")
