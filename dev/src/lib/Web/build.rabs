@@ -7,7 +7,16 @@ scope("curl";) do
 	riva_module("Web/Curl", [file("Curl.o")])
 end
 
+LIBJWT_LIB := EXT_DIR / "lib/libjwt.a" => fun() do
+	file("libjwt"):rmdir:mkdir:chdir
+	execute('wget -nv https://github.com/benmcollins/libjwt/archive/v1.11.0.tar.gz -O- | tar xvzP --strip-components=1')
+	file("libjwt/build"):mkdir:chdir
+	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
+end
+
 riva_module("Web/Smtp", [file("Smtp.o")])
+riva_module("Web/JWT", [file("JWT.o")], [LIBJWT_LIB])
 
 --subdir("FastCGI")
 --subdir("CivetWeb")
