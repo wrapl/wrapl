@@ -1,0 +1,16 @@
+include("libgnutls.so")
+
+export("New")
+
+submodule("Alg")
+subexport("Alg", "AlgNone", "None")
+subexport("Alg", "AlgHS256", "HS256")
+subexport("Alg", "AlgHS384", "HS384")
+subexport("Alg", "AlgHS512", "HS512")
+subexport("Alg", "AlgRS256", "RS256")
+subexport("Alg", "AlgRS384", "RS384")
+subexport("Alg", "AlgRS512", "RS512")
+subexport("Alg", "AlgES256", "ES256")
+subexport("Alg", "AlgES384", "ES384")
+subexport("Alg", "AlgES512", "ES512")
+subexport("Alg", "AlgTerm", "Term")

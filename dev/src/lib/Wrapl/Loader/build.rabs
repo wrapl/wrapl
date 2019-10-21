@@ -1,7 +1,6 @@
 JANSSON_VERSION := "2.10"
 JANSSON_URL := 'https://github.com/akheron/jansson/archive/v{JANSSON_VERSION}.tar.gz'
 JANSSON_DIR := file("libjansson")
-JANSSON_LIB := EXT_DIR / "lib/libjansson.a"
 
 JANSSON_LIB => fun() do
 	mkdir(JANSSON_DIR)

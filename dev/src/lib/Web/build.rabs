@@ -10,13 +10,25 @@ end
 LIBJWT_LIB := EXT_DIR / "lib/libjwt.a" => fun() do
 	file("libjwt"):rmdir:mkdir:chdir
 	execute('wget -nv https://github.com/benmcollins/libjwt/archive/v1.11.0.tar.gz -O- | tar xvzP --strip-components=1')
-	file("libjwt/build"):mkdir:chdir
-	execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
-	execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
+	execute("autoreconf -i")
+	execute("./configure --disable-shared --enable-static",
+		'--build={LIBHOST}',
+		'--prefix={EXT_DIR}',
+		"--without-man-pages",
+		"--without-openssl",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make clean")	
+	execute("make")
+	execute("make install")
+	--file("libjwt/build"):mkdir:chdir
+	--execute('CFLAGS=\"{CFLAGS}\" cmake -DCMAKE_INSTALL_PREFIX={EXT_DIR} BUILD_SHARED_LIBS=OFF BUILD_STATIC_LIBS=ON ..')
+	--execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 
 riva_module("Web/Smtp", [file("Smtp.o")])
-riva_module("Web/JWT", [file("JWT.o")], [LIBJWT_LIB])
+riva_module("Web/JWT", [file("JWT.o")], [LIBJWT_LIB, JANSSON_LIB])
 
 --subdir("FastCGI")
 --subdir("CivetWeb")

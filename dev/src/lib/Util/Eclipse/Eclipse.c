@@ -83,6 +83,11 @@ static Std$Function$status from_eclipse(pword PWord, Std$Function$result *Result
 		Atom->Type = DidentT;
 		Atom->Value = Dident;
 		RETURN(Dident);
+	} else if (ec_get_functor(PWord, &Dident) == PSUCCEED) {
+		pword_t *Value = new(pword_t);
+		Value->Type = PWordT;
+		Value->Value = PWord;
+		RETURN(Value);
 	} else if (ec_is_var(PWord) == PSUCCEED) {
 		FAIL;
 	} else {
@@ -212,16 +217,18 @@ TYPED_INSTANCE(int, to_eclipse, RefT, ref_t *Ref, pword *Dest) {
 }
 
 Std$Function$status dident_invoke(const dident_t *Dident, unsigned long Count, const Std$Function$argument *Args, Std$Function$result *Result) {
-	printf("Calling dident %s/%d with %d arguments\n", DidName(Dident->Value), DidArity(Dident->Value), Count);
+	int Arity = DidArity(Dident->Value);
 	pword Arguments[Count];
 	for (int I = 0; I < Count; ++I) to_eclipse(Args[I].Val, Arguments + I);
 	pword_t *Term = new(pword_t);
 	Term->Type = PWordT;
-	if (DidArity(Dident->Value) != Count) {
+	if (Arity == Count) {
+		Term->Value = ec_term_array(Dident->Value, Arguments);
+	} else if (Arity == 0) {
 		dident D = ec_did(DidName(Dident->Value), Count);
 		Term->Value = ec_term_array(D, Arguments);
 	} else {
-		Term->Value = ec_term_array(Dident->Value, Arguments);
+		SEND(Std$String$new_format("Error: arity mismatch: %d expected, %d received", Arity, Count));
 	}
 	RETURN(Term);
 }
@@ -265,8 +272,16 @@ INITIAL(Riva$Module$provider_t *Provider) {
 		LibPath = Riva$Memory$alloc_atomic(NewLength);
 		stpcpy(stpcpy(LibPath, ModulePath), "/eclipse/lib/i386_linux");
 	}
+	const char *SoFileName = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse/lib/i386_linux/libeclipse.so") + 1);
+	stpcpy(stpcpy(SoFileName, ModulePath), "/eclipse/lib/i386_linux/libeclipse.so");
+	printf("Trying to load <%s>\n", SoFileName);
+	if (!dlopen(SoFileName, RTLD_GLOBAL)) {
+		printf("Error: %s\n", strerror(Riva$System$get_errno()));
+	}
+
 	printf("Setting LD_LIBRARY_PATH=<%s>\n", LibPath);
-	setenv("LD_LIBRARY_PATH", LibPath, 1);	const char *EclipsePath = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse") + 1);
+	setenv("LD_LIBRARY_PATH", LibPath, 1);
+	const char *EclipsePath = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse") + 1);
 	strcpy(stpcpy(EclipsePath, ModulePath), "/eclipse");
 	printf("Setting Eclipse path = %s\n", EclipsePath);
 	ec_set_option_ptr(EC_OPTION_ECLIPSEDIR, EclipsePath);

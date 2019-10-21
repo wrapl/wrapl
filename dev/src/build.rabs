@@ -177,6 +177,7 @@ end
 
 UDIS_LIB := EXT_DIR / "lib/libudis86.a"
 GC_LIB := EXT_DIR / "lib/libgc.a"
+JANSSON_LIB := EXT_DIR / "lib/libjansson.a"
 
 subdir("rlink")
 subdir("riva")
