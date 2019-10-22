@@ -516,6 +516,19 @@ METHOD("rest", TYP, T) {
 	return SUCCESS;
 };
 
+METHOD("bytes", TYP, T) {
+	buffer_t *Stream = (buffer_t *)Args[0].Val;
+	int Length = 0;
+	for (node_t *Node = Stream->Head; Node; Node = Node->Next) Length += Node->Length;
+	void *Bytes = Riva$Memory$alloc_atomic(Length);
+	Std$Address$sizedt *Address = Std$Address$new_sized(Bytes, Length);
+	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
+		memcpy(Bytes, Node->Chars, Node->Length);
+		Bytes += Node->Length;
+	}
+	RETURN(Address);
+}
+
 METHOD("md5", TYP, T) {
 	struct md5_ctx Context[1];
 	md5_init(Context);

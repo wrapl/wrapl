@@ -524,7 +524,7 @@ void all_expr_t::print(int Indent) {
 
 void map_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
-	printf("UNIQ ");
+	printf("MAP ");
 	Key->print(Indent);
 };
 

@@ -15,7 +15,6 @@ LIBJWT_LIB := EXT_DIR / "lib/libjwt.a" => fun() do
 		'--build={LIBHOST}',
 		'--prefix={EXT_DIR}',
 		"--without-man-pages",
-		"--without-openssl",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
 	)
