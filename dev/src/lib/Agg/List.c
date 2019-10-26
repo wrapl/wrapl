@@ -171,24 +171,46 @@ GLOBAL_FUNCTION(Make, 0) {
  METHOD("_check", TYP, T) {
 // internal function
     _list *List = (_list *)Args[0].Val;
-    if (List->Array == 0) {
-        printf("List has no array.\n");
-        return SUCCESS;
+    int Error = 0;
+    printf("List\n\tLength: %ld\n", List->Length);
+    printf("\tCache: %ld ", List->Index);
+    if (List->Length > 0) {
+    	_node *Node = List->Head;
+    	for (int I = 1; I < List->Index; ++I) Node = Node->Next;
+    	if (Node == List->Cache) {
+    		printf("\e[32mcorrect\e[0m\n");
+    	} else {
+    		Error = 1;
+    		printf("\e[31mincorrect\e[0m\n");
+    	}
     } else {
-        printf("List has array [%d - %d]...", (int)List->Lower, (int)List->Upper);
+    	printf("none\n");
+    }
+    if (List->Array == 0) {
+    	printf("\tArray: none\n");
+    } else {
+    	printf("\tArray: %ld .. %ld ", List->Lower, List->Upper);
         _node *Node = List->Head;
         for (int I = 1; I < List->Lower; ++I) Node = Node->Next;
         _node **Array = List->Array;
+        int Correct = 1;
         for (int I = List->Lower; I <= List->Upper; ++I) {
             if (*(Array++) != Node) {
-                printf("\n\tArray is incorrect at %d...", I);
-            };
+            	Correct = 0;
+            	Error = 1;
+                printf("\n\t\t\e[31mincorrect\e[0m at %d", I);
+            }
             Node = Node->Next;
-        };
-        printf("done.\n");
-        return SUCCESS;
-    };
-};
+        }
+        if (Correct) {
+        	printf("\e[32mcorrect\e[0m\n");
+        } else {
+        	printf("\n");
+        }
+    }
+    if (Error) SEND(Std$String$new("List check error!"));
+    RETURN(Std$Object$Nil);
+}
 
  METHOD("_validate", TYP, T) {
 // internal function
@@ -1042,11 +1064,14 @@ METHOD("shift", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
     return SUCCESS;
 };
 
-static Std$Object$t *delete_node(_list *List, _node *Node) {
-	(Node->Prev->Next = Node->Next)->Prev = Node->Prev;
+static Std$Object$t *delete_node(_list *List, _node *Node, int Index) {
+	_node *Next = Node->Next;
+	_node *Prev = Node->Prev;
+	Prev->Next = Next;
+	Next->Prev = Prev;
 	--List->Length;
-	List->Index = 1;
-	List->Cache = List->Head;
+	List->Index = Index;
+	List->Cache = Next;
 	List->Array = 0;
 	List->Access = 4;
 	return Node->Value;
@@ -1072,7 +1097,10 @@ METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 			if (List->Lower > 1) --List->Lower; else ++List->Array;
 			--List->Upper;
 		};
-		List->Index = 1; List->Cache = List->Head;
+		if (--List->Index == 0) {
+			List->Index = 1;
+			List->Cache = List->Head;
+		}
 		List->Access = 4;
 		UNLOCK(List);
 		Result->Val = Node->Value;
@@ -1085,7 +1113,10 @@ METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 		if (List->Array) {
 			if (List->Upper > List->Length) --List->Upper;
 		};
-		List->Index = 1; List->Cache = List->Head;
+		if (List->Index == Length) {
+			List->Index = 1;
+			List->Cache = List->Head;
+		}
 		List->Access = 4;
 		UNLOCK(List);
 		Result->Val = Node->Value;
@@ -1093,52 +1124,52 @@ METHOD("delete", TYP, T, TYP, Std$Integer$SmallT) {
 	};
 	switch (Index - Cache) {
 	case -1: {
-		Result->Val = delete_node(List, List->Cache->Prev);
+		Result->Val = delete_node(List, List->Cache->Prev, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	};
 	case 0: {
-		Result->Val = delete_node(List, List->Cache);
+		Result->Val = delete_node(List, List->Cache, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	};
 	case 1: {
-		Result->Val = delete_node(List, List->Cache->Next);
+		Result->Val = delete_node(List, List->Cache->Next, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	};
 	};
 	if (List->Array && (List->Lower <= Index) && (Index <= List->Upper)) {
 		_node *Node = List->Array[Index - List->Lower];
-		Result->Val = delete_node(List, Node);
+		Result->Val = delete_node(List, Node, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	} else if (2 * Index < Cache) {
 		_node *Node = List->Head;
 		long Steps = Index - 1;
 		do Node = Node->Next; while (--Steps);
-		Result->Val = delete_node(List, Node);
+		Result->Val = delete_node(List, Node, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	} else if (Index < Cache) {
 		_node *Node = List->Cache;
 		long Steps = Cache - Index;
 		do Node = Node->Prev; while (--Steps);
-		Result->Val = delete_node(List, Node);
+		Result->Val = delete_node(List, Node, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	} else if (2 * Index < Cache + Length) {
 		_node *Node = List->Cache;
 		long Steps = Index - Cache;
 		do Node = Node->Next; while (--Steps);
-		Result->Val = delete_node(List, Node);
+		Result->Val = delete_node(List, Node, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	} else {
 		_node *Node = List->Tail;
 		long Steps = Length - Index;
 		do Node = Node->Prev; while (--Steps);
-		Result->Val = delete_node(List, Node);
+		Result->Val = delete_node(List, Node, Index);
 		UNLOCK(List);
 		return SUCCESS;
 	};
@@ -2300,6 +2331,19 @@ METHOD("rwhere", TYP, T, TYP, Std$Function$T, ANY) {
 	return FAILURE;
 };
 
+static Std$Object$t *remove_node(_list *List, _node *Node) {
+	_node *Next = Node->Next;
+	_node *Prev = Node->Prev;
+	Prev->Next = Next;
+	Next->Prev = Prev;
+	--List->Length;
+	List->Index = 1;
+	List->Cache = List->Head;
+	List->Array = 0;
+	List->Access = 4;
+	return Node->Value;
+};
+
 METHOD("remove", TYP, T, ANY) {
 //@list
 //@value
@@ -2314,7 +2358,7 @@ METHOD("remove", TYP, T, ANY) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Result->Val = delete_node(List, Node);
+					Result->Val = remove_node(List, Node);
 				} else {
 					_node *Node = List->Head;
 					List->Head = Node->Next;
@@ -2392,7 +2436,7 @@ METHOD("remove", TYP, T, ANY, ANY) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Result->Val = delete_node(List, Node);
+					Result->Val = remove_node(List, Node);
 				} else {
 					(List->Head = Node->Next)->Prev = 0;
 					--List->Length;
@@ -2456,7 +2500,7 @@ static long resume_filter_list(Std$Function$result *Result) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Result->Val = delete_node(List, Node);
+					Result->Val = remove_node(List, Node);
 				} else {
 					(List->Head = Node->Next)->Prev = 0;
 					--List->Length;
@@ -2521,7 +2565,7 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 		case SUSPEND: case SUCCESS: {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Result->Val = delete_node(List, Node);
+					Result->Val = remove_node(List, Node);
 				} else {
 					(List->Head = Node->Next)->Prev = 0;
 					--List->Length;
@@ -2590,7 +2634,7 @@ METHOD("filter", TYP, T, TYP, Std$Function$T) {
 		if (Node->Value == Args[1].Val) {
 			if (Node->Next) {
 				if (Node->Prev) {
-					Result->Val = delete_node(List, Node);
+					Result->Val = remove_node(List, Node);
 				} else {
 					(List->Head = Node->Next)->Prev = 0;
 					--List->Length;
