@@ -427,31 +427,36 @@ method "pop", TYP, T
 	mov eax, [_node(edx).Next]
 	test eax, eax
 	mov [_list(ebx).Head], eax
-	jz .l2
-	mov [_node(eax).Prev], dword 0
+	jz .l3
+	mov dword [_node(eax).Prev], 0
 	cmp [_list(ebx).Cache], edx
-	je .l6
+	je .l2
 	dec dword [_list(ebx).Index]
-	jmp .l3
-.l6:
-	mov [_list(ebx).Cache], eax
-	jmp .l3
+	jmp .l4
 .l2:
-	mov [_list(ebx).Tail], eax
+	mov [_list(ebx).Cache], eax
+	jmp .l4
 .l3:
+	mov [_list(ebx).Tail], eax
+.l4:
 	dec dword [_list(ebx).Length]
 	mov eax, [_list(ebx).Array]
 	test eax, eax
+	jz .l7
+	dec dword [_list(ebx).Lower]
 	jz .l5
 	dec dword [_list(ebx).Upper]
-	cmp [_list(ebx).Lower], dword 1
-	jne .l4
-	add dword [_list(ebx).Array], 4
-	jmp .l5
-.l4:
-	dec dword [_list(ebx).Lower]
+	jmp .l7
 .l5:
-	mov [_list(ebx).Access], dword 4
+	dec dword [_list(ebx).Upper]
+	jz .l6
+	inc dword [_list(ebx).Lower]
+	add dword [_list(ebx).Array], 4
+	jmp .l7
+.l6:
+	mov dword [_list(ebx).Array], 0
+.l7:
+	mov dword [_list(ebx).Access], 4
 	mov ecx, [_node(edx).Value]
 	xor edx, edx
 	xor eax, eax
@@ -473,7 +478,7 @@ method "pull", TYP, T
 	test eax, eax
 	mov [_list(ebx).Tail], eax
 	jz .l2
-	mov [_node(eax).Next], dword 0
+	mov dword [_node(eax).Next], 0
 	cmp [_list(ebx).Cache], edx
 	jne .l3
 	mov [_list(ebx).Cache], eax
@@ -489,9 +494,13 @@ method "pull", TYP, T
 	mov eax, [_list(ebx).Upper]
 	cmp eax, [_list(ebx).Length]
 	jbe .l5
+	cmp eax, [_list(ebx).Lower]
+	ja .l4
+	mov dword [_list(ebx).Array], 0
+.l4:
 	dec dword [_list(ebx).Upper]
 .l5:
-	mov [_list(ebx).Access], dword 4
+	mov dword [_list(ebx).Access], 4
 	mov ecx, [_node(edx).Value]
 	xor edx, edx
 	xor eax, eax
