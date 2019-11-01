@@ -106,6 +106,9 @@ GCC_RLINK := GEN_LIB / "Gcc.rlink"
 GMP_RLINK := GEN_LIB / "Gmp.rlink"
 FFI_RLINK := GEN_LIB / "FFI.rlink"
 
+LIBEVENT_RLINK := GEN_LIB / "Util/Event/libevent.rlink"
+HIREDIS_RLINK := GEN_LIB / "DB/hiredis.rlink"
+
 subdir("Lib")
 
 scope("lib";) do

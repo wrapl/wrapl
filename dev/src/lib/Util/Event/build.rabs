@@ -13,12 +13,8 @@ var LIBEVENT_LIB := EXT_DIR / "lib/libevent.a" => fun() do
 	execute("make install")
 end
 
-var LIBEVENT_RLINK := GEN_LIB / "Util/Event/libevent.rlink"
-
-PREBUILDS := old + [LIBEVENT_LIB]
-
 LIBEVENT_RLINK[riva_module_auto("Util/Event/libevent", [])]
 
-riva_module_auto("Util/Event/Base", [file("Base.o")], [LIBEVENT_RLINK])
+riva_module("Util/Event/Base", [file("Base.o")], [LIBEVENT_RLINK])
 riva_module("Util/Event/Buffer", [file("Buffer.o")], [LIBEVENT_RLINK])
 riva_module("Util/Event/Http", [file("Http.o")], [LIBEVENT_RLINK])

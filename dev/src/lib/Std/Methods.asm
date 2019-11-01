@@ -1653,6 +1653,38 @@ amethod Std$Real$Of, STRING
 	inc eax
 	ret
 
+symbol_method "length", TYP, Std$Symbol$ArrayT
+	mov eax, [Std$Function_argument(edi).Val]
+	mov esi, [Std$Symbol_arrayt(eax).Count]
+	call Std$Integer$_alloc_small
+	mov dword [Std$Integer_smallt(eax).Value], esi
+	mov ecx, eax
+	xor edx, edx
+	xor eax, eax
+	ret
+
+symbol_method "[]", TYP, Std$Symbol$ArrayT, TYP, Std$Integer$SmallT
+	mov eax, [Std$Function_argument(edi).Val]
+	mov esi, [Std$Symbol_arrayt(eax).Count]
+	mov ebx, [Std$Function_argument(edi, 1).Val]
+	mov ebx, [Std$Integer_smallt(ebx).Value]
+	dec ebx
+	jns .nonneg
+	lea ebx, [ebx + esi + 1]
+.nonneg:
+	cmp ebx, 0
+	jl .fail
+	cmp ebx, esi
+	jge .fail
+	mov ecx, [Std$Symbol_arrayt(eax).Values + 4 * ebx]
+	xor edx, edx
+	xor eax, eax
+	ret
+.fail:
+	xor eax, eax
+	inc eax
+	ret
+
 struct symbol_array_values_state, Std$Function_state
 	.Current:	resd 1
 	.Limit:		resd 1

@@ -112,7 +112,6 @@ METHOD("command", TYP, T, TYP, Std$String$T) {
 };
 
 static void async_callback(redisAsyncContext *Context, redisReply *Reply, Std$Object$t *Function) {
-	printf("At least we get here!\n");
 	Std$Function$result Result;
 	if (Reply == 0) {
 		Std$Object$t *Error = Std$String$copy(Context->errstr);

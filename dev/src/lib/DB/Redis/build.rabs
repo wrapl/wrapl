@@ -1,0 +1,1 @@
+riva_module("DB/Redis/Event", [file("Event.o")], [HIREDIS_RLINK, LIBEVENT_RLINK])

@@ -19,7 +19,7 @@ PREBUILDS := old + [ECLIPSE_LIB]
 CFLAGS := old + ['-I{file("include/i386_linux")}']
 --LDFLAGS := old + ['-L{file("eclipse/lib/i386_linux")}']
 
-riva_module("Util/Eclipse", [file("Eclipse.o"), file("Eclipse2.o")], [
+riva_module("Util/Eclipse", [file("Eclipse.o")], [
 	ECLIPSE_LIB,
 	file("eclipse/Shm/i386_linux/libshm.a")[ECLIPSE_LIB],
 	file("eclipse/Kernel/i386_linux/libdummies.a")[ECLIPSE_LIB]
