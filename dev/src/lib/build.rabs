@@ -126,16 +126,17 @@ scope("lib";) do
 	--subdir("Boost")
 	subdir("Stat")
 	--subdir("OpenCV")
-	subdir("ML")
-	subdir("DB")
-	subdir("Net")
-	subdir("Num")
 	
 	if PLATFORM = "Linux" then
 		subdir("Gir")
 		subdir("Snd")
 		subdir("Img")
 	end
+	
+	subdir("ML")
+	subdir("DB")
+	subdir("Net")
+	subdir("Num")
 end
 
 var DevBinaries := [

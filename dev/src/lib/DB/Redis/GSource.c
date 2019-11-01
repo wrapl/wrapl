@@ -2,8 +2,8 @@
 #include <Riva.h>
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
-#include <hiredis/adapters/libevent.h>
-#include <Util/Event/Base.h>
+#include <hiredis/adapters/glib.h>
+#include <Gir/GLib/Source.h>
 
 typedef struct redis_async_t {
 	const Std$Type$t *Type;
@@ -13,9 +13,10 @@ typedef struct redis_async_t {
 
 extern Std$Type$t DB$Redis$AsyncT[];
 
-METHOD("attach", TYP, DB$Redis$AsyncT, TYP, Util$Event$Base$T) {
+METHOD("gsource", TYP, DB$Redis$AsyncT) {
 	redis_async_t *Redis = (redis_async_t *)Args[0].Val;
-	Util$Event$Base$t *EventBase = (Util$Event$Base$t *)Args[1].Val;
-	redisLibeventAttach(Redis->Handle, EventBase->Handle);
-	RETURN0;
+	Gir$GLib$Source$t *Source = new(Gir$GLib$Source$t);
+	Source->Type = Gir$GLib$Source$T;
+	Source->Value = redis_source_new(Redis->Handle);
+	RETURN(Source);
 }

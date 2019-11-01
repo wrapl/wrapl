@@ -1,0 +1,4 @@
+include("Gir/GLib/Source.rlib")
+
+module("DB", "Redis")
+import("AsyncT")
