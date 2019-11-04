@@ -933,7 +933,7 @@ METHOD("copy", TYP, T, TYP, IO$Stream$WriterT) {
 				Node->Chars = Buffer;
 				Node->Length = Length;
 				Rd->Head = Node;
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Bytes;
@@ -973,7 +973,7 @@ METHOD("copy", TYP, T, TYP, IO$Stream$WriterT, TYP, Std$Integer$SmallT) {
 				Node->Chars = Buffer;
 				Node->Length = Length;
 				Rd->Head = Node;
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Bytes;
@@ -1006,7 +1006,7 @@ METHOD("copy", TYP, IO$Stream$ReaderT, TYP, T, TYP, Std$Integer$SmallT) {
 		unsigned char *Chars = Riva$Memory$alloc_atomic(256);
 		int Length = read(Rd, Chars, 256, 0);
 		if (Length == -1) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Total += Length;
@@ -1019,7 +1019,7 @@ METHOD("copy", TYP, IO$Stream$ReaderT, TYP, T, TYP, Std$Integer$SmallT) {
 	unsigned char *Chars = Riva$Memory$alloc_atomic(Required);
 	int Length = read(Rd, Node->Chars, Required, 0);
 	if (Length == -1) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Total += Length;

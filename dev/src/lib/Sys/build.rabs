@@ -1,6 +1,23 @@
 CFLAGS := old + ["-std=gnu99"]
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib"]
 
+var ErrnoRlink := file("Errno.rlink")
+var ErrnoC := file("Errno.c") => fun() do
+	var C := file("Errno.c"):open("w")
+	C:write('#include <Std.h>\n\n')
+	var Rlink := file("Errno.rlink"):open("w")
+	for Line in shell("gcc -E -fdirectives-only /usr/include/sys/errno.h") / "\n" do
+		if var Matches := Line % "#define (E[A-Z0-9]+) ([0-9]+)" then
+			var Name := Matches[2]
+			var Value := Matches[3]
+			C:write('Std$Integer$smallt Error{Name}[1] = \{\{Std$Integer$SmallT, {Value}}};\n')
+			Rlink:write('subexport("Error", "Error{Name}", "{Name}")\n')
+		end
+	end
+	C:close;
+	Rlink:close;
+end
+
 WRAPL_MODULES[
 	riva_module("Sys/Thread", [file("Thread.o")]),
 	riva_module("Sys/Coexpr", [file("Coexpr.o")]),
@@ -9,7 +26,7 @@ WRAPL_MODULES[
 	riva_module("Sys/FileSys", [file("FileSys.o")]),
 	riva_module("Sys/Time", [file("Time.o")]),
 	riva_module("Sys/Memory", [file("Memory.o")]),
-	riva_module("Sys/Program", [file("Program.o")]),
+	riva_module("Sys/Program", [file("Program.o"), file("Errno.o")]),
 	riva_module("Sys/Config", [file("Config.o")]),
 	riva_module("Sys/Log", [file("Log.o")]),
 	riva_module("Sys/Service", [file("Service.o")]),

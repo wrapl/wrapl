@@ -1,6 +1,7 @@
 #include <IO/Socket.h>
 #include <Util/TypedFunction.h>
 #include <Riva/Memory.h>
+#include <Riva/System.h>
 #include <Sys/Module.h>
 #include <Std.h>
 
@@ -81,7 +82,7 @@ GLOBAL_FUNCTION(New, 2) {
 	} else if (Args[1].Val == (Std$Object$t *)FlagRaw) {
 		Style = SOCK_RAW;
 	} else {
-		Result->Val = IO$Stream$Message$new_format(CreateMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(CreateMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	if (Args[0].Val == (Std$Object$t *)FlagInet) {
@@ -91,11 +92,11 @@ GLOBAL_FUNCTION(New, 2) {
 		Handle = socket(PF_LOCAL, Style, 0);
 		Type = LocalT;
 	} else {
-		Result->Val = IO$Stream$Message$new_format(CreateMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(CreateMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	if (Handle < 0) {
-		Result->Val = IO$Stream$Message$new_format(CreateMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(CreateMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Val = IO$Native$(new)(Type, Handle);
@@ -121,7 +122,7 @@ METHOD("urge", TYP, T, TYP, Std$String$T) {
 	Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (long I = 0; I < String->Count; ++I) {
 		if (send_all_oob(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 	};
@@ -135,7 +136,7 @@ METHOD("urge", TYP, T, TYP, Std$String$T) {
 METHOD("setown", TYP, T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	if (fcntl(Stream->Handle, F_SETOWN, syscall(SYS_gettid)) < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$GenericMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$GenericMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
     Result->Arg = Args[0];
@@ -166,7 +167,7 @@ METHOD("sendfd", TYP, LocalT, TYP, IO$Posix$T) {
 	int *Data = (int *)CMSG_DATA(CMPtr);
 	Data[0] = Handle;
 	if (sendmsg(Socket, &Message, 0) < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	} else {
 		Result->Arg = Args[0];
@@ -196,7 +197,7 @@ METHOD("recvfd", TYP, LocalT) {
 	int *Data = (int *)CMSG_DATA(CMPtr);
 	Data[0] = -1;
 	if (recvmsg(Socket, &Message, 0) < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	} else {
 		CMPtr = CMSG_FIRSTHDR(&Message);
@@ -209,7 +210,7 @@ METHOD("recvfd", TYP, LocalT) {
 			Result->Val = IO$Posix$new(T, Data[0]);
 			return SUCCESS;
 		} else {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 	};
@@ -220,7 +221,7 @@ METHOD("bind", TYP, LocalT, TYP, Std$String$T) {
 	Name.sun_family = AF_LOCAL;
 	Std$String$flatten_to(Args[1].Val, Name.sun_path);
 	if (bind(((IO$Posix$t *)Args[0].Val)->Handle, &Name, SUN_LEN(&Name)) < 0) {
-		Result->Val = IO$Stream$Message$new_format(BindMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(BindMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -233,7 +234,7 @@ METHOD("bind", TYP, InetT, TYP, Std$Integer$SmallT) {
 	Name.sin_port = htons(((Std$Integer$smallt *)Args[1].Val)->Value);
 	Name.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(((IO$Posix$t *)Args[0].Val)->Handle, &Name, sizeof(Name)) < 0) {
-		Result->Val = IO$Stream$Message$new_format(BindMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(BindMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -243,7 +244,7 @@ METHOD("bind", TYP, InetT, TYP, Std$Integer$SmallT) {
 METHOD("listen", TYP, T, TYP, Std$Integer$SmallT) {
 	int Socket = ((IO$Posix$t *)Args[0].Val)->Handle;
 	if (listen(Socket, ((Std$Integer$smallt *)Args[1].Val)->Value) < 0) {
-		Result->Val = IO$Stream$Message$new_format(ListenMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(ListenMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -256,7 +257,7 @@ METHOD("accept", TYP, T) {
 	socklen_t Length = sizeof(Addr);
 	int Socket0 = accept(Socket, &Addr, &Length);
 	if (Socket0 < 0) {
-		Result->Val = IO$Stream$Message$new_format(AcceptMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(AcceptMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Val = IO$Native$(new)(Args[0].Val->Type, Socket0);
@@ -276,7 +277,7 @@ TYPED_INSTANCE(void, IO$Stream$close, T, IO$Posix$t *Stream, int Mode) {
 METHOD("close", TYP, T, TYP, IO$Stream$CloseModeT) {
     int Socket = ((IO$Posix$t *)Args[0].Val)->Handle;
     if (shutdown(Socket, _CLOSE[((Std$Integer$smallt *)Args[1].Val)->Value])) {
-        Result->Val = IO$Stream$Message$new_format(ShutdownMessageT, "%s:%d", __FILE__, __LINE__);
+        Result->Val = Sys$Program$error_new_format(ShutdownMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
         return MESSAGE;
     };
     IO$Posix$unregister_finalizer((void *)Args[0].Val);
@@ -289,7 +290,7 @@ METHOD("connect", TYP, LocalT, TYP, Std$String$T) {
 	Name.sun_family = AF_LOCAL;
 	Std$String$flatten_to(Args[1].Val, Name.sun_path);
 	if (connect(((IO$Posix$t *)Args[0].Val)->Handle, &Name, SUN_LEN(&Name)) < 0) {
-		Result->Val = IO$Stream$Message$new_format(ConnectMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(ConnectMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -301,7 +302,7 @@ METHOD("connect", TYP, InetT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	Std$String$flatten_to(Args[1].Val, HostName);
 	struct hostent *HostInfo = gethostbyname(HostName);
 	if (HostInfo == 0) {
-		Result->Val = IO$Stream$Message$new_format(HostNotFoundMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(HostNotFoundMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	int Socket = ((IO$Posix$t *)Args[0].Val)->Handle;
@@ -310,7 +311,7 @@ METHOD("connect", TYP, InetT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	Name.sin_port = htons(((Std$Integer$smallt *)Args[2].Val)->Value);
 	Name.sin_addr = *(struct in_addr *)HostInfo->h_addr;
 	if (connect(((IO$Posix$t *)Args[0].Val)->Handle, &Name, sizeof(Name)) < 0) {
-		Result->Val = IO$Stream$Message$new_format(ConnectMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(ConnectMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -340,7 +341,7 @@ METHOD("setopt", TYP, T, TYP, OptionT) {
 	switch (Option->OptType) {
 	case OPT_BOOLEAN: {
 		if (Count < 3) {
-			Result->Val = IO$Stream$Message$new_format(OptionMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(OptionMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 		int On = Args[2].Val == $true;
@@ -348,7 +349,7 @@ METHOD("setopt", TYP, T, TYP, OptionT) {
 		break;
 	};
 	default: {
-		Result->Val = IO$Stream$Message$new_format(OptionMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(OptionMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	};
@@ -361,7 +362,7 @@ METHOD("sockname", TYP, InetT, ANY, ANY) {
 	struct sockaddr_in Name;
 	socklen_t Length = sizeof(Name);
 	if (getsockname(Socket, (struct sockaddr*)&Name, &Length)) {
-		Result->Val = IO$Stream$Message$new_format(PeerNameMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(PeerNameMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	} else {
 		if (Args[1].Ref) {
@@ -378,7 +379,7 @@ METHOD("peername", TYP, InetT, ANY, ANY) {
 	struct sockaddr_in Name;
 	socklen_t Length = sizeof(Name);
 	if (getpeername(Socket, (struct sockaddr*)&Name, &Length)) {
-		Result->Val = IO$Stream$Message$new_format(PeerNameMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(PeerNameMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	} else {
 		if (Args[1].Ref) {

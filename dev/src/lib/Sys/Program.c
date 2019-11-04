@@ -8,6 +8,7 @@
 #include <Riva/Debug.h>
 #include <Util/TypedFunction.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <signal.h>
 #include <setjmp.h>
 
@@ -16,6 +17,8 @@
 #else
 #include <windows.h>
 #endif
+
+Sys$Program$stack_trace_t *_stack_trace(int MaxDepth);
 
 TYPE(ErrorT);
 
@@ -26,6 +29,41 @@ TYPED_FUNCTION(const char *, _error_name, Sys$Program$error_t *Error) {
 AMETHOD(Std$String$Of, TYP, ErrorT) {
 	Sys$Program$error_t *Error = (Sys$Program$error_t *)Args[0].Val;
 	RETURN(Std$String$new_format("%s: %s", _error_name(Error), Error->Message));
+}
+
+Std$Object$t *_error_new(const Std$Type$t *Type, const char *Description) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	Error->Message = Description;
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+Std$Object$t *_error_new_format(const Std$Type$t *Type, const char *Format, ...) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	va_list Args;
+	va_start(Args, Format);
+	int Length = vasprintf(&Error->Message, Format, Args);
+	va_end(Args);
+	Error->Errno = Riva$System$get_errno();
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+Std$Object$t *_error_from_errno(const Std$Type$t *Type) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	char Buffer[256];
+	Error->Errno = Riva$System$get_errno();
+	Error->Message = Riva$Memory$strdup(strerror_r(Error->Errno, Buffer, 256));
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+METHOD("errno", TYP, ErrorT) {
+	Sys$Program$error_t *Error = (Sys$Program$error_t *)Args[0].Val;
+	RETURN(Std$Integer$new_small(Error->Errno));
 }
 
 #ifdef LINUX

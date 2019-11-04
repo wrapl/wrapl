@@ -1,5 +1,6 @@
 include("IO/Stream.rlib")
 include("IO/Native.rlink")
+include("Sys/Program.rlink")
 include("Util/TypedFunction.rlib")
 
 export("T")

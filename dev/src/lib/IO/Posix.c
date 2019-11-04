@@ -346,7 +346,7 @@ TYPED_INSTANCE(int, IO$Stream$tell, SeekerT, IO$Posix$t *Stream) {
 METHOD("flush", TYP, T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	if (fsync(Stream->Handle) < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$FlushMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$FlushMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -356,7 +356,7 @@ METHOD("flush", TYP, T) {
 METHOD("close", TYP, T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	if (close(Stream->Handle)) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$CloseMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	} else {
 		Riva$Memory$register_finalizer((void *)Stream, 0, 0, 0, 0);
@@ -374,7 +374,7 @@ METHOD("eoi", TYP, ReaderT) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	off_t Current = lseek(Stream->Handle, 0, SEEK_CUR);
 	if (Current == -1) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$GenericMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$GenericMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 	};
 	return FAILURE;
 };
@@ -385,7 +385,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -400,7 +400,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $
 	while (Size) {
 		int Bytes = read(Stream->Handle, Buffer, Size);
 		if (Bytes < 0) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -419,7 +419,7 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
 	case -1:
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	case 0:
 		return FAILURE;
@@ -448,7 +448,7 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
 		case -1:
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		default: {
 			if (IsTerm[Char]) {
@@ -493,7 +493,7 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
 	case -1:
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno())); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
@@ -519,7 +519,7 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
 		case -1:
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		default: {
 			if (Space == 0) {
@@ -564,7 +564,7 @@ METHOD("rest", TYP, ReaderT) {
 	for (;;) {
 		int Bytes = read(Handle, Ptr, Space);
 		if (Bytes == -1) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -610,7 +610,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Handle, Buffer, Max);
 			if (Bytes == 0) break;
 			if (Bytes == -1) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -634,7 +634,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			while (Space > 0) {
 				int Bytes = read(Handle, Ptr, Space);
 				if (Bytes == -1) {
-					Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+					Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 					return MESSAGE;
 				};
 				if (Bytes == 0) goto finished;
@@ -650,7 +650,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max > 0) {
 			int Bytes = read(Handle, Ptr, Max);
 			if (Bytes == -1) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 			if (Bytes == 0) goto finished;
@@ -683,7 +683,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Handle, Ptr, Space);
 			if (Bytes == -1) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 			if (Bytes == 0) break;
@@ -729,7 +729,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Handle, Buffer, Max);
 			if (Bytes == 0) continue;
 			if (Bytes == -1) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -752,7 +752,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Handle, Ptr, Space);
 			if (Bytes == -1) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 			if (Bytes == 0) continue;
@@ -792,7 +792,7 @@ METHOD("read", TYP, TextReaderT) {
 	do {
 		switch (read(Handle, &Char, 1)) {
 		case -1:
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		case 0:
 			return FAILURE;
@@ -809,9 +809,10 @@ METHOD("read", TYP, TextReaderT) {
 	++Length;
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
-		case -1:
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		case -1: {
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
+		}
 		default: {
 			if (Char == '\n') {
 			} else if (Char == '\r') {
@@ -853,7 +854,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -868,7 +869,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, 
 	while (Size) {
 		int Bytes = write(Stream->Handle, Buffer, Size);
 		if (Bytes < 0) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -885,7 +886,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	const Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};
 	};
@@ -902,7 +903,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 		const Std$String$t *String = (Std$String$t *)Result0.Val;
 		for (int I = 0; I < String->Count; ++I) {
 			if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
-				Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+				Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 				return MESSAGE;
 			};
 		};
@@ -910,7 +911,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 		return SUCCESS;
 	};
 	case FAILURE:
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ConvertMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	case MESSAGE:
 		Result->Arg = Result0.Arg;
@@ -923,7 +924,7 @@ METHOD("seek", TYP, SeekerT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) 
 	int Position = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	Position = lseek(Stream->Handle, Position, _SEEK[((Std$Integer$smallt *)Args[2].Val)->Value]);
 	if (Position < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$SeekMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$SeekMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Position);
@@ -941,7 +942,7 @@ METHOD("poll", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	struct pollfd PollFd[] = {{Stream->Handle, ((Std$Integer$smallt *)Args[1].Val)->Value, 0}};
 	int Status = poll(PollFd, 1, ((Std$Integer$smallt *)Args[2].Val)->Value);
 	if (Status < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$PollMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$PollMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 		return MESSAGE;
 	};
 	if (Status == 0) return FAILURE;
@@ -1032,7 +1033,7 @@ METHOD("mmap", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, St
 		Std$Integer$get_small(Args[3].Val)
 	);
 	if (Address == MAP_FAILED) {
-		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	Result->Val = Std$Address$new(Address);
@@ -1043,7 +1044,7 @@ METHOD("munmap", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	void *Address = Std$Address$get_value(Args[0].Val);
 	size_t Length = Std$Integer$get_small(Args[1].Val);
 	if (munmap(Address, Length)) {
-		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	return SUCCESS;

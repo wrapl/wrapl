@@ -80,7 +80,7 @@ GLOBAL_METHOD(Add, 3, "add", TYP, T, TYP, IO$Posix$T, TYP, EventT) {
 	IO$Posix$t *Posix = (IO$Posix$t *)Args[1].Val;
 	event_t *Event = (event_t *)Args[2].Val;
 	if (epoll_ctl(Poll->Handle, EPOLL_CTL_ADD, Posix->Handle, Event->Value)) {
-		Result->Val = IO$Stream$Message$from_errno(PollMessageT);
+		Result->Val = Sys$Program$error_from_errno(PollMessageT);
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -100,7 +100,7 @@ GLOBAL_METHOD(Modify, 3, "mod", TYP, T, TYP, IO$Posix$T, TYP, EventT) {
 	IO$Posix$t *Posix = (IO$Posix$t *)Args[1].Val;
 	event_t *Event = (event_t *)Args[2].Val;
 	if (epoll_ctl(Poll->Handle, EPOLL_CTL_MOD, Posix->Handle, Event->Value)) {
-		Result->Val = IO$Stream$Message$from_errno(PollMessageT);
+		Result->Val = Sys$Program$error_from_errno(PollMessageT);
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -119,7 +119,7 @@ GLOBAL_METHOD(Delete, 2, "del", TYP, T, TYP, IO$Posix$T) {
 	poll_t *Poll = (poll_t *)Args[0].Val;
 	IO$Posix$t *Posix = (IO$Posix$t *)Args[1].Val;
 	if (epoll_ctl(Poll->Handle, EPOLL_CTL_DEL, Posix->Handle, 0)) {
-		Result->Val = IO$Stream$Message$from_errno(PollMessageT);
+		Result->Val = Sys$Program$error_from_errno(PollMessageT);
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -138,7 +138,7 @@ GLOBAL_METHOD(Wait, 3, "wait", TYP, T, TYP, EventT, TYP, Std$Integer$SmallT) {
 	poll_t *Poll = (poll_t *)Args[0].Val;
 	event_t *Event = (event_t *)Args[1].Val;
 	switch (epoll_wait(Poll->Handle, Event->Value, 1, Std$Integer$get_small(Args[2].Val))) {
-	case -1: Result->Val = IO$Stream$Message$from_errno(PollMessageT); return MESSAGE;
+	case -1: Result->Val = Sys$Program$error_from_errno(PollMessageT); return MESSAGE;
 	case 0: return FAILURE;
 	default: Result->Arg = Args[1]; return SUCCESS;
 	};
@@ -149,7 +149,7 @@ GLOBAL_METHOD(PWait, 3, "wait", TYP, T, TYP, EventT, TYP, Std$Integer$SmallT, TY
 	event_t *Event = (event_t *)Args[1].Val;
 	Sys$Signal$set_t *Signals = (Sys$Signal$set_t *)Args[3].Val;
 	switch (epoll_pwait(Poll->Handle, Event->Value, 1, Std$Integer$get_small(Args[2].Val), Signals->Value)) {
-	case -1: Result->Val = IO$Stream$Message$from_errno(PollMessageT); return MESSAGE;
+	case -1: Result->Val = Sys$Program$error_from_errno(PollMessageT); return MESSAGE;
 	case 0: return FAILURE;
 	default: Result->Arg = Args[1]; return SUCCESS;
 	};

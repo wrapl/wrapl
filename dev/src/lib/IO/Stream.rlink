@@ -20,13 +20,6 @@ subexport("Message", "FlushMessageT", "FlushError")
 subexport("Message", "SeekMessageT", "SeekError")
 subexport("Message", "CloseMessageT", "CloseError")
 subexport("Message", "PollMessageT", "PollError")
-subexport("Message", "_message_new", "_new")
-subexport("Message", "_message_new_format", "_new_format")
-subexport("Message", "_message_from_errno", "_from_errno")
-
-export("_message_new", "_Message$new")
-export("_message_new_format", "_Message$new_format")
-export("_message_from_errno", "_Message$from_errno")
 
 submodule("CloseMode")
 subexport("CloseMode", "CloseModeT", "T")

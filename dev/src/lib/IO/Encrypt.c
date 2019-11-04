@@ -320,7 +320,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
 	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 0);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	if (Bytes == 0) return FAILURE;
@@ -333,7 +333,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
 	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 1);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	if (Bytes == 0) return FAILURE;
@@ -394,7 +394,7 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 		arcfour_crypt(Stream->Context, 256, Source, Buffer);
 		int Bytes = IO$Stream$write(Stream->Base, Buffer, 256, 1);
 		if (Bytes == -1) {
-			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes < 256) {
@@ -408,7 +408,7 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	arcfour_crypt(Stream->Context, Length, Source, Buffer);
 	int Bytes = IO$Stream$write(Stream->Base, Buffer, Length, 1);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Total + Bytes);

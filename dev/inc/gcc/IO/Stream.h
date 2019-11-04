@@ -35,10 +35,6 @@ RIVA_TYPE(SeekMessageT);
 RIVA_TYPE(CloseMessageT);
 RIVA_TYPE(PollMessageT);
 
-RIVA_CFUN(Std$Object$t *, Message$new, const Std$Type$t *Type, const char *Description);
-RIVA_CFUN(Std$Object$t *, Message$new_format, const Std$Type$t *Type, const char *Format, ...);
-RIVA_CFUN(Std$Object$t *, Message$from_errno, const Std$Type$t *Type);
-
 typedef enum {
 	IO$Stream$CLOSE_BOTH,
 	IO$Stream$CLOSE_READ,

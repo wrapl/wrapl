@@ -58,7 +58,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	const void *Data = Std$Address$get_value(Args[1].Val);
 	size_t Length = Std$Integer$get_small(Args[2].Val);
 	size_t Read = evbuffer_remove(Buffer->Handle, Data, Length);
-	if (Read == -1) SEND(IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
+	if (Read == -1) SEND(Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$Integer$new_small(Read));
 }
 
@@ -66,7 +66,7 @@ METHOD("read", TYP, T) {
 	buffer_t *Buffer = (buffer_t *)Args[0].Val;
 	size_t Length;
 	char *Chars = evbuffer_readln(Buffer->Handle, &Length, EVBUFFER_EOL_LF);
-	if (!Chars) SEND(IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
+	if (!Chars) SEND(Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$String$new_length(Chars, Length));
 }
 
@@ -100,7 +100,7 @@ METHOD("copy", TYP, IO$Native$(T), TYP, T, TYP, Std$Integer$SmallT) {
 	buffer_t *Dest = (buffer_t *)Args[1].Val;
 	size_t Length = Std$Integer$get_small(Args[2].Val);
 	int Read = evbuffer_read(Dest->Handle, Source->Handle, Length);
-	if (Read == -1) SEND(IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
+	if (Read == -1) SEND(Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$Integer$new_small(Read));
 }
 
@@ -108,7 +108,7 @@ METHOD("copy", TYP, T, TYP, IO$Native$(T)) {
 	buffer_t *Source = (buffer_t *)Args[0].Val;
 	IO$Native$(t) *Dest = (IO$Native$(t) *)Args[1].Val;
 	int Written = evbuffer_write(Source->Handle, Dest->Handle);
-	if (Written == -1) SEND(IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__));
+	if (Written == -1) SEND(Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$Integer$new_small(Written));
 }
 
@@ -117,7 +117,7 @@ METHOD("copy", TYP, T, TYP, IO$Native$(T), TYP, Std$Integer$SmallT) {
 	IO$Native$(t) *Dest = (IO$Native$(t) *)Args[1].Val;
 	size_t Length = Std$Integer$get_small(Args[2].Val);
 	int Written = evbuffer_write_atmost(Source->Handle, Dest->Handle, Length);
-	if (Written == -1) SEND(IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__));
+	if (Written == -1) SEND(Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$Integer$new_small(Written));
 }
 

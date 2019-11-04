@@ -1,5 +1,9 @@
 CFLAGS := old + ["-std=gnu99"]
-LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
+LDFLAGS := old + [
+	"Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib",
+	"Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib",
+	"Sys/Program.rlink"
+]
 
 WRAPL_MODULES[
 	riva_module("IO/Stream", [file("Stream.o")]),

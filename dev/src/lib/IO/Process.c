@@ -66,7 +66,7 @@ GLOBAL_FUNCTION(Open, 1) {
 	if (Pid == -1) {
 		close(Pair[0]);
 		close(Pair[1]);
-		Result->Val = IO$Stream$Message$from_errno(ForkMessageT);
+		Result->Val = Sys$Program$error_from_errno(ForkMessageT);
 		return MESSAGE;
 	};
 	int NoOfArgs;
@@ -137,7 +137,7 @@ GLOBAL_METHOD(Wait, 1, "wait", TYP, T) {
 		Result->Val = Std$Integer$new_small(Status);
 		return SUCCESS;
 	} else {
-		Result->Val = IO$Stream$Message$from_errno(WaitMessageT);
+		Result->Val = Sys$Program$error_from_errno(WaitMessageT);
 		return MESSAGE;
 	};
 };

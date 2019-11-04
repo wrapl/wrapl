@@ -114,7 +114,7 @@ TYPED_INSTANCE(int, IO$Stream$seek, EmptyT, IO$Stream$t *Stream, int Position, i
 };
 
 METHOD("close", TYP, EmptyT) {
-	Result->Val = IO$Stream$Message$new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
+	Result->Val = Sys$Program$error_new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -168,7 +168,7 @@ TYPED_INSTANCE(int, IO$Stream$seek, FullT, IO$Stream$t *Stream, int Position, in
 };
 
 METHOD("close", TYP, FullT) {
-	Result->Val = IO$Stream$Message$new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
+	Result->Val = Sys$Program$error_new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -188,7 +188,7 @@ METHOD("flush", TYP, FullT) {
 };
 
 METHOD("write", TYP, FullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+	Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 

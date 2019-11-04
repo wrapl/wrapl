@@ -142,7 +142,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = encoder_read(Stream, Buffer, Count, (Count >= 3 && Args[3].Val == $block));
 	if (BytesRead < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -218,7 +218,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = encoder_write(Stream, Buffer, Size, (Count >= 3 && Args[3].Val == $block));
 	if (BytesWritten < 0) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);

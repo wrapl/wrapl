@@ -7,4 +7,7 @@ end
 
 import("ErrorT")
 import("_error_name")
+import("_error_new")
+import("_error_new_format")
+import("_error_from_errno")
 import("_stack_trace")

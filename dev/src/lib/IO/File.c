@@ -76,7 +76,7 @@ GLOBAL_FUNCTION(Open, 2) {
 	};
     HANDLE Handle = CreateFile(FileName, OpenMode.Access, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OpenMode.Create, 0, 0);
     if (Handle == INVALID_HANDLE_VALUE) {
-        Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+        Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
@@ -94,7 +94,7 @@ GLOBAL_FUNCTION(Open, 2) {
 	if (Flags & IO$File$OPEN_TRUNCATE) Flags0 |= O_TRUNC;
 	int Handle = open64(FileName, Flags0, 0644);
 	if (Handle < 0) {
-		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
@@ -140,7 +140,7 @@ GLOBAL_FUNCTION(Temp, 0) {
 		Result->Val = IO$Native$(new)(TextReaderWriterT, Handle);;
 		return SUCCESS;
 	} else {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 };
@@ -151,7 +151,7 @@ GLOBAL_FUNCTION(Pipe, 2) {
 // Creates a pipe and storing the reader / writer streams in <var>rd</var> / <var>wr</var> respectively.
 	int Handles[2];
 	if (pipe(Handles)) {
-		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
+		Result->Val = Sys$Program$error_new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	} else {
 		if (Args[0].Ref) Args[0].Ref[0] = IO$Native$(new)(TextReaderT, Handles[0]);

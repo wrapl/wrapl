@@ -40,9 +40,6 @@ export("_remaining")
 export("_alloc_buffer")
 export("_free_buffer")
 export("_free_buffers")
-export("_Message$new")
-export("_Message$new_format")
-export("_Message$from_errno")
 
 if LINUX then
 	export("_cfile")

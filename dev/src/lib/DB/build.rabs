@@ -23,7 +23,7 @@ HIREDIS_LIB := EXT_DIR / "lib/libhiredis.a" => fun() do
 	execute('make install CFLAGS=\"{LIBCFLAGS}\" PREFIX={EXT_DIR}')
 end
 
-HIREDIS_RLINK[riva_module_auto("DB/hiredis", [])]
+HIREDIS_RLINK[riva_module_auto("DB/hiredis", [], [HIREDIS_LIB])]
 
 CFLAGS := old + ["-std=gnu99", '-I{file("include")}', '-I{file("postgres/src/include")}']
 LDFLAGS := old + ["Std.rlib", "Agg.rlib", "Riva.rlib", "Util.rlib", "Util/TypedFunction.rlib", "Sys/Module.rlib", "IO/Stream.rlib"]
