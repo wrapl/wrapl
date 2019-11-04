@@ -28,7 +28,7 @@ METH Item.Build(value @ UUID.T) (
 	Item.BuildTag(37, Item.BuildByteString(Address.Of(value)));
 );
 
-DEF Tags {
+DEF Tags! {
 	0 IS <stack, value> Time.New(value, "%FT%T%Z"),
 	1 IS <stack, value> Time.New(Number.Of(value)),
 	2 IS <stack, value> (
