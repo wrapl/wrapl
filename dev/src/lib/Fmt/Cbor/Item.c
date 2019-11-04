@@ -14,7 +14,19 @@ TYPE(T);
 
 ASYMBOL(Build);
 
-TYPED_FUNCTION(cbor_item_t *, build, Std$Object$t *Value) {
+/*TYPED_FUNCTION(cbor_item_t *, build, Std$Object$t *Value) {
+	printf("Here: %s:%d\n", __FILE__, __LINE__);
+	Std$Function$result Result[1];
+	if (Std$Function$call(Build, 1, Result, Value, 0) < FAILURE) {
+		printf("Here: %s:%d\n", __FILE__, __LINE__);
+		if (Result->Val->Type == T) return Result->Val;
+		printf("Here: %s:%d\n", __FILE__, __LINE__);
+	}
+	printf("Here: %s:%d\n", __FILE__, __LINE__);
+	return 0;
+}*/
+
+static cbor_item_t *build(Std$Object$t *Value) {
 	Std$Function$result Result[1];
 	if (Std$Function$call(Build, 1, Result, Value, 0) < FAILURE) {
 		if (Result->Val->Type == T) return Result->Val;

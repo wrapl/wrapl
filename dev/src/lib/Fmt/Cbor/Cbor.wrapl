@@ -12,7 +12,7 @@ DEF Decoder Cbor.Decoder;
 DEF Encoder Cbor.Encoder;
 DEF Item Cbor.Item;
 
-DEF TagT! <[] tag, value>;
+DEF TagT <[] tag, value>;
 
 METH String.Of(value @ TagT) '{value:tag}({value:value})';
 
@@ -27,6 +27,8 @@ METH Item.Build(value @ Time.T) (
 METH Item.Build(value @ UUID.T) (
 	Item.BuildTag(37, Item.BuildByteString(Address.Of(value)));
 );
+
+DEF Tag! TagT;
 
 DEF Tags! {
 	0 IS <stack, value> Time.New(value, "%FT%T%Z"),
