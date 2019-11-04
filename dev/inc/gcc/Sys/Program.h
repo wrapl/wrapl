@@ -18,6 +18,7 @@ RIVA_STRUCT(error_t) {
 };
 
 RIVA_TYPE(ErrorT);
+RIVA_CFUN(const char *, error_name, Sys$Program$error_t *);
 
 RIVA_CFUN(Sys$Program$stack_trace_t *, stack_trace, int);
 

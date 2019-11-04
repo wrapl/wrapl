@@ -157,7 +157,7 @@ METHOD("flush", TYP, WriterT) {
 	while (Length) {
 		int Bytes = Stream->write(Stream->Base, Chars, Length, 1);
 		if (Bytes == -1) {
-			Result->Val = IO$Stream$FlushMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$FlushMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Chars += Bytes;
@@ -223,7 +223,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = buffered_read(Stream, Buffer, Count, (Count >= 3 && Args[3].Val == $block));
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -1611,7 +1611,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = buffered_write(Stream, Buffer, Size, (Count >= 3 && Args[3].Val == $block));
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -1634,7 +1634,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	const Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		if (buffered_write(Stream, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 1) < 0) {
-			Result->Val = IO$Stream$WriteMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 	};

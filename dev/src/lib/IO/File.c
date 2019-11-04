@@ -140,7 +140,7 @@ GLOBAL_FUNCTION(Temp, 0) {
 		Result->Val = IO$Native$(new)(TextReaderWriterT, Handle);;
 		return SUCCESS;
 	} else {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 };
@@ -151,7 +151,7 @@ GLOBAL_FUNCTION(Pipe, 2) {
 // Creates a pipe and storing the reader / writer streams in <var>rd</var> / <var>wr</var> respectively.
 	int Handles[2];
 	if (pipe(Handles)) {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	} else {
 		if (Args[0].Ref) Args[0].Ref[0] = IO$Native$(new)(TextReaderT, Handles[0]);

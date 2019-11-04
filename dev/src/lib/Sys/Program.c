@@ -6,6 +6,7 @@
 #include <Riva/Thread.h>
 #include <Riva/System.h>
 #include <Riva/Debug.h>
+#include <Util/TypedFunction.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <setjmp.h>
@@ -17,6 +18,15 @@
 #endif
 
 TYPE(ErrorT);
+
+TYPED_FUNCTION(const char *, _error_name, Sys$Program$error_t *Error) {
+	return "Generic error";
+}
+
+AMETHOD(Std$String$Of, TYP, ErrorT) {
+	Sys$Program$error_t *Error = (Sys$Program$error_t *)Args[0].Val;
+	RETURN(Std$String$new_format("%s: %s", _error_name(Error), Error->Message));
+}
 
 #ifdef LINUX
 

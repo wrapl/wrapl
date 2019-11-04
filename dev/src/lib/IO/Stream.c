@@ -47,26 +47,23 @@ TYPE(TextWriterT, WriterT, T);
 
 #ifndef DOCUMENTING
 TYPE(MessageT, Sys$Program$ErrorT);
-#endif
 
-AMETHOD(Std$String$Of, TYP, MessageT) {
-//@msg
-//:Std$String$T
-	IO$Stream$messaget *Msg = (IO$Stream$messaget *)Args[0].Val;
-	Result->Val = Std$String$new(Msg->Message);
-	return SUCCESS;
-};
+#define ERROR_TYPE(NAME) \
+TYPE(NAME ## MessageT, MessageT, Sys$Program$ErrorT); \
+\
+TYPED_INSTANCE(const char *, Sys$Program$error_name, NAME ## MessageT, Sys$Program$error_t *Error) { \
+	return __stringify(NAME) " error"; \
+}
 
-#ifndef DOCUMENTING
-TYPE(ConvertMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(GenericMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(OpenMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(ReadMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(WriteMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(FlushMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(SeekMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(CloseMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(PollMessageT, MessageT, Sys$Program$ErrorT);
+ERROR_TYPE(Convert);
+ERROR_TYPE(Generic);
+ERROR_TYPE(Open);
+ERROR_TYPE(Read);
+ERROR_TYPE(Write);
+ERROR_TYPE(Flush);
+ERROR_TYPE(Seek);
+ERROR_TYPE(Close);
+ERROR_TYPE(Poll);
 
 Std$Object$t *_message_new(const Std$Type$t *Type, const char *Description) {
 	IO$Stream$messaget *Message = new(IO$Stream$messaget);
@@ -96,15 +93,6 @@ Std$Object$t *_message_from_errno(const Std$Type$t *Type) {
 	return (Std$Object$t *)Message;
 };
 
-IO$Stream$messaget ConvertMessage[] = {{ConvertMessageT, "Conversion Error"}};
-IO$Stream$messaget GenericMessage[] = {{GenericMessageT, "Generic Error"}};
-IO$Stream$messaget OpenMessage[] = {{OpenMessageT, "Open Error"}};
-IO$Stream$messaget ReadMessage[] = {{ReadMessageT, "Read Error"}};
-IO$Stream$messaget WriteMessage[] = {{WriteMessageT, "Write Error"}};
-IO$Stream$messaget FlushMessage[] = {{FlushMessageT, "Flush Error"}};
-IO$Stream$messaget SeekMessage[] = {{SeekMessageT, "Seek Error"}};
-IO$Stream$messaget CloseMessage[] = {{CloseMessageT, "Close Error"}};
-IO$Stream$messaget PollMessage[] = {{PollMessageT, "Poll Error"}};
 #endif
 
 SUBMODULE(Message);
@@ -502,28 +490,28 @@ INITIAL() {
 METHOD("flush", TYP, T) {
 //@t
 // Completes any pending operations on <var>t</var>.
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("close", TYP, T) {
 //@t
 // Closes <var>t</var> for further reading or writing
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("closed", TYP, T) {
 //@t
 // Fails if <var>t</var> is still open for reading or writing.
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("eoi", TYP, ReaderT) {
 //@t
 // Succeeds if <var>t</var> has read an end of file marker.
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -534,7 +522,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 //:Std$Integer$SmallT
 // Reads up to <var>length</var> bytes from <var>rd</var> into <var>buffer</var>
 // Returns the number of bytes read
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -554,7 +542,7 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	int Max = Std$Integer$get_small(Args[1].Val);
 	unsigned char Char;
 	switch (read(Stream, &Char, 1, 0)) {
-	case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+	case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
@@ -580,7 +568,7 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (IsTerm[Char]) {
 			} else {
@@ -633,7 +621,7 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	int Max = Std$Integer$get_small(Args[1].Val);
 	unsigned char Char;
 	switch (read(Stream, &Char, 1, 0)) {
-	case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+	case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
@@ -658,7 +646,7 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (Space == 0) {
 				Tail = (Tail->Next = alloc_fast_buffer());
@@ -706,7 +694,7 @@ METHOD("rest", TYP, ReaderT) {
 	for (;;) {
 		int Bytes = read(Stream, Ptr, Space, 0);
 		if (Bytes == -1) {
-			Result->Val = (Std$Object$t *)ReadMessage;
+			Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -753,7 +741,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Stream, Buffer, Max, 1);
 			if (Bytes == 0) break;
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)ReadMessage;
+				Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -776,7 +764,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Stream, Ptr, Space, 1);
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)ReadMessage;
+				Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			if (Bytes == 0) break;
@@ -820,7 +808,7 @@ METHOD("read", TYP, TextReaderT) {
 	char Char;
 	do {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		case 0: return FAILURE;
 		};
 	} while (Char == '\r');
@@ -835,7 +823,7 @@ METHOD("read", TYP, TextReaderT) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object$t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (Char == '\n') {
 			} else if (Char == '\r') {
@@ -886,7 +874,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT) {
 	for (;;) {
 		int Read = read(Rd, Buffer, 1024, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object$t *)ReadMessage;
+			Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Read == 0) break;
@@ -894,7 +882,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT) {
 		while (Read) {
 			int Written = write(Wr, Ptr, Read, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object$t *)WriteMessage;
+				Result->Val = _message_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Written;
@@ -922,7 +910,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	while (Rem > 1024) {
 		int Read = read(Rd, Buffer, 1024, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object$t *)ReadMessage;
+			Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Rem -= Read;
@@ -930,7 +918,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 		while (Read) {
 			int Written = write(Wr, Ptr, Read, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object$t *)WriteMessage;
+				Result->Val = _message_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Written;
@@ -943,7 +931,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	while (Rem) {
 		int Read = read(Rd, Ptr, Rem, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object$t *)ReadMessage;
+			Result->Val = _message_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Rem -= Read;
@@ -953,7 +941,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	while (Rem2) {
 		int Written = write(Wr, Ptr, Rem2, 1);
 		if (Written == -1) {
-			Result->Val = (Std$Object$t *)WriteMessage;
+			Result->Val = _message_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Total += Written;
@@ -970,7 +958,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 //@length
 // Writes up to <var>length</var> bytes to <var>wr</var> from <var>buffer</var>
 // Returns the number of bytes written
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -985,7 +973,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 	case SUCCESS:
 		return Std$Function$call($write, 2, Result, Args[0].Val, Args[0].Ref, Result0.Val, Result0.Ref);
 	case FAILURE:
-		Result->Val = (Std$Object$t *)ConvertMessage;
+		Result->Val = _message_new_format(ConvertMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	case MESSAGE:
 		Result->Arg = Result0.Arg;
@@ -1018,7 +1006,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 		while (Length) {
 			int Written = write(Stream, Chars, Length, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object$t *)WriteMessage;
+				Result->Val = _message_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Chars += Written;
@@ -1033,7 +1021,7 @@ METHOD("seek", TYP, SeekerT, TYP, Std$Integer$SmallT, TYP, SeekModeT) {
 //@t
 //@position
 // Seeks to the <var>position</var><sup>th</sup> byte in <var>t</var>
-	Result->Val = (Std$Object$t *)GenericMessage;
+	Result->Val = _message_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -1044,7 +1032,7 @@ METHOD("tell", TYP, T) {
 	stream_t *Stream = Args[0].Val;
 	int Seek = _t_seek(Stream, Std$Integer$get_small(Args[1].Val), IO$Stream$SEEK_CUR);
 	if (Seek == -1) {
-		Result->Val = (Std$Object$t *)SeekMessage;
+		Result->Val = _message_new_format(SeekMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Seek);

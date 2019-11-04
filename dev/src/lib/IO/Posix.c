@@ -346,7 +346,7 @@ TYPED_INSTANCE(int, IO$Stream$tell, SeekerT, IO$Posix$t *Stream) {
 METHOD("flush", TYP, T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	if (fsync(Stream->Handle) < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$FlushMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$FlushMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Arg = Args[0];
@@ -356,7 +356,7 @@ METHOD("flush", TYP, T) {
 METHOD("close", TYP, T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	if (close(Stream->Handle)) {
-		Result->Val = (Std$Object$t *)IO$Stream$CloseMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$CloseMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	} else {
 		Riva$Memory$register_finalizer((void *)Stream, 0, 0, 0, 0);
@@ -374,7 +374,7 @@ METHOD("eoi", TYP, ReaderT) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	off_t Current = lseek(Stream->Handle, 0, SEEK_CUR);
 	if (Current == -1) {
-		Result->Val = (Std$Object$t *)IO$Stream$GenericMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	};
 	return FAILURE;
 };
@@ -385,7 +385,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -400,7 +400,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $
 	while (Size) {
 		int Bytes = read(Stream->Handle, Buffer, Size);
 		if (Bytes < 0) {
-			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -418,8 +418,11 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
-	case -1: Result->Val = (Std$Object$t *)IO$Stream$ReadMessage; return MESSAGE;
-	case 0: return FAILURE;
+	case -1:
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+		return MESSAGE;
+	case 0:
+		return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
 	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
@@ -444,7 +447,9 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
-		case -1: Result->Val = (Std$Object$t *)IO$Stream$ReadMessage; return MESSAGE;
+		case -1:
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			return MESSAGE;
 		default: {
 			if (IsTerm[Char]) {
 			} else {
@@ -487,7 +492,8 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
-	case -1: Result->Val = (Std$Object$t *)IO$Stream$ReadMessage; return MESSAGE;
+	case -1:
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
@@ -512,7 +518,9 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
-		case -1: Result->Val = (Std$Object$t *)IO$Stream$ReadMessage; return MESSAGE;
+		case -1:
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			return MESSAGE;
 		default: {
 			if (Space == 0) {
 				Tail = (Tail->Next = alloc_fast_buffer());
@@ -556,7 +564,7 @@ METHOD("rest", TYP, ReaderT) {
 	for (;;) {
 		int Bytes = read(Handle, Ptr, Space);
 		if (Bytes == -1) {
-			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -602,7 +610,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Handle, Buffer, Max);
 			if (Bytes == 0) break;
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -626,7 +634,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			while (Space > 0) {
 				int Bytes = read(Handle, Ptr, Space);
 				if (Bytes == -1) {
-					Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+					Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 					return MESSAGE;
 				};
 				if (Bytes == 0) goto finished;
@@ -642,7 +650,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max > 0) {
 			int Bytes = read(Handle, Ptr, Max);
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			if (Bytes == 0) goto finished;
@@ -675,7 +683,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Handle, Ptr, Space);
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			if (Bytes == 0) break;
@@ -721,7 +729,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Handle, Buffer, Max);
 			if (Bytes == 0) continue;
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -744,7 +752,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Handle, Ptr, Space);
 			if (Bytes == -1) {
-				Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			if (Bytes == 0) continue;
@@ -783,8 +791,11 @@ METHOD("read", TYP, TextReaderT) {
 	char Char;
 	do {
 		switch (read(Handle, &Char, 1)) {
-		case -1: Result->Val = (Std$Object$t *)IO$Stream$ReadMessage; return MESSAGE;
-		case 0: return FAILURE;
+		case -1:
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			return MESSAGE;
+		case 0:
+			return FAILURE;
 		};
 	} while (Char == '\r');
 	if (Char == '\n') {Result->Val = Std$String$Empty; return SUCCESS;};
@@ -798,7 +809,9 @@ METHOD("read", TYP, TextReaderT) {
 	++Length;
 	for (;;) {
 		switch (read(Handle, &Char, 1)) {
-		case -1: Result->Val = IO$Stream$ReadMessage; return MESSAGE;
+		case -1:
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
+			return MESSAGE;
 		default: {
 			if (Char == '\n') {
 			} else if (Char == '\r') {
@@ -840,7 +853,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -855,7 +868,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, 
 	while (Size) {
 		int Bytes = write(Stream->Handle, Buffer, Size);
 		if (Bytes < 0) {
-			Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -872,7 +885,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	const Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
 		if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
-			Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 	};
@@ -889,7 +902,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 		const Std$String$t *String = (Std$String$t *)Result0.Val;
 		for (int I = 0; I < String->Count; ++I) {
 			if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
-				Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+				Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 		};
@@ -897,7 +910,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 		return SUCCESS;
 	};
 	case FAILURE:
-		Result->Val = (Std$Object$t *)IO$Stream$ConvertMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ConvertMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	case MESSAGE:
 		Result->Arg = Result0.Arg;
@@ -910,7 +923,7 @@ METHOD("seek", TYP, SeekerT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) 
 	int Position = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	Position = lseek(Stream->Handle, Position, _SEEK[((Std$Integer$smallt *)Args[2].Val)->Value]);
 	if (Position < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$SeekMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$SeekMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Position);
@@ -928,7 +941,7 @@ METHOD("poll", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 	struct pollfd PollFd[] = {{Stream->Handle, ((Std$Integer$smallt *)Args[1].Val)->Value, 0}};
 	int Status = poll(PollFd, 1, ((Std$Integer$smallt *)Args[2].Val)->Value);
 	if (Status < 0) {
-		Result->Val = (Std$Object$t *)IO$Stream$PollMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$PollMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	if (Status == 0) return FAILURE;

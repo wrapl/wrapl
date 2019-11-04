@@ -616,7 +616,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 			return SUCCESS;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -667,7 +667,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 			return SUCCESS;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -738,7 +738,7 @@ METHOD("rest", TYP, T) {
 		};
 		if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -818,7 +818,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -957,7 +957,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -1071,7 +1071,7 @@ METHOD("read", TYP, T, TYP, Std$Integer$SmallT) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -1093,7 +1093,7 @@ METHOD("read", TYP, T) {
 			unlock(Stream);
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);

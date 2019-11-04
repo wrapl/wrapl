@@ -53,7 +53,7 @@ static Std$Function$status serializer_write(serializer_t *Serializer, IO$Stream$
 	};
 	//printf("Serializing type %d\n", Entry->Index);
 	if (IO$Stream$write(Stream, (char *)&Entry->Index, 1, 1) != 1) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Entry->serialize(Serializer, Stream, Value, Result, Entry->Data);
@@ -79,7 +79,7 @@ METHOD("register_nil", TYP, T, TYP, Std$Integer$SmallT) {
 
 static Std$Function$status serialize_small(serializer_t *Serializer, IO$Stream$t *Stream, Std$Integer$smallt *Value, Std$Function$result *Result, void *Data) {
 	if (IO$Stream$write(Stream, (char *)&Value->Value, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;
@@ -99,7 +99,7 @@ GLOBAL_FUNCTION(WriteSmall, 2) {
 
 static Std$Function$status serialize_real(serializer_t *Serializer, IO$Stream$t *Stream, Std$Real$t *Value, Std$Function$result *Result, void *Data) {
 	if (IO$Stream$write(Stream, (char *)&Value->Value, 8, 1) != 8) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;
@@ -122,7 +122,7 @@ SYMBOL($write, "write");
 static Std$Function$status serialize_string(serializer_t *Serializer, IO$Stream$t *Stream, Std$String$t *Value, Std$Function$result *Result, void *Data) {
 	//printf("Serialized string size = %d\n", Value->Length.Value);
 	if (IO$Stream$write(Stream, (char *)&Value->Length.Value, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Std$Function$call($write, 2, Result, Stream, 0, Value, 0);
@@ -170,7 +170,7 @@ GLOBAL_FUNCTION(WriteList, 3) {
 static Std$Function$status serialize_table(serializer_t *Serializer, IO$Stream$t *Stream, Std$Object$t *Value, Std$Function$result *Result, void *Data) {
 	int Length = Agg$Table$size(Value);
 	if (IO$Stream$write(Stream, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Agg$Table$trav *Trav = Agg$Table$trav_new();
@@ -203,7 +203,7 @@ GLOBAL_FUNCTION(WriteTable, 3) {
 static Std$Function$status serialize_symbol(serializer_t *Serializer, IO$Stream$t *Stream, Std$Symbol$t *Value, Std$Function$result *Result, void *Data) {
 	Std$String$t *String = Value->Name;
 	if (IO$Stream$write(Stream, (char *)&String->Length.Value, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Std$Function$call($write, 2, Result, Stream, 0, String, 0);
@@ -231,7 +231,7 @@ static Std$Function$status serialize_big(serializer_t *Serializer, IO$Stream$t *
 	};
 	mpz_export(Buffer + 4, NULL, -1, 4, -1, 0, Value->Value);
 	if (IO$Stream$write(Stream, Buffer, 4 * Count + 4, 1) != 4 * Count + 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;

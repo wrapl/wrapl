@@ -20,20 +20,6 @@ RIVA_TYPE(SeekerT);
 RIVA_TYPE(TextReaderT);
 RIVA_TYPE(TextWriterT);
 
-RIVA_OBJECT(ReadMessage);
-RIVA_OBJECT(WriteMessage);
-RIVA_OBJECT(FlushMessage);
-RIVA_OBJECT(SeekMessage);
-RIVA_OBJECT(CloseMessage);
-RIVA_OBJECT(PollMessage);
-
-RIVA_TYPE(ReadMessageT);
-RIVA_TYPE(WriteMessageT);
-RIVA_TYPE(FlushMessageT);
-RIVA_TYPE(SeekMessageT);
-RIVA_TYPE(CloseMessageT);
-RIVA_TYPE(PollMessageT);
-
 RIVA_CFUN(Std$Object$t *, new, const Std$Type$t *, int);
 RIVA_CFUN(void, register_finalizer, IO$Posix$t *);
 RIVA_CFUN(void, unregister_finalizer, IO$Posix$t *);

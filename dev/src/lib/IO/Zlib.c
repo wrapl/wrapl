@@ -35,7 +35,7 @@ GLOBAL_FUNCTION(Inflate, 1) {
 	Stream->ZStream->zalloc = riva_alloc;
 	Stream->ZStream->zfree = riva_free;
 	if (inflateInit(Stream->ZStream) != Z_OK) {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Stream;
@@ -50,7 +50,7 @@ GLOBAL_FUNCTION(Deflate, 1) {
 	Stream->ZStream->zfree = riva_free;
 	int Level = (Count > 1) ? ((Std$Integer$smallt *)Args[1].Val)->Value : Z_DEFAULT_COMPRESSION;
 	if (deflateInit(Stream->ZStream, Level) != Z_OK) {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Stream;

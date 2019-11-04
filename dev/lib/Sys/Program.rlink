@@ -6,4 +6,5 @@ else
 end
 
 import("ErrorT")
+import("_error_name")
 import("_stack_trace")

@@ -55,7 +55,7 @@ static Std$Function$status encoder_write(encoder_t *Encoder, Std$Function$result
 	};
 	//printf("Encoding type %d\n", Entry->Index);
 	if (Encoder->write(Encoder->Base, (char *)&Entry->Index, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Entry->encode(Encoder, Result, Entry->Data, Value);
@@ -87,7 +87,7 @@ METHOD("register_nil", TYP, T, TYP, Std$Integer$SmallT) {
 static Std$Function$status encode_small(encoder_t *Encoder, Std$Function$result *Result, void *Data, Std$Integer$smallt *Value) {
 	int Size = (int)Data;
 	if (Encoder->write(Encoder->Base, (char *)&Value->Value, Size, 1) != Size) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;
@@ -126,7 +126,7 @@ GLOBAL_METHOD(WriteSmall, 2, "write_small", TYP, T, TYP, Std$Integer$SmallT) {
 
 static Std$Function$status encode_real(encoder_t *Encoder, Std$Function$result *Result, void *Data, Std$Real$t *Value) {
 	if (Encoder->write(Encoder->Base, (char *)&Value->Value, 8, 1) != 8) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;
@@ -150,7 +150,7 @@ SYMBOL($write, "write");
 static Std$Function$status encode_string(encoder_t *Encoder, Std$Function$result *Result, void *Data, Std$String$t *Value) {
 	//printf("Encoded string size = %d\n", Value->Length.Value);
 	if (Encoder->write(Encoder->Base, (char *)&Value->Length.Value, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Std$Function$call($write, 2, Result, Encoder->Base, 0, Value, 0);
@@ -200,7 +200,7 @@ GLOBAL_METHOD(WriteList, 2, "write_list", TYP, T, TYP, Agg$List$T) {
 static Std$Function$status encode_table(encoder_t *Encoder, Std$Function$result *Result, void *Data, Std$Object$t *Value) {
 	int Length = Agg$Table$size(Value);
 	if (Encoder->write(Encoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Agg$Table$trav *Trav = Agg$Table$trav_new();
@@ -235,7 +235,7 @@ GLOBAL_METHOD(WriteTable, 2, "write_table", TYP, T, TYP, Agg$Table$T) {
 static Std$Function$status encode_symbol(encoder_t *Encoder, Std$Function$result *Result, void *Data, Std$Symbol$t *Value) {
 	Std$String$t *String = Value->Name;
 	if (Encoder->write(Encoder->Base, (char *)&String->Length.Value, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return Std$Function$call($write, 2, Result, Encoder->Base, 0, String, 0);
@@ -264,7 +264,7 @@ static Std$Function$status encode_big(encoder_t *Encoder, Std$Function$result *R
 	};
 	mpz_export(Buffer + 4, NULL, -1, 4, -1, 0, Value->Value);
 	if (Encoder->write(Encoder->Base, Buffer, 4 * Count + 4, 1) != 4 * Count + 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	return SUCCESS;

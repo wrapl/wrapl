@@ -25,23 +25,14 @@ RIVA_TYPE(TextWriterT);
 RIVA_TYPE(SeekerT);
 
 RIVA_TYPE(MessageT);
-RIVA_OBJECT(ConvertMessage);
 RIVA_TYPE(ConvertMessageT);
-RIVA_OBJECT(GenericMessage);
 RIVA_TYPE(GenericMessageT);
-RIVA_OBJECT(OpenMessage);
 RIVA_TYPE(OpenMessageT);
-RIVA_OBJECT(ReadMessage);
 RIVA_TYPE(ReadMessageT);
-RIVA_OBJECT(WriteMessage);
 RIVA_TYPE(WriteMessageT);
-RIVA_OBJECT(FlushMessage);
 RIVA_TYPE(FlushMessageT);
-RIVA_OBJECT(SeekMessage);
 RIVA_TYPE(SeekMessageT);
-RIVA_OBJECT(CloseMessage);
 RIVA_TYPE(CloseMessageT);
-RIVA_OBJECT(PollMessage);
 RIVA_TYPE(PollMessageT);
 
 RIVA_CFUN(Std$Object$t *, Message$new, const Std$Type$t *Type, const char *Description);

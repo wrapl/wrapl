@@ -49,7 +49,7 @@ METHOD("register", TYP, T, TYP, Std$Integer$SmallT, ANY) {
 static Std$Function$status decoder_read(decoder_t *Decoder, Std$Function$result *Result) {
 	size_t Index;
 	if (Decoder->read(Decoder->Base, (char *)&Index, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	//printf("Decoding type %d\n", Index);
@@ -93,7 +93,7 @@ static Std$Function$status decode_small(decoder_t *Decoder, Std$Function$result 
 	int32_t Value = 0;
 	int Size = (int)Data;
 	if (Decoder->read(Decoder->Base, (char *)&Value, Size, 1) != Size) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Value);
@@ -134,7 +134,7 @@ GLOBAL_METHOD(ReadSmall, 1, "read_small", TYP, T) {
 static Std$Function$status decode_real(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	double Value;
 	if (Decoder->read(Decoder->Base, (char *)&Value, 8, 1) != 8) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Real$new(Value);
@@ -159,13 +159,13 @@ SYMBOL($read, "read");
 static Std$Function$status decode_string(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	//printf("String length = %d\n", Length);
 	/*char *String = Riva$Memory$alloc(Length);
 	if (Decoder->read(Decoder->Base, String, Length, 1) != Length) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$String$new_length(String, Length);
@@ -189,7 +189,7 @@ GLOBAL_METHOD(ReadString, 1, "read_string", TYP, T) {
 static Std$Function$status decode_list(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Std$Object$t *List = Agg$List$new0();
@@ -220,7 +220,7 @@ GLOBAL_METHOD(ReadList, 1, "read_list", TYP, T) {
 static Std$Function$status decode_table(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Std$Object$t *Table = Agg$Table$new(0, 0);
@@ -259,12 +259,12 @@ extern Riva$Module$t Riva$Symbol[];
 static Std$Function$status decode_symbol(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	size_t Length;
 	if (Decoder->read(Decoder->Base, (char *)&Length, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	char *Name = Riva$Memory$alloc(Length);
 	if (Decoder->read(Decoder->Base, Name, Length, 1) != Length) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	int Type;
@@ -288,7 +288,7 @@ GLOBAL_METHOD(ReadSymbol, 1, "read_symbol", TYP, T) {
 static Std$Function$status decode_big(decoder_t *Decoder, Std$Function$result *Result, void *Data) {
 	int Count;
 	if (Decoder->read(Decoder->Base, (char *)&Count, 4, 1) != 4) {
-		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+		Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	mpz_t Value;
@@ -297,7 +297,7 @@ static Std$Function$status decode_big(decoder_t *Decoder, Std$Function$result *R
 		Count = -Count;
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (Decoder->read(Decoder->Base, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);
@@ -305,7 +305,7 @@ static Std$Function$status decode_big(decoder_t *Decoder, Std$Function$result *R
 	} else {
 		char *Buffer = Riva$Memory$alloc_atomic(4 * Count);
 		if (Decoder->read(Decoder->Base, Buffer, 4 * Count, 1) != 4 * Count) {
-			Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
+			Result->Val = IO$Stream$Message$new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		mpz_import(Value, Count, -1, 4, -1, 0, Buffer);

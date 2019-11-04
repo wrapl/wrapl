@@ -5,6 +5,7 @@ export("Args")
 export("Exit")
 export("Break")
 export("ErrorT")
+export("_error_name")
 export("_stack_trace")
 export("CurrentDir")
 
