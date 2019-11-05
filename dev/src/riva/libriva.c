@@ -238,7 +238,7 @@ void __attribute__ ((constructor)) init(void) {
 	//GC_disable();
 	
 	//GC_set_dont_expand(1);
-	
+
 	module_init();
 	memory_init();
 	log_init();

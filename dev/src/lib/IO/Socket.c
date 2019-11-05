@@ -395,12 +395,12 @@ static void pipe_handler(int Signal) {
 };
 
 INITIAL() {
-	struct sigaction Action;
+	/*struct sigaction Action;
 	Action.sa_handler = (void *)pipe_handler;
 	sigemptyset(&Action.sa_mask);
 	Action.sa_flags = SA_RESTART;
-	sigaction(SIGPIPE, &Action, NULL);
-	
+	sigaction(SIGPIPE, &Action, NULL);*/
+	signal(SIGPIPE, SIG_IGN);
 };
 
 #else
