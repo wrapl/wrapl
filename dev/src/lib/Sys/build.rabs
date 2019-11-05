@@ -6,7 +6,7 @@ var ErrnoC := file("Errno.c") => fun() do
 	var C := file("Errno.c"):open("w")
 	C:write('#include <Std.h>\n\n')
 	var Rlink := file("Errno.rlink"):open("w")
-	for Line in shell("gcc -E -fdirectives-only /usr/include/sys/errno.h") / "\n" do
+	for Line in shell("gcc -E -fdirectives-only /usr/include/asm/errno.h") / "\n" do
 		if var Matches := Line % "#define (E[A-Z0-9]+) ([0-9]+)" then
 			var Name := Matches[2]
 			var Value := Matches[3]
