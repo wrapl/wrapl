@@ -58,7 +58,8 @@ RUN apt-get update && apt-get install -y \
 	libid3tag0-dev \
 	libmagic-dev \
 	libopencore-amrnb-dev \
-	libopencore-amrwb-dev
+	libopencore-amrwb-dev \
+	libc-dev
 
 RUN apt-get clean
 
