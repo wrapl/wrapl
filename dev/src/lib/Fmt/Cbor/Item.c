@@ -115,18 +115,18 @@ GLOBAL_FUNCTION(BuildInteger, 1) {
 		int32_t Value = Std$Integer$get_small(Args[0].Val);
 		if (Value < 0) {
 			Value = ~Value;
-			if (Value < 256) {
+			if (Value <= 0xFF) {
 				Item->Handle = cbor_build_uint8(Value);
-			} else if (Value < 65536) {
+			} else if (Value <= 0xFFFF) {
 				Item->Handle = cbor_build_uint16(Value);
 			} else {
 				Item->Handle = cbor_build_uint32(Value);
 			}
 			cbor_mark_negint(Item->Handle);
 		} else {
-			if (Value < 256) {
+			if (Value <= 0xFF) {
 				Item->Handle = cbor_build_uint8(Value);
-			} else if (Value < 65536) {
+			} else if (Value <= 0xFFFF) {
 				Item->Handle = cbor_build_uint16(Value);
 			} else {
 				Item->Handle = cbor_build_uint32(Value);
