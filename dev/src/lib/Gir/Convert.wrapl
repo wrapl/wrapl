@@ -425,6 +425,10 @@ WITH poppler <- api[:namespace, {"name" IS "Poppler"}] DO (
 	poppler[:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "color"}].type <- '!{$}';
 	EVERY poppler[:struct, {"name" IS "Action"}][:field].type <- '!{$}';
 	poppler[:object, {"name" IS "Document"}][:method, {"cname" IS "poppler_document_get_print_scaling"}]:detach;
+	WITH parameters <- poppler[:object, {"name" IS "Document"}][:constructor, {"cname" IS "poppler_document_new_from_data"}][:parameters] DO (
+		parameters[:parameter, {"name" IS "data"}].type <- 'guchar*';
+		parameters[:parameter, {"name" IS "length"}].type <- 'string_length-1';
+	);
 );
 
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
