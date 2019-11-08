@@ -124,14 +124,18 @@ static void riva_negative_fn(decoder_t *Decoder, uint64_t Value) {
 
 static void riva_bytes_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Key = IsByteString;
-	Collection->Remaining = 0;
-	Collection->Blocks = 0;
-	Decoder->Collection = Collection;
+	if (Size) {
+		collection_t *Collection = new(collection_t);
+		Collection->Prev = Decoder->Collection;
+		Collection->Tags = Decoder->Tags;
+		Decoder->Tags = 0;
+		Collection->Key = IsByteString;
+		Collection->Remaining = 0;
+		Collection->Blocks = 0;
+		Decoder->Collection = Collection;
+	} else {
+		value_handler(Decoder, Std$Address$new_sized(NULL, 0));
+	}
 }
 
 static void riva_bytes_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
@@ -147,10 +151,10 @@ static void riva_bytes_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int F
 			Buffer -= B->Length;
 			memcpy(Buffer, B->Data, B->Length);
 		}
-		value_handler(Decoder, Std$Address$new_sized(Buffer, Collection->Remaining));
+		value_handler(Decoder, Std$Address$new_sized(Buffer, Collection->Remaining + Size));
 	} else {
 		block_t *Block = new(block_t);
-		Block->Prev = Decoder->Collection->Blocks;
+		Block->Prev = Collection->Blocks;
 		Block->Data = Bytes;
 		Block->Length = Size;
 		Collection->Blocks = Block;
@@ -160,41 +164,65 @@ static void riva_bytes_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int F
 
 static void riva_string_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Key = IsString;
-	Collection->Remaining = 0;
-	Collection->Blocks = 0;
-	Decoder->Collection = Collection;
+	if (Size) {
+		collection_t *Collection = new(collection_t);
+		Collection->Prev = Decoder->Collection;
+		Collection->Tags = Decoder->Tags;
+		Decoder->Tags = 0;
+		Collection->Key = IsString;
+		Collection->Remaining = 0;
+		Collection->Blocks = 0;
+		Decoder->Collection = Collection;
+	} else {
+		value_handler(Decoder, Std$String$Empty);
+	}
 }
 
 static void riva_string_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Decoder->Collection;
 	if (Final) {
-		Std$String$t *String = Std$String$alloc(Collection->Remaining + 1);
-		Std$String$block *Block = String->Blocks + Collection->Remaining;
-		char *Chars = Block->Chars.Value = Riva$Memory$alloc_atomic(Size + 1);
-		memcpy(Chars, Bytes, Size);
-		Chars[Size] = 0;
-		Block->Length.Value = Size;
-		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
-			--Block;
-			Block->Chars.Value = B->Data;
-			Block->Length.Value = B->Length;
+		if (Size) {
+			Decoder->Collection = Collection->Prev;
+			Decoder->Tags = Collection->Tags;
+			Std$String$t *String = Std$String$alloc(Collection->Remaining + 1);
+			Std$String$block *Block = String->Blocks + Collection->Remaining;
+			char *Chars = Block->Chars.Value = Riva$Memory$alloc_atomic(Size + 1);
+			memcpy(Chars, Bytes, Size);
+			Chars[Size] = 0;
+			int Total = Block->Length.Value = Size;
+			for (block_t *B = Collection->Blocks; B; B = B->Prev) {
+				--Block;
+				Block->Chars.Value = B->Data;
+				Block->Length.Value = B->Length;
+				Total += B->Length;
+			}
+			String->Length.Value = Total;
+			value_handler(Decoder, Std$String$freeze(String));
+		} else {
+			Decoder->Collection = Collection->Prev;
+			Decoder->Tags = Collection->Tags;
+			Std$String$t *String = Std$String$alloc(Collection->Remaining);
+			Std$String$block *Block = String->Blocks + Collection->Remaining;
+			int Total = 0;
+			for (block_t *B = Collection->Blocks; B; B = B->Prev) {
+				--Block;
+				Block->Chars.Value = B->Data;
+				Block->Length.Value = B->Length;
+				Total += B->Length;
+			}
+			String->Length.Value = Total;
+			value_handler(Decoder, Std$String$freeze(String));
 		}
-		value_handler(Decoder, Std$String$freeze(String));
-	} else {
+	} else if (Size) {
 		block_t *Block = new(block_t);
-		Block->Prev = Decoder->Collection->Blocks;
+		Block->Prev = Collection->Blocks;
 		char *Chars = Block->Data = Riva$Memory$alloc_atomic(Size + 1);
 		memcpy(Chars, Bytes, Size);
 		Chars[Size] = 0;
 		Block->Length = Size;
-		Decoder->Collection->Blocks = Block;
-		++Decoder->Collection->Remaining;
+		Collection->Blocks = Block;
+		++Collection->Remaining;
 	}
 }
 

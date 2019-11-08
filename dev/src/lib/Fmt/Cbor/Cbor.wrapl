@@ -4,28 +4,30 @@ IMP IO.Terminal USE Out;
 IMP Std USE Number, String, Symbol, Address, Real;
 IMP Agg USE List, Table;
 IMP IO.File, IO.Stream, IO.Buffer, IO.Escaped;
-IMP Sys.Time;
+IMP Sys.Time, Sys.Module;
 IMP Alg.UUID;
 IMP Num.Array;
 
 DEF Decoder Cbor.Decoder;
 DEF Encoder Cbor.Encoder;
-DEF Item Cbor.Item;
 
 DEF TagT <[] tag, value>;
 
 METH String.Of(value @ TagT) '{value:tag}({value:value})';
 
-METH Item.Build(value @ TagT) (
-	Item.BuildTag(value:tag, Item.Build(value:value));
+METH :write(encoder @ Encoder.T, value @ TagT) (
+	encoder:write_tag(value:tag);
+	encoder:write(value:value);
 );
 
-METH Item.Build(value @ Time.T) (
-	Item.BuildTag(0, Item.BuildString(String.Of(value, "%FT%T%Z")));
+METH :write(encoder @ Encoder.T, value @ Time.T) (
+	encoder:write_tag(0);
+	encoder:write(String.Of(value, "%FT%T%Z"));
 );
 
-METH Item.Build(value @ UUID.T) (
-	Item.BuildTag(37, Item.BuildByteString(Address.Of(value)));
+METH :write(encoder @ Encoder.T, value @ UUID.T) (
+	encoder:write_tag(37);
+	encoder:write(Address.Of(value), 16);
 );
 
 DEF Tag! TagT;
@@ -97,16 +99,20 @@ DEF LoadString!(string, flags) (
 	RET parser:userdata;
 );
 
-DEF Encode!(stream, value) (
-	VAR encoded <- Item.Build(value):encode;
-	stream:write(encoded, encoded:size);
+DEF Encode!(stream, value) Encoder.New(stream):write(value);
+
+DEF EncodeBuffer!(value) (
+	VAR buffer <- Buffer.New();
+	Encoder.New(buffer):write(value);
+	VAR flat <- Address.SizedNew(buffer:length);
+	buffer:read(flat, flat:length);
+	RET flat;
 );
 
-DEF EncodeBuffer!(value) Item.Build(value):encode;
-
 DEF EncodeString!(value) (
-	VAR encoded <- Item.Build(value):encode;
-	RET String.FromAddress(encoded, encoded:length);
+	VAR buffer <- Buffer.New();
+	Encoder.New(buffer):write(value);
+	RET buffer:rest;
 );
 
 END Cbor.

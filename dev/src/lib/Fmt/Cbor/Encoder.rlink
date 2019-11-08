@@ -4,4 +4,5 @@ include("Agg/Table.rlib")
 include("IO/Stream.rlib")
 include("Util/TypedFunction.rlib")
 
+export("T")
 export("New")
