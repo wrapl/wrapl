@@ -965,6 +965,13 @@ method "length", TYP, Std$Address$SizedT
 	xor eax, eax
 	ret
 
+method "size", TYP, Std$Address$SizedT
+	mov eax, [Std$Function_argument(edi).Val]
+	lea ecx, [Std$Address_sizedt(eax).Length]
+	xor edx, edx
+	xor eax, eax
+	ret
+
 extern Riva$Debug$_stack_trace
 
 type_method "@", ANY, TYP, Std$Type$T

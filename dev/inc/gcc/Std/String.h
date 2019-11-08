@@ -71,10 +71,11 @@ RIVA_CFUN(Std$Object$t *, slice, Std$Object$t *, int, int) __attribute__ ((const
 RIVA_CFUN(Std$String$t *, alloc, int) __attribute__ ((malloc));
 RIVA_CFUN(Std$Object$t *, freeze, Std$String$t *);
 
-#define Std$String$get_length(A) ((Std$String$t *)A)->Length.Value
-#define Std$String$get_block_length(A, N) ((Std$String$t *)A)->Blocks[N].Length.Value
-#define Std$String$get_block_chars(A, N) (char *)((Std$String$t *)A)->Blocks[N].Chars.Value
-#define Std$String$get_char(A) *((char *)((Std$String$t *)A)->Blocks[0].Chars.Value)
+#define Std$String$blocks(A) ((Std$String$t *)(A))->Blocks
+#define Std$String$get_length(A) ((Std$String$t *)(A))->Length.Value
+#define Std$String$get_block_length(A, N) ((Std$String$t *)(A))->Blocks[N].Length.Value
+#define Std$String$get_block_chars(A, N) (char *)((Std$String$t *)(A))->Blocks[N].Chars.Value
+#define Std$String$get_char(A) *((char *)((Std$String$t *)(A))->Blocks[0].Chars.Value)
 
 #undef RIVA_MODULE
 
