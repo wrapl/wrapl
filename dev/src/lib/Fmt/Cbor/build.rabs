@@ -25,7 +25,7 @@ MINICBOR_LIB := EXT_DIR / "lib/libminicbor.a" => fun() do
 	var Path := file("minicbor"):rmdir
 	execute('git clone -b dev https://github.com/rajamukherji/minicbor.git')
 	Path:chdir
-	execute('make install PREFIX={EXT_DIR}')
+	execute('make install PREFIX={EXT_DIR} READ_FN_PREFIX=riva_ READDATA_TYPE="struct decoder_t *"')
 end
 
 CFLAGS := old + ["-I", file("include")]
@@ -33,5 +33,4 @@ LDFLAGS := old + ["Riva/Memory.rlib"]
 PREBUILDS := old + [MINICBOR_LIB]
 riva_module("Fmt/Cbor/Decoder", [file("Decoder.o")], [MINICBOR_LIB])
 riva_module("Fmt/Cbor/Encoder", [file("Encoder.o")], [MINICBOR_LIB])
---riva_module("Fmt/Cbor/Item", [file("Item.o")], [CBOR_LIB])
 wrapl_module("Fmt/Cbor")

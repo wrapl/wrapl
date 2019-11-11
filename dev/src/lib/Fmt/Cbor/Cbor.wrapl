@@ -87,15 +87,14 @@ METH Decode(@Address.SizedT) IS <address, flags> (
 DEF LoadFile!(filename, flags) (
 	VAR file <- File.Open(filename, File.Flag.Read);
 	VAR parser <- Loader.New(flags);
-	REP WHILE parser:parse(file:read(128));
+	file:copy(parser);
 	file:close;
 	RET parser:userdata;
 );
 
 DEF LoadString!(string, flags) (
 	VAR parser <- Loader.New(flags);
-	VAR i; EVERY i <- 1:to(string:length + 1, 128) DO parser:parse(string[i, i + 128]);
-	parser:parse(string[i, 0]);
+	parser:parse(string);
 	RET parser:userdata;
 );
 

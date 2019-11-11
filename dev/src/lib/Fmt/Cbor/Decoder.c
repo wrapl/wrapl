@@ -2,6 +2,10 @@
 #include <Riva/Memory.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
+
+#define MINICBOR_GLOBAL_FN_PREFIX riva_
+#define MINICBOR_READDATA_TYPE struct decoder_t *
+
 #include <minicbor/minicbor.h>
 
 typedef struct block_t {
@@ -99,7 +103,7 @@ static void value_handler(decoder_t *Decoder, Std$Object$t *Value) {
 	}
 }
 
-static void riva_positive_fn(decoder_t *Decoder, uint64_t Value) {
+void riva_positive_fn(decoder_t *Decoder, uint64_t Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
 		value_handler(Decoder, Std$Integer$new_small((uint32_t)Value));
@@ -108,7 +112,7 @@ static void riva_positive_fn(decoder_t *Decoder, uint64_t Value) {
 	}
 }
 
-static void riva_negative_fn(decoder_t *Decoder, uint64_t Value) {
+void riva_negative_fn(decoder_t *Decoder, uint64_t Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
 		value_handler(Decoder, Std$Integer$new_small(~(uint32_t)Value));
@@ -122,7 +126,7 @@ static void riva_negative_fn(decoder_t *Decoder, uint64_t Value) {
 	}
 }
 
-static void riva_bytes_fn(decoder_t *Decoder, int Size) {
+void riva_bytes_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size) {
 		collection_t *Collection = new(collection_t);
@@ -138,7 +142,7 @@ static void riva_bytes_fn(decoder_t *Decoder, int Size) {
 	}
 }
 
-static void riva_bytes_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
+void riva_bytes_piece_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Decoder->Collection;
 	if (Final) {
@@ -162,7 +166,7 @@ static void riva_bytes_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int F
 	}
 }
 
-static void riva_string_fn(decoder_t *Decoder, int Size) {
+void riva_string_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size) {
 		collection_t *Collection = new(collection_t);
@@ -178,7 +182,7 @@ static void riva_string_fn(decoder_t *Decoder, int Size) {
 	}
 }
 
-static void riva_string_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
+void riva_string_piece_fn(decoder_t *Decoder, void *Bytes, int Size, int Final) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Decoder->Collection;
 	if (Final) {
@@ -226,7 +230,7 @@ static void riva_string_chunk_fn(decoder_t *Decoder, void *Bytes, int Size, int 
 	}
 }
 
-static void riva_array_fn(decoder_t *Decoder, int Size) {
+void riva_array_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size < 0) {
 		collection_t *Collection = new(collection_t);
@@ -265,7 +269,7 @@ static void riva_array_fn(decoder_t *Decoder, int Size) {
 	}
 }
 
-static void riva_map_fn(decoder_t *Decoder, int Size) {
+void riva_map_fn(decoder_t *Decoder, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size < 0) {
 		collection_t *Collection = new(collection_t);
@@ -304,7 +308,7 @@ static void riva_map_fn(decoder_t *Decoder, int Size) {
 	}
 }
 
-static void riva_tag_fn(decoder_t *Decoder, uint64_t Tag) {
+void riva_tag_fn(decoder_t *Decoder, uint64_t Tag) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Decoder->TagHandler != Std$Object$Nil) {
 		Std$Function$result Result;
@@ -318,12 +322,12 @@ static void riva_tag_fn(decoder_t *Decoder, uint64_t Tag) {
 	}
 }
 
-static void riva_float_fn(decoder_t *Decoder, double Value) {
+void riva_float_fn(decoder_t *Decoder, double Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Decoder, Std$Real$new(Value));
 }
 
-static void riva_simple_fn(decoder_t *Decoder, int Special) {
+void riva_simple_fn(decoder_t *Decoder, int Special) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	switch (Special) {
 	case CBOR_SIMPLE_FALSE:
@@ -338,7 +342,7 @@ static void riva_simple_fn(decoder_t *Decoder, int Special) {
 	}
 }
 
-static void riva_break_fn(decoder_t *Decoder) {
+void riva_break_fn(decoder_t *Decoder) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Decoder->Collection;
 	Decoder->Collection = Collection->Prev;
@@ -358,7 +362,7 @@ static void riva_break_fn(decoder_t *Decoder) {
 	}
 }
 
-static void riva_error_fn(decoder_t *Decoder, int Position, const char *Message) {
+void riva_error_fn(decoder_t *Decoder, int Position, const char *Message) {
 }
 
 GLOBAL_FUNCTION(New, 0) {
@@ -377,19 +381,6 @@ GLOBAL_FUNCTION(New, 0) {
 	Decoder->TagHandler = Std$Object$Nil;
 	minicbor_reader_init(Decoder->Reader);
 	Decoder->Reader->UserData = Decoder;
-	Decoder->Reader->PositiveFn = riva_positive_fn;
-	Decoder->Reader->NegativeFn = riva_negative_fn;
-	Decoder->Reader->BytesFn = riva_bytes_fn;
-	Decoder->Reader->BytesChunkFn = riva_bytes_chunk_fn;
-	Decoder->Reader->StringFn = riva_string_fn;
-	Decoder->Reader->StringChunkFn = riva_string_chunk_fn;
-	Decoder->Reader->ArrayFn = riva_array_fn;
-	Decoder->Reader->MapFn = riva_map_fn;
-	Decoder->Reader->TagFn = riva_tag_fn;
-	Decoder->Reader->SimpleFn = riva_simple_fn;
-	Decoder->Reader->FloatFn = riva_float_fn;
-	Decoder->Reader->BreakFn = riva_break_fn;
-	Decoder->Reader->ErrorFn = riva_error_fn;
 	Result->Val = Decoder;
 	return SUCCESS;
 }
