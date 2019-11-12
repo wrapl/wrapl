@@ -2,6 +2,7 @@ struct keyword_t {const char *Name; int Token;};
 %%
 VAR, tkVAR
 DEF, tkDEF
+LET, tkLET
 REP, tkREP
 EXIT, tkEXIT
 STEP, tkSTEP

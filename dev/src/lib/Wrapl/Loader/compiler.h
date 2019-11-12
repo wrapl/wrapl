@@ -383,6 +383,18 @@ struct with_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
+struct let_expr_t : expr_t {CLASSID
+	const char *Name;
+	expr_t *Value;
+	let_expr_t(int LineNo, const char *Name, expr_t *Value) {
+		this->LineNo = LineNo;
+		this->Name = Name;
+		this->Value = Value;
+	}
+	PRINT_METHOD
+	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
+};
+
 struct rep_expr_t : expr_t {CLASSID
 	expr_t *Body;
 	rep_expr_t(int LineNo, expr_t *Body) {
@@ -664,7 +676,7 @@ struct block_expr_t : expr_t {CLASSID
 		localvar_t *Next;
 		int LineNo;
 		const char *Name;
-		bool Reference;
+		bool Let;
 	};
 	struct localdef_t {
 		localdef_t *Next;

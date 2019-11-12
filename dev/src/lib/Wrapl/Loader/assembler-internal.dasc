@@ -417,7 +417,7 @@ static inline void store_reg(assembler_t *Assembler, operand_t *Operand) {
 		break;
 	}
 	case operand_t::TVAR: {
-		| jmp &incorrect_assign
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index], ecx
 		break;
 	}
 	case operand_t::TREF: {
@@ -483,7 +483,7 @@ void store_con_inst_t::encode(assembler_t *Assembler) {
 			break;
 		}
 		case operand_t::TVAR: {
-			| jmp &incorrect_assign
+			| mov dword [ebp + Assembler->Temps + 8 * Operand->Index], Value
 			break;
 		}
 		case operand_t::TREF: {

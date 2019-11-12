@@ -491,6 +491,12 @@ void with_expr_t::print(int Indent) {
 	Body->print(Indent);
 };
 
+void let_expr_t::print(int Indent) {
+	printf("[L%d]", LineNo);
+	printf("LET %s <- ", Name);
+	Value->print(Indent);
+}
+
 void rep_expr_t::print(int Indent) {
 	printf("[L%d]", LineNo);
 	printf("REP ");
@@ -1388,6 +1394,10 @@ operand_t *with_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *S
 		return Result;
 	};
 };
+
+operand_t *let_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {
+	return Value->compile(Compiler, Start, Success);
+}
 
 operand_t *rep_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *Success) {DEBUG
 	label_t *Label0 = new label_t;
@@ -2351,11 +2361,24 @@ operand_t *block_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 			Label1 = new label_t;
 			Compiler->push_expression();
 				Label0 = Compiler->push_trap(Expr->LineNo, Label0, Label1);
-					Expr->compile(Compiler, Label0, Label1);
-					Label1->flush(Expr->LineNo);
-					Label1->link(Expr->LineNo, Label0 = new label_t);
+					operand_t *Result = Expr->compile(Compiler, Label0, Label1);
+					if (Expr->classid() == let_expr_t::_classid()) {
+						Label1->load(Expr->LineNo, Result);
+					} else {
+						Label1->flush(Expr->LineNo);
+						Label1->link(Expr->LineNo, Label0 = new label_t);
+					}
 				Compiler->pop_trap();
 			Compiler->pop_expression();
+			if (Expr->classid() == let_expr_t::_classid()) {
+				let_expr_t *LetExpr = (let_expr_t *)Expr;
+				operand_t *Operand = new operand_t;
+				Operand->Type = operand_t::TVAR;
+				Operand->Index = Compiler->new_temporary();
+				Label1->store_val(Expr->LineNo, Operand);
+				Label1->link(Expr->LineNo, Label0 = new label_t);
+				Compiler->declare(LetExpr->Name, Operand);
+			}
 		};
 		if (Final) {
 			Label1 = new label_t;
@@ -2403,11 +2426,24 @@ operand_t *block_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 				label_t *Label1 = new label_t;
 				Compiler->push_expression();
 					Label0 = Compiler->push_trap(Expr->LineNo, Label0, Label1);
-						Expr->compile(Compiler, Label0, Label1);
-						Label1->flush(Expr->LineNo);
-						Label1->link(Expr->LineNo, Label0 = new label_t);
+						operand_t *Result = Expr->compile(Compiler, Label0, Label1);
+						if (Expr->classid() == let_expr_t::_classid()) {
+							Label1->load(Expr->LineNo, Result);
+						} else {
+							Label1->flush(Expr->LineNo);
+							Label1->link(Expr->LineNo, Label0 = new label_t);
+						}
 					Compiler->pop_trap();
 				Compiler->pop_expression();
+				if (Expr->classid() == let_expr_t::_classid()) {
+					let_expr_t *LetExpr = (let_expr_t *)Expr;
+					operand_t *Operand = new operand_t;
+					Operand->Type = operand_t::TVAR;
+					Operand->Index = Compiler->new_temporary();
+					Label1->store_val(Expr->LineNo, Operand);
+					Label1->link(Expr->LineNo, Label0 = new label_t);
+					Compiler->declare(LetExpr->Name, Operand);
+				}
 			};
 			if (Final) {
 				label_t *Label1 = new label_t;
@@ -2443,10 +2479,23 @@ operand_t *block_expr_t::compile(compiler_t *Compiler, label_t *Start, label_t *
 			Compiler->push_expression();
 				Label0 = Compiler->push_trap(Expr->LineNo, Label0, Label1);
 					Result = Expr->compile(Compiler, Label0, Label1);
-					Label1->flush(Expr->LineNo);
-					Label1->link(Expr->LineNo, Label0 = new label_t);
+					if (Expr->classid() == let_expr_t::_classid()) {
+						Label1->load(Expr->LineNo, Result);
+					} else {
+						Label1->flush(Expr->LineNo);
+						Label1->link(Expr->LineNo, Label0 = new label_t);
+					}
 				Compiler->pop_trap();
 			Compiler->pop_expression();
+			if (Expr->classid() == let_expr_t::_classid()) {
+				let_expr_t *LetExpr = (let_expr_t *)Expr;
+				operand_t *Operand = new operand_t;
+				Operand->Type = operand_t::TVAR;
+				Operand->Index = Compiler->new_temporary();
+				Label1->store_val(Expr->LineNo, Operand);
+				Label1->link(Expr->LineNo, Label0 = new label_t);
+				Compiler->declare(LetExpr->Name, Operand);
+			}
 		};
 		if (Final) {
 			label_t *Label1 = new label_t;

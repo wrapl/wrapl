@@ -67,7 +67,7 @@ struct operand_t {
 	union {
 		Std$Object$t *Value;
 		Std$Object$t **Address;
-		struct {uint32_t Index;};
+		uint32_t Index;
 		struct {void *Entry; upvalue_t *UpValues; uptemp_t *UpTemps;};
 		struct future_t *Future;
 	};

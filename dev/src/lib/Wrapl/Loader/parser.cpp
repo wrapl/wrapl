@@ -394,7 +394,6 @@ static block_expr_t *accept_localvar(scanner_t *Scanner) {
 	Var->LineNo = Scanner->Token.LineNo;
 	Scanner->accept(tkIDENT);
 	Var->Name = Scanner->Token.Ident;
-	Var->Reference = Scanner->parse(tkPLUS);
 	if (Scanner->parse(tkASSIGN)) {
 		ident_expr_t *Ident = new ident_expr_t(Scanner->Token.LineNo, Var->Name);
 		assign_expr_t *Assign = new assign_expr_t(Scanner->Token.LineNo, Ident, accept_expr(Scanner));
@@ -826,6 +825,15 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Scanner->accept(tkDO);
 		return new with_expr_t(LineNo, Bindings, accept_expr(Scanner), Parallel);
 	};
+	case tkLET: {
+		Scanner->parse();
+		uint32_t LineNo = Scanner->Token.LineNo;
+		Scanner->accept(tkIDENT);
+		const char *Name = Scanner->Token.Ident;
+		Scanner->accept(tkASSIGN);
+		expr_t *Value = accept_expr(Scanner);
+		return new let_expr_t(LineNo, Name, Value);
+	}
 	case tkREP: {
 		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;

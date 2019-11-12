@@ -106,7 +106,8 @@ const char *Tokens[] = {
 	"/\\", //tkLOGICALAND                     89
 	"\\/", //tkLOGICALOR                      90
 	"UNIQ", //tkUNIQ                           91
-	"||" //tkPARALLEL                       92
+	"||", //tkPARALLEL                       92
+	"LET" //tkLET                            93
 };
 
 scanner_t::scanner_t(IO$Stream$t *Source) {
