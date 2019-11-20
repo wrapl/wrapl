@@ -23,22 +23,13 @@ LDFLAGS := old + ["-L.", "-lz", "-ldl", "-g", "-pthread"]
 CFLAGS := old + ["-DUSE_UDIS", "-g", "-DLINUX", "-std=gnu99", "-DPACKAGE", "-DPACKAGE_VERSION", '-I{EXT_DIR / "include"}']
 PREBUILDS := old + [UDIS_LIB]
 
-var Minilang := file("minilang"):mkdir
+var MINILANG_LIB := subdir("minilang")."LIBMINILANG"
 
-var Objects := [
-	file("rlink.o"),
-	Minilang / "minilang.o",
-	Minilang / "ml_compiler.o",
-	Minilang / "ml_runtime.o",
-	Minilang / "ml_types.o",
-	Minilang / "stringmap.o",
-	Minilang / "sha256.o",
-	Minilang / "linenoise.o"
-]
+var Objects := [file("rlink.o")]
 
 if PLATFORM = "Linux" then
 	LDFLAGS := old + ["-lbfd"]
-	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB])
+	c_program(RLINK, Objects, [UDIS_LIB, MINILANG_LIB, GC_LIB])
 elseif PLATFORM = "Darwin" then
 	BINUTILS_VERSION := "2.30"
 	BINUTILS_URL := 'https://ftp.gnu.org/gnu/binutils/binutils-{BINUTILS_VERSION}.tar.gz'
@@ -56,6 +47,6 @@ elseif PLATFORM = "Darwin" then
 		execute("cd", BINUTILS_DIR, "&& make install")
 	end
 	CFLAGS := old + ['-I{file("include")}']
-	c_program(RLINK, Objects, [UDIS_LIB, GC_LIB, file("lib/libbfd.a")])
+	c_program(RLINK, Objects, [UDIS_LIB, file("lib/libbfd.a"), MINILANG_LIB, GC_LIB])
 end
 
