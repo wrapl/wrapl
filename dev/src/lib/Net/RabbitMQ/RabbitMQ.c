@@ -2,7 +2,6 @@
 #include <Riva/Memory.h>
 #include <Agg/Table.h>
 #include <Agg/List.h>
-#include <Agg/Buffer.h>
 #include <Sys/Time.h>
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
@@ -514,7 +513,7 @@ static Std$Object$t *array_to_riva(amqp_array_t *Array) {
 #define STRING_TO_BYTES(Val) (amqp_bytes_t){Std$String$get_length(Val), Std$String$flatten(Val)}
 #define BYTES_TO_STRING(Val) Std$String$copy_length(Val.bytes Val.len)
 
-#define BUFFER_TO_BYTES(Val) (amqp_bytes_t){Agg$Buffer$get_length(Val), Agg$Buffer$get_value(Val)}
+#define BUFFER_TO_BYTES(Val) (amqp_bytes_t){Std$Address$get_size(Val), Std$Address$get_value(Val)}
 
 METHOD("headers", TYP, BasicPropertiesT) {
 	basic_properties_t *Properties = (basic_properties_t *)Args[0].Val;
@@ -730,7 +729,7 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 	}
 }
 
-METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Agg$Buffer$T) {
+METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Address$SizedT) {
 //@channel
 //@exchange
 //@routing_key

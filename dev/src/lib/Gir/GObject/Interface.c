@@ -36,7 +36,7 @@ GLOBAL_FUNCTION(New, 1) {
 			Result->Val = Std$String$new("Parameter is not a module");
 			return MESSAGE;
 		}
-		Gir$GObject$Interface_infot *Interface;
+		Gir$GObject$Interface$infot *Interface;
 		int Temp;
 		if (!Riva$Module$import(Args[I].Val, "InterfaceInfo", &Temp, &Interface)) {
 			Result->Val = Std$String$new("Module does not specify an interface");
@@ -90,7 +90,7 @@ GLOBAL_FUNCTION(Implement, 2) {
 
 GObject *_implementation(Std$Object$t *Object) {
 	printf("_implementation\n");
-	Std$Function_result Result;
+	Std$Function$result Result;
 	Std$Function$call($RIVA, 1, &Result, Object, 0);
 	return ((Gir$GObject$Object$t *)Result.Val)->Handle;
 };

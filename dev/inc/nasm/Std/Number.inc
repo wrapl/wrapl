@@ -7,6 +7,6 @@
 riva_module Std$Number
 
 riva_extern T
-riva_extern New
+riva_extern Of
 
 %endif

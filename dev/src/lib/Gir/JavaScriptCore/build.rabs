@@ -1,0 +1,6 @@
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags javascriptcoregtk-4.0"),
+	"-include jsc/jsc.h"
+]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l javascriptcoregtk-4.0")]
+
+detect_modules("Gir/JavaScriptCore")

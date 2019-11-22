@@ -4,7 +4,7 @@
 #include <Sys/Service.h>
 
 INITIAL() {
-	Sys$Service_t *Service = Sys$Service$new("gtk");
+	Sys$Service$t *Service = Sys$Service$new("gtk");
 	if (Service) {
 		gtk_init(0, 0);
 		Sys$Service$start(Service, Std$Object$Nil);

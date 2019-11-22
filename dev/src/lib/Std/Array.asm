@@ -1,6 +1,8 @@
 %include "Std.inc"
 %include "Riva/Memory.inc"
 
+%define Std$Array$T T
+
 ctype T
 ; A fixed length array of objects
 .invoke: equ 0
@@ -89,8 +91,6 @@ cfunction _new
 	ret
 
 %ifdef DOCUMENTING
-
-%define Std$Array$T T
 
 %define array_method method
 pushfile "Methods.asm"

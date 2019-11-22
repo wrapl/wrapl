@@ -154,7 +154,7 @@ METHOD("^", TYP, T, TYP, T) {
 }
 
 typedef struct generator_t {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	roaring_uint32_iterator_t Iterator[1];
 } generator_t;
 
@@ -209,7 +209,7 @@ static bool to_string_iterator(uint32_t Value, Std$Object$t **String) {
 	return true;
 }
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Num$Bitset$t *Bitset = (Num$Bitset$t *)Args[0].Val;
 	Std$Object$t *String = LeftBrace;
 	roaring_iterate(Bitset->Value, to_string_iterator, &String);

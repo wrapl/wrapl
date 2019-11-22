@@ -1,6 +1,10 @@
 %include "Std.inc"
 %include "Riva/Memory.inc"
 
+%define Std$Integer$T T
+%define Std$Integer$SmallT SmallT
+%define Std$Integer$BigT BigT
+
 ctype T, Std$Number$T, Std$Function$T
 ;  base type of all integer types
 .invoke: equ 0

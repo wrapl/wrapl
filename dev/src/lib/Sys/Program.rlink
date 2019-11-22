@@ -1,0 +1,39 @@
+include("IO/Socket.rlib")
+include("Riva/Debug.rlib")
+
+export("Args")
+export("Exit")
+export("Break")
+
+export("ErrorT")
+export("_error_name")
+export("_error_new")
+export("_error_new_format")
+export("_error_from_errno")
+
+submodule("Error")
+subexport("Error", "ErrorT", "T")
+subexport("Error", "_error_name", "_name")
+subexport("Error", "_error_new", "_new")
+subexport("Error", "_error_new_format", "_new_format")
+subexport("Error", "_error_from_errno", "_from_errno")
+include("Errno.rlink")
+
+export("_stack_trace")
+export("CurrentDir")
+
+if LINUX then
+	include("libpthread.rlib")
+	export("Sleep")
+	export("OnInt")
+	export("OnUrg")
+end
+
+if MACOSX then
+	include("libpthread.rlib")
+	export("Sleep")
+end
+
+if WINDOWS then
+	export("__Sleep", "Sleep")
+end

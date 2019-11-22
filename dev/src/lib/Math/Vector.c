@@ -4,7 +4,7 @@
 #include <Math/Random.h>
 #include <Util/TypedFunction.h>
 
-typedef Math$Vector_t vector_t;
+typedef Math$Vector$t vector_t;
 
 TYPE(T);
 
@@ -14,7 +14,6 @@ STRING(CommaSpace, ", ");
 STRING(LeftRightBracket, "[]");
 STRING(ValueString, "<value>");
 
-SYMBOL($AT, "@");
 SYMBOL($ADD, "+");
 SYMBOL($SUB, "-");
 SYMBOL($MUL, "*");
@@ -24,17 +23,17 @@ SYMBOL($COMP, "?");
 
 GLOBAL_FUNCTION(New, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	uint32_t Length = ((Std$Integer_smallt *)Args[0].Val)->Value;
-	vector_t *Vector = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	uint32_t Length = ((Std$Integer$smallt *)Args[0].Val)->Value;
+	vector_t *Vector = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	Vector->Type = T;
 	Vector->Length.Type = Std$Integer$SmallT;
 	Vector->Length.Value = Length;
-	Std$Function_argument *Arg = Args;
-	Std$Object_t **Ptr = Vector->Entries;
+	Std$Function$argument *Arg = Args;
+	Std$Object$t **Ptr = Vector->Entries;
 	if (Count == 1) {
 		for (int I = Length; --I >= 0;) *(Ptr++) = Std$Object$Nil;
 	} else if (Length != Count - 1) {
-		Std$Object_t **Limit = Ptr + Length;
+		Std$Object$t **Limit = Ptr + Length;
 		for (int I = Count; --I;) *(Ptr++) = (++Arg)->Val;
 		while (Ptr < Limit) *(Ptr++) = Arg->Val;
 	} else {            
@@ -45,12 +44,12 @@ GLOBAL_FUNCTION(New, 1) {
 };
 
 GLOBAL_FUNCTION(Make, 0) {
-	vector_t *Vector = Riva$Memory$alloc(sizeof(vector_t) + Count * sizeof(Std$Object_t **));
+	vector_t *Vector = Riva$Memory$alloc(sizeof(vector_t) + Count * sizeof(Std$Object$t **));
 	Vector->Type = T;
 	Vector->Length.Type = Std$Integer$SmallT;
 	Vector->Length.Value = Count;
-	Std$Function_argument *Arg = Args;
-	Std$Object_t **Ptr = Vector->Entries;
+	Std$Function$argument *Arg = Args;
+	Std$Object$t **Ptr = Vector->Entries;
 	for (int I = Count; I; --I) *(Ptr++) = (Arg++)->Val;    
 	Result->Val = Vector;
 	return SUCCESS;
@@ -64,29 +63,29 @@ METHOD("length", TYP, T) {
 
 METHOD("copy", TYP, T) {
 	const vector_t *Original = Args[0].Val;
-	vector_t *Copy = Riva$Memory$alloc(sizeof(vector_t) + Original->Length.Value * sizeof(Std$Object_t **));
-	memcpy(Copy, Original, sizeof(vector_t) + Original->Length.Value * sizeof(Std$Object_t **));
+	vector_t *Copy = Riva$Memory$alloc(sizeof(vector_t) + Original->Length.Value * sizeof(Std$Object$t **));
+	memcpy(Copy, Original, sizeof(vector_t) + Original->Length.Value * sizeof(Std$Object$t **));
 	Result->Val = (Std$Object$t *)Copy;
 	return SUCCESS;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	const vector_t *Vector = Args[0].Val;
 	if (Vector->Length.Value == 0) {
 		Result->Val = LeftRightBracket;
 		return SUCCESS;
 	};
-	Std$Object_t **Ptr = Vector->Entries;
-	Std$Function_result Buffer;
-	Std$String_t *Final = LeftBracket;
-	if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+	Std$Object$t **Ptr = Vector->Entries;
+	Std$Function$result Buffer;
+	Std$String$t *Final = LeftBracket;
+	if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 		Final = Std$String$add(Final, Buffer.Val);
 	} else {
 		Final = Std$String$add(Final, ValueString);
 	};
 	for (int J = 1; J < Vector->Length.Value; ++J) {
 		Final = Std$String$add(Final, CommaSpace);
-		if (Std$Function$call($AT, 2, &Buffer, *(Ptr++), 0, Std$String$T, 0) < FAILURE) {
+		if (Std$Function$call(Std$String$Of, 1, &Buffer, *(Ptr++), 0) < FAILURE) {
 			Final = Std$String$add(Final, Buffer.Val);
 		} else {
 			Final = Std$String$add(Final, ValueString);
@@ -104,15 +103,15 @@ METHOD("+", TYP, T, TYP, T) {
 		Result->Val = Std$String$new("Vectors not of equal length");
 		return MESSAGE;
 	};
-	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	C->Type = T;
 	C->Length.Type = Std$Integer$SmallT;
 	C->Length.Value = Length;
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **BP = B->Entries;
-	Std$Object_t **CP = C->Entries;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **BP = B->Entries;
+	Std$Object$t **CP = C->Entries;
 	for (int I = Length; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($ADD, 2, &Buffer, *(AP++), 0, *(BP++), 0)) {
 		case SUSPEND: case SUCCESS:
 			*(CP++) = Buffer.Val;
@@ -137,15 +136,15 @@ METHOD("-", TYP, T, TYP, T) {
 		Result->Val = Std$String$new("Vectors not of equal length");
 		return MESSAGE;
 	};
-	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	C->Type = T;
 	C->Length.Type = Std$Integer$SmallT;
 	C->Length.Value = Length;
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **BP = B->Entries;
-	Std$Object_t **CP = C->Entries;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **BP = B->Entries;
+	Std$Object$t **CP = C->Entries;
 	for (int I = Length; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($SUB, 2, &Buffer, *(AP++), 0, *(BP++), 0)) {
 		case SUSPEND: case SUCCESS:
 			*(CP++) = Buffer.Val;
@@ -171,9 +170,9 @@ METHOD("*", TYP, T, TYP, T) {
 		return MESSAGE;
 	};
 	if (Length == 0) return SUCCESS;
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **BP = B->Entries;
-	Std$Function_result Total;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **BP = B->Entries;
+	Std$Function$result Total;
 	switch (Std$Function$call($MUL, 2, &Total, *(AP++), 0, *(BP++), 0)) {
 	case SUSPEND: case SUCCESS:
 		break;
@@ -185,7 +184,7 @@ METHOD("*", TYP, T, TYP, T) {
 		return MESSAGE;
 	};
 	for (int I = Length; --I > 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($MUL, 2, &Buffer, *(AP++), 0, *(BP++), 0)) {
 		case SUSPEND: case SUCCESS:
 			break;
@@ -213,16 +212,16 @@ METHOD("*", TYP, T, TYP, T) {
 
 METHOD("*", TYP, T, ANY) {
 	const vector_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	uint32_t Length = A->Length.Value;
-	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	C->Type = T;
 	C->Length.Type = Std$Integer$SmallT;
 	C->Length.Value = Length;
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **CP = C->Entries;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **CP = C->Entries;
 	for (int I = Length; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($MUL, 2, &Buffer, *(AP++), 0, B, 0)) {
 		case SUSPEND: case SUCCESS:
 			*(CP++) = Buffer.Val;
@@ -240,17 +239,17 @@ METHOD("*", TYP, T, ANY) {
 };
 
 METHOD("*", ANY, TYP, T) {
-	const Std$Object_t *A = Args[0].Val;
+	const Std$Object$t *A = Args[0].Val;
 	const vector_t *B = Args[1].Val;
 	uint32_t Length = B->Length.Value;
-	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	C->Type = T;
 	C->Length.Type = Std$Integer$SmallT;
 	C->Length.Value = Length;
-	Std$Object_t **BP = B->Entries;
-	Std$Object_t **CP = C->Entries;
+	Std$Object$t **BP = B->Entries;
+	Std$Object$t **CP = C->Entries;
 	for (int I = Length; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($MUL, 2, &Buffer, A, 0, *(BP++), 0)) {
 		case SUSPEND: case SUCCESS:
 			*(CP++) = Buffer.Val;
@@ -269,16 +268,16 @@ METHOD("*", ANY, TYP, T) {
 
 METHOD("/", TYP, T, ANY) {
 	const vector_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	uint32_t Length = A->Length.Value;
-	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object_t **));
+	vector_t *C = Riva$Memory$alloc(sizeof(vector_t) + Length * sizeof(Std$Object$t **));
 	C->Type = T;
 	C->Length.Type = Std$Integer$SmallT;
 	C->Length.Value = Length;
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **CP = C->Entries;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **CP = C->Entries;
 	for (int I = Length; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		switch (Std$Function$call($DIV, 2, &Buffer, *(AP++), 0, B, 0)) {
 		case SUSPEND: case SUCCESS:
 			*(CP++) = Buffer.Val;
@@ -298,7 +297,7 @@ METHOD("/", TYP, T, ANY) {
 SYMBOL($is0, "is0");
 
 TYPED_INSTANCE(int, Std$Number$is0, T, vector_t *A) {
-	const Std$Object_t **AP = A->Entries;
+	const Std$Object$t **AP = A->Entries;
 	for (int I = A->Length.Value; --I >= 0;) {
 		if (!Std$Number$is0(*(AP++))) return 0;
 	};
@@ -307,7 +306,7 @@ TYPED_INSTANCE(int, Std$Number$is0, T, vector_t *A) {
 
 METHOD("is0", TYP, T) {
 	const vector_t *A = Args[0].Val;
-	const Std$Object_t **AP = A->Entries;
+	const Std$Object$t **AP = A->Entries;
 	for (int I = A->Length.Value; --I >= 0;) {
 		if (!Std$Number$is0(*(AP++))) return FAILURE;
 	};
@@ -317,7 +316,7 @@ METHOD("is0", TYP, T) {
 
 METHOD("[]", TYP, T, TYP, Std$Integer$SmallT) {
 	const vector_t *A = Args[0].Val;
-	Std$Integer_smallt *B = Args[1].Val;
+	Std$Integer$smallt *B = Args[1].Val;
     Result->Val = *(Result->Ref = A->Entries + B->Value - 1);
     return SUCCESS;
 };
@@ -343,11 +342,11 @@ METHOD("z", TYP, T) {
 GLOBAL_METHOD(Hash, 1, "#", TYP, T) {
 	const vector_t *A = Args[0].Val;
 	int Hash = 0;
-	Std$Object_t **AP = A->Entries;
+	Std$Object$t **AP = A->Entries;
 	for (int I = A->Length.Value; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		Std$Function$call($HASH, 1, &Buffer, *(AP++), 0);
-		Hash ^= ((Std$Integer_smallt *)Buffer.Val)->Value;
+		Hash ^= ((Std$Integer$smallt *)Buffer.Val)->Value;
 		asm("roll $2, %0" : "=r" (Hash) : "0" (Hash));
 	};
 	Result->Val = Std$Integer$new_small(Hash);
@@ -365,10 +364,10 @@ GLOBAL_METHOD(Compare, 2, "?", TYP, T, TYP, T) {
 		Result->Val = Std$Object$Greater;
 		return SUCCESS;
 	};
-	Std$Object_t **AP = A->Entries;
-	Std$Object_t **BP = B->Entries;
+	Std$Object$t **AP = A->Entries;
+	Std$Object$t **BP = B->Entries;
 	for (int I = A->Length.Value; --I >= 0;) {
-		Std$Function_result Buffer;
+		Std$Function$result Buffer;
 		Std$Function$call($COMP, 2, &Buffer, *(AP++), 0, *(BP++), 0);
 		if (Buffer.Val != Std$Object$Equal) {
 			Result->Val = Buffer.Val;

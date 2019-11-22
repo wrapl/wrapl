@@ -5,9 +5,9 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
-	Std$Integer_smallt NoOfRows, NoOfCols;
-	Std$Object_t *Entries[];
+	const Std$Type$t *Type;
+	Std$Integer$smallt NoOfRows, NoOfCols;
+	Std$Object$t *Entries[];
 };
 
 RIVA_TYPE(T);

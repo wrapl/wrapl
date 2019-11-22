@@ -9,8 +9,8 @@
 #include <nettle/arcfour.h>
 
 typedef struct cipher_t {
-	const Std$Type_t *Type;
-	IO$Stream_t *Base;
+	const Std$Type$t *Type;
+	IO$Stream$t *Base;
 	struct arcfour_ctx Context[1];
 } cipher_t;
 
@@ -20,7 +20,7 @@ GLOBAL_FUNCTION(New, 2) {
 	cipher_t *Stream = new(cipher_t);
 	Stream->Type = T;
 	Stream->Base = Args[0].Val;
-	Std$String_t *Key = Args[1].Val;
+	Std$String$t *Key = Args[1].Val;
 	arcfour_set_key(Stream->Context, Key->Length.Value, Std$String$flatten(Key));
 	Result->Val = Stream;
 	return SUCCESS;
@@ -40,7 +40,7 @@ static int cipher_close(cipher_t *Stream, int Mode) {
 	return IO$Stream$close(Stream->Base, Mode);
 };
 
-static Std$Integer_smallt Zero[] = {{Std$Integer$SmallT, 0}};
+static Std$Integer$smallt Zero[] = {{Std$Integer$SmallT, 0}};
 
 #ifdef WINDOWS
 
@@ -72,7 +72,7 @@ static char *cipher_readx(cipher_t *Stream, int Max, const char *Term, int TermS
 		Chars[1] = 0;
 		return Chars;
 	};
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -87,7 +87,7 @@ static char *cipher_readx(cipher_t *Stream, int Max, const char *Term, int TermS
 			if (IsTerm[Char]) {
 			} else {
 				if (Space == 0) {
-					IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+					IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 					Tail = (Tail->Next = Buffer);
 					Space = IO$Stream$BufferSize;
 					Ptr = Tail->Chars;
@@ -104,7 +104,7 @@ static char *cipher_readx(cipher_t *Stream, int Max, const char *Term, int TermS
 		case 0: {
 			unsigned char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -133,7 +133,7 @@ static char *cipher_readi(cipher_t *Stream, int Max, const char *Term, int TermS
 		Chars[1] = 0;
 		return Chars;
 	};
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -146,7 +146,7 @@ static char *cipher_readi(cipher_t *Stream, int Max, const char *Term, int TermS
 		case -1: IO$Stream$free_buffers(Head, Tail); return -1;
 		default: {
 			if (Space == 0) {
-				IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+				IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 				Tail = (Tail->Next = Buffer);
 				Space = IO$Stream$BufferSize;
 				Ptr = Tail->Chars;
@@ -162,7 +162,7 @@ static char *cipher_readi(cipher_t *Stream, int Max, const char *Term, int TermS
 		case 0: {
 			unsigned char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -184,11 +184,11 @@ static char cipher_readc(cipher_t *Stream) {
 	return Char;
 };
 
-static inline Std$String_t *crypt_string(struct arcfour_ctx *Context, Std$String_t *Src) {
-	size_t Size = sizeof(Std$String_t) + (Src->Count + 1) * sizeof(Std$String_block);
-	Std$String_t *Dst = Riva$Memory$alloc_stubborn(Size);
+static inline Std$String$t *crypt_string(struct arcfour_ctx *Context, Std$String$t *Src) {
+	size_t Size = sizeof(Std$String$t) + (Src->Count + 1) * sizeof(Std$String$block);
+	Std$String$t *Dst = Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dst, Src, Size);
-	for (Std$String_block *Block = Dst->Blocks; Block->Length.Value; Block++) {
+	for (Std$String$block *Block = Dst->Blocks; Block->Length.Value; Block++) {
 		char *Chars = Riva$Memory$alloc_atomic(Block->Length.Value);
 		arcfour_crypt(Context, Block->Length.Value, Chars, Block->Chars.Value);
 		Block->Chars.Value = Chars;
@@ -206,7 +206,7 @@ static char *cipher_readl(cipher_t *Stream) {
 		};
 	} while (Char == '\r');
 	if (Char == '\n') return "";
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -223,7 +223,7 @@ static char *cipher_readl(cipher_t *Stream) {
 				break;
 			} else {
 				if (Space == 0) {
-					IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+					IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 					Tail = (Tail->Next = Buffer);
 					Space = IO$Stream$BufferSize;
 					Ptr = Tail->Chars;
@@ -237,7 +237,7 @@ static char *cipher_readl(cipher_t *Stream) {
 		case 0: {
 			char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -255,7 +255,7 @@ static char *cipher_readl(cipher_t *Stream) {
 static int cipher_write(cipher_t *Stream, const char *Source, int Length, int Block) {
 	char Buffer[256];
 	int Total = 0;
-	IO$Stream_writefn write = Util$TypedFunction$get(IO$Stream$write, Stream->Base->Type);
+	IO$Stream$writefn write = Util$TypedFunction$get(IO$Stream$write, Stream->Base->Type);
 	while (Length > 256) {
 		arcfour_crypt(Stream->Context, 256, Source, Buffer);
 		int Rem = 256;
@@ -317,10 +317,10 @@ SYMBOL($block, "block");
 
 METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	cipher_t *Stream = Args[0].Val;
-	uint8_t *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer_smallt *)Args[2].Val)->Value, 0);
+	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 0);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$ReadMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	if (Bytes == 0) return FAILURE;
@@ -330,10 +330,10 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
 	cipher_t *Stream = Args[0].Val;
-	uint8_t *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer_smallt *)Args[2].Val)->Value, 1);
+	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 1);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$ReadMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	if (Bytes == 0) return FAILURE;
@@ -343,7 +343,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 
 METHOD("crypt", TYP, T, TYP, Std$String$T) {
 	cipher_t *Stream = Args[0].Val;
-	Std$String_t *String = Args[1].Val;
+	Std$String$t *String = Args[1].Val;
 	Result->Val = crypt_string(Stream->Context, String);
 	return SUCCESS;
 };
@@ -386,15 +386,15 @@ METHOD("read", TYP, T) {
 
 METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	cipher_t *Stream = Args[0].Val;
-	char *Source = ((Std$Address_t *)Args[1].Val)->Value;
-	int Length = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Source = ((Std$Address$t *)Args[1].Val)->Value;
+	int Length = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	char Buffer[256];
 	int Total = 0;
 	while (Length > 256) {
 		arcfour_crypt(Stream->Context, 256, Source, Buffer);
 		int Bytes = IO$Stream$write(Stream->Base, Buffer, 256, 1);
 		if (Bytes == -1) {
-			Result->Val = IO$Stream$WriteMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes < 256) {
@@ -408,7 +408,7 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	arcfour_crypt(Stream->Context, Length, Source, Buffer);
 	int Bytes = IO$Stream$write(Stream->Base, Buffer, Length, 1);
 	if (Bytes == -1) {
-		Result->Val = IO$Stream$WriteMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Total + Bytes);

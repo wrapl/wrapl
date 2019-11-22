@@ -25,6 +25,79 @@
 
 #endif
 
+AMETHOD(Std$String$Of, TYP, Std$Integer$SmallT) {
+	char *Chars;
+	int Length = asprintf(&Chars, "%d", Std$Integer$get_small(Args[0].Val));
+	RETURN(Std$String$new_length(Chars, Length));
+}
+
+/*
+AMETHOD(Std$Integer$Of, TYP, Std$String$T) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	mpz_t Z;
+	if (mpz_init_set_str(Z, Buffer, 10) == 0) {
+		if (mpz_fits_sint_p(Z)) {
+			Std$Integer$smallt *Value = new_atomic(Std$Integer$smallt);
+			Value->Type = Std$Integer$SmallT;
+			Value->Value = mpz_get_si(Z);
+			RETURN(Value);
+		} else {
+			Std$Integer$bigt *Value = new(Std$Integer$bigt);
+			Value->Type = Std$Integer$BigT;
+			Value->Value[0] = Z[0];
+			RETURN(Value);
+		}
+	} else {
+		FAIL;
+	}
+}
+
+AMETHOD(Std$Integer$Of, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	int Base = Std$Integer$get_small(Args[1].Val);
+	mpz_t Z;
+	if (mpz_init_set_str(Z, Buffer, Base) == 0) {
+		if (mpz_fits_sint_p(Z)) {
+			Std$Integer$smallt *Value = new_atomic(Std$Integer$smallt);
+			Value->Type = Std$Integer$SmallT;
+			Value->Value = mpz_get_si(Z);
+			RETURN(Value);
+		} else {
+			Std$Integer$bigt *Value = new(Std$Integer$bigt);
+			Value->Type = Std$Integer$BigT;
+			Value->Value[0] = Z[0];
+			RETURN(Value);
+		}
+	} else {
+		FAIL;
+	}
+}
+*/
+
+AMETHOD(Std$Number$Of, TYP, Std$String$T) {
+	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
+	mpq_t R;
+	mpq_init(R);
+	if (mpq_set_str(R, Buffer, 10) == 0) {
+		mpq_canonicalize(R);
+		if (mpz_cmp_si(mpq_denref(R), 1)) {
+			RETURN(Std$Rational$new(R));
+		} else if (mpz_fits_sint_p(mpq_numref(R))) {
+			RETURN(Std$Integer$new_small(mpz_get_si(mpq_numref(R))));
+		} else {
+			RETURN(Std$Integer$new_big(mpq_numref(R)));
+		}
+	} else {
+		char *End;
+		double Value = strtod(Buffer, &End);
+		if (End > Buffer) {
+			RETURN(Std$Real$new(Value));
+		} else {
+			FAIL;
+		}
+	}
+}
+
 ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	int Length = Std$Integer$get_small(Args[1].Val);
 	int NumBlocks = Length / Std$String$MaxBlockSize + 1;
@@ -69,9 +142,9 @@ ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 	return SUCCESS;
 }
 
-REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$String$T, TYP, Std$String$T) {
-	double Value = ((Std$Real_t *)Args[0].Val)->Value;
-	const unsigned char *Format = Std$String$flatten(Args[2].Val);
+AMETHOD(Std$String$Of, TYP, Std$Real$T, TYP, Std$String$T) {
+	double Value = ((Std$Real$t *)Args[0].Val)->Value;
+	const unsigned char *Format = Std$String$flatten(Args[1].Val);
 	unsigned char *String;
 	int Length = asprintf(&String, Format, Value);
 	Result->Val = Std$String$new_length(String, Length);
@@ -79,8 +152,8 @@ REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$String$T, TYP, Std$String$T) {
 };
 
 typedef struct chars_generator {
-	Std$Function_cstate State;
-	const Std$String_block *Subject;
+	Std$Function$cstate State;
+	const Std$String$block *Subject;
 	long Left;
 	const unsigned char *Next;
 } chars_generator;
@@ -99,28 +172,28 @@ STRING_METHOD("chars", TYP, Std$String$T) {
 //@str
 //:T
 // Generates the characters in <var>str</var> as strings of length <code>1</code>.
-	const Std$String_t *Arg = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Arg = (Std$String$t *)Args[0].Val;
 	if (Arg->Length.Value == 0) return FAILURE;
 	chars_generator *Gen = new(chars_generator);
 	Gen->Subject = Arg->Blocks;
 	Gen->Left = Gen->Subject->Length.Value - 1;
 	Gen->Next = Gen->Subject->Chars.Value;
 	Gen->State.Run = Std$Function$resume_c;
-	Gen->State.Invoke = (Std$Function_cresumefn)resume_chars_string;
+	Gen->State.Invoke = (Std$Function$cresumefn)resume_chars_string;
 	Result->Val = Std$String$new_char(*Gen->Next++);
 	Result->State = Gen;
 	return SUSPEND;
 };
 
 STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT) {
-	const Std$String_t *Str = (Std$String_t *)Args[0].Val;
-	int Target = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const Std$String$t *Str = (Std$String$t *)Args[0].Val;
+	int Target = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	int Padding = Target - Str->Length.Value;
 	if (Padding <= 0) {
-		Result->Val = (Std$Object_t *)Str;
+		Result->Val = (Std$Object$t *)Str;
 		return SUCCESS;
 	};
-	Std$String_t *New = Std$String$alloc(Str->Count + 2);
+	Std$String$t *New = Std$String$alloc(Str->Count + 2);
 	New->Length.Value = Target;
 	int LeftLength = Padding / 2;
 	unsigned char *LeftChars = Riva$Memory$alloc_atomic(LeftLength + 1);
@@ -128,7 +201,7 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	LeftChars[LeftLength] = 0;
 	New->Blocks[0].Length.Value = LeftLength;
 	New->Blocks[0].Chars.Value = LeftChars;
-	Std$String_block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String_block));
+	Std$String$block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String$block));
 	int RightLength = Padding - LeftLength;
 	unsigned char *RightChars = Riva$Memory$alloc_atomic(RightLength + 1);
 	memset(RightChars, ' ', RightLength);
@@ -140,20 +213,20 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 };
 
 STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
-	const Std$String_t *Str = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Pad = (Std$String_t *)Args[2].Val;
+	const Std$String$t *Str = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Pad = (Std$String$t *)Args[2].Val;
 	if (Pad->Length.Value == 0) {
-		Result->Val = (Std$Object_t *)Str;
+		Result->Val = (Std$Object$t *)Str;
 		return SUCCESS;
 	};
 	unsigned char PadChar = *(unsigned char *)Pad->Blocks[0].Chars.Value;
-	int Target = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	int Target = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	int Padding = Target - Str->Length.Value;
 	if (Padding <= 0) {
-		Result->Val = (Std$Object_t *)Str;
+		Result->Val = (Std$Object$t *)Str;
 		return SUCCESS;
 	};
-	Std$String_t *New = Std$String$alloc(Str->Count + 2);
+	Std$String$t *New = Std$String$alloc(Str->Count + 2);
 	New->Length.Value = Target;
 	int LeftLength = Padding / 2;
 	unsigned char *LeftChars = Riva$Memory$alloc_atomic(LeftLength + 1);
@@ -161,7 +234,7 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Str
 	LeftChars[LeftLength] = 0;
 	New->Blocks[0].Length.Value = LeftLength;
 	New->Blocks[0].Chars.Value = LeftChars;
-	Std$String_block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String_block));
+	Std$String$block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String$block));
 	int RightLength = Padding - LeftLength;
 	unsigned char *RightChars = Riva$Memory$alloc_atomic(RightLength + 1);
 	memset(RightChars, PadChar, RightLength);
@@ -177,13 +250,13 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:T
 // Returns <var>a</var> if it is a substring of <var>b</var>, fails otherwise.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[1].Val;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Start = 0;
 	for (;;) {
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -193,7 +266,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 		};
 		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -223,13 +296,13 @@ STRING_METHOD("begins", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:T
 // Returns <var>a</var> if it begins with <var>b</var>, fails otherwise.
-	const Std$String_t *Subject = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Pattern = (Std$String_t *)Args[1].Val;
+	const Std$String$t *Subject = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Pattern = (Std$String$t *)Args[1].Val;
 	
-	const Std$String_block *S1 = Subject->Blocks;
+	const Std$String$block *S1 = Subject->Blocks;
 	unsigned long SL = S1->Length.Value;
 	const unsigned char *SC = S1->Chars.Value;
-	const Std$String_block *P1 = Pattern->Blocks;
+	const Std$String$block *P1 = Pattern->Blocks;
 	unsigned long PL = P1->Length.Value;
 	const unsigned char *PC = P1->Chars.Value;
 	for (;;) {
@@ -258,12 +331,12 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:T
 // Returns <var>a</var> if it ends with <var>b</var>, fails otherwise.
-	const Std$String_t *Subject = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Pattern = (Std$String_t *)Args[1].Val;
+	const Std$String$t *Subject = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Pattern = (Std$String$t *)Args[1].Val;
 
 	if (Subject->Length.Value < Pattern->Length.Value) return FAILURE;
 
-	const Std$String_block *S1 = Subject->Blocks;
+	const Std$String$block *S1 = Subject->Blocks;
 	unsigned long SL = S1->Length.Value;
 	unsigned long Skip = Subject->Length.Value - Pattern->Length.Value;
 	while (Skip >= SL) {
@@ -273,7 +346,7 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 	};
 	SL -= Skip;
 	const unsigned char *SC = (unsigned char *)S1->Chars.Value + Skip;
-	const Std$String_block *P1 = Pattern->Blocks;
+	const Std$String$block *P1 = Pattern->Blocks;
 	unsigned long PL = P1->Length.Value;
 	const unsigned char *PC = P1->Chars.Value;
 	for (;;) {
@@ -302,8 +375,8 @@ STRING_METHOD("~", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:Std.Integer.T
 // Returns the Levenshtein distance between <var>a</var> and <var>b</var>.
-	const Std$String_t *A = (Std$String_t *)Args[0].Val;
-	const Std$String_t *B = (Std$String_t *)Args[1].Val;
+	const Std$String$t *A = (Std$String$t *)Args[0].Val;
+	const Std$String$t *B = (Std$String$t *)Args[1].Val;
 	int LengthA = A->Length.Value;
 	int LengthB = B->Length.Value;
 	int Cache[LengthA];
@@ -409,14 +482,14 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:Std$Integer$SmallT
 // Generate each position where <var>a</var> occurs in <var>b</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[1].Val;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Position = 0, Start = 0;
 	for (;;) {
 		++Position;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -426,7 +499,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 		};
 		const unsigned char *SC = S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -438,7 +511,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 				Generator->Subject = Subject;
 				Generator->Limit = 0xFFFFFFFF;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 				Result->Val = Std$Integer$new_small(Position);
 				Result->State = Generator;
 				return SUSPEND;
@@ -466,13 +539,13 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 //@m
 //:Std$Integer$SmallT
 // Generate each position after <var>m</var> where <var>a</var> occurs in <var>b</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[1].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -481,7 +554,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	};
 	for (;;) {
 		++Position;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -491,7 +564,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 		};
 		const unsigned char *SC = S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -503,7 +576,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 				Generator->Subject = Subject;
 				Generator->Limit = 0xFFFFFFFF;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 				Result->Val = Std$Integer$new_small(Position);
 				Result->State = Generator;
 				return SUSPEND;
@@ -532,14 +605,14 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 //@n
 //:Std$Integer$SmallT
 // Generate each position between <var>m</var> and <var>n</var> where <var>a</var> occurs in <var>b</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[0].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[1].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	unsigned long Limit = ((Std$Integer_smallt *)Args[3].Val)->Value;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	unsigned long Limit = ((Std$Integer$smallt *)Args[3].Val)->Value;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -549,7 +622,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -559,7 +632,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 		};
 		const unsigned char *SC = S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -571,7 +644,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 				Generator->Subject = Subject;
 				Generator->Limit = Limit;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 				Result->Val = Std$Integer$new_small(Position);
 				Result->State = Generator;
 				return SUSPEND;
@@ -595,22 +668,22 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 */
 
 typedef struct find_generator {
-	Std$Function_cstate State;
-	const Std$String_block *Subject, *Pattern;
+	Std$Function$cstate State;
+	const Std$String$block *Subject, *Pattern;
 	unsigned long Start, Position, Limit;
 } find_generator;
 
 static long resume_find_string_string(Std$Function$result *Result) {
 	// Search for occurences of Pattern in Subject starting at Index
 	find_generator *Generator = Result->State;
-	const Std$String_block *Subject = Generator->Subject;
-	const Std$String_block *Pattern = Generator->Pattern;
+	const Std$String$block *Subject = Generator->Subject;
+	const Std$String$block *Pattern = Generator->Pattern;
 	unsigned long Position = Generator->Position, Start = Generator->Start;
 	unsigned long Limit = Generator->Limit;
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -620,7 +693,7 @@ static long resume_find_string_string(Std$Function$result *Result) {
 		};
 		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -649,15 +722,15 @@ static long resume_find_string_string(Std$Function$result *Result) {
 };
 
 typedef struct find_char_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	unsigned char Char;
-	const Std$String_block *Subject;
+	const Std$String$block *Subject;
 	unsigned long Start, Index, Limit;
 } find_char_generator;
 
 static long resume_find_char_string(Std$Function$result *Result) {
 	find_char_generator *Generator = Result->State;
-	const Std$String_block *Subject = Generator->Subject;
+	const Std$String$block *Subject = Generator->Subject;
 	unsigned char Char = Generator->Char;
 	unsigned long Index = Generator->Index;
 	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
@@ -687,14 +760,14 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:Std$Integer$T
 // Generate each position where <var>b</var> occurs in <var>a</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
 	if (Arg0->Length.Value == 0) {
 		return Std$Function$call(Std$Integer$ToSmallSmall, 2, Result, Std$Integer$new_small(1), 0, &Arg1->Length, 0);
 	} else if (Arg0->Length.Value == 1) {
 		unsigned char Char = ((unsigned char *)Arg0->Blocks[0].Chars.Value)[0];
 		unsigned long Index = 0;
-		for (const Std$String_block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
 			const unsigned char *Position = memchr(Subject->Chars.Value, Char, Subject->Length.Value);
 			if (Position) {
 				find_char_generator *Generator = new(find_char_generator);
@@ -704,7 +777,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 				Generator->Char = Char;
 				Generator->Subject = Subject;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_char_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_char_string;
 				Result->Val = Std$Integer$new_small(Index + Last);
 				Result->State = Generator;
 				return SUSPEND;
@@ -713,12 +786,12 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 		};
 		return FAILURE;
 	} else {
-		const Std$String_block *Subject = Arg1->Blocks;
-		const Std$String_block *Pattern = Arg0->Blocks;
+		const Std$String$block *Subject = Arg1->Blocks;
+		const Std$String$block *Pattern = Arg0->Blocks;
 		unsigned long Position = 0, Start = 0;
 		for (;;) {
 			++Position;
-			const Std$String_block *S1 = Subject;
+			const Std$String$block *S1 = Subject;
 			unsigned long SL = S1->Length.Value - Start;
 			if (SL == 0) {
 				S1 = ++Subject;
@@ -728,7 +801,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 			};
 			const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 			++Start;
-			const Std$String_block *P1 = Pattern;
+			const Std$String$block *P1 = Pattern;
 			const unsigned char *PC = P1->Chars.Value;
 			unsigned long PL = P1->Length.Value;
 			for (;;) {
@@ -740,7 +813,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 					Generator->Subject = Subject;
 					Generator->Limit = 0xFFFFFFFF;
 					Generator->State.Run = Std$Function$resume_c;
-					Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+					Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 					Result->Val = Std$Integer$new_small(Position);
 					Result->State = Generator;
 					return SUSPEND;
@@ -769,13 +842,13 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 //@m
 //:Std$Integer$SmallT
 // Generate each position after <var>m</var> where <var>b</var> occurs in <var>a</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -784,7 +857,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	};
 	for (;;) {
 		++Position;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -794,7 +867,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 		};
 		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -806,7 +879,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 				Generator->Subject = Subject;
 				Generator->Limit = 0xFFFFFFFF;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 				Result->Val = Std$Integer$new_small(Position);
 				Result->State = Generator;
 				return SUSPEND;
@@ -835,14 +908,14 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 //@n
 //:Std$Integer$SmallT
 // Generate each position between <var>m</var> and <var>n</var> where <var>b</var> occurs in <var>a</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	unsigned long Limit = ((Std$Integer_smallt *)Args[3].Val)->Value;
-	const Std$String_block *Subject = Arg1->Blocks;
-	const Std$String_block *Pattern = Arg0->Blocks;
+	unsigned long Limit = ((Std$Integer$smallt *)Args[3].Val)->Value;
+	const Std$String$block *Subject = Arg1->Blocks;
+	const Std$String$block *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -852,7 +925,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String_block *S1 = Subject;
+		const Std$String$block *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -862,7 +935,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 		};
 		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
 		++Start;
-		const Std$String_block *P1 = Pattern;
+		const Std$String$block *P1 = Pattern;
 		const unsigned char *PC = P1->Chars.Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
@@ -874,7 +947,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 				Generator->Subject = Subject;
 				Generator->Limit = Limit;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_find_string_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_find_string_string;
 				Result->Val = Std$Integer$new_small(Position);
 				Result->State = Generator;
 				return SUSPEND;
@@ -900,12 +973,12 @@ STRING_METHOD("reverse", TYP, Std$String$T) {
 //@s
 //:Std$String$T
 // returns the a string consisting of the same bytes as <var>s</var> in reverse order.
-	Std$String_t *Str = (Std$String_t *)Args[0].Val;
-	Std$String_t *New = Std$String$alloc(Str->Count);
+	Std$String$t *Str = (Std$String$t *)Args[0].Val;
+	Std$String$t *New = Std$String$alloc(Str->Count);
 	New->Length.Value = Str->Length.Value;
 	int BlockCount = New->Count = Str->Count;
 	for (int I = 0; I < BlockCount; ++I) {
-		Std$String_block *OldBlock = Str->Blocks + (BlockCount - 1 - I);
+		Std$String$block *OldBlock = Str->Blocks + (BlockCount - 1 - I);
 		int Length = OldBlock->Length.Value;
 		const unsigned char *OldChars = OldBlock->Chars.Value;
 		unsigned char *NewChars = Riva$Memory$alloc_atomic(Length + 1);
@@ -919,7 +992,7 @@ STRING_METHOD("reverse", TYP, Std$String$T) {
 };
 
 typedef struct to_real_state {
-	Std$Function_cstate C;
+	Std$Function$cstate C;
 	double Current, Limit, Increment;
 } to_real_state;
 
@@ -954,8 +1027,8 @@ REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T) {
 //@b
 //:T
 // Generates real numbers from <var>a</var> to <var>b</var> in increments of <code>1.0</code>.
-	double From = ((Std$Real_t *)Args[0].Val)->Value;
-	double To = ((Std$Real_t *)Args[1].Val)->Value;
+	double From = ((Std$Real$t *)Args[0].Val)->Value;
+	double To = ((Std$Real$t *)Args[1].Val)->Value;
 	if (From > To) return FAILURE;
 	if (From == To) {
 		Result->Val = Args[0].Val;
@@ -966,7 +1039,7 @@ REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T) {
 	State->Limit = To;
 	State->Increment = 1.0;
 	State->C.Run = Std$Function$resume_c;
-	State->C.Invoke = (Std$Function_cresumefn)resume_to_real_inc;
+	State->C.Invoke = (Std$Function$cresumefn)resume_to_real_inc;
 	Result->Val = Args[0].Val;
 	Result->State = State;
 	return SUSPEND;
@@ -976,7 +1049,7 @@ extern void resume_repeat_value(void);
 
 typedef struct repeat_value_state {
 	void *Run, *Resume, *Chain;
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 } repeat_value_state;
 
 REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T, TYP, Std$Real$T) {
@@ -985,9 +1058,9 @@ REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T, TYP, Std$Real$T) {
 //@c
 //:T
 // Generates real numbers from <var>a</var> to <var>b</var> in increments of <code>c</code>.
-	double From = ((Std$Real_t *)Args[0].Val)->Value;
-	double To = ((Std$Real_t *)Args[1].Val)->Value;
-	double Increment = ((Std$Real_t *)Args[2].Val)->Value;
+	double From = ((Std$Real$t *)Args[0].Val)->Value;
+	double To = ((Std$Real$t *)Args[1].Val)->Value;
+	double Increment = ((Std$Real$t *)Args[2].Val)->Value;
 	if (Increment > 0.0) {
 		if (From > To) return FAILURE;
 		if (From == To) {
@@ -999,7 +1072,7 @@ REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T, TYP, Std$Real$T) {
 		State->Limit = To;
 		State->Increment = Increment;
 		State->C.Run = Std$Function$resume_c;
-		State->C.Invoke = (Std$Function_cresumefn)resume_to_real_inc;
+		State->C.Invoke = (Std$Function$cresumefn)resume_to_real_inc;
 		Result->Val = Args[0].Val;
 		Result->State = State;
 		return SUSPEND;
@@ -1014,7 +1087,7 @@ REAL_METHOD("to", TYP, Std$Real$T, TYP, Std$Real$T, TYP, Std$Real$T) {
 		State->Limit = To;
 		State->Increment = Increment;
 		State->C.Run = Std$Function$resume_c;
-		State->C.Invoke = (Std$Function_cresumefn)resume_to_real_dec;
+		State->C.Invoke = (Std$Function$cresumefn)resume_to_real_dec;
 		Result->Val = Args[0].Val;
 		Result->State = State;
 		return SUSPEND;
@@ -1033,21 +1106,21 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
 //@new
 //:T
 // Returns a copy of <var>str</var> with each character in <var>old</var> replaced with the corresponding character in <var>new</var>.
-	const Std$String_t *Source = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Source = (Std$String$t *)Args[0].Val;
 	if (Source->Length.Value == 0) {
-		Result->Val = (Std$Object_t *)Source;
+		Result->Val = (Std$Object$t *)Source;
 		return SUCCESS;
 	};
 	char Map[256];
 	for (int I = 0; I < 255; ++I) Map[I] = I;
-	if (((Std$String_t *)Args[1].Val)->Length.Value != ((Std$String_t *)Args[2].Val)->Length.Value) {
+	if (((Std$String$t *)Args[1].Val)->Length.Value != ((Std$String$t *)Args[2].Val)->Length.Value) {
 		Result->Val = Std$String$new("Operands to :map must have same length");
 		return MESSAGE;
 	};
-	const Std$String_block *ToBlock = ((Std$String_t *)Args[2].Val)->Blocks;
+	const Std$String$block *ToBlock = ((Std$String$t *)Args[2].Val)->Blocks;
 	const unsigned char *ToChars = ToBlock->Chars.Value;
 	int K = 0;
-	for (const Std$String_block *FromBlock = ((Std$String_t *)Args[1].Val)->Blocks; FromBlock->Length.Value; ++FromBlock) {
+	for (const Std$String$block *FromBlock = ((Std$String$t *)Args[1].Val)->Blocks; FromBlock->Length.Value; ++FromBlock) {
 		const unsigned char *FromChars = FromBlock->Chars.Value;
 		for (int J = 0; J < FromBlock->Length.Value; ++J) {
 			Map[FromChars[J]] = ToChars[K];
@@ -1058,8 +1131,8 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
 			};
 		};
 	};
-	int Size = sizeof(Std$String_t) + (Source->Count + 1) * sizeof(Std$String_block);
-	Std$String_t *Dest = (Std$String_t *)Riva$Memory$alloc_stubborn(Size);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
@@ -1072,38 +1145,38 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
 	return SUCCESS;
 };
 
-extern int match_substring(const Std$String_block *StartBlock, int StartOffset, const Std$String_t *String, const Std$String_block **EndBlock, int *EndOffset);
+extern int match_substring(const Std$String$block *StartBlock, int StartOffset, const Std$String$t *String, const Std$String$block **EndBlock, int *EndOffset);
 
-static Std$String_t *map_next(int L, const Std$String_block *StartBlock, int StartOffset, const Agg$List_t *FromList, const Agg$List_t *ToList) {
-	for (const Agg$List_node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
-		const Std$String_block *EndBlock;
+static Std$String$t *map_next(int L, const Std$String$block *StartBlock, int StartOffset, const Agg$List$t *FromList, const Agg$List$t *ToList) {
+	for (const Agg$List$node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
+		const Std$String$block *EndBlock;
 		int EndOffset;
-		if (match_substring(StartBlock, StartOffset, (Std$String_t *)FromNode->Value, &EndBlock, &EndOffset)) {
-			const Std$String_t *To = (Std$String_t *)ToNode->Value;
-			Std$String_t *New = map_next(L + To->Count, EndBlock, EndOffset, FromList, ToList);
-			memcpy(New->Blocks + L, To->Blocks, To->Count * sizeof(Std$String_block));
+		if (match_substring(StartBlock, StartOffset, (Std$String$t *)FromNode->Value, &EndBlock, &EndOffset)) {
+			const Std$String$t *To = (Std$String$t *)ToNode->Value;
+			Std$String$t *New = map_next(L + To->Count, EndBlock, EndOffset, FromList, ToList);
+			memcpy(New->Blocks + L, To->Blocks, To->Count * sizeof(Std$String$block));
 			return New;
 		};
 	};
-	const Std$String_block *MiddleBlock = StartBlock;
+	const Std$String$block *MiddleBlock = StartBlock;
 	int MiddleOffset = StartOffset;
 	while (MiddleBlock->Length.Value) {
-		for (const Agg$List_node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
-			const Std$String_block *EndBlock;
+		for (const Agg$List$node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
+			const Std$String$block *EndBlock;
 			int EndOffset;
-			if (match_substring(MiddleBlock, MiddleOffset, (Std$String_t *)FromNode->Value, &EndBlock, &EndOffset)) {
-				const Std$String_t *To = (Std$String_t *)ToNode->Value;
+			if (match_substring(MiddleBlock, MiddleOffset, (Std$String$t *)FromNode->Value, &EndBlock, &EndOffset)) {
+				const Std$String$t *To = (Std$String$t *)ToNode->Value;
 				if (MiddleOffset == 0) {
 					MiddleBlock--;
 					MiddleOffset = MiddleBlock->Length.Value;
 				};
 				int M = MiddleBlock - StartBlock + 1;
-				Std$String_t *New = map_next(L + M + To->Count, EndBlock, EndOffset, FromList, ToList);
-				memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String_block));
+				Std$String$t *New = map_next(L + M + To->Count, EndBlock, EndOffset, FromList, ToList);
+				memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String$block));
 				New->Blocks[L].Chars.Value += StartOffset;
 				New->Blocks[L + M - 1].Length.Value = MiddleOffset;
 				New->Blocks[L].Length.Value -= StartOffset;
-				memcpy(New->Blocks + L + M, To->Blocks, To->Count * sizeof(Std$String_block));
+				memcpy(New->Blocks + L + M, To->Blocks, To->Count * sizeof(Std$String$block));
 				return New;
 			};
 		};
@@ -1113,10 +1186,10 @@ static Std$String_t *map_next(int L, const Std$String_block *StartBlock, int Sta
 		};
 	};
 	int M = MiddleBlock - StartBlock + 1;
-	Std$String_t *New = (Std$String_t *)Riva$Memory$alloc_stubborn(sizeof(Std$String_t) + (L + M + 1) * sizeof(Std$String_block));
+	Std$String$t *New = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + (L + M + 1) * sizeof(Std$String$block));
 	New->Type = Std$String$T;
 	New->Length.Type = Std$Integer$SmallT;
-	memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String_block));
+	memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String$block));
 	New->Blocks[L].Chars.Value += StartOffset;
 	New->Blocks[L].Length.Value -= StartOffset;
 	return New;
@@ -1129,27 +1202,27 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Agg$List$T, TYP, Agg$List$T) {
 //:T
 // Returns a copy of <var>string</var> with each occurance of a string in <var>from</var> with the corresponding string in <var>to</var>.
 // The strings in <var>from</var> are tried in the order they occur in <var>from</var>.
-	const Std$String_t *Subject = (Std$String_t *)Args[0].Val;
-	const Agg$List_t *FromList = (Agg$List_t *)Args[1].Val;
-	const Agg$List_t *ToList = (Agg$List_t *)Args[2].Val;
+	const Std$String$t *Subject = (Std$String$t *)Args[0].Val;
+	const Agg$List$t *FromList = (Agg$List$t *)Args[1].Val;
+	const Agg$List$t *ToList = (Agg$List$t *)Args[2].Val;
 	if (FromList->Length != ToList->Length) {
 		Result->Val = Std$String$new("List lengths do not match");
 		return MESSAGE;
 	};
-	for (const Agg$List_node *Node = FromList->Head; Node; Node = Node->Next) {
+	for (const Agg$List$node *Node = FromList->Head; Node; Node = Node->Next) {
 		if (Node->Value->Type != Std$String$T) {
 			Result->Val = Std$String$new("Search value is not a string");
 			return MESSAGE;
 		};
 	};
-	for (const Agg$List_node *Node = ToList->Head; Node; Node = Node->Next) {
+	for (const Agg$List$node *Node = ToList->Head; Node; Node = Node->Next) {
 		if (Node->Value->Type != Std$String$T) {
 			Result->Val = Std$String$new("Replacement value is not a string");
 			return MESSAGE;
 		};
 	};
-	Std$String_t *New = map_next(0, Subject->Blocks, 0, (Agg$List_t *)Args[1].Val, (Agg$List_t *)Args[2].Val);
-	for (const Std$String_block *Block = New->Blocks; Block->Length.Value; ++Block) {
+	Std$String$t *New = map_next(0, Subject->Blocks, 0, (Agg$List$t *)Args[1].Val, (Agg$List$t *)Args[2].Val);
+	for (const Std$String$block *Block = New->Blocks; Block->Length.Value; ++Block) {
 		New->Length.Value += Block->Length.Value;
 		New->Count += 1;
 	};
@@ -1177,13 +1250,13 @@ STRING_METHOD("lower", TYP, Std$String$T) {
             234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251,
             252, 253, 254, 255
         };
-	const Std$String_t *Source = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Source = (Std$String$t *)Args[0].Val;
 	if (Source->Length.Value == 0) {
-		Result->Val = (Std$Object_t *)Source;
+		Result->Val = (Std$Object$t *)Source;
 		return SUCCESS;
 	};
-	int Size = sizeof(Std$String_t) + (Source->Count + 1) * sizeof(Std$String_block);
-	Std$String_t *Dest = (Std$String_t *)Riva$Memory$alloc_stubborn(Size);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
@@ -1215,13 +1288,13 @@ STRING_METHOD("upper", TYP, Std$String$T) {
             226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243,
             244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
         };
-	const Std$String_t *Source = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Source = (Std$String$t *)Args[0].Val;
 	if (Source->Length.Value == 0) {
-		Result->Val = (Std$Object_t *)Source;
+		Result->Val = (Std$Object$t *)Source;
 		return SUCCESS;
 	};
-	int Size = sizeof(Std$String_t) + (Source->Count + 1) * sizeof(Std$String_block);
-	Std$String_t *Dest = (Std$String_t *)Riva$Memory$alloc_stubborn(Size);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
@@ -1235,9 +1308,9 @@ STRING_METHOD("upper", TYP, Std$String$T) {
 };
 
 typedef struct any_char_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String_block *Subject;
+	const Std$String$block *Subject;
 	unsigned long Start, Index, Limit;
 } any_char_generator;
 
@@ -1253,7 +1326,7 @@ static inline const unsigned char *findcset(const unsigned char *Chars, uint8_t 
 
 static long resume_any_char_string(Std$Function$result * restrict Result) {
 	any_char_generator *Generator = Result->State;
-	const Std$String_block *Subject = Generator->Subject;
+	const Std$String$block *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
 	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
@@ -1280,15 +1353,15 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T) {
 //@chars
 //:Std$Integer$SmallT
 // Generates all positions in <var>str</var> with a character in <var>chars</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
 	if (Arg1->Length.Value == 0) return FAILURE;
 	if (Arg0->Length.Value == 0) {
 		return Std$Function$call(Std$Integer$ToSmallSmall, 2, Result, Std$Integer$new_small(1), 0, &Arg1->Length, 0);
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
 	        const unsigned char *Chars = Block->Chars.Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
@@ -1296,7 +1369,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T) {
 	        };
 	    };
 		unsigned long Index = 0;
-		for (const Std$String_block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
 			const unsigned char *Position = findcset(Subject->Chars.Value, Mask, Subject->Length.Value);
 			if (Position) {
 				any_char_generator *Generator = new(any_char_generator);
@@ -1306,7 +1379,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T) {
 				memcpy(Generator->Mask, Mask, 32);
 				Generator->Subject = Subject;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_any_char_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_any_char_string;
 				Result->Val = Std$Integer$new_small(Index + Last);
 				Result->State = Generator;
 				return SUSPEND;
@@ -1323,9 +1396,9 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 //@m
 //:Std$Integer$SmallT
 // Generates all positions after <var>m</var> in <var>str</var> with a character in <var>chars</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
 	if (Arg1->Length.Value <= Start) return FAILURE;
@@ -1334,7 +1407,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
 	        const unsigned char *Chars = Block->Chars.Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
@@ -1342,7 +1415,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 	        };
 	    };
 		unsigned long Index = 0;
-		const Std$String_block *Subject = Arg1->Blocks;
+		const Std$String$block *Subject = Arg1->Blocks;
 		while (Start >= Subject->Length.Value) {
 			Index += Subject->Length.Value;
 			Start -= Subject->Length.Value;
@@ -1360,7 +1433,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 				memcpy(Generator->Mask, Mask, 32);
 				Generator->Subject = Subject;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_any_char_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_any_char_string;
 				Result->Val = Std$Integer$new_small(Index + Last);
 				Result->State = Generator;
 				return SUSPEND;
@@ -1375,9 +1448,9 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 };
 
 typedef struct split_char_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String_block *SB;
+	const Std$String$block *SB;
 	const unsigned char *SC;
 	unsigned long SL, SI;
 } split_char_generator;
@@ -1390,7 +1463,7 @@ static long resume_split_char_string(Std$Function$result *Result) {
 	split_char_generator *Generator = Result->State;
 	uint8_t *Mask = Generator->Mask;
 	unsigned long SI = Generator->SI;
-	const Std$String_block *SB = Generator->SB;
+	const Std$String$block *SB = Generator->SB;
 	const unsigned char *SC = Generator->SC;
 	unsigned long SL = Generator->SL;
 	while (charcset(*SC, Mask) != 0) {
@@ -1405,7 +1478,7 @@ static long resume_split_char_string(Std$Function$result *Result) {
 		};
 	};
 	unsigned long SI0 = SI;
-	const Std$String_block *SB0 = SB;
+	const Std$String$block *SB0 = SB;
 	const unsigned char *SC0 = SC;
 	unsigned long SL0 = SL;
 	while (charcset(*SC, Mask) == 0) {
@@ -1416,11 +1489,11 @@ static long resume_split_char_string(Std$Function$result *Result) {
 			SL = SB->Length.Value;
 			if (SC == 0) {
 				int NoOfBlocks = SB - SB0;
-				Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+				Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 				Slice->Length.Value = SI - SI0;
 				Slice->Blocks[0].Length.Value = SL0;
 				Slice->Blocks[0].Chars.Value = SC0;
-				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
 				Result->Val = Std$String$freeze(Slice);
 				return SUCCESS;
 			};
@@ -1430,22 +1503,22 @@ static long resume_split_char_string(Std$Function$result *Result) {
 	};
 	if (SL == SB->Length.Value) {
 		int NoOfBlocks = SB - SB0;
-		Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+		Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 		Slice->Length.Value = SI - SI0;
 		Slice->Blocks[0].Length.Value = SL0;
 		Slice->Blocks[0].Chars.Value = SC0;
-		if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+		if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
 		Result->Val = Std$String$freeze(Slice);
 	} else {
 		int NoOfBlocks = (SB - SB0) + 1;
-		Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+		Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 		Slice->Length.Value = SI - SI0;
 		if (--NoOfBlocks) {
 			Slice->Blocks[0].Length.Value = SL0;
 			Slice->Blocks[0].Chars.Value = SC0;
 			Slice->Blocks[NoOfBlocks].Length.Value = SB->Length.Value - SL;
 			Slice->Blocks[NoOfBlocks].Chars.Value = SB->Chars.Value;
-			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
 		} else {
 			Slice->Blocks[0].Length.Value = SL0 - SL;
 			Slice->Blocks[0].Chars.Value = SC0;
@@ -1464,8 +1537,8 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 //@sep
 //:T
 // Generates substrings of <var>str</var> separated by characters in <var>sep</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
 	if (Arg1->Length.Value == 0) return FAILURE;
 	if (Arg0->Length.Value == 0) {
 		if (Arg1->Length.Value == 0) return FAILURE;
@@ -1474,14 +1547,14 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 		Gen->Left = Gen->Subject->Length.Value - 1;
 		Gen->Next = Gen->Subject->Chars.Value;
 		Gen->State.Run = Std$Function$resume_c;
-		Gen->State.Invoke = (Std$Function_cresumefn)resume_chars_string;
+		Gen->State.Invoke = (Std$Function$cresumefn)resume_chars_string;
 		Result->Val = Std$String$new_char(*Gen->Next++);
 		Result->State = Gen;
 		return SUSPEND;
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
 	        const unsigned char *Chars = Block->Chars.Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
@@ -1489,7 +1562,7 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 	        };
 	    };
 		unsigned long SI = 1;
-		const Std$String_block *SB = Arg1->Blocks;
+		const Std$String$block *SB = Arg1->Blocks;
 		const unsigned char *SC = SB->Chars.Value;
 		unsigned long SL = SB->Length.Value;
 		while (charcset(*SC, Mask) != 0) {
@@ -1504,7 +1577,7 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 			};
 		};
 		unsigned long SI0 = SI;
-        const Std$String_block *SB0 = SB;
+        const Std$String$block *SB0 = SB;
         const unsigned char *SC0 = SC;
         unsigned long SL0 = SL;
         while (charcset(*SC, Mask) == 0) {
@@ -1515,11 +1588,11 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
         		SL = SB->Length.Value;
         		if (SC == 0) {
         			int NoOfBlocks = SB - SB0;
-        			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+        			Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
         			Slice->Length.Value = SI - SI0;
         			Slice->Blocks[0].Length.Value = SL0;
         			Slice->Blocks[0].Chars.Value = SC0;
-        			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+        			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
         			Result->Val = Std$String$freeze(Slice);
         			return SUCCESS;
         		};
@@ -1529,22 +1602,22 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
         };
         if (SL == SB->Length.Value) {
 			int NoOfBlocks = SB - SB0;
-			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+			Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 			Slice->Length.Value = SI - SI0;
 			Slice->Blocks[0].Length.Value = SL0;
 			Slice->Blocks[0].Chars.Value = SC0;
-			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
 			Result->Val = Std$String$freeze(Slice);
         } else {
 			int NoOfBlocks = (SB - SB0) + 1;
-			Std$String_t *Slice = Std$String$alloc(NoOfBlocks);
+			Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 			Slice->Length.Value = SI - SI0;
 			if (--NoOfBlocks) {
 				Slice->Blocks[0].Length.Value = SL0;
 				Slice->Blocks[0].Chars.Value = SC0;
 				Slice->Blocks[NoOfBlocks].Length.Value = SB->Length.Value - SL;
 				Slice->Blocks[NoOfBlocks].Chars.Value = SB->Chars.Value;
-				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String_block));
+				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
 			} else {
 				Slice->Blocks[0].Length.Value = SL0 - SL;
 				Slice->Blocks[0].Chars.Value = SC0;
@@ -1558,16 +1631,16 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
         Generator->SB = SB;
         memcpy(Generator->Mask, Mask, 32);
 		Generator->State.Run = Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_split_char_string;
+		Generator->State.Invoke = (Std$Function$cresumefn)resume_split_char_string;
 		Result->State = Generator;
 		return SUSPEND;
 	};
 };
 
 typedef struct skip_char_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String_block *Subject;
+	const Std$String$block *Subject;
 	unsigned long Start, Index, Limit;
 } skip_char_generator;
 
@@ -1583,7 +1656,7 @@ static inline const unsigned char *skipcset(const unsigned char *Chars, uint8_t 
 
 static long resume_skip_char_string(Std$Function$result *Result) {
 	skip_char_generator *Generator = Result->State;
-	const Std$String_block *Subject = Generator->Subject;
+	const Std$String$block *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
 	const unsigned char *SC = Subject->Chars.Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
@@ -1610,14 +1683,14 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T) {
 //@chars
 //:Std$Integer$SmallT
 // Generates all positions in <var>str</var> with a character not in <var>chars</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
 	if (Arg0->Length.Value == 0) {
 		return Std$Function$call(Std$Integer$ToSmallSmall, 2, Result, Std$Integer$new_small(1), 0, &Arg1->Length, 0);
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
 	        const unsigned char *Chars = Block->Chars.Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
@@ -1625,7 +1698,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T) {
 	        };
 	    };
 		unsigned long Index = 0;
-		for (const Std$String_block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
 			const unsigned char *Position = skipcset(Subject->Chars.Value, Mask, Subject->Length.Value);
 			if (Position) {
 				skip_char_generator *Generator = new(skip_char_generator);
@@ -1635,7 +1708,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T) {
 				memcpy(Generator->Mask, Mask, 32);
 				Generator->Subject = Subject;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn)resume_skip_char_string;
+				Generator->State.Invoke = (Std$Function$cresumefn)resume_skip_char_string;
 				Result->Val = Std$Integer$new_small(Index + Last);
 				Result->State = Generator;
 				return SUSPEND;
@@ -1652,9 +1725,9 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 //@m
 //:Std$Integer$SmallT
 // Generates all positions after <var>m</var> in <var>str</var> with a character not in <var>chars</var>.
-	const Std$String_t *Arg0 = (Std$String_t *)Args[1].Val;
-	const Std$String_t *Arg1 = (Std$String_t *)Args[0].Val;
-	int Start = ((Std$Integer_smallt *)Args[2].Val)->Value - 1;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[1].Val;
+	const Std$String$t *Arg1 = (Std$String$t *)Args[0].Val;
+	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
 	if (Arg1->Length.Value <= Start) return FAILURE;
@@ -1663,7 +1736,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String_block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
 	        const unsigned char *Chars = Block->Chars.Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
@@ -1671,7 +1744,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	        };
 	    };
 		unsigned long Index = 0;
-		const Std$String_block *Subject = Arg1->Blocks;
+		const Std$String$block *Subject = Arg1->Blocks;
 		while (Start >= Subject->Length.Value) {
 			Index += Subject->Length.Value;
 			Start -= Subject->Length.Value;
@@ -1689,7 +1762,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 				memcpy(Generator->Mask, Mask, 32);
 				Generator->Subject = Subject;
 				Generator->State.Run = Std$Function$resume_c;
-				Generator->State.Invoke = (Std$Function_cresumefn) resume_skip_char_string;
+				Generator->State.Invoke = (Std$Function$cresumefn) resume_skip_char_string;
 				Result->Val = Std$Integer$new_small(Index + Last);
 				Result->State = Generator;
 				return SUSPEND;
@@ -1712,9 +1785,9 @@ STRING_METHOD("before", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:T
 // Returns the largest initial substring of <var>a</var> that does not contain any characters in <var>b</var>.
-	static Std$Integer_smallt One[] = {{Std$Integer$SmallT, 1}};
-	Std$Function_result Result0;
-	Std$Function_argument Args0[3] = {{Args[0].Val, 0}, {Args[1].Val, 0}, {0, 0}};
+	static Std$Integer$smallt One[] = {{Std$Integer$SmallT, 1}};
+	Std$Function$result Result0;
+	Std$Function$argument Args0[3] = {{Args[0].Val, 0}, {Args[1].Val, 0}, {0, 0}};
 	switch (Std$Function$invoke($any, 2, &Result0, Args0)) {
 	case FAILURE: {
 		Result->Val = Args[0].Val;
@@ -1726,7 +1799,7 @@ STRING_METHOD("before", TYP, Std$String$T, TYP, Std$String$T) {
 	};
 	default: break;
 	};
-	Args0[1].Val = (Std$Object_t *)One;
+	Args0[1].Val = (Std$Object$t *)One;
 	Args0[2].Val = Result0.Val;
 	return Std$Function$invoke($INDEX, 3, Result, Args0);
 };
@@ -1738,9 +1811,9 @@ STRING_METHOD("after", TYP, Std$String$T, TYP, Std$String$T) {
 //@b
 //:$T
 // Returns the substring of <var>a</var> after the first occurance of a character in <var>b</var>. Returns all of <var>a</var> if no character in <var>b</var> occurrs in <var>a</var>.
-	static Std$Integer_smallt Zero[] = {{Std$Integer$SmallT, 0}};
-	Std$Function_result Result0;
-	Std$Function_argument Args0[3] = {{Args[0].Val, 0}, {Args[1].Val, 0}, {0, 0}};
+	static Std$Integer$smallt Zero[] = {{Std$Integer$SmallT, 0}};
+	Std$Function$result Result0;
+	Std$Function$argument Args0[3] = {{Args[0].Val, 0}, {Args[1].Val, 0}, {0, 0}};
 	switch (Std$Function$invoke($any, 2, &Result0, Args0)) {
 	case FAILURE: {
 		Result->Val = Args[0].Val;
@@ -1755,7 +1828,7 @@ STRING_METHOD("after", TYP, Std$String$T, TYP, Std$String$T) {
 	Args0[2].Val = Result0.Val;
 	switch (Std$Function$invoke($skip, 3, &Result0, Args0)) {
 	case FAILURE: {
-		Result->Val = (Std$Object_t *)EmptyString;
+		Result->Val = (Std$Object$t *)EmptyString;
 		return SUCCESS;
 	};
 	case MESSAGE: {
@@ -1765,64 +1838,44 @@ STRING_METHOD("after", TYP, Std$String$T, TYP, Std$String$T) {
 	default: break;
 	};
 	Args0[1].Val = Result0.Val;
-	Args0[2].Val = (Std$Object_t *)Zero;
+	Args0[2].Val = (Std$Object$t *)Zero;
 	return Std$Function$invoke($INDEX, 3, Result, Args0);
 };
 
-static inline Std$Object_t *finish_integer(mpz_t Z) {
-	if (mpz_fits_slong_p(Z)) {
+static inline Std$Object$t *finish_integer(mpz_t Z) {
+	if (mpz_fits_sint_p(Z)) {
 		return Std$Integer$new_small(mpz_get_si(Z));
 	} else {
 		return Std$Integer$new_big(Z);
 	};
 };
 
-static inline Std$Object_t *finish_rational(mpq_t R) {
+static inline Std$Object$t *finish_rational(mpq_t R) {
 	if (mpz_cmp_si(mpq_denref(R), 1)) {
 		return Std$Rational$new(R);
-	} else if (mpz_fits_slong_p(mpq_numref(R))) {
+	} else if (mpz_fits_sint_p(mpq_numref(R))) {
 		return Std$Integer$new_small(mpz_get_si(mpq_numref(R)));
 	} else {
 		return Std$Integer$new_big(mpq_numref(R));
 	};
 };
 
-STRING_METHOD("@", TYP, Std$String$T, VAL, Std$Number$T) {
-	const unsigned char *Buffer = Std$String$flatten(Args[0].Val);
-	mpq_t R;
-	mpq_init(R);
-	if (mpq_set_str(R, Buffer, 10) == 0) {
-		mpq_canonicalize(R);
-		Result->Val = finish_rational(R);
-		return SUCCESS;
-	} else {
-		unsigned char *Tail;
-		double Val = strtod(Buffer, &Tail);
-		if (Tail > Buffer) {
-			Result->Val = Std$Real$new(atof(Buffer));
-			return SUCCESS;
-		} else {
-			return FAILURE;
-		};
-	};
-};
-
-RATIONAL_METHOD("@", TYP, Std$String$T, VAL, Std$Rational$T) {
+AMETHOD(Std$Rational$Of, TYP, Std$String$T) {
 //@str
 //:T
 // <var>str</var> should be of the form <code>"num/den"</code>.
-	Std$Rational_t *R = new(Std$Rational_t);
+	Std$Rational$t *R = new(Std$Rational$t);
 	R->Type = Std$Rational$T;
 	mpq_init(R->Value);
 	mpq_set_str(R->Value, Std$String$flatten(Args[0].Val), 10);
 	mpq_canonicalize(R->Value);
-	Result->Val = (Std$Object_t *)R;
+	Result->Val = (Std$Object$t *)R;
 	return SUCCESS;
 };
 
 INTEGER_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Integer$BigT) {
-	Std$Integer_bigt *A = (Std$Integer_bigt *)Args[0].Val;
-	Std$Integer_bigt *B = (Std$Integer_bigt *)Args[1].Val;
+	Std$Integer$bigt *A = (Std$Integer$bigt *)Args[0].Val;
+	Std$Integer$bigt *B = (Std$Integer$bigt *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpz_set(mpq_numref(C), A->Value);
@@ -1833,8 +1886,8 @@ INTEGER_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Integer$BigT) {
 };
 
 INTEGER_METHOD("/", TYP, Std$Integer$SmallT, TYP, Std$Integer$BigT) {
-	Std$Integer_smallt *A = (Std$Integer_smallt *)Args[0].Val;
-	Std$Integer_bigt *B = (Std$Integer_bigt *)Args[1].Val;
+	Std$Integer$smallt *A = (Std$Integer$smallt *)Args[0].Val;
+	Std$Integer$bigt *B = (Std$Integer$bigt *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpz_set_si(mpq_numref(C), A->Value);
@@ -1845,8 +1898,8 @@ INTEGER_METHOD("/", TYP, Std$Integer$SmallT, TYP, Std$Integer$BigT) {
 };
 
 INTEGER_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Integer$SmallT) {
-	Std$Integer_bigt *A = (Std$Integer_bigt *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Integer$bigt *A = (Std$Integer$bigt *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpz_set(mpq_numref(C), A->Value);
@@ -1857,46 +1910,46 @@ INTEGER_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Integer$SmallT) {
 };
 
 RATIONAL_METHOD("num", TYP, Std$Rational$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	Result->Val = finish_integer(mpq_numref(R->Value));
 	return SUCCESS;
 };
 
 RATIONAL_METHOD("den", TYP, Std$Rational$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	Result->Val = finish_integer(mpq_denref(R->Value));
 	return SUCCESS;
 };
 
-RATIONAL_METHOD("@", TYP, Std$Rational$T, VAL, Std$String$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+AMETHOD(Std$String$Of, TYP, Std$Rational$T) {
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	Result->Val = Std$String$new(mpq_get_str(0, 10, R->Value));
 	return SUCCESS;
 };
 
 RATIONAL_METHOD("abs", TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *C = new(Std$Rational_t);
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *C = new(Std$Rational$t);
 	C->Type = Std$Rational$T;
 	mpq_init(C->Value);
 	mpq_abs(C->Value, A->Value);
-	Result->Val = (Std$Object_t *)C;
+	Result->Val = (Std$Object$t *)C;
 	return SUCCESS;
 };
 
 RATIONAL_METHOD("-", TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *C = new(Std$Rational_t);
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *C = new(Std$Rational$t);
 	C->Type = Std$Rational$T;
 	mpq_init(C->Value);
 	mpq_neg(C->Value, A->Value);
-	Result->Val = (Std$Object_t *)C;
+	Result->Val = (Std$Object$t *)C;
 	return SUCCESS;
 };
 
 RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_add(C, A->Value, B->Value);
@@ -1905,8 +1958,8 @@ RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Rational$T) {
 };
 	
 RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_sub(C, A->Value, B->Value);
@@ -1915,8 +1968,8 @@ RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Rational$T) {
 };
 
 RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_mul(C, A->Value, B->Value);
@@ -1925,8 +1978,8 @@ RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Rational$T) {
 };
 
 RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_div(C, A->Value, B->Value);
@@ -1935,10 +1988,10 @@ RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Rational$T) {
 };
 
 RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_si(B, ((Std$Integer_smallt *)Args[1].Val)->Value, 1);
+	mpq_set_si(B, ((Std$Integer$smallt *)Args[1].Val)->Value, 1);
 	mpq_t C;
 	mpq_init(C);
 	mpq_add(C, A->Value, B);
@@ -1947,10 +2000,10 @@ RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 };
 
 RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_si(B, ((Std$Integer_smallt *)Args[1].Val)->Value, 1);
+	mpq_set_si(B, ((Std$Integer$smallt *)Args[1].Val)->Value, 1);
 	mpq_t C;
 	mpq_init(C);
 	mpq_sub(C, A->Value, B);
@@ -1959,10 +2012,10 @@ RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 };
 
 RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_si(B, ((Std$Integer_smallt *)Args[1].Val)->Value, 1);
+	mpq_set_si(B, ((Std$Integer$smallt *)Args[1].Val)->Value, 1);
 	mpq_t C;
 	mpq_init(C);
 	mpq_mul(C, A->Value, B);
@@ -1971,10 +2024,10 @@ RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 };
 
 RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_si(B, ((Std$Integer_smallt *)Args[1].Val)->Value, 1);
+	mpq_set_si(B, ((Std$Integer$smallt *)Args[1].Val)->Value, 1);
 	mpq_t C;
 	mpq_init(C);
 	mpq_div(C, A->Value, B);
@@ -1985,8 +2038,8 @@ RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 RATIONAL_METHOD("+", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_si(A, ((Std$Integer_smallt *)Args[0].Val)->Value, 1);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_si(A, ((Std$Integer$smallt *)Args[0].Val)->Value, 1);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_add(C, A, B->Value);
@@ -1997,8 +2050,8 @@ RATIONAL_METHOD("+", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("-", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_si(A, ((Std$Integer_smallt *)Args[0].Val)->Value, 1);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_si(A, ((Std$Integer$smallt *)Args[0].Val)->Value, 1);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_sub(C, A, B->Value);
@@ -2009,8 +2062,8 @@ RATIONAL_METHOD("-", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("*", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_si(A, ((Std$Integer_smallt *)Args[0].Val)->Value, 1);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_si(A, ((Std$Integer$smallt *)Args[0].Val)->Value, 1);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_mul(C, A, B->Value);
@@ -2021,8 +2074,8 @@ RATIONAL_METHOD("*", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("/", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_si(A, ((Std$Integer_smallt *)Args[0].Val)->Value, 1);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_si(A, ((Std$Integer$smallt *)Args[0].Val)->Value, 1);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_div(C, A, B->Value);
@@ -2031,10 +2084,10 @@ RATIONAL_METHOD("/", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 };
 
 RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_z(B, ((Std$Integer_bigt *)Args[1].Val)->Value);
+	mpq_set_z(B, ((Std$Integer$bigt *)Args[1].Val)->Value);
 	mpq_t C;
 	mpq_init(C);
 	mpq_add(C, A->Value, B);
@@ -2043,10 +2096,10 @@ RATIONAL_METHOD("+", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
 };
 
 RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_z(B, ((Std$Integer_bigt *)Args[1].Val)->Value);
+	mpq_set_z(B, ((Std$Integer$bigt *)Args[1].Val)->Value);
 	mpq_t C;
 	mpq_init(C);
 	mpq_sub(C, A->Value, B);
@@ -2055,10 +2108,10 @@ RATIONAL_METHOD("-", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
 };
 
 RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_z(B, ((Std$Integer_bigt *)Args[1].Val)->Value);
+	mpq_set_z(B, ((Std$Integer$bigt *)Args[1].Val)->Value);
 	mpq_t C;
 	mpq_init(C);
 	mpq_mul(C, A->Value, B);
@@ -2067,10 +2120,10 @@ RATIONAL_METHOD("*", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
 };
 
 RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
 	mpq_t B;
 	mpq_init(B);
-	mpq_set_z(B, ((Std$Integer_bigt *)Args[1].Val)->Value);
+	mpq_set_z(B, ((Std$Integer$bigt *)Args[1].Val)->Value);
 	mpq_t C;
 	mpq_init(C);
 	mpq_div(C, A->Value, B);
@@ -2081,8 +2134,8 @@ RATIONAL_METHOD("/", TYP, Std$Rational$T, TYP, Std$Integer$BigT) {
 RATIONAL_METHOD("+", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_z(A, ((Std$Integer_bigt *)Args[0].Val)->Value);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_z(A, ((Std$Integer$bigt *)Args[0].Val)->Value);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_add(C, A, B->Value);
@@ -2093,8 +2146,8 @@ RATIONAL_METHOD("+", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("-", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_z(A, ((Std$Integer_bigt *)Args[0].Val)->Value);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_z(A, ((Std$Integer$bigt *)Args[0].Val)->Value);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_sub(C, A, B->Value);
@@ -2105,8 +2158,8 @@ RATIONAL_METHOD("-", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("*", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_z(A, ((Std$Integer_bigt *)Args[0].Val)->Value);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_z(A, ((Std$Integer$bigt *)Args[0].Val)->Value);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_mul(C, A, B->Value);
@@ -2117,8 +2170,8 @@ RATIONAL_METHOD("*", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 RATIONAL_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_z(A, ((Std$Integer_bigt *)Args[0].Val)->Value);
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	mpq_set_z(A, ((Std$Integer$bigt *)Args[0].Val)->Value);
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	mpq_t C;
 	mpq_init(C);
 	mpq_div(C, A, B->Value);
@@ -2126,23 +2179,23 @@ RATIONAL_METHOD("/", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	return SUCCESS;
 };
 
-static Std$Integer_smallt Zero[] = {{Std$Integer$SmallT, 0}};
-static Std$Integer_smallt One[] = {{Std$Integer$SmallT, 1}};
+static Std$Integer$smallt Zero[] = {{Std$Integer$SmallT, 0}};
+static Std$Integer$smallt One[] = {{Std$Integer$SmallT, 1}};
 
 INTEGER_METHOD("^", TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
-	int A = ((Std$Integer_smallt *)Args[0].Val)->Value;
-	int B = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	int A = ((Std$Integer$smallt *)Args[0].Val)->Value;
+	int B = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (B > 0) {
 		if (A == -1) {
 			if (B % 2) {
 				Result->Val = Args[0].Val;
 			} else {
-				Result->Val = (Std$Object_t *)One;
+				Result->Val = (Std$Object$t *)One;
 			};
 		} else if (A == 1) {
 			Result->Val = Args[0].Val;
 		} else if (A == 0) {
-			Result->Val = (Std$Object_t *)Zero;
+			Result->Val = (Std$Object$t *)Zero;
 		} else {
 			mpz_t C;
 			mpz_init_set_si(C, A);
@@ -2155,12 +2208,12 @@ INTEGER_METHOD("^", TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 			if (B % 2) {
 				Result->Val = Args[0].Val;
 			} else {
-				Result->Val = (Std$Object_t *)One;
+				Result->Val = (Std$Object$t *)One;
 			};
 		} else if (A == 1) {
 			Result->Val = Args[0].Val;
 		} else if (A == 0) {
-			Result->Val = (Std$Object_t *)Zero;
+			Result->Val = (Std$Object$t *)Zero;
 		} else {
 			mpq_t C;
 			mpq_init(C);
@@ -2170,20 +2223,20 @@ INTEGER_METHOD("^", TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT) {
 			Result->Val = finish_rational(C);
 		};
 	} else {
-		Result->Val = (Std$Object_t *)One;
+		Result->Val = (Std$Object$t *)One;
 	};
 	return SUCCESS;
 };
 
 INTEGER_METHOD("^", TYP, Std$Integer$BigT, TYP, Std$Integer$SmallT) {
-	Std$Integer_bigt *A = (Std$Integer_bigt *)Args[0].Val;
-	int B = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$Integer$bigt *A = (Std$Integer$bigt *)Args[0].Val;
+	int B = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (B > 0) {
-		Std$Integer_bigt *C = new(Std$Integer_bigt);
+		Std$Integer$bigt *C = new(Std$Integer$bigt);
 		C->Type = Std$Integer$BigT;
 		mpz_init(C->Value);
 		mpz_pow_ui(C->Value, A->Value, B);
-		Result->Val = (Std$Object_t *)C;
+		Result->Val = (Std$Object$t *)C;
 	} else if (B < 0) {
 		B = -B;
 		mpq_t C;
@@ -2192,14 +2245,14 @@ INTEGER_METHOD("^", TYP, Std$Integer$BigT, TYP, Std$Integer$SmallT) {
 		mpz_pow_ui(mpq_denref(C), A->Value, B);
 		Result->Val = finish_rational(C);
 	} else {
-		Result->Val = (Std$Object_t *)One;
+		Result->Val = (Std$Object$t *)One;
 	};
 	return SUCCESS;
 };
 
 RATIONAL_METHOD("^", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	int B = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	int B = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (B > 0) {
 		mpq_t C;
 		mpq_init(C);
@@ -2215,15 +2268,15 @@ RATIONAL_METHOD("^", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
 		mpq_canonicalize(C);
 		Result->Val = finish_rational(C);
 	} else {
-		Result->Val = (Std$Object_t *)One;
+		Result->Val = (Std$Object$t *)One;
 	};
 	return SUCCESS;
 };
 
-static inline Std$Function_status rational_power(mpq_t A, mpq_t B, Std$Function_result *Result) {
+static inline Std$Function$status rational_power(mpq_t A, mpq_t B, Std$Function$result *Result) {
 	int Power, Root;
-	if (!mpz_fits_slong_p(mpq_numref(B))) return FAILURE;
-	if (!mpz_fits_slong_p(mpq_denref(B))) return FAILURE;
+	if (!mpz_fits_sint_p(mpq_numref(B))) return FAILURE;
+	if (!mpz_fits_sint_p(mpq_denref(B))) return FAILURE;
 	Power = mpz_get_si(mpq_numref(B));
 	Root = mpz_get_si(mpq_denref(B));
 	mpq_t C;
@@ -2246,7 +2299,7 @@ static inline Std$Function_status rational_power(mpq_t A, mpq_t B, Std$Function_
 		Result->Val = finish_rational(C);
 		return SUCCESS;
 	} else {
-		Result->Val = (Std$Object_t *)One;
+		Result->Val = (Std$Object$t *)One;
 		return SUCCESS;
 	};
 };
@@ -2254,144 +2307,144 @@ static inline Std$Function_status rational_power(mpq_t A, mpq_t B, Std$Function_
 INTEGER_METHOD("^", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_si(A, ((Std$Integer_smallt *)Args[0].Val)->Value, 1);
-	return rational_power(A, ((Std$Rational_t *)Args[1].Val)->Value, Result);
+	mpq_set_si(A, ((Std$Integer$smallt *)Args[0].Val)->Value, 1);
+	return rational_power(A, ((Std$Rational$t *)Args[1].Val)->Value, Result);
 };
 
 INTEGER_METHOD("^", TYP, Std$Integer$BigT, TYP, Std$Rational$T) {
 	mpq_t A;
 	mpq_init(A);
-	mpq_set_z(A, ((Std$Integer_bigt *)Args[0].Val)->Value);
-	return rational_power(A, ((Std$Rational_t *)Args[1].Val)->Value, Result);
+	mpq_set_z(A, ((Std$Integer$bigt *)Args[0].Val)->Value);
+	return rational_power(A, ((Std$Rational$t *)Args[1].Val)->Value, Result);
 };
 
 RATIONAL_METHOD("^", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	return rational_power(((Std$Rational_t *)Args[0].Val)->Value, ((Std$Rational_t *)Args[1].Val)->Value, Result);
+	return rational_power(((Std$Rational$t *)Args[0].Val)->Value, ((Std$Rational$t *)Args[1].Val)->Value, Result);
 };
 
 RATIONAL_METHOD("<", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_cmp(A->Value, B->Value) < 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_cmp(A->Value, B->Value) > 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("<=", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_cmp(A->Value, B->Value) <= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">=", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_cmp(A->Value, B->Value) >= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("=", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_equal(A->Value, B->Value)) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("~=", TYP, Std$Rational$T, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Rational_t *B = (Std$Rational_t *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Rational$t *B = (Std$Rational$t *)Args[1].Val;
 	if (mpq_equal(A->Value, B->Value)) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("<", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) < 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) > 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("<=", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) <= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">=", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) >= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("=", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) == 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("~=", TYP, Std$Rational$T, TYP, Std$Integer$SmallT) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[0].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[1].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[0].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[1].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) != 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("<", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) >= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) <= 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("<=", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) > 0) {Result->Val = Args[1].Val; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD(">=", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) < 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("=", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) == 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("~=", TYP, Std$Integer$SmallT, TYP, Std$Rational$T) {
-	Std$Rational_t *A = (Std$Rational_t *)Args[1].Val;
-	Std$Integer_smallt *B = (Std$Integer_smallt *)Args[0].Val;
+	Std$Rational$t *A = (Std$Rational$t *)Args[1].Val;
+	Std$Integer$smallt *B = (Std$Integer$smallt *)Args[0].Val;
 	if (mpq_cmp_si(A->Value, B->Value, 1) != 0) {Result->Arg = Args[1]; return SUCCESS;} else {return FAILURE;};
 };
 
 RATIONAL_METHOD("is0", TYP, Std$Rational$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	if (mpq_sgn(R->Value)) return FAILURE;
-	Result->Val = (Std$Object_t *)R;
+	Result->Val = (Std$Object$t *)R;
 	return SUCCESS;
 };
 
-RATIONAL_METHOD("@", TYP, Std$Rational$T, VAL, Std$Real$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+AMETHOD(Std$Real$Of, TYP, Std$Rational$T) {
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	Result->Val = Std$Real$new(mpq_get_d(R->Value));
 	return SUCCESS;
 };
 
-REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$Rational$T) {
-	double X = ((Std$Real_t *)Args[0].Val)->Value;
+AMETHOD(Std$Rational$Of, TYP, Std$Real$T) {
+	double X = ((Std$Real$t *)Args[0].Val)->Value;
 	int Negative = 0;
 	if (X < 0.0) {
 		Negative = 1;
@@ -2423,11 +2476,11 @@ REAL_METHOD("@", TYP, Std$Real$T, VAL, Std$Rational$T) {
 };
 
 RATIONAL_METHOD("floor", TYP, Std$Rational$T) {
-Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	mpz_t Quotient;
 	mpz_init(Quotient);
 	mpz_fdiv_q(Quotient, mpq_numref(R->Value), mpq_denref(R->Value));
-	if (mpz_fits_slong_p(Quotient)) {
+	if (mpz_fits_sint_p(Quotient)) {
 		Result->Val = Std$Integer$new_small(mpz_get_si(Quotient));
 	} else {
 		Result->Val = Std$Integer$new_big(Quotient);
@@ -2436,11 +2489,11 @@ Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
 };
 
 RATIONAL_METHOD("ceil", TYP, Std$Rational$T) {
-	Std$Rational_t *R = (Std$Rational_t *)Args[0].Val;
+	Std$Rational$t *R = (Std$Rational$t *)Args[0].Val;
 	mpz_t Quotient;
 	mpz_init(Quotient);
 	mpz_cdiv_q(Quotient, mpq_numref(R->Value), mpq_denref(R->Value));
-	if (mpz_fits_slong_p(Quotient)) {
+	if (mpz_fits_sint_p(Quotient)) {
 		Result->Val = Std$Integer$new_small(mpz_get_si(Quotient));
 	} else {
 		Result->Val = Std$Integer$new_big(Quotient);
@@ -2449,7 +2502,7 @@ RATIONAL_METHOD("ceil", TYP, Std$Rational$T) {
 };
 
 STRING_METHOD("gets", TYP, Std$Address$T) {
-	Result->Val = Std$String$copy(((Std$Address_t *)Args[0].Val)->Value);
+	Result->Val = Std$String$copy(((Std$Address$t *)Args[0].Val)->Value);
 	return SUCCESS;
 };
 
@@ -2464,21 +2517,21 @@ NORMAL_METHOD("trace", TYP, Std$Symbol$NoMethodMessageT) {
 
 /*
 typedef struct scanner_position {
-	Std$String_block *Block;
+	Std$String$block *Block;
 	uint32_t Offset;
 	uint32_t Index;
 } scanner_position;
 
 typedef struct scanner_t {
-	Std$Type_t *Type;
-	const Std$String_t *Subject;
+	Std$Type$t *Type;
+	const Std$String$t *Subject;
 	scanner_position Old, Cur;
 } scanner_t;
 
 TYPE(ScannerT);
 
 METHOD("scan", TYP, Std$String$T) {
-	const Std$String_t *Subject = Args[0].Val;
+	const Std$String$t *Subject = Args[0].Val;
 	scanner_t *Scanner = new(scanner_t);
 	Scanner->Type = ScannerT;
 	Scanner->Subject = Subject;
@@ -2490,7 +2543,7 @@ METHOD("scan", TYP, Std$String$T) {
 };
 
 typedef struct scanner_restore_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	scanner_t *Scanner;
 	scanner_position Position;
 } scanner_restore_generator;
@@ -2504,8 +2557,8 @@ static long resume_scanner_restore(Std$Function$result *Result) {
 METHOD("get", TYP, ScannerT) {
 	scanner_t *Scanner = Args[0].Val;
 	int N = Scanner->Cur.Block - Scanner->Old.Block + 1;
-	Std$String_t *String = Std$String$alloc(N);
-	memcpy(String->Blocks, Scanner->Old.Block, N * sizeof(Std$String_block));
+	Std$String$t *String = Std$String$alloc(N);
+	memcpy(String->Blocks, Scanner->Old.Block, N * sizeof(Std$String$block));
 	String->Blocks[0].Chars.Value += Scanner->Old.Offset;
 	String->Blocks[N - 1].Length.Value = Scanner->Cur.Offset;
 	String->Blocks[0].Length.Value -= Scanner->Old.Offset;
@@ -2515,10 +2568,10 @@ METHOD("get", TYP, ScannerT) {
 METHOD("any", TYP, ScannerT, TYP, Std$String$T) {
 	scanner_t *Scanner = Args[0].Val;
 	if (Scanner->Cur.Block->Chars.Value == 0) return FAILURE;
-	const Std$String_t *Chars = Args[1].Val;
+	const Std$String$t *Chars = Args[1].Val;
 	uint8_t Mask[32];
 	memset(Mask, 0, 32);
-	for (Std$String_block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
+	for (Std$String$block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
 		unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) {
 			unsigned char Char = Chars[I];
@@ -2531,7 +2584,7 @@ METHOD("any", TYP, ScannerT, TYP, Std$String$T) {
 		Generator->Scanner = Scanner;
 		Generator->Position = Scanner->Cur;
 		Generator->State.Run = Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_scanner_restore;
+		Generator->State.Invoke = (Std$Function$cresumefn)resume_scanner_restore;
 		++Scanner->Cur.Index;
 		if (++Scanner->Cur.Offset >= Scanner->Cur.Block->Length.Value) {
 			Scanner->Cur.Block++;
@@ -2546,10 +2599,10 @@ METHOD("any", TYP, ScannerT, TYP, Std$String$T) {
 METHOD("upto", TYP, ScannerT, TYP, Std$String$T) {
 	scanner_t *Scanner = Args[0].Val;
 	if (Scanner->Cur.Block->Chars.Value == 0) return FAILURE;
-	const Std$String_t *Chars = Args[1].Val;
+	const Std$String$t *Chars = Args[1].Val;
 	uint8_t Mask[32];
 	memset(Mask, 0, 32);
-	for (Std$String_block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
+	for (Std$String$block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
 		unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) {
 			unsigned char Char = Chars[I];

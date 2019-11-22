@@ -1,0 +1,333 @@
+MOD Xe;
+
+IMP IO.Terminal USE Out, Err;
+IMP IO USE File, Stream, Buffer, Escaped;
+IMP Std USE Number, Integer, String, Function;
+IMP Agg USE Table, List;
+IMP Riva.Symbol;
+IMP Wrapl.Loader;
+
+DEF VariableT! <[] name>;
+
+DEF NodeT! <[] tag, attributes, content>;
+
+METH String.Of(node @ NodeT) (
+	VAR buffer <- Buffer.New();
+	buffer:write('<{node:tag}');
+	VAR attr, value; EVERY node:attributes:loop(attr, value) DO (
+		buffer:write(' {attr}={value}');
+	);
+	node:content:length = 0 => (
+		buffer:write('>');
+	) // (
+		buffer:write(node:content:values IN String.T => ':' // '|');
+		EVERY value <- node:content:values DO (
+			value IN String.T => (
+				buffer:write(value:map(["<", ">"], ["\\<", "\\>"]));
+			) // (
+				buffer:write(String.Of(value));
+			);
+		);
+		buffer:write('>');
+	);
+	RET buffer:rest;
+);
+
+METH String.Of(var @ VariableT) '<${var:name}>';
+
+DEF AppendNode(list, node) (
+	WHEN node AS List.T DO (
+		EVERY AppendNode(list, node:values);
+	) AS String.T DO (
+		list[-1] IN String.T => (
+			list[-1] <- $ + node;
+		) // (
+			list:put(node);
+		);
+	) AS Number.T DO (
+		list:put(String.Of(node));
+	) AS NodeT DO (
+		list:put(node);
+	) AS VariableT DO (
+		list:put(node);
+	);
+	RET list;
+);
+
+DEF Trim(string) string[string:skip(" \t\r\n"), 0] | "";
+
+DEF ReadEscape(stream) (
+	DEF escapes {"\\" IS "\\", "t" IS "\t", "r" IS "\r", "n" IS "\n", "\"" IS "\"", "<" IS "<", ">" IS ">"};
+	VAR char <- stream:read(1);
+	char = "x" => RET (Integer.Of(stream:read(2), 16)):chr;
+	RET escapes[char];
+);
+
+DEF ParseList(stream) (
+	VAR list <- [], char <- "";
+	REP (
+		char <- stream:read(1) | SEND 'Error parsing list @ {stream:tell}';
+		WHILE char IN " \t\r\n";
+	);
+	char = "]" => RET list;
+	WHEN char IS "<" DO (
+		REP (
+			AppendNode(list, ParseNode(stream));
+			REP WHILE (char <- stream:read(1)) IN " \t\r\n";
+			WHILE char = "<";
+		);
+		char = "]" // SEND 'Missing ] at end of list @ {stream:tell}';
+	) IS "[" DO (
+		REP (
+			AppendNode(list, ParseNode(stream));
+			REP WHILE (char <- stream:read(1)) IN " \t\r\n";
+			WHILE char = "[";
+		);
+		char = "]" // SEND 'Missing ] at end of list @ {stream:tell}';
+	) IS "\"" DO (
+		VAR buffer <- Buffer.New();
+		REP (
+			REP (
+				char <- stream:readi(0, "\\\"") | SEND 'Error parsing string @ {stream:tell}';
+				buffer:write(char[1, -1]);
+				WHILE char[-1] = "\\";
+				buffer:write(ReadEscape(stream));
+			);
+			AppendNode(list, buffer:rest);
+			REP WHILE (char <- stream:read(1)) IN " \t\r\n";
+			WHILE char = "\"";
+		);
+		char = "]" // SEND 'Missing ] at end of list @ {stream:tell}';
+	) IS "+", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" DO (
+		REP (
+			char <- $ + stream:readi(0, " \t\r\n]") | SEND 'Error parsing number @ {stream:tell}';
+			AppendNode(list, Number.Of(char[1, -1]));
+			char <- char[-1];
+			REP (WHILE char IN " \t\r\n"; char <- stream:read(1) | SEND 'Error parsing list @ {stream:tell}');
+			UNTIL char = "]";
+		);
+	) DO (
+		SEND 'Error parsing list @ {stream:tell}';
+	);
+	RET list;
+);
+
+VAR source <- Buffer.New();
+VAR session <- Loader.SessionNew(source);
+Loader.SessionDef(session, "Node", NodeT);
+Loader.SessionDef(session, "Eval", NodeEval);
+Loader.SessionDef(session, "Append", AppendNode);
+Loader.SessionDef(session, "Run"; code) (
+	source:write(code);
+	session:eval;
+);
+
+DEF Defines! {};
+
+DEF CompileInlineValue(value) (
+	WHEN value AS List.T DO (
+		source:write('[');
+		VAR sep <- "";
+		EVERY source:write(sep) & CompileInlineValue(value:values) DO sep <- ", ";
+		source:write(']');
+	) AS NodeT DO (
+		CompileInlineNode(value);
+	) AS VariableT DO (
+		source:write(value:name = "" => "content" // 'attributes.{value:name}');
+	) DO (
+		source:write(Loader.Image(value));
+	);
+);
+
+DEF CompileInlineNode(node) (
+	WHEN node AS NodeT DO (
+		source:write('Node({Loader.Image(node:tag)}, \{');
+		VAR sep <- "";
+		VAR attr, value; EVERY node:attributes:loop(attr, value) DO (
+			source:write('{sep}{Loader.Image(attr)} IS ');
+			CompileInlineValue(value);
+			sep <- ", ";
+		);
+		source:write('}, [');
+		sep <- "";
+		EVERY source:write(sep) & CompileInlineNode(node:content:values) DO sep <- ", ";
+		source:write('])');
+	) AS VariableT DO (
+		source:write(node:name);
+	) AS String.T DO (
+		source:write(Loader.Image(node));
+	);
+);
+
+DEF CompileMacro(node) (
+	WHEN node AS List.T DO (
+		EVERY node:values <- CompileMacro($);
+	) AS NodeT DO (
+		node:tag == :do => (
+			source:write("<attributes, content> (");
+			VAR child; EVERY child <- node:content:values DO (
+				source:write(child IN String.T) | CompileInlineNode(child);
+			);
+			source:write(");");
+			node <- Loader.SessionEval(session);
+			Loader.SessionLine(session);
+			source:empty;
+		) // (
+			EVERY node:attributes:values <- CompileMacro($);
+			EVERY node:content:values <- CompileMacro($);
+		);
+	);
+	RET node;
+);
+
+Defines:insert(:define; attributes, content) (
+	Defines:insert(Symbol:import(attributes.name), CompileMacro(content[1]));
+	RET NIL;
+);
+
+Defines:insert(:"define*"; attributes, content) (
+	Defines:insert(Symbol:import(attributes.name), CompileMacro(content));
+	RET NIL;
+);
+
+Defines:insert(:include; attributes, content) (
+	VAR file <- File.Open(attributes.file, File.Flag.Read);
+	VAR nodes <- [];
+	REP (WHILE file:readi(0, "<"):ends("<");
+		nodes:put(ParseNode(file));
+	);
+	file:close;
+	RET nodes;
+);
+
+Defines:insert(:do; attributes, content) (
+	--EVERY source:write(content:values);
+	VAR child; EVERY child <- content:values DO (
+		source:write(child IN String.T) | CompileInlineNode(child);
+	);
+	VAR content2 <- [];
+	REP (WHILE source:length > 0;
+		AppendNode(content2, Loader.SessionEval(session));
+	);
+	RET content2;
+);
+
+DEF ParseNode(stream) (
+	VAR tag <- stream:readi(0, " \t\r\n:|>?") | FAIL;
+	VAR buffer <- Buffer.New();
+	tag[1] = "$" & tag[-1] = ">" => (
+		RET VariableT(tag[2, -1]);
+	) // (
+		VAR attributes <- {};
+		VAR content <- [];
+		VAR node <- NodeT(Symbol:import(Trim(tag[1, -1])), attributes, content);
+		tag[-1] IN ":|>?" // (
+			VAR attribute, char;
+			REP (
+				attribute <- stream:readi(0, "=:|>?") | SEND 'Error parsing node @ {stream:tell}';
+				attribute[-1] = "=" // EXIT Trim(attribute[1, -1]) = "" | SEND 'Error parsing attribute {attribute} @ {stream:tell}';
+				attribute <- Trim(attribute[1, -1]);
+				char <- "\x00";
+				REP WHILE (char <- stream:read(1)) IN " \t\r\n";
+				WHEN char IS "<" DO (
+					attributes:insert(attribute, ParseNode(stream));
+				) IS "[" DO (
+					attributes:insert(attribute, ParseList(stream));
+				) IS "\"" DO (
+					REP (
+						char <- stream:readi(0, "\\\"") | SEND 'Error parsing string @ {stream:tell}';
+						buffer:write(char[1, -1]);
+						WHILE char[-1] = "\\";
+						buffer:write(ReadEscape(stream));
+					);
+					attributes:insert(attribute, buffer:rest);
+				) IS "+", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" DO (
+					char <- $ + stream:readi(0, " \t\r\n:|>") | SEND 'Error parsing number @ {stream:tell}';
+					attributes:insert(attribute, Number.Of(char[1, -1]));
+					UNTIL (attribute <- char)[-1] IN ":|>";
+				) DO (
+					SEND 'Error parsing node @ {stream:tell}';
+				);
+			);
+			tag <- attribute;
+		);
+		VAR text;
+		WHEN tag[-1] IS ":" DO (
+			REP (
+				text <- stream:readi(0, "<>\\") | SEND 'Error parsing text @ {stream:tell}';
+				buffer:write(text[1, -1]);
+				WHEN text[-1] IS "<" DO (
+					buffer:length > 0 => AppendNode(content, buffer:rest);
+					AppendNode(content, ParseNode(stream));
+				) IS ">" DO (
+					buffer:length > 0 => AppendNode(content, buffer:rest);
+					EXIT;
+				) IS "\\" DO (
+					buffer:write(ReadEscape(stream));
+				);
+			);
+		) IS "|" DO (
+			REP (
+				REP WHILE (text <- stream:read(1)) IN " \t\r\n";
+				WHILE text = "<";
+				AppendNode(content, ParseNode(stream));
+			);
+			text = ">" // SEND 'Node must end with > @ {stream:tell}';
+		);
+		--node <- NodeEval(Defines[node:tag], attributes, content);
+		RET node;
+	);
+);
+
+DEF Decode!(stream) (
+	stream:readi(0, "<"):ends("<") => RET ParseNode(stream);
+	SEND 'Parse error @ {stream:tell}';
+);
+
+DEF DecodeString!(string) Decode(Buffer.New():write(string));
+
+DEF NodeEval(node, attributes, content) (
+	WHEN node AS List.T DO (
+		VAR list <- [];
+		EVERY AppendNode(list, NodeEval(node:values, attributes, content));
+		RET list;
+	) AS NodeT DO (
+		VAR attributes2 <- node:attributes:map(; key, value) NodeEval(value, attributes, content);
+		VAR content2 <- [];
+		EVERY AppendNode(content2, NodeEval(node:content:values, attributes, content));
+		RET NodeT(node:tag, attributes2, content2);
+	) AS Number.T, String.T DO (
+		RET node;
+	) AS Function.T DO (
+		RET node(attributes, content);
+	) AS VariableT DO (
+		node:name = "" => RET content;
+		RET attributes[node:name] | node;
+	) DO (
+		RET node;
+	);
+);
+
+DEF Expand!(node) REP (
+	WHEN node AS List.T DO (
+		RET ALL NIL ~== Expand(node:values);
+	) AS NodeT DO (
+		(node <- NodeEval(Defines[node:tag], node:attributes, node:content)) => STEP;
+		EVERY node:attributes:values <- Expand($);
+		VAR content <- [];
+		EVERY AppendNode(content, Expand(node:content:values));
+		node:content <- content;
+		RET node;
+	) DO (
+		RET node;
+	);
+);
+
+DEF Load!(stream) (
+	stream:readi(0, "<"):ends("<") => RET Expand(ParseNode(stream));
+	SEND 'Parse error @ {stream:tell}';
+);
+
+DEF LoadString!(string) Load(Buffer.New():write(string));
+
+END Xe.

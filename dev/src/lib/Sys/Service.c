@@ -7,26 +7,26 @@
 #include <string.h>
 
 struct Sys$Service$t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	enum {UNKNOWN, STARTING, RUNNING} State;
 	union {
 		pthread_cond_t Cond;
-		Std$Object_t *Value;
+		Std$Object$t *Value;
 	};
 };
 
 TYPE(T);
 
-static Agg$StringTable_t Services[1] = {Agg$StringTable$INIT};
+static Agg$StringTable$t Services[1] = {Agg$StringTable$INIT};
 
 static pthread_mutex_t ServicesMutex = PTHREAD_MUTEX_INITIALIZER;
 
-Sys$Service_t *_new(const char *Name) {
+Sys$Service$t *_new(const char *Name) {
 	//printf("Looking for service %s\n", Name);
 	pthread_mutex_lock(&ServicesMutex);
-	Sys$Service_t *Service = Agg$StringTable$get(Services, Name, strlen(Name));
+	Sys$Service$t *Service = Agg$StringTable$get(Services, Name, strlen(Name));
 	if (Service == 0) {
-		Service = new(Sys$Service_t);
+		Service = new(Sys$Service$t);
 		Service->Type = T;
 		Service->State = UNKNOWN;
 		pthread_cond_init(&Service->Cond, 0);
@@ -46,7 +46,7 @@ Sys$Service_t *_new(const char *Name) {
 	
 };
 
-void _start(Sys$Service_t *Service, Std$Object_t *Value) {
+void _start(Sys$Service$t *Service, Std$Object$t *Value) {
 	//printf("Starting service \n");
 	pthread_mutex_lock(&ServicesMutex);
 	Service->State = RUNNING;
@@ -55,11 +55,11 @@ void _start(Sys$Service_t *Service, Std$Object_t *Value) {
 	pthread_mutex_unlock(&ServicesMutex);
 };
 
-Std$Object_t *_get(const char *Name) {
+Std$Object$t *_get(const char *Name) {
 	pthread_mutex_lock(&ServicesMutex);
-	Sys$Service_t *Service = Agg$StringTable$get(Services, Name, strlen(Name));
+	Sys$Service$t *Service = Agg$StringTable$get(Services, Name, strlen(Name));
 	if (Service == 0) {
-		Service = new(Sys$Service_t);
+		Service = new(Sys$Service$t);
 		Service->Type = T;
 		Service->State = UNKNOWN;
 		pthread_cond_init(&Service->Cond, 0);

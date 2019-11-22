@@ -43,6 +43,7 @@ var DOT_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_dot_layout.a")[GVC_LIB]
 var NEATO_LIB := (EXT_DIR / "lib/graphviz/libgvplugin_neato_layout.a")[GVC_LIB]
 var PATHPLAN_LIB := (EXT_DIR / "lib/libpathplan.a")[GVC_LIB]
 
+CFLAGS := old + ['-I{PATH}']
 LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gthread-2.0 gobject-2.0 pangocairo pangoft2 librsvg-2.0 ")]
 
 riva_module("Math/Matrix", [file("Matrix.o")])
@@ -58,3 +59,6 @@ riva_module("Math/Graphviz", [file("Graphviz.o")], [
 	DOT_LIB, NEATO_LIB, PATHPLAN_LIB, CORE_LIB,
 	PANGO_LIB, RSVG_LIB
 ])
+riva_module("Math/RTree", [file("RTree.o")])
+
+

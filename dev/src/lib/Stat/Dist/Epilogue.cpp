@@ -9,7 +9,7 @@ METHOD("pdf", TYP, T, TYP, Std$Real$T) {
 //@x
 //:Std$Real$T
 	dist_t *Dist = (dist_t *)Args[0].Val;
-	double X = ((Std$Real_t *)Args[1].Val)->Value;
+	double X = ((Std$Real$t *)Args[1].Val)->Value;
 	Result->Val = Std$Real$new(pdf(Dist->Dist, X));
 	return SUCCESS;
 };
@@ -19,7 +19,7 @@ METHOD("cdf", TYP, T, TYP, Std$Real$T) {
 //@x
 //:Std$Real$T
 	dist_t *Dist = (dist_t *)Args[0].Val;
-	double X = ((Std$Real_t *)Args[1].Val)->Value;
+	double X = ((Std$Real$t *)Args[1].Val)->Value;
 	Result->Val = Std$Real$new(cdf(Dist->Dist, X));
 	return SUCCESS;
 };
@@ -29,7 +29,7 @@ METHOD("quantile", TYP, T, TYP, Std$Real$T) {
 //@prob
 //:Std$Real$T
 	dist_t *Dist = (dist_t *)Args[0].Val;
-	double X = ((Std$Real_t *)Args[1].Val)->Value;
+	double X = ((Std$Real$t *)Args[1].Val)->Value;
 	Result->Val = Std$Real$new(quantile(Dist->Dist, X));
 	return SUCCESS;
 };
@@ -80,8 +80,8 @@ METHOD("kurtosis", TYP, T) {
 struct urng_t {
 	typedef double result_type;
 
-	Std$Object_t *Rand;
-	urng_t(Std$Object_t *_Rand) : Rand(_Rand) {};
+	Std$Object$t *Rand;
+	urng_t(Std$Object$t *_Rand) : Rand(_Rand) {};
 	inline bool has_fixed_range(void) const {return true;};
 	inline double min_value(void) const {return 0.0;};
 	inline double max_value(void) const {return 1.0;};

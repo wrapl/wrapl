@@ -34,7 +34,7 @@ detect_modules := fun(Path) do
 		var Modules := []
 		for FileName in shell('ls {BUILDDIR}') / "\n" do
 			if FileName[-2, 0] = ".c" then
-				var Source := file(FileName)[AUTOGEN] => fun() :true
+				var Source := file(FileName) --[AUTOGEN] => fun() :true
 				var Scan := Source:scan("INCLUDES") => c_includes
 				var  Object := Source % "o"
 				Object[Source, Scan, TYPEMAP] => c_compile
@@ -71,7 +71,11 @@ subdir("Gda")
 subdir("Soup")
 subdir("GooCanvas")
 subdir("Atk")
---subdir("Poppler")
+subdir("Poppler")
 --subdir("Lasem")
 --subdir("Arrow")
 subdir("Kplot")
+subdir("Vips")
+subdir("WebKit2")
+subdir("JavaScriptCore")
+subdir("Graphene")

@@ -29,7 +29,7 @@ GLOBAL_FUNCTION(New, 1) {
 		(GInstanceInitFunc)0,
 		0
 	);
-	Std$Type_t **Types = (Std$Type_t **)Riva$Memory$alloc((Count + 2) * sizeof(Std$Type_t *));
+	Std$Type$t **Types = (Std$Type$t **)Riva$Memory$alloc((Count + 2) * sizeof(Std$Type$t *));
 	unsigned long *Levels = (unsigned long *)Riva$Memory$alloc((Count + 2) * sizeof(unsigned long));
 	for (int I = 1; I < Count; ++I) {
 		if (Args[I].Val->Type != Sys$Module$T) {
@@ -47,7 +47,7 @@ GLOBAL_FUNCTION(New, 1) {
 		g_type_add_interface_static(ImplementationGType, Interface->Type, &Interface->Info);
 	};
 	
-	Std$Type_t *ImplementationRivaType = new(Std$Type_t);
+	Std$Type$t *ImplementationRivaType = new(Std$Type$t);
 	Types[0] = ImplementationRivaType;
 	Types[Count] = Gtk$GObject$Object$T;
 	Types[Count + 1] = 0;
@@ -88,9 +88,9 @@ GLOBAL_FUNCTION(Implement, 2) {
 	return SUCCESS;
 };
 
-GObject *_implementation(Std$Object_t *Object) {
+GObject *_implementation(Std$Object$t *Object) {
 	printf("_implementation\n");
-	Std$Function_result Result;
+	Std$Function$result Result;
 	Std$Function$call($RIVA, 1, &Result, Object, 0);
 	return ((Gtk$GObject$Object_t *)Result.Val)->Handle;
 };

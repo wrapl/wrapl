@@ -232,7 +232,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[8, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Module();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:path <- info;
 				item:comment <- [];
 				EVERY lineno:to(item:line) DO input:read;
@@ -250,7 +250,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[6, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Type();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:parents <- info;
 				item:comment <- [];
@@ -269,7 +269,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[10, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Constant();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:type <- info:pop;
 				item:comment <- [];
@@ -288,7 +288,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[8, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Constant();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:type <- info:pop;
 				item:comment <- [];
@@ -307,7 +307,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[8, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Method();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:symbol <- Escape(info:pop[2,-1]:map(["\"\""], [""]));
 				item:signature <- info;
 				item:comment <- [];
@@ -332,9 +332,9 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[15, 0]:split(")");
 				info <- ALL line:split(", ");
 				item2 <- Function();
-				item2:line <- info:pop@Integer.T;
+				item2:line <- Integer.Of(info:pop);
 				item2:name <- info:pop;
-				item2:count <- info:pop@Integer.T;
+				item2:count <- Integer.Of(info:pop);
 				item <- Method();
 				item:line <- item2:line;
 				item:symbol <- Escape(info:pop[2,-1]:map(["\"\""], [""]));
@@ -368,9 +368,9 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[17, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- Function();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
-				item:count <- info:pop@Integer.T;
+				item:count <- Integer.Of(info:pop);
 				item:comment <- [];
 				item:params <- [];
 				EVERY lineno:to(item:line) DO input:read;
@@ -393,7 +393,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[9, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- AMethod();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:symbol <- info:pop;
 				item:signature <- info;
 				item:comment <- [];
@@ -418,7 +418,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[11, 0]:split(")");
 				info <- ALL line:split(", ");
 				item <- SubModule();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:subitems <- [];
 				item:comment <- [];
@@ -472,7 +472,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[8, 0];
 				info <- ALL line:split(", ");
 				item <- Module();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:path <- info;
 				item:comment <- [];
 				EVERY lineno:to(item:line) DO input:read;
@@ -490,7 +490,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[7, 0];
 				info <- ALL line:split(", ");
 				item <- Type();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:parents <- info;
 				item:comment <- [];
@@ -509,7 +509,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[9, 0];
 				info <- ALL line:split(", ");
 				item <- Constant();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
 				item:type <- info:pop;
 				item:comment <- [];
@@ -528,7 +528,7 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[8, 0];
 				info <- ALL line:split(", ");
 				item <- Method();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:symbol <- Escape(info:pop[2,-1]);
 				item:signature <- info;
 				item:comment <- [];
@@ -559,9 +559,9 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[10, 0];
 				info <- ALL line:split(", ");
 				item <- Function();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
-				item:count <- info:pop@Integer.T;
+				item:count <- Integer.Of(info:pop);
 				item:comment <- [];
 				item:params <- [];
 				EVERY lineno:to(item:line) DO input:read;
@@ -584,9 +584,9 @@ EVERY file <- Args[i:to(Args:length)] DO (
 				line <- oline[11, 0];
 				info <- ALL line:split(", ");
 				item <- Function();
-				item:line <- info:pop@Integer.T;
+				item:line <- Integer.Of(info:pop);
 				item:name <- info:pop;
-				item:count <- info:pop@Integer.T;
+				item:count <- Integer.Of(info:pop);
 				item:comment <- [];
 				item:params <- [];
 				EVERY lineno:to(item:line) DO input:read;

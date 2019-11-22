@@ -613,7 +613,7 @@ function ExecJump, 1
 ctype IncorrectTypeMessageT
 .invoke: equ 0
 
-method "@", TYP, IncorrectTypeMessageT, VAL, Std$String$T
+amethod Std$String$Of, TYP, IncorrectTypeMessageT
 	mov ecx, .String
 	xor edx, edx
 	xor eax, eax
@@ -643,7 +643,7 @@ cfunction incorrect_type
 ctype IncorrectAssignMessageT
 .invoke: equ 0
 
-method "@", TYP, IncorrectAssignMessageT, VAL, Std$String$T
+amethod Std$String$Of, TYP, IncorrectAssignMessageT
 	mov ecx, .String
 	xor edx, edx
 	xor eax, eax

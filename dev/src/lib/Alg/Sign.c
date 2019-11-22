@@ -4,12 +4,12 @@
 #include <nettle/rsa.h>
 
 typedef struct rsa_public_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	struct rsa_public_key Key[1];
 } rsa_public_t;
 
 typedef struct rsa_private_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	struct rsa_private_key Key[1];
 } rsa_private_t;
 

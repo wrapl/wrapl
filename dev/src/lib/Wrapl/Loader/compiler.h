@@ -3,6 +3,7 @@
 
 #include <Riva/Memory.h>
 #include <Std/Function.h>
+#include <Std/Type.h>
 
 #include "assembler.h"
 #include "bitset.h"
@@ -19,6 +20,8 @@
 #else
 #define PRINT_METHOD
 #endif
+
+extern const Std$Type$t ScopeT[];
 
 struct compiler_t {
 	struct function_t {
@@ -74,11 +77,11 @@ struct compiler_t {
 	};
 
 	struct scope_t {
-		const Std$Type_t *Type0;
+		const Std$Type$t *Type0 = ScopeT;
 		enum type_t {SC_GLOBAL, SC_LOCAL} Type;
 		scope_t *Up;
-		int LastIndex;
-		function_t *Function;
+		int LastIndex = 0;
+		function_t *Function = 0;
 		stringtable_t NameTable[1];
 		scope_t(type_t Type, scope_t *Up = 0) {
 			this->Type = Type;
@@ -88,7 +91,8 @@ struct compiler_t {
 
 	function_t *Function;
 	scope_t *Scope, *Global;
-	debug_module_t *DebugInfo;
+	debug_module_t *DebugInfo = 0;
+	Std$Object$t *MissingIDFunc = 0;
 
 	const char *SourceName;
 
@@ -142,16 +146,14 @@ struct compiler_t {
 
 	struct {
 		jmp_buf Handler;
-		const Std$Type_t *Type;
+		const Std$Type$t *Type;
 		const char *Message;
 		int LineNo;
 		int Count;
 		char *Stack[12];
 	} Error;
 
-	Std$Object_t *MissingIDFunc;
-
-	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...);
+	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...);
 };
 
 #define CLASSID \
@@ -176,8 +178,8 @@ struct expr_t {
 		if (Operand) Type = _PC_FULL;
 		return Operand;
 	}
-	Std$Object_t *evaluate(compiler_t *Compiler);
-	Std$Function_status evaluate(compiler_t *Compiler, Std$Function_result *Result);
+	Std$Object$t *evaluate(compiler_t *Compiler);
+	Std$Function$status evaluate(compiler_t *Compiler, Std$Function$result *Result);
 	
 	virtual ~expr_t() {}
 	static const char *_classid() {
@@ -249,7 +251,7 @@ struct const_expr_t : expr_t {CLASSID
 		this->LineNo = LineNo;
 		Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Value;
+		Operand->Value = (Std$Object$t *)Value;
 	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
@@ -381,6 +383,18 @@ struct with_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
+struct let_expr_t : expr_t {CLASSID
+	const char *Name;
+	expr_t *Value;
+	let_expr_t(int LineNo, const char *Name, expr_t *Value) {
+		this->LineNo = LineNo;
+		this->Name = Name;
+		this->Value = Value;
+	}
+	PRINT_METHOD
+	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
+};
+
 struct rep_expr_t : expr_t {CLASSID
 	expr_t *Body;
 	rep_expr_t(int LineNo, expr_t *Body) {
@@ -430,11 +444,14 @@ struct all_expr_t : expr_t {CLASSID
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
 };
 
-struct uniq_expr_t : expr_t {CLASSID
-	expr_t *Value;
-	uniq_expr_t(int LineNo, expr_t *Value) {
+struct map_expr_t : expr_t {CLASSID
+	expr_t *Key, *Value;
+	int Reverse;
+	map_expr_t(int LineNo, expr_t *Key, expr_t *Value, int Reverse) {
 		this->LineNo = LineNo;
+		this->Key = Key;
 		this->Value = Value;
+		this->Reverse = Reverse;
 	}
 	PRINT_METHOD
 	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
@@ -534,6 +551,16 @@ struct skip_expr_t : expr_t {CLASSID
 	skip_expr_t(int LineNo, expr_t *Skip, expr_t *Expr) {
 		this->LineNo = LineNo;
 		this->Skip = Skip;
+		this->Expr = Expr;
+	}
+	PRINT_METHOD;
+	operand_t *compile(compiler_t *Compiler, label_t *Start, label_t *Success);
+};
+
+struct uniq_expr_t : expr_t {CLASSID
+	expr_t *Expr;
+	uniq_expr_t(int LineNo, expr_t *Expr) {
+		this->LineNo = LineNo;
 		this->Expr = Expr;
 	}
 	PRINT_METHOD;
@@ -649,7 +676,7 @@ struct block_expr_t : expr_t {CLASSID
 		localvar_t *Next;
 		int LineNo;
 		const char *Name;
-		bool Reference;
+		bool Let;
 	};
 	struct localdef_t {
 		localdef_t *Next;
@@ -753,7 +780,7 @@ struct command_expr_t : expr_t {CLASSID
 	expr_t *Body;
 
 	PRINT_METHOD
-	Std$Function_status compile(compiler_t *Compiler, Std$Function_result *Result);
+	Std$Function$status compile(compiler_t *Compiler, Std$Function$result *Result);
 };
 
 #endif

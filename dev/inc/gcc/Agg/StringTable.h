@@ -13,21 +13,21 @@ RIVA_STRUCT(node) {
 };
 
 RIVA_STRUCT(t) {
-	Std$Type_t const *Type;
+	Std$Type$t const *Type;
 	unsigned long Size, Space;
-	Agg$StringTable_node *Entries;
+	Agg$StringTable$node *Entries;
 };
 
 RIVA_TYPE(T);
 
 #define Agg$StringTable$INIT {Agg$StringTable$T, 0, 0, 0}
 
-RIVA_CFUN(void, init, Agg$StringTable_t *Table);
-RIVA_CFUN(void, put, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
-RIVA_CFUN(void **, slot, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
-RIVA_CFUN(int, inc, Agg$StringTable_t *Table, const char *Key, int Length, int Value);
-RIVA_CFUN(void *, def, Agg$StringTable_t *Table, const char *Key, int Length, void *Value);
-RIVA_CFUN(void *, get, const Agg$StringTable_t *Table, const char *Key, int Length);
+RIVA_CFUN(void, init, Agg$StringTable$t *Table);
+RIVA_CFUN(void, put, Agg$StringTable$t *Table, const char *Key, int Length, void *Value);
+RIVA_CFUN(void **, slot, Agg$StringTable$t *Table, const char *Key, int Length, void *Value);
+RIVA_CFUN(int, inc, Agg$StringTable$t *Table, const char *Key, int Length, int Value);
+RIVA_CFUN(void *, def, Agg$StringTable$t *Table, const char *Key, int Length, void *Value);
+RIVA_CFUN(void *, get, const Agg$StringTable$t *Table, const char *Key, int Length);
 
 #undef RIVA_MODULE
 

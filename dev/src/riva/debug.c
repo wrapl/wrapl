@@ -37,11 +37,11 @@ static int display_reg(const char *Name, void *Value, int ShowAlways) {
 	return 0;
 };
 
-#ifdef LINUX || MACOSX
+#if defined(LINUX) || defined(MACOSX)
 int stack_trace(void **Stack, char **Buffer, int BufferSize) {
 	int Count = 0;
 	for (int I = 0; (Count < BufferSize) && (I < MaxStackScan); ++I) {
-		unsigned const char *Code = Stack[I];
+		unsigned char *Code = Stack[I];
 		const char **Base = GC_base(Code);
 		if (Base) {
 			if (Base[DEBUG_HDR_INDEX] == DebugKey) {
@@ -128,6 +128,21 @@ debug_hdr *debug_get_hdr(void *Ptr) {
 #endif
 };
 
+int caller_info(void *Return, const char **StrInfo,int *IntInfo) {
+	const char **Base = GC_base((void *)Return);
+	if (Base == 0) return 0;
+#ifdef GC_DEBUG
+	if (Base[4] != DebugKey) return 0;
+	debug_hdr *Header = (debug_hdr *)Base[5];
+#else
+	if (Base[0] != DebugKey) return 0;
+	debug_hdr *Header = (debug_hdr *)Base[1];
+#endif
+	*StrInfo = Header->StrInfo;
+	*IntInfo = Header->IntInfo;
+	return 1;
+}
+
 static void debug_gc_warn(char *Message, GC_word Data) {
 	log_writef(Message, Data);
 	if (Data) {
@@ -151,6 +166,7 @@ void debug_init(void) {
 	module_add_alias(Module, "library:/Riva/Debug");
 	module_export(Module, "Key", 0, (void *)DebugKey);
 	module_export(Module, "_stack_trace", 0, (void *)stack_trace);
+	module_export(Module, "_caller_info", 0, (void *)caller_info);
 
 #ifdef USE_UDIS
 	Module = module_new("libudis");

@@ -11,6 +11,8 @@ RIVA_STRUCT(t) {
 	int Min, Max, Step;
 };
 
+RIVA_TYPE(T);
+
 RIVA_CFUN(Num$Range$t *, new, int, int, int);
 
 #undef RIVA_MODULE

@@ -590,6 +590,14 @@
       <return-type type="cairo_hint_metrics_t"/>
     </method>
   </struct>
+  <callback name="ReadFunc" cname="cairo_read_func_t" gname="CairoReadFunc">
+    <return-type type="Cairo.Status"/>
+    <parameters>
+      <parameter name="closure" type="any"/>
+      <parameter name="data" type="void*"/>
+      <parameter name="length" type="unsigned int"/>
+    </parameters>
+  </callback>
   <callback name="WriteFunc" cname="cairo_write_func_t" gname="CairoWriteFunc">
     <return-type type="Cairo.Status"/>
     <parameters>
@@ -615,6 +623,13 @@
         <parameter name="width" type="int"/>
         <parameter name="height" type="int"/>
         <parameter name="stride" type="int"/>
+      </parameters>
+    </method>
+    <method name="ImageSurfaceCreateFromPngStream" cname="cairo_image_surface_create_from_png_stream" shared="true">
+      <return-type type="cairo_surface_t"/>
+      <parameters>
+        <parameter name="read_func" type="cairo_read_func_t"/>
+        <parameter name="closure" type="any"/>
       </parameters>
     </method>
     <method name="ImageSurfaceCreateFromPng" cname="cairo_image_surface_create_from_png" shared="true">

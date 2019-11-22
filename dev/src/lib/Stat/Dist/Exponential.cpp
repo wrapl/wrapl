@@ -11,7 +11,7 @@ TYPE(T, Stat$Dist$T);
 #define HAS_RANDOM_GENERATOR
 
 struct dist_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	exponential Dist;
 	boost::exponential_distribution<double> Rand;
 	dist_t(double L) : Dist(L), Rand(L) {Type = T;};
@@ -20,9 +20,9 @@ struct dist_t {
 GLOBAL_FUNCTION(New, 1) {
 //@lambda:Std$Real$T
 //:T
-	double L = ((Std$Real_t *)Args[0].Val)->Value;
+	double L = ((Std$Real$t *)Args[0].Val)->Value;
 	dist_t *Dist = new dist_t(L);
-	Result->Val = (Std$Object_t *)Dist;
+	Result->Val = (Std$Object$t *)Dist;
 	return SUCCESS;
 };
 

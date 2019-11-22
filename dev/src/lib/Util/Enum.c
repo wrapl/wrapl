@@ -18,7 +18,7 @@ METHOD("+", TYP, T, TYP, T) {
 	RETURN(Enum3);
 }
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Util$Enum$t *Enum = (Util$Enum$t *)Args[0].Val;
 	int Length = strlen(Enum->Names[0]);
 	for (int I = 1; I < Enum->Count; ++I) Length += 1 + strlen(Enum->Names[I]);

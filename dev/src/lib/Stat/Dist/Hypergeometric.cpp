@@ -8,7 +8,7 @@ void *__dso_handle = &__dso_handle;
 TYPE(T, Stat$Dist$T);
 
 struct dist_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	hypergeometric Dist;
 	dist_t(int Total, int Marked, int Sample) : Dist(Marked, Sample, Total) {Type = T;};
 };
@@ -19,26 +19,26 @@ GLOBAL_FUNCTION(New, 3) {
 //@Sample:Std$Real$T
 //:T
 	int Total = 0, Marked = 0, Sample = 0;
-	Std$Object_t *Arg = Args[0].Val;
+	Std$Object$t *Arg = Args[0].Val;
 	if (Arg->Type == Std$Integer$SmallT) {
-		Total = ((Std$Integer_smallt *)Arg)->Value;
+		Total = ((Std$Integer$smallt *)Arg)->Value;
 	} else if (Arg->Type == Std$Real$T) {
-		Total = ((Std$Real_t *)Arg)->Value;
+		Total = ((Std$Real$t *)Arg)->Value;
 	};
 	Arg = Args[1].Val;
 	if (Arg->Type == Std$Integer$SmallT) {
-		Marked = ((Std$Integer_smallt *)Arg)->Value;
+		Marked = ((Std$Integer$smallt *)Arg)->Value;
 	} else if (Arg->Type == Std$Real$T) {
-		Marked = ((Std$Real_t *)Arg)->Value;
+		Marked = ((Std$Real$t *)Arg)->Value;
 	};
 	Arg = Args[2].Val;
 	if (Arg->Type == Std$Integer$SmallT) {
-		Sample = ((Std$Integer_smallt *)Arg)->Value;
+		Sample = ((Std$Integer$smallt *)Arg)->Value;
 	} else if (Arg->Type == Std$Real$T) {
-		Sample = ((Std$Real_t *)Arg)->Value;
+		Sample = ((Std$Real$t *)Arg)->Value;
 	};
 	dist_t *Dist = new dist_t(Total, Marked, Sample);
-	Result->Val = (Std$Object_t *)Dist;
+	Result->Val = (Std$Object$t *)Dist;
 	return SUCCESS;
 };
 

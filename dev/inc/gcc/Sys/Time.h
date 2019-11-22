@@ -21,7 +21,7 @@ RIVA_STRUCT(precise_t) {
 RIVA_TYPE(T);
 RIVA_TYPE(PreciseT);
 
-RIVA_CFUN(Sys$Time_t *, new, time_t);
+RIVA_CFUN(Sys$Time$t *, new, time_t);
 
 #undef RIVA_MODULE
 

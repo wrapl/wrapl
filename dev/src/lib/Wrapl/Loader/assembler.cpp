@@ -19,16 +19,16 @@ struct bstate_t {
 	void *Run;
 	Std$Function$state_t *Chain;
 	void *Resume;
-	Std$Object_t *Val;
-	Std$Object_t **Ref;
+	Std$Object$t *Val;
+	Std$Object$t **Ref;
 	void *Code;
 	void *Handler;
 };
 
 struct variadic_t {
-	Std$Type_t *Type;
-	Std$Integer_smallt Length;
-	Std$Function_argument Args[];
+	Std$Type$t *Type;
+	Std$Integer$smallt Length;
+	Std$Function$argument Args[];
 };
 
 struct trap_t {
@@ -453,7 +453,7 @@ void label_t::store_reg(uint32_t LineNo, operand_t *Operand) {DEBUG
 };
 
 struct store_con_inst_t : load_inst_t {
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 	void add_source(load_inst_t *Load) {
 		if (Operand == Register) Load->load_ref();
 	};
@@ -471,7 +471,7 @@ struct store_con_inst_t : load_inst_t {
 	void encode(assembler_t *Assembler);
 };
 
-void label_t::store_con(uint32_t LineNo, operand_t *Operand, Std$Object_t *Value) {DEBUG
+void label_t::store_con(uint32_t LineNo, operand_t *Operand, Std$Object$t *Value) {DEBUG
 	store_con_inst_t *Inst = new store_con_inst_t;
 	Inst->Operand = Operand;
 	Inst->Value = Value;
@@ -934,6 +934,27 @@ struct test_skip_inst_t : inst_t {
 
 void label_t::test_skip(uint32_t LineNo, uint32_t Trap, uint32_t Temp) {DEBUG
 	test_skip_inst_t *Inst = new test_skip_inst_t;
+	Inst->Trap = Trap;
+	Inst->Temp = Temp;
+	Inst->LineNo = LineNo;
+	Inst->IsPotentialBreakpoint = false;
+	append(Inst);
+};
+
+struct test_unique_inst_t : inst_t {
+	uint32_t Temp;
+	uint32_t Trap;
+#ifdef ASSEMBLER_LISTING
+	void list() {
+		if (IsPotentialBreakpoint) printf("*");
+		printf("%4d: test_skip %d, %d\n", LineNo, Temp, Trap);
+	};
+#endif
+	void encode(assembler_t *Assembler);
+};
+
+void label_t::test_unique(uint32_t LineNo, uint32_t Trap, uint32_t Temp) {DEBUG
+	test_unique_inst_t *Inst = new test_unique_inst_t;
 	Inst->Trap = Trap;
 	Inst->Temp = Temp;
 	Inst->LineNo = LineNo;
@@ -1408,6 +1429,32 @@ void label_t::store_table(uint32_t LineNo, uint32_t Index) {DEBUG
 	append(Inst);
 };
 
+struct store_table2_inst_t : inst_t {
+	uint32_t Index;
+	uint32_t Key;
+	int Reverse;
+#ifdef ASSEMBLER_LISTING
+	void list() {
+		if (IsPotentialBreakpoint) printf("*");
+		printf("%4d: store_table %d\n", LineNo, Index);
+	};
+#endif
+	void add_source(load_inst_t *Load) {
+		Load->load_val();
+	};
+	void encode(assembler_t *Assembler);
+};
+
+void label_t::store_table2(uint32_t LineNo, uint32_t Index, uint32_t Key, int Reverse) {DEBUG
+	store_table2_inst_t *Inst = new store_table2_inst_t;
+	Inst->Index = Index;
+	Inst->Key = Key;
+	Inst->Reverse = Reverse;
+	Inst->LineNo = LineNo;
+	Inst->IsPotentialBreakpoint = false;
+	append(Inst);
+};
+
 struct new_count_inst_t : inst_t {
 	uint32_t Index;
 #ifdef ASSEMBLER_LISTING
@@ -1545,7 +1592,7 @@ static void dasm_m_free(Dst_DECL, void *p, size_t sz) {
 };
 
 typedef struct code_header_t {
-	Riva$Debug_hdr Hdr;
+	Riva$Debug$hdr Hdr;
 	const void **Consts;
 	unsigned long Size;
 } code_header_t;
@@ -1701,7 +1748,7 @@ operand_t *label_t::assemble(const frame_t *Frame, const char *StrInfo, int IntI
 		Closure->Entry = Code;
 		Operand = new operand_t;
 		Operand->Type = operand_t::CNST;
-		Operand->Value = (Std$Object_t *)Closure;
+		Operand->Value = (Std$Object$t *)Closure;
 	} else {
 		Operand = new operand_t;
 		Operand->Type = operand_t::CLSR;

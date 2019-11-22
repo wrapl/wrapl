@@ -8,7 +8,7 @@
 
 RIVA_STRUCT(dimension_t) {
 	int Size, Stride;
-	struct roaring_bitmap_s *Bitmap;
+	int *Indices;
 };
 
 typedef enum {

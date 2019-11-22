@@ -7,7 +7,6 @@
 This file was modified from avl.c in GNU libavl
 */
 
-SYMBOL($AT, "@");
 SYMBOL($COMP, "?");
 SYMBOL($HASH, "#");
 
@@ -47,13 +46,13 @@ typedef struct node_t node_t;
 typedef struct traverser_t traverser_t;
 
 struct table_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	node_t *Root, *Head, *Tail;
 	unsigned long Count;
 	unsigned long Generation;
-	Std$Object_t *Compare;
-	Std$Object_t *Hash;
-	Std$Object_t *Default;
+	Std$Object$t *Compare;
+	Std$Object$t *Hash;
+	Std$Object$t *Default;
 #ifdef THREADED
 	pthread_rwlock_t Lock[1];
 #endif
@@ -61,15 +60,15 @@ struct table_t {
 
 /* An AVL Table Node. */
 struct node_t {
-	const Std$Type_t *NodeType;
+	const Std$Type$t *NodeType;
 	node_t *Link[2], *Prev, *Next;
-	Std$Object_t *Key, *Value;
+	Std$Object$t *Key, *Value;
 	unsigned long Hash, Position;
 	signed char Balance;
 };
 
 #define TRAVERSER_FIELDS\
-	Std$Function_cstate State;\
+	Std$Function$cstate State;\
 	table_t *Table;\
 	node_t *Node;\
 	node_t *Stack[AVL_MAX_HEIGHT];\
@@ -85,7 +84,7 @@ struct traverser_t {
    with comparison function |compare| using parameter |param|
    and memory allocator |allocator|.
    Returns |0| if memory allocation failed. */
-table_t *avl_create (Std$Object_t *Compare, Std$Object_t *Hash) {
+table_t *avl_create (Std$Object$t *Compare, Std$Object$t *Hash) {
 	table_t *Table = (table_t *)Riva$Memory$alloc(sizeof *Table);
 	Table->Type = T;
 	Table->Root = 0;
@@ -97,15 +96,15 @@ table_t *avl_create (Std$Object_t *Compare, Std$Object_t *Hash) {
 	return Table;
 }
 
-static inline int compare(const table_t *Table, Std$Object_t *A, Std$Object_t *B) {
-	Std$Function_result Result;
+static inline int compare(const table_t *Table, Std$Object$t *A, Std$Object$t *B) {
+	Std$Function$result Result;
 	Std$Function$call(Table->Compare, 2, &Result, A, 0, B, 0);
-	return ((Std$Integer_smallt *)Result.Val)->Value;
+	return ((Std$Integer$smallt *)Result.Val)->Value;
 };
 
 /* Search |Table| for an item matching |item|, and return it if found.
    Otherwise return |0|. */
-static inline Std$Object_t **avl_find (const table_t *Table, Std$Object_t *Key, unsigned long Hash) {
+static inline Std$Object$t **avl_find (const table_t *Table, Std$Object$t *Key, unsigned long Hash) {
 	node_t *p;
 	for (p = Table->Root; p != 0;) {
 		int cmp;
@@ -123,15 +122,15 @@ static inline Std$Object_t **avl_find (const table_t *Table, Std$Object_t *Key, 
 	return 0;
 }
 
-extern __attribute__ ((regparm(3))) int avl_compare_asm(const table_t *t, Std$Object_t *a, Std$Object_t *b);
-extern __attribute__ ((regparm(3))) Std$Object_t **avl_find_asm(const table_t *Tree, Std$Object_t *Key, unsigned long Hash);
-extern __attribute__ ((regparm(3))) Std$Object_t **avl_probe_asm(const table_t *Tree, Std$Object_t *Key, unsigned long Hash);
+extern __attribute__ ((regparm(3))) int avl_compare_asm(const table_t *t, Std$Object$t *a, Std$Object$t *b);
+extern __attribute__ ((regparm(3))) Std$Object$t **avl_find_asm(const table_t *Tree, Std$Object$t *Key, unsigned long Hash);
+extern __attribute__ ((regparm(3))) Std$Object$t **avl_probe_asm(const table_t *Tree, Std$Object$t *Key, unsigned long Hash);
 
 /* Inserts |item| into |Table| and returns a pointer to |item|'s address.
    If a duplicate item is found in the Table,
    returns a pointer to the duplicate without inserting |item|.
    Returns |0| in case of memory allocation failure. */
-static Std$Object_t **avl_probe (table_t *Table, Std$Object_t *Key, unsigned long Hash) {
+static Std$Object$t **avl_probe (table_t *Table, Std$Object$t *Key, unsigned long Hash) {
 	node_t *y, *z; /* Top Node to update balance factor, and parent. */
 	node_t *p, *q; /* Iterator, and parent. */
 	node_t *n;     /* Newly inserted Node. */
@@ -238,7 +237,7 @@ static Std$Object_t **avl_probe (table_t *Table, Std$Object_t *Key, unsigned lon
 
 /* Deletes from |Table| and returns an item matching |item|.
    Returns a null pointer if no matching item found. */
-static Std$Object_t *avl_delete (table_t *Table, Std$Object_t *Key, long Hash) {
+static Std$Object$t *avl_delete (table_t *Table, Std$Object$t *Key, long Hash) {
 	/* Stack of nodes. */
 	node_t *pa[AVL_MAX_HEIGHT]; /* Nodes. */
 	unsigned char da[AVL_MAX_HEIGHT];    /* |Link[]| indexes. */
@@ -246,7 +245,7 @@ static Std$Object_t *avl_delete (table_t *Table, Std$Object_t *Key, long Hash) {
 
 	node_t *p;   /* Traverses Table to find Node to delete. */
 	int cmp;              /* Result of comparison between |item| and |p|. */
-	Std$Object_t *data;
+	Std$Object$t *data;
 
 	k = 0;
 	p = (node_t *) Table;
@@ -457,8 +456,8 @@ static inline node_t *avl_t_next (traverser_t *Trav) {
 	return x;
 }
 
-Std$Object_t *_new(Std$Object_t *Comp, Std$Object_t *Hash) {
-	return (Std$Object_t *)avl_create(Comp ?: $COMP, Hash ?: $HASH);
+Std$Object$t *_new(Std$Object$t *Comp, Std$Object$t *Hash) {
+	return (Std$Object$t *)avl_create(Comp ?: $COMP, Hash ?: $HASH);
 };
 
 GLOBAL_FUNCTION(New, 0) {
@@ -469,11 +468,11 @@ GLOBAL_FUNCTION(New, 0) {
 // <code>comp(a, b)</code> should return <code>-1</code>, <code>0</code> or <code>-1</code> if <code>a &lt; b</code>, <code>a = b</code> or <code>a &gt; b</code> respectively.
 // <code>Hash(a)</code> should return a <id>Std/Integer/SmallT</id>.
 	if (Count == 0) {
-		Result->Val = (Std$Object_t *)avl_create($COMP, $HASH);
+		Result->Val = (Std$Object$t *)avl_create($COMP, $HASH);
 	} else if (Count == 1) {
-		Result->Val = (Std$Object_t *)avl_create(Args[0].Val, $HASH);
+		Result->Val = (Std$Object$t *)avl_create(Args[0].Val, $HASH);
 	} else if (Count == 2) {
-		Result->Val = (Std$Object_t *)avl_create(Args[0].Val, Args[1].Val);
+		Result->Val = (Std$Object$t *)avl_create(Args[0].Val, Args[1].Val);
 	};
 	return SUCCESS;
 };
@@ -481,7 +480,7 @@ GLOBAL_FUNCTION(New, 0) {
 GLOBAL_FUNCTION(NewIdentity, 0) {
 //:T
 // Returns a new table in which two keys are the same only if they are the same object.
-    Result->Val = (Std$Object_t *)avl_create(Std$Object$Compare, Std$Object$Hash);
+    Result->Val = (Std$Object$t *)avl_create(Std$Object$Compare, Std$Object$Hash);
     return SUCCESS;
 };
 
@@ -495,7 +494,7 @@ METHOD("empty", TYP, T) {
 	Table->Count = 0;
 	Table->Generation = 0;
 	UNLOCK(Table);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -505,13 +504,13 @@ GLOBAL_FUNCTION(Make, 0) {
 	table_t *Table = avl_create($COMP, $HASH);
 	int I;
 	for (I = 0; I < Count; I += 2) {
-		Std$Function_result Result1;
-		Std$Object_t **Slot;
+		Std$Function$result Result1;
+		Std$Object$t **Slot;
 		Std$Function$call($HASH, 1, &Result1, Args[I].Val, 0);
-		Slot = avl_probe_asm(Table, Args[I].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_probe_asm(Table, Args[I].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		*Slot = Args[I + 1].Val;
 	};
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -520,32 +519,32 @@ GLOBAL_FUNCTION(Collect, 1) {
 //@args...
 //:T
 // Returns a table consisting of the values returned by <code>func(args)</code> as keys (and <id>NIL</id> as each Value).
-	Std$Function_result Result0;
-	Std$Object_t *Function = Args[0].Val;
+	Std$Function$result Result0;
+	Std$Object$t *Function = Args[0].Val;
 	table_t *Table = avl_create($COMP, $HASH);
 	long Return = Std$Function$invoke(Function, Count - 1, &Result0, Args + 1);
 	if (Return == SUCCESS) {
-		Std$Function_result Result1;
-		Std$Object_t **Slot;
+		Std$Function$result Result1;
+		Std$Object$t **Slot;
 		Std$Function$call($HASH, 1, &Result1, Result0.Val, 0);
-		Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		*Slot = Std$Object$Nil;
 	} else if (Return == SUSPEND) {
-		Std$Function_result Result1;
-		Std$Object_t **Slot;
+		Std$Function$result Result1;
+		Std$Object$t **Slot;
 		Std$Function$call($HASH, 1, &Result1, Result0.Val, 0);
-		Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		*Slot = Std$Object$Nil;
 		Return = Std$Function$resume(&Result0);
 		while (Return == SUSPEND) {
 			Std$Function$call($HASH, 1, &Result1, Result0.Val, 0);
-			Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+			Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 			*Slot = Std$Object$Nil;
 			Return = Std$Function$resume(&Result0);
 		};
 		if (Return == SUCCESS) {
 			Std$Function$call($HASH, 1, &Result1, Result0.Val, 0);
-			Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+			Slot = avl_probe_asm(Table, Result0.Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 			*Slot = Std$Object$Nil;
 		} else if (Return == MESSAGE) {
 			*Result = Result0;
@@ -555,7 +554,7 @@ GLOBAL_FUNCTION(Collect, 1) {
 		*Result = Result0;
 		return MESSAGE;
 	};
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -572,7 +571,7 @@ METHOD("copy", TYP, T) {
 	};
 	Table->Default = Source->Default;
 	UNLOCK(Source);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -598,7 +597,7 @@ METHOD("map", TYP, T, TYP, Std$Function$T) {
 	};
 	Table->Default = Source->Default;
 	UNLOCK(Source);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	Result->Ref = 0;
 	return SUCCESS;
 };
@@ -624,7 +623,7 @@ METHOD("list", TYP, T, TYP, Std$Function$T) {
 		};
 	};
 	UNLOCK(Source);
-	Result->Val = (Std$Object_t *)List;
+	Result->Val = (Std$Object$t *)List;
 	Result->Ref = 0;
 	return SUCCESS;
 };
@@ -646,7 +645,7 @@ METHOD("+", TYP, T, TYP, T) {
 		avl_probe_asm(Table, Node->Key, Node->Hash)[0] = Node->Value;
 	};
 	UNLOCK(Args[1].Val);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -666,7 +665,7 @@ METHOD("-", TYP, T, TYP, T) {
 	};
 	UNLOCK(Args[1].Val);
 	UNLOCK(Args[0].Val);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
@@ -686,16 +685,16 @@ METHOD("*", TYP, T, TYP, T) {
 	};
 	RDLOCK(Args[1].Val);
 	RDLOCK(Args[0].Val);
-	Result->Val = (Std$Object_t *)Table;
+	Result->Val = (Std$Object$t *)Table;
 	return SUCCESS;
 };
 
-void _insert(table_t *Table, Std$Object_t *Key, Std$Object_t *Value) {
+void _insert(table_t *Table, Std$Object$t *Key, Std$Object$t *Value) {
 	WRLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
-	Slot = avl_probe_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_probe_asm(Table, Key, ((Std$Integer$smallt *)Result1.Val)->Value);
 	*Slot = Value ? Value : Std$Object$Nil;
 	UNLOCK(Table);
 };
@@ -712,10 +711,10 @@ METHOD("insert", TYP, T, SKP) {
 // Inserts the pair <code>(Key, Value)</code> into <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
-	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 	*Slot = Count > 2 ? Args[2].Val : Std$Object$Nil;
 	UNLOCK(Table);
 	Result->Arg = Args[0];
@@ -732,9 +731,9 @@ METHOD("modify", TYP, T, ANY, TYP, Std$Function$T) {
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
 	Std$Function$call(Table->Hash, 1, Result, Args[1].Val, 0);
-	Std$Object_t **Ref;
+	Std$Object$t **Ref;
 	if (Table->Default) {
-		Ref = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result->Val)->Value);
+		Ref = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result->Val)->Value);
 		if (*Ref == 0) {
 			Std$Function$status Status = Std$Function$call(Table->Default, 1, Result, Args[1].Val, 0);
 			if (Status > SUCCESS) {
@@ -744,7 +743,7 @@ METHOD("modify", TYP, T, ANY, TYP, Std$Function$T) {
 			*Ref = Result->Val;
 		};
 	} else {
-		Ref = avl_find_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result->Val)->Value);
+		Ref = avl_find_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result->Val)->Value);
 		if (Ref == 0) {
 			UNLOCK(Table);
 			return FAILURE;
@@ -758,11 +757,11 @@ METHOD("modify", TYP, T, ANY, TYP, Std$Function$T) {
 	};
 };
 
-int _delete(table_t *Table, Std$Object_t *Key) {
-	Std$Function_result Result1;
+int _delete(table_t *Table, Std$Object$t *Key) {
+	Std$Function$result Result1;
 	WRLOCK(Table);
 	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
-	if (avl_delete(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value)) {
+	if (avl_delete(Table, Key, ((Std$Integer$smallt *)Result1.Val)->Value)) {
 		UNLOCK(Table);
 		return 0;
 	} else {
@@ -778,9 +777,9 @@ METHOD("delete", TYP, T, SKP) {
 // Removes the <var>Key</var> from <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
-	Std$Function_result Result1;
+	Std$Function$result Result1;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
-	Std$Object_t *Value = avl_delete(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Std$Object$t *Value = avl_delete(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 	UNLOCK(Table);
 	if (Value) {
 		Result->Val = Value;
@@ -801,7 +800,7 @@ METHOD("remove", TYP, T, SKP) {
 	WRLOCK(Table);
 	traverser_t Traverser;
 	for (node_t *Node = avl_t_first(&Traverser, Table); Node; Node = avl_t_next(&Traverser)) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		if (Std$Function$call($EQUAL, 2, &Result0, Args[1].Val, 0, Node->Value, 0) < FAILURE) {
 			avl_delete(Table, Node->Key, Node->Hash);
 			UNLOCK(Table);
@@ -822,7 +821,7 @@ METHOD("remove_if", TYP, T, TYP, Std$Function$T) {
 	WRLOCK(Table);
 	traverser_t Traverser;
 	for (node_t *Node = avl_t_first(&Traverser, Table); Node; Node = avl_t_next(&Traverser)) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		if (Std$Function$call(Args[1].Val, 2, &Result0, Node->Key, 0, Node->Value, 0) < FAILURE) {
 			Result->Val = avl_delete(Table, Node->Key, Node->Hash);
 			UNLOCK(Table);
@@ -834,8 +833,8 @@ METHOD("remove_if", TYP, T, TYP, Std$Function$T) {
 };
 
 METHOD("=", TYP, T, TYP, T, TYP, Agg$ObjectTable$T) {
-	Agg$ObjectTable_t *Cache = (Agg$ObjectTable_t *)Args[2].Val;
-	Std$Object_t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
+	Agg$ObjectTable$t *Cache = (Agg$ObjectTable$t *)Args[2].Val;
+	Std$Object$t *Prior = Agg$ObjectTable$get(Cache, Args[0].Val);
 	if (Prior != (void *)0xFFFFFFFF) {
 		if (Prior == Args[1].Val) {
 			Result->Arg = Args[1];
@@ -871,12 +870,12 @@ METHOD("=", TYP, T, TYP, T, TYP, Agg$ObjectTable$T) {
 	return SUCCESS;
 };
 
-Std$Object_t *_index(table_t *Table, Std$Object_t *Key) {
-	Std$Function_result Result1;
+Std$Object$t *_index(table_t *Table, Std$Object$t *Key) {
+	Std$Function$result Result1;
 	RDLOCK(Table);
-	Std$Object_t **Slot;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Key, 0);
-	Slot = avl_find_asm(Table, Key, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_find_asm(Table, Key, ((Std$Integer$smallt *)Result1.Val)->Value);
 	if (Slot != 0) {
 		UNLOCK(Table);
 		return *Slot;
@@ -918,10 +917,10 @@ METHOD("check", TYP, T, SKP, ANY) {
 // If <var>Key</var> is not present, a new pair <code>(Key, default)</code> is created and the call fails.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
-	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 	if (*Slot == 0) {
 		*Slot = Args[2].Val;
 		UNLOCK(Table);
@@ -941,11 +940,11 @@ METHOD("missing", TYP, T, ANY) {
 // Otherwise, inserts the pair <code>(Key, NIL)</code> into <var>t</var> and returns an assignable reference.
 	table_t *Table = (table_t *)Args[0].Val;
 	WRLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
 	int Size = Table->Count;
-	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 	if (Table->Count == Size) {
 		if (Count > 2 && Args[2].Ref) *Args[2].Ref = *Slot;
 		UNLOCK(Table);
@@ -964,11 +963,11 @@ METHOD("[]", TYP, T, SKP) {
 // Returns the Value associated with <var>Key</var> in <var>t</var>.
 	table_t *Table = (table_t *)Args[0].Val;
 	RDLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
 	if (Table->Default) {
-		Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		if (Slot[0] == 0) {
 			Std$Function$status Status = Std$Function$call(Table->Default, 2, Result, Args[1].Val, 0, Args[0].Val, 0);
 			if (Status > SUCCESS) {
@@ -981,7 +980,7 @@ METHOD("[]", TYP, T, SKP) {
 		UNLOCK(Table);
 		return SUCCESS;
 	} else {
-		Slot = avl_find_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_find_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		if (Slot != 0) {
 			Result->Val = *(Result->Ref = Slot);
 			UNLOCK(Table);
@@ -1001,10 +1000,10 @@ METHOD("[]", TYP, T, SKP, ANY) {
 // If <var>Key</var> is not present, a new pair <code>(Key, default)</code> is created and <var>default</var> is returned.
 	table_t *Table = (table_t *)Args[0].Val;
 	RDLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
-	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+	Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 	if (*Slot == 0) *Slot = Args[2].Val;
 	Result->Val = *(Result->Ref = Slot);
 	UNLOCK(Table);
@@ -1014,11 +1013,11 @@ METHOD("[]", TYP, T, SKP, ANY) {
 METHOD(".", TYP, T, SKP) {
 	table_t *Table = (table_t *)Args[0].Val;
 	RDLOCK(Table);
-	Std$Function_result Result1;
-	Std$Object_t **Slot;
+	Std$Function$result Result1;
+	Std$Object$t **Slot;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[1].Val, 0);
 	if (Table->Default) {
-		Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_probe_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		if (Slot[0] == 0) {
 			Std$Function$status Status = Std$Function$call(Table->Default, 2, Result, Args[1].Val, 0, Args[0].Val, 0);
 			if (Status > SUCCESS) {
@@ -1031,7 +1030,7 @@ METHOD(".", TYP, T, SKP) {
 		UNLOCK(Table);
 		return SUCCESS;
 	} else {
-		Slot = avl_find_asm(Table, Args[1].Val, ((Std$Integer_smallt *)Result1.Val)->Value);
+		Slot = avl_find_asm(Table, Args[1].Val, ((Std$Integer$smallt *)Result1.Val)->Value);
 		if (Slot != 0) {
 			Result->Val = *(Result->Ref = Slot);
 			UNLOCK(Table);
@@ -1049,9 +1048,9 @@ METHOD("in", SKP, TYP, T) {
 // Returns <var>Key</var> if it is a Key in <var>table</var>, fails otherwise.
 	table_t *Table = (table_t *)Args[1].Val;
 	RDLOCK(Table);
-	Std$Function_result Result1;
+	Std$Function$result Result1;
 	Std$Function$call(Table->Hash, 1, &Result1, Args[0].Val, 0);
-	if (avl_find_asm(Table, Args[0].Val, ((Std$Integer_smallt *)Result1.Val)->Value)) {
+	if (avl_find_asm(Table, Args[0].Val, ((Std$Integer$smallt *)Result1.Val)->Value)) {
 		Result->Arg = Args[0];
 		UNLOCK(Table);
 		return SUCCESS;
@@ -1066,28 +1065,28 @@ STRING(RightBrace, "}");
 STRING(SpaceIsSpace, " is ");
 STRING(CommaSpace, ", ");
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
-	Std$Function_result Buffer;
-	Std$Object_t *Final = LeftBrace;
+AMETHOD(Std$String$Of, TYP, T) {
+	Std$Function$result Buffer;
+	Std$Object$t *Final = LeftBrace;
 	traverser_t Traverser;
 	RDLOCK(Args[0].Val);
 	node_t *Node = avl_t_first(&Traverser, (table_t *)Args[0].Val);
 	if (Node != 0) {
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0);
 		Final = Std$String$add(Final, Buffer.Val);
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0);
 			Final = Std$String$add(Final, Buffer.Val);
 		};
 	};
 	for (Node = avl_t_next(&Traverser); Node; Node = avl_t_next(&Traverser)) {
 		Final = Std$String$add(Final, CommaSpace);
-		Std$Function$call($AT, 2, &Buffer, Node->Key, 0, Std$String$T, 0);
+		Std$Function$call(Std$String$Of, 1, &Buffer, Node->Key, 0);
 		Final = Std$String$add(Final, Buffer.Val);
 		if (Node->Value != Std$Object$Nil) {
 			Final = Std$String$add(Final, SpaceIsSpace);
-			Std$Function$call($AT, 2, &Buffer, Node->Value, 0, Std$String$T, 0);
+			Std$Function$call(Std$String$Of, 1, &Buffer, Node->Value, 0);
 			Final = Std$String$add(Final, Buffer.Val);
 		};
 	};
@@ -1115,7 +1114,7 @@ METHOD("Value", TYP, NodeType) {
 static long resume_items_table(Std$Function$result *Result) {
 	node_t *Node = avl_t_next(Result->State);
 	if (Node != 0) {
-		Result->Val = (Std$Object_t *)Node;
+		Result->Val = (Std$Object$t *)Node;
 		Result->Ref = 0;
 		return SUSPEND;
 	} else {
@@ -1130,9 +1129,9 @@ METHOD("items", TYP, T) {
 	traverser_t *Traverser = new(traverser_t);
 	node_t *Node = avl_t_first(Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
-	Traverser->State.Invoke = (Std$Function_cresumefn)resume_items_table;
+	Traverser->State.Invoke = (Std$Function$cresumefn)resume_items_table;
 	if (Node != 0) {
-		Result->Val = (Std$Object_t *)Node;
+		Result->Val = (Std$Object$t *)Node;
 		Result->State = Traverser;
 		return SUSPEND;
 	} else {
@@ -1142,7 +1141,7 @@ METHOD("items", TYP, T) {
 
 typedef struct loop_state {
 	TRAVERSER_FIELDS
-	Std$Object_t **Key, **Value;
+	Std$Object$t **Key, **Value;
 } loop_state;
 
 static long resume_loop_table(Std$Function$result *Result) {
@@ -1166,7 +1165,7 @@ METHOD("loop", TYP, T, ANY, ANY) {
 	loop_state *Traverser = new(loop_state);
 	node_t *Node = avl_t_first((traverser_t *)Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
-	Traverser->State.Invoke = (Std$Function_cresumefn)resume_loop_table;
+	Traverser->State.Invoke = (Std$Function$cresumefn)resume_loop_table;
 	Traverser->Key = Args[1].Ref;
 	Traverser->Value = Args[2].Ref;
 	if (Node != 0) {
@@ -1198,7 +1197,7 @@ METHOD("keys", TYP, T) {
 	traverser_t *Traverser = new(traverser_t);
 	node_t *Node = avl_t_first(Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
-	Traverser->State.Invoke = (Std$Function_cresumefn)resume_keys_table;
+	Traverser->State.Invoke = (Std$Function$cresumefn)resume_keys_table;
 	if (Node != 0) {
 		Result->Val = Node->Key;
 		Result->State = Traverser;
@@ -1225,7 +1224,7 @@ METHOD("values", TYP, T) {
 	traverser_t *Traverser = new(traverser_t);
 	node_t *Node = avl_t_first(Traverser, (table_t *)Args[0].Val);
 	Traverser->State.Run = Std$Function$resume_c;
-	Traverser->State.Invoke = (Std$Function_cresumefn)resume_values_table;
+	Traverser->State.Invoke = (Std$Function$cresumefn)resume_values_table;
 	if (Node != 0) {
 		Result->Val = *(Result->Ref = &Node->Value);
 		Result->State = Traverser;
@@ -1237,14 +1236,14 @@ METHOD("values", TYP, T) {
 
 typedef struct find_state {
 	TRAVERSER_FIELDS
-	Std$Object_t *Value;
+	Std$Object$t *Value;
 } find_state;
 
 static long resume_find_table(Std$Function$result *Result) {
 	find_state *State = Result->State;
 	node_t *Node;
 	while (Node = avl_t_next(State)) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Node->Value, 0, State->Value, 0)) {
 		case SUSPEND: case SUCCESS:
 			Result->Val = Node->Key;
@@ -1264,11 +1263,11 @@ METHOD("find", TYP, T, SKP) {
 // Generates the all keys in <var>table</var> which has Value <var>Value</var>.
 	find_state *State = new(find_state);
 	for (node_t *Node = avl_t_first((traverser_t *)State, (table_t *)Args[0].Val); Node; Node = avl_t_next((traverser_t *)State)) {
-		Std$Function_result Result0;
+		Std$Function$result Result0;
 		switch (Std$Function$call($EQUAL, 2, &Result0, Args[1].Val, 0, Node->Value, 0)) {
 		case SUSPEND: case SUCCESS:
 			State->State.Run = Std$Function$resume_c;
-			State->State.Invoke = (Std$Function_cresumefn)resume_find_table;
+			State->State.Invoke = (Std$Function$cresumefn)resume_find_table;
 			State->Value = Args[1].Val;
 			Result->Val = Node->Key;
 			Result->State = State;
@@ -1281,11 +1280,11 @@ METHOD("find", TYP, T, SKP) {
 	return FAILURE;
 };
 
-size_t _size(Std$Object_t *Table) {
+size_t _size(Std$Object$t *Table) {
 	return ((table_t *)Table)->Count;
 };
 
-size_t _generation(Std$Object_t *Table) {
+size_t _generation(Std$Object$t *Table) {
 	return ((table_t *)Table)->Generation;
 };
 
@@ -1320,9 +1319,9 @@ METHOD("newv", TYP, Std$Type$T, TYP, T) {
 // Creates a new instance <var>instance</var> of <var>type</var> and for each <code>(Key, Value)</code> pair in <var>fields</var>, sets <code>Key(instance) &lt;- Value</code>. Returns <var>instance</var>.
 // Each <var>Key</var> should be a <id>Std/Symbol/T</id>.
 	Std$Function$call(Args[0].Val, 0, Result);
-	Std$Object_t *Object = Result->Val;
+	Std$Object$t *Object = Result->Val;
 	traverser_t Traverser;
-	Std$Function_result Field;
+	Std$Function$result Field;
 	for (node_t *Node = avl_t_first(&Traverser, (table_t *)Args[1].Val); Node; Node = avl_t_next(&Traverser)) {
 		if (Std$Function$call(Node->Key, 1, &Field, Object, 0) == MESSAGE) {
 			Result->Val = Field.Val;
@@ -1352,15 +1351,15 @@ node_t *_trav_next(traverser_t *Trav) {
 	return avl_t_next(Trav);
 };
 
-Std$Object_t *_node_key(node_t *Node) {
+Std$Object$t *_node_key(node_t *Node) {
 	return Node->Key;
 };
 
-Std$Object_t *_node_value(node_t *Node) {
+Std$Object$t *_node_value(node_t *Node) {
 	return Node->Value;
 };
 
-Std$Object_t **_node_value_ref(node_t *Node) {
+Std$Object$t **_node_value_ref(node_t *Node) {
 	return &Node->Value;
 };
 

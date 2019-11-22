@@ -32,15 +32,15 @@ TYPE(T, IO$Stream$T);
 
 typedef struct encoder_t {
 	const Std$Type$t *Type;
-	IO$Stream_t *Base;
-	IO$Stream_readfn read;
-	IO$Stream_writefn write;
+	IO$Stream$t *Base;
+	IO$Stream$readfn read;
+	IO$Stream$writefn write;
 	uint8_t SpareNormal, SpareEncoded;
 	char BufferNormal[2];
 	char BufferEncoded[3];
 } encoder_t;
 
-IO$Stream_t *_encoder_new(IO$Stream_t *Base) {
+IO$Stream$t *_encoder_new(IO$Stream$t *Base) {
 	static const Std$Type$t *Types[16] = {
 		T, ReaderT, WriterT, ReaderWriterT, SeekerT, ReaderSeekerT, WriterSeekerT, ReaderWriterSeekerT,
 		0, TextReaderT, TextWriterT, TextReaderWriterT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
@@ -75,7 +75,7 @@ GLOBAL_FUNCTION(New, 1) {
 		0, TextReaderT, TextWriterT, TextReaderWriterT, TextReaderSeekerT, TextWriterSeekerT, TextReaderWriterSeekerT
 	};
 	encoder_t *Stream = new(encoder_t);
-	IO$Stream_t *Base = Args[0].Val;
+	IO$Stream$t *Base = Args[0].Val;
 	int TypeNo = 0;
 	for (const Std$Type$t **Type = Base->Type->Types; *Type; ++Type) {
 		if (*Type == IO$Stream$ReaderT) TypeNo |= 1;
@@ -138,11 +138,11 @@ SYMBOL($block, "block");
 
 METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	encoder_t *Stream = (encoder_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesRead = encoder_read(Stream, Buffer, Count, (Count >= 3 && Args[3].Val == $block));
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -214,11 +214,11 @@ TYPED_INSTANCE(int, IO$Stream$write, WriterT, encoder_t *Stream, const char *Buf
 
 METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	encoder_t *Stream = (encoder_t *)Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	int BytesWritten = encoder_write(Stream, Buffer, Size, (Count >= 3 && Args[3].Val == $block));
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(BytesWritten);

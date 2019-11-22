@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <gc/gc.h>
 #include "minilang/minilang.h"
+#include "minilang/ml_macros.h"
 #include "minilang/stringmap.h"
 
 #ifdef USE_UDIS
@@ -1602,6 +1603,8 @@ static ml_value_t *script_file_module(void *Data, int Count, ml_value_t **Args) 
 		stringmap_insert(GlobalTable, Name, new_symbol(Name, (section_t *)LibrarySection, 0));
 	}
 
+	stringmap_insert(RlinkGlobals, "MODULE", ml_string(Name, PathSize));
+
 	CurrentLibrary->Section = LibrarySection;
 	return MLNil;
 }
@@ -2062,7 +2065,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RlinkGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RlinkGlobals, E->Name, E);
@@ -2083,7 +2086,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RlibGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RlibGlobals, E->Name, E);
@@ -2100,7 +2103,7 @@ int main(int Argc, char **Argv) {
 	for (const char **P = Platforms; *P; ++P) {
 		stringmap_insert(RdefGlobals, *P, strcmp(Platform, *P) ? MLNil : ml_integer(1));
 	}
-	ExportTypeT = ml_class(MLAnyT, "export-type");
+	ExportTypeT = ml_type(MLAnyT, "export-type");
 	for (export_type_t *E = ExportTypes; E->Name; ++E) {
 		E->Type = ExportTypeT;
 		stringmap_insert(RdefGlobals, E->Name, E);
@@ -2128,6 +2131,7 @@ int main(int Argc, char **Argv) {
 	char *ListFile = 0;
 	char *ExportFile = 0;
 	char *ModuleName = 0;
+	char *Prefix = "";
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -2184,6 +2188,13 @@ int main(int Argc, char **Argv) {
 					ModuleName = Argv[I] + 2;
 				} else {
 					ModuleName = Argv[++I];
+				}
+				break;
+			case 'P':
+				if (Argv[I][2]) {
+					Prefix = Argv[I] + 2;
+				} else {
+					Prefix = Argv[++I];
 				}
 				break;
 			case 'v':
@@ -2254,6 +2265,7 @@ int main(int Argc, char **Argv) {
 			}
 			fprintf(File, "\"%s\")\n", PartStart);
 		}
+		fprintf(File, "prefix(\"%s\")\n", Prefix);
 		for (export_t *Export = Exports.Head; Export; Export = Export->Next) {
 			if (Export->Section) fprintf(File, "import(\"%s\")\n", Export->External);
 		}

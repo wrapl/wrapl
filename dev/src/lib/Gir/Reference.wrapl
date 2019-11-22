@@ -119,7 +119,7 @@ TO :c_precall(type@ReturnT, argindex, paramindex) [
 DEF ParamT! <- <[Type.T] base, index>;
 
 DEF ParamNew!(base) (
-	VAR index <- base:before(":") @ Integer.T;
+	VAR index <- Integer.Of(base:before(":"));
 	base <- Type.Lookup(base:after(":"));
     VAR type <- ParamT();
     type:index <- index;

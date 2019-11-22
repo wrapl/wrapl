@@ -11,9 +11,9 @@ riva_struct t, Std$Object_t
 endstruct
 
 riva_extern T
+riva_extern Of
 riva_extern Compare
 riva_extern Hash
-riva_extern New
 
 riva_extern _new_small_small
 

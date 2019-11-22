@@ -15,13 +15,13 @@
 struct assembler_t;
 
 struct closure_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	void *Entry;
 	void *Values[];
 };
 
 struct code_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	void *Entry;
 	void *Frame;
 };
@@ -65,9 +65,9 @@ struct operand_t {
 	operand_t *Next;
 	enum {CNST = 0, GVAR = 1, LVAR, LREF, TVAR, TREF, TREG, CLSR, FUTR, REGR} Type;
 	union {
-		Std$Object_t *Value;
-		Std$Object_t **Address;
-		struct {uint32_t Index;};
+		Std$Object$t *Value;
+		Std$Object$t **Address;
+		uint32_t Index;
 		struct {void *Entry; upvalue_t *UpValues; uptemp_t *UpTemps;};
 		struct future_t *Future;
 	};
@@ -139,7 +139,7 @@ struct select_real_case_t {
 struct select_object_case_t {
 	select_object_case_t *Next;
 	label_t *Body;
-	Std$Object_t *Object;
+	Std$Object$t *Object;
 };
 
 struct select_type_case_t {
@@ -177,7 +177,7 @@ struct label_t : inst_t {
 	void store_reg(uint32_t LineNo, operand_t *Operand);
 	void store_val(uint32_t LineNo, operand_t *Operand);
 	void store_ref(uint32_t LineNo, operand_t *Operand);
-	void store_con(uint32_t LineNo, operand_t *Operand, Std$Object_t *Value);
+	void store_con(uint32_t LineNo, operand_t *Operand, Std$Object$t *Value);
 	void flush(uint32_t LineNo);
 	void store_arg(uint32_t LineNo, uint32_t Index, operand_t *Operand);
 	void fixup_arg(uint32_t LineNo, uint32_t Index, operand_t *Operand);
@@ -194,6 +194,7 @@ struct label_t : inst_t {
 	void test_limit(uint32_t LineNo, uint32_t Temp, label_t *Failure);
 	void skip(uint32_t LineNo, uint32_t Temp);
 	void test_skip(uint32_t LineNo, uint32_t Trap, uint32_t Temp);
+	void test_unique(uint32_t LineNo, uint32_t Trap, uint32_t Temp);
 	void select_integer(uint32_t LineNo, select_integer_case_t *Cases, label_t *Default);
 	void select_string(uint32_t LineNo, select_string_case_t *Cases, label_t *Default);
 	void select_real(uint32_t LineNo, select_real_case_t *Cases, label_t *Default);
@@ -205,6 +206,7 @@ struct label_t : inst_t {
 	void store_list(uint32_t LineNo, uint32_t Index);
 	void new_table(uint32_t LineNo, uint32_t Index);
 	void store_table(uint32_t LineNo, uint32_t Index);
+	void store_table2(uint32_t LineNo, uint32_t Index, uint32_t Key, int Reverse);
 	void new_count(uint32_t LineNo, uint32_t Index);
 	void inc_count(uint32_t LineNo, uint32_t Index);
 	void load_code(uint32_t LineNo, label_t *Code);

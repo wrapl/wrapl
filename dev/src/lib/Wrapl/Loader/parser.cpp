@@ -36,8 +36,9 @@ SYMBOL($HASH, "#");
 SYMBOL($DOT, ".");
 SYMBOL($LOGICALAND, "and");
 SYMBOL($LOGICALOR, "or");
+SYMBOL($PARALLEL, "||");
 
-extern Riva$Module_t Riva$Symbol[];
+extern Riva$Module$t Riva$Symbol[];
 
 expr_t *accept_expr(scanner_t *Scanner);
 static expr_t *parse_expr(scanner_t *Scanner);
@@ -151,16 +152,16 @@ expr_t *accept_expr_list(scanner_t *Scanner) {
 	return List;
 };
 
-expr_t *accept_named_arguments_rest(scanner_t *Scanner, Std$Symbol_array *&Symbols, int Index) {
+expr_t *accept_named_arguments_rest(scanner_t *Scanner, Std$Symbol$array *&Symbols, int Index) {
 	if (!Scanner->parse(tkCOMMA)) {
-		Symbols = (Std$Symbol_array *)Riva$Memory$alloc(sizeof(Std$Symbol_array) + (Index + 1) * sizeof(Std$Symbol_t *));
+		Symbols = (Std$Symbol$array *)Riva$Memory$alloc(sizeof(Std$Symbol$array) + (Index + 1) * sizeof(Std$Symbol$t *));
 		Symbols->Type = Std$Symbol$ArrayT;
 		Symbols->Count = Index;
 		return 0;
 	};
-	Std$Symbol_t *Symbol;
+	Std$Symbol$t *Symbol;
 	if (Scanner->parse(tkSYMBOL)) {
-		Symbol = (Std$Symbol_t *)Scanner->Token.Const;
+		Symbol = (Std$Symbol$t *)Scanner->Token.Const;
 	} else {
 		Scanner->accept(tkIDENT);
 		int Type;
@@ -180,10 +181,10 @@ expr_t *accept_arguments_rest(scanner_t *Scanner) {
 		//if (ident_expr_t *Ident = dynamic_cast<ident_expr_t *>(List)) {
 		if (!strcmp(List->classid(), ident_expr_t::_classid())) {
 			ident_expr_t *Ident = (ident_expr_t *)List;
-			Std$Symbol_t *Symbol;
+			Std$Symbol$t *Symbol;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Ident->Name, &Type, (void **)&Symbol);
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -191,9 +192,9 @@ expr_t *accept_arguments_rest(scanner_t *Scanner) {
 			Names->Next = List;
 			return Names;
 		} else if (!strcmp(List->classid(), const_expr_t::_classid())) {
-			Std$Symbol_t *Symbol = (Std$Symbol_t *)((const_expr_t *)List)->Operand->Value;
+			Std$Symbol$t *Symbol = (Std$Symbol$t *)((const_expr_t *)List)->Operand->Value;
 			if (Symbol->Type != Std$Symbol$T) Scanner->raise_error(List->LineNo, ParseErrorMessageT, "Parameter names must be identifiers");
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -216,10 +217,10 @@ expr_t *accept_arguments(scanner_t *Scanner) {
 		//if (ident_expr_t *Ident = dynamic_cast<ident_expr_t *>(List)) {
 		if (!strcmp(List->classid(), ident_expr_t::_classid())) {
 			ident_expr_t *Ident = (ident_expr_t *)(List);
-			Std$Symbol_t *Symbol;
+			Std$Symbol$t *Symbol;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Ident->Name, &Type, (void **)&Symbol);
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -227,9 +228,9 @@ expr_t *accept_arguments(scanner_t *Scanner) {
 			Names->Next = List;
 			return Names;
 		} else if (!strcmp(List->classid(), const_expr_t::_classid())) {
-			Std$Symbol_t *Symbol = (Std$Symbol_t *)((const_expr_t *)List)->Operand->Value;
+			Std$Symbol$t *Symbol = (Std$Symbol$t *)((const_expr_t *)List)->Operand->Value;
 			if (Symbol->Type != Std$Symbol$T) Scanner->raise_error(List->LineNo, ParseErrorMessageT, "Parameter names must be identifiers");
-			Std$Symbol_array *Symbols;
+			Std$Symbol$array *Symbols;
 			List = accept_expr(Scanner);
 			List->Next = accept_named_arguments_rest(Scanner, Symbols, 1);
 			Symbols->Values[0] = Symbol;
@@ -268,18 +269,18 @@ static expr_t *accept_table_list(scanner_t *Scanner) {
 	return List;
 };
 
-static Std$Array_t *accept_fields(scanner_t *Scanner, int Index = 0) {
-	Std$Object_t *Field;
+static Std$Array$t *accept_fields(scanner_t *Scanner, int Index = 0) {
+	Std$Object$t *Field;
 	if (Scanner->parse(tkIDENT)) {
 		int Type;
 		Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 	} else if (Scanner->parse(tkSYMBOL)) {
 		Field = Scanner->Token.Const;
 	} else {
-		return (Std$Array_t *)Std$Array$new(Index);
+		return (Std$Array$t *)Std$Array$new(Index);
 	};
 	Scanner->parse(tkCOMMA);
-	Std$Array_t *Fields = accept_fields(Scanner, Index + 1);
+	Std$Array$t *Fields = accept_fields(Scanner, Index + 1);
 	Fields->Values[Index] = Field;
 	return Fields;
 };
@@ -288,12 +289,12 @@ static expr_t *accept_field_list(scanner_t *Scanner) {
 	if (Scanner->parse(tkGREATER)) return 0;
 	expr_t *List;
 	if (Scanner->parse(tkIDENT)) {
-		Std$Object_t *Field;
+		Std$Object$t *Field;
 		int Type;
 		Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 		List = new const_expr_t(Scanner->Token.LineNo, Field);
 	} else if ((Scanner->NextToken.Type == tkCONST) && (Scanner->NextToken.Const->Type == Std$String$T)) {
-		Std$Object_t *Field;
+		Std$Object$t *Field;
 		int Type;
 		Riva$Module$import(Riva$Symbol, Std$String$flatten(Scanner->NextToken.Const), &Type, (void **)&Field);
 		Scanner->accept(tkCONST);
@@ -305,12 +306,12 @@ static expr_t *accept_field_list(scanner_t *Scanner) {
 	while (!Scanner->parse(tkGREATER)) {
 		Scanner->parse(tkCOMMA);
 		if (Scanner->parse(tkIDENT)) {
-			Std$Object_t *Field;
+			Std$Object$t *Field;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Scanner->Token.Ident, &Type, (void **)&Field);
 			Tail->Next = new const_expr_t(Scanner->Token.LineNo, Field);
 		} else if ((Scanner->NextToken.Type == tkCONST) && (Scanner->NextToken.Const->Type == Std$String$T)) {
-			Std$Object_t *Field;
+			Std$Object$t *Field;
 			int Type;
 			Riva$Module$import(Riva$Symbol, Std$String$flatten(Scanner->NextToken.Const), &Type, (void **)&Field);
 			Scanner->accept(tkCONST);
@@ -384,7 +385,7 @@ static expr_t *accept_when_expr(scanner_t *Scanner) {
 	};
 };
 
-extern Std$Object_t Std$Type$New[];
+extern Std$Object$t Std$Type$New[];
 
 static block_expr_t *accept_localstatement(scanner_t *Scanner);
 
@@ -393,7 +394,6 @@ static block_expr_t *accept_localvar(scanner_t *Scanner) {
 	Var->LineNo = Scanner->Token.LineNo;
 	Scanner->accept(tkIDENT);
 	Var->Name = Scanner->Token.Ident;
-	Var->Reference = Scanner->parse(tkPLUS);
 	if (Scanner->parse(tkASSIGN)) {
 		ident_expr_t *Ident = new ident_expr_t(Scanner->Token.LineNo, Var->Name);
 		assign_expr_t *Assign = new assign_expr_t(Scanner->Token.LineNo, Ident, accept_expr(Scanner));
@@ -626,13 +626,18 @@ SYMBOL($MAX, "max");
 SYMBOL($MIN, "min");
 
 static expr_t *parse_factor(scanner_t *Scanner) {
-	if (Scanner->parse(tkCONST)) return new const_expr_t(Scanner->Token.LineNo, Scanner->Token.Const);
-	if (Scanner->parse(tkSTRBLOCK)) return new invoke_expr_t(Scanner->Token.LineNo,
-		new const_expr_t(Scanner->Token.LineNo, Std$String$Create),
-		(expr_t *)Scanner->Token.Const
-	);
-	if (Scanner->parse(tkSYMBOL)) return new const_expr_t(Scanner->Token.LineNo, Scanner->Token.Const);
-	if (Scanner->parse(tkIDENT)) {
+	switch (Scanner->next()) {
+	case tkCONST: Scanner->parse();
+		return new const_expr_t(Scanner->Token.LineNo, Scanner->Token.Const);
+	case tkSTRBLOCK: Scanner->parse();
+		return new invoke_expr_t(Scanner->Token.LineNo,
+			new const_expr_t(Scanner->Token.LineNo, Std$String$Create),
+			(expr_t *)Scanner->Token.Const
+		);
+	case tkSYMBOL: Scanner->parse();
+		return new const_expr_t(Scanner->Token.LineNo, Scanner->Token.Const);
+	case tkIDENT: {
+		Scanner->parse();
 		const char *Ident = Scanner->Token.Ident;
 		if (Scanner->parse(tkDOT)) {
 			expr_t *Expr;
@@ -671,7 +676,7 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 				Expr = new invoke_expr_t(Scanner->Token.LineNo, new const_expr_t(Scanner->Token.LineNo, $DOT), Expr);
 				while (Scanner->parse(tkDOT)) {
 					if (Scanner->parse(tkIDENT)) {
-						Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object_t *)Std$String$new(Scanner->Token.Ident));
+						Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object$t *)Std$String$new(Scanner->Token.Ident));
 					} else {
 						Expr->Next = accept_factor(Scanner);
 					};
@@ -683,9 +688,12 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			return new ident_expr_t(Scanner->Token.LineNo, Ident);
 		};
 	};
-	if (Scanner->parse(tkSELF)) return new self_expr_t(Scanner->Token.LineNo);
-	if (Scanner->parse(tkNIL)) return new const_expr_t(Scanner->Token.LineNo, Std$Object$Nil);
-	if (Scanner->parse(tkLBRACKET)) {
+	case tkSELF: Scanner->parse();
+		return new self_expr_t(Scanner->Token.LineNo);
+	case tkNIL: Scanner->parse();
+		return new const_expr_t(Scanner->Token.LineNo, Std$Object$Nil);
+	case tkLBRACKET: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Expr = new invoke_expr_t(LineNo,
 			new const_expr_t(LineNo, Agg$List$Make),
@@ -694,7 +702,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Scanner->accept(tkRBRACKET);
 		return Expr;
 	};
-	if (Scanner->parse(tkLBRACE)) {
+	case tkLBRACE: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Expr = new invoke_expr_t(LineNo,
 			new const_expr_t(LineNo, Agg$Table$Make),
@@ -703,7 +712,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Scanner->accept(tkRBRACE);
 		return Expr;
 	};
-	if (Scanner->parse(tkLESS)) {
+	case tkLESS: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		if (Scanner->parse(tkLBRACKET)) {
 			expr_t *Parents = accept_expr_list(Scanner);
@@ -768,26 +778,32 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			return new func_expr_t(LineNo, Parameters, accept_expr(Scanner));
 		};
 	};
-	if (Scanner->parse(tkLPAREN)) {
+	case tkLPAREN: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Block = accept_localstatement(Scanner);
 		Block->LineNo = LineNo;
 		Scanner->accept(tkRPAREN);
 		return Block;
 	};
-	if (Scanner->parse(tkBACK)) return new back_expr_t(Scanner->Token.LineNo);
-	if (Scanner->parse(tkFAIL)) return new fail_expr_t(Scanner->Token.LineNo);
-	if (Scanner->parse(tkRET)) {
+	case tkBACK: Scanner->parse();
+		return new back_expr_t(Scanner->Token.LineNo);
+	case tkFAIL: Scanner->parse();
+		return new fail_expr_t(Scanner->Token.LineNo);
+	case tkRET: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Value = parse_expr(Scanner);
 		if (Value == 0) Value = new const_expr_t(LineNo, Std$Object$Nil);
 		return new ret_expr_t(LineNo, Value);
 	};
-	if (Scanner->parse(tkSUSP)) {
+	case tkSUSP: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new susp_expr_t(LineNo, accept_expr(Scanner));
 	};
-	if (Scanner->parse(tkWITH)) {
+	case tkWITH: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		bool Parallel = false;
 		if (!Scanner->parse(tkSEQ)) Parallel = Scanner->parse(tkPAR);
@@ -809,23 +825,52 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Scanner->accept(tkDO);
 		return new with_expr_t(LineNo, Bindings, accept_expr(Scanner), Parallel);
 	};
-	if (Scanner->parse(tkREP)) {
+	case tkLET: {
+		Scanner->parse();
+		uint32_t LineNo = Scanner->Token.LineNo;
+		Scanner->accept(tkIDENT);
+		const char *Name = Scanner->Token.Ident;
+		Scanner->accept(tkASSIGN);
+		expr_t *Value = accept_expr(Scanner);
+		return new let_expr_t(LineNo, Name, Value);
+	}
+	case tkREP: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new rep_expr_t(LineNo, accept_expr(Scanner));
 	};
-	if (Scanner->parse(tkALL)) {
+	case tkALL: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new all_expr_t(LineNo, accept_expr(Scanner));
 	};
-	if (Scanner->parse(tkUNIQ)) {
+	case tkMAP: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
-		return new uniq_expr_t(LineNo, accept_expr(Scanner));
+		expr_t *Key = accept_expr(Scanner);
+		if (Scanner->parse(tkAS)) {
+			expr_t *Value = accept_expr(Scanner);
+			return new map_expr_t(LineNo, Key, Value, 1);
+		} else if (Scanner->parse(tkTO)) {
+			expr_t *Value = accept_expr(Scanner);
+			return new map_expr_t(LineNo, Key, Value, 0);
+		} else {
+			return new map_expr_t(LineNo, Key, 0, 0);
+		}
 	};
-	if (Scanner->parse(tkCOUNT)) {
+	case tkUNIQ: {
+		Scanner->parse();
+		uint32_t LineNo = Scanner->Token.LineNo;
+		expr_t *Expr = accept_expr(Scanner);
+		return new uniq_expr_t(LineNo, Expr);
+	};
+	case tkCOUNT: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new count_expr_t(LineNo, accept_expr(Scanner));
 	};
-	if (Scanner->parse(tkSEQ)) {
+	case tkSEQ: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Exprs = accept_expr(Scanner);
 		expr_t *Last = Exprs;
@@ -835,7 +880,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		};
 		return new sequence_expr_t(LineNo, Exprs);
 	};
-	if (Scanner->parse(tkPAR)) {
+	case tkPAR: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Exprs = accept_expr(Scanner);
 		expr_t *Last = Exprs;
@@ -845,7 +891,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		};
 		return new parallel_expr_t(LineNo, Exprs);
 	};
-	if (Scanner->parse(tkINT)) {
+	case tkINT: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Exprs = accept_expr(Scanner);
 		expr_t *Last = Exprs;
@@ -855,25 +902,24 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		};
 		return new interleave_expr_t(LineNo, Exprs);
 	};
-	if (Scanner->parse(tkEXIT)) {
+	case tkEXIT: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Value = parse_expr(Scanner);
 		if (Value == 0) Value = new const_expr_t(LineNo, Std$Object$Nil);
 		return new exit_expr_t(LineNo, Value);
 	};
-	if (Scanner->parse(tkSTEP)) return new step_expr_t(Scanner->Token.LineNo);
-	if (Scanner->parse(tkEVERY)) {
+	case tkSTEP: Scanner->parse();
+		return new step_expr_t(Scanner->Token.LineNo);
+	case tkEVERY: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Condition = accept_expr_list(Scanner);
 		if (Scanner->parse(tkDO)) return new every_expr_t(LineNo, Condition, accept_expr(Scanner));
 		return new every_expr_t(LineNo, Condition, new const_expr_t(LineNo, Std$Object$Nil));
 	};
-	/*if (Scanner->parse(tkNOT)) return new cond_expr_t(Scanner->Token.LineNo,
-		accept_expr(Scanner),
-		new back_expr_t(Scanner->Token.LineNo),
-		new const_expr_t(Scanner->Token.LineNo, Std$Object$Nil)
-	);*/
-	if (Scanner->parse(tkWHILE)) {
+	case tkWHILE: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new cond_expr_t(LineNo,
 			accept_expr(Scanner),
@@ -881,7 +927,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			new exit_expr_t(LineNo, new const_expr_t(LineNo, Std$Object$Nil))
 		);
 	};
-	if (Scanner->parse(tkUNTIL)) {
+	case tkUNTIL: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new cond_expr_t(LineNo,
 			accept_expr(Scanner),
@@ -889,12 +936,15 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 			new back_expr_t(LineNo)
 		);
 	};
-	if (Scanner->parse(tkWHEN)) return accept_when_expr(Scanner);
-	if (Scanner->parse(tkSEND)) {
+	case tkWHEN: Scanner->parse();
+		return accept_when_expr(Scanner);
+	case tkSEND: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new send_expr_t(LineNo, accept_expr(Scanner));
 	};
-	if (Scanner->parse(tkTO)) {
+	case tkTO: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Symbol = accept_factor(Scanner);
 		Scanner->accept(tkLPAREN);
@@ -917,7 +967,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		Body->Next = TP.Types;
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Symbol$Set), Symbol);
 	};
-	if (Scanner->parse(tkIMP)) {
+	case tkIMP: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Symbol = accept_factor(Scanner);
 		Scanner->accept(tkLPAREN);
@@ -927,7 +978,8 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 		};
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Symbol$Get), Symbol);
 	};
-	if (Scanner->parse(tkDO)) {
+	case tkDO: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Function = new func_expr_t(LineNo, 0,
 			new every_expr_t(LineNo,
@@ -935,56 +987,60 @@ static expr_t *parse_factor(scanner_t *Scanner) {
 				new const_expr_t(LineNo, Std$Object$Nil)
 			)
 		);
-		//return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Coexpr$New), Function);
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$IteratorNew), Function);
 	};
-	if (Scanner->parse(tkNEW)) {
+	case tkNEW: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		Scanner->accept(tkLPAREN);
 		expr_t *Expr = new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Object$Create), accept_arguments(Scanner));
 		Scanner->accept(tkRPAREN);
 		return Expr;
 	}
-	if (Scanner->parse(tkSUM)) {
+	case tkSUM: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Args = new const_expr_t(LineNo, $PLUS);
 		Args->Next = new code_expr_t(LineNo, accept_expr(Scanner));
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$Fold), Args);
 	};
-	if (Scanner->parse(tkPROD)) {
+	case tkPROD: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Args = new const_expr_t(LineNo, $MULTIPLY);
 		Args->Next = new code_expr_t(LineNo, accept_expr(Scanner));
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$Fold), Args);
 	};
-	if (Scanner->parse(tkMAX)) {
+	case tkMAX: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Args = new const_expr_t(LineNo, $MAX);
 		Args->Next = new code_expr_t(LineNo, accept_expr(Scanner));
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$Fold), Args);
 	};
-	if (Scanner->parse(tkMIN)) {
+	case tkMIN: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Args = new const_expr_t(LineNo, $MIN);
 		Args->Next = new code_expr_t(LineNo, accept_expr(Scanner));
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$Fold), Args);
 	};
-	if (Scanner->parse(tkUSE)) {
+	case tkUSE: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Function$IteratorNext), accept_expr(Scanner));
 	};
-	//if (Scanner->parse(tkYIELD)) {
-		//uint32_t LineNo = Scanner->Token.LineNo;
-		//return new invoke_expr_t(LineNo, new const_expr_t(LineNo, Std$Coexpr$Yield), accept_expr(Scanner));
-	//};
-	if (Scanner->parse(tkMOD)) return accept_module(Scanner, 0);
-	if (Scanner->parse(tkBACKQUOTE)) {
+	case tkMOD: Scanner->parse();
+		return accept_module(Scanner, 0);
+	case tkBACKQUOTE: {
+		Scanner->parse();
 		uint32_t LineNo = Scanner->Token.LineNo;
 		expr_t *Expr = accept_expr(Scanner);
 		Scanner->accept(tkBACKQUOTE);
 		return new backquote_expr_t(LineNo, Expr);
 	};
-	return 0;
+	default: return 0;
+	}
 };
 
 static expr_t *accept_factor(scanner_t *Scanner) {
@@ -997,6 +1053,8 @@ static expr_t *parse_term(scanner_t *Scanner) {
 	PREFIX(MODULO);
 	PREFIX(POWER);
 	PREFIX(MINUS);
+	PREFIX(PLUS);
+	PREFIX(MULTIPLY);
 	PREFIX(DIVIDE);
 	PREFIX(BACKSLASH);
 	PREFIX(INVERSE);
@@ -1098,7 +1156,7 @@ start:
 	};
 	if (Scanner->parse(tkDOT)) {
 		if (Scanner->parse(tkIDENT)) {
-			Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object_t *)Std$String$new(Scanner->Token.Ident));
+			Expr->Next = new const_expr_t(Scanner->Token.LineNo, (Std$Object$t *)Std$String$new(Scanner->Token.Ident));
 		} else {
 			Expr->Next = accept_factor(Scanner);
 		};
@@ -1166,6 +1224,7 @@ static expr_t *parse_expr2(scanner_t *Scanner, int Precedence = 0) {
 		INFIX(IN, 3);
 		INFIX(SUBTYPE, 3);
 		INFIX(INVERSE, 3);
+		INFIX(PARALLEL, 3);
 	case 4:
 		INFIX(PLUS, 4);
 		INFIX(MINUS, 4);

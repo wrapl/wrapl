@@ -29,9 +29,8 @@ SYMBOL($seek, "seek");
 SYMBOL($tell, "tell");
 SYMBOL($remaining, "remaining");
 SYMBOL($block, "block");
-SYMBOL($AS, "@");
 
-typedef IO$Stream_t stream_t;
+typedef IO$Stream$t stream_t;
 
 TYPE(T);
 // A stream of bytes. Streams may be read-only, write-only or read-write and may support seeking. New stream types should inherit from one of the subtypes defined below.
@@ -48,64 +47,24 @@ TYPE(TextWriterT, WriterT, T);
 
 #ifndef DOCUMENTING
 TYPE(MessageT, Sys$Program$ErrorT);
-#endif
 
-METHOD("@", TYP, MessageT, VAL, Std$String$T) {
-//@msg
-//:Std$String$T
-	IO$Stream_messaget *Msg = (IO$Stream_messaget *)Args[0].Val;
-	Result->Val = Std$String$new(Msg->Message);
-	return SUCCESS;
-};
+#define ERROR_TYPE(NAME) \
+TYPE(NAME ## MessageT, MessageT, Sys$Program$ErrorT); \
+\
+TYPED_INSTANCE(const char *, Sys$Program$error_name, NAME ## MessageT, Sys$Program$error_t *Error) { \
+	return __stringify(NAME) " error"; \
+}
 
-#ifndef DOCUMENTING
-TYPE(ConvertMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(GenericMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(OpenMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(ReadMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(WriteMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(FlushMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(SeekMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(CloseMessageT, MessageT, Sys$Program$ErrorT);
-TYPE(PollMessageT, MessageT, Sys$Program$ErrorT);
+ERROR_TYPE(Convert);
+ERROR_TYPE(Generic);
+ERROR_TYPE(Open);
+ERROR_TYPE(Read);
+ERROR_TYPE(Write);
+ERROR_TYPE(Flush);
+ERROR_TYPE(Seek);
+ERROR_TYPE(Close);
+ERROR_TYPE(Poll);
 
-Std$Object$t *_message_new(const Std$Type$t *Type, const char *Description) {
-	IO$Stream$messaget *Message = new(IO$Stream$messaget);
-	Message->Type = Type;
-	Message->Message = Description;
-	Message->StackTrace = Sys$Program$stack_trace(32);
-	return (Std$Object$t *)Message;
-};
-
-Std$Object$t *_message_new_format(const Std$Type$t *Type, const char *Format, ...) {
-	IO$Stream$messaget *Message = new(IO$Stream$messaget);
-	Message->Type = Type;
-	va_list Args;
-	va_start(Args, Format);
-	int Length = vasprintf(&Message->Message, Format, Args);
-	va_end(Args);
-	Message->StackTrace = Sys$Program$stack_trace(32);
-	return (Std$Object$t *)Message;
-};
-
-Std$Object$t *_message_from_errno(const Std$Type$t *Type) {
-	IO$Stream$messaget *Message = new(IO$Stream$messaget);
-	Message->Type = Type;
-	char Buffer[256];
-	Message->Message = Riva$Memory$strdup(strerror_r(Riva$System$get_errno(), Buffer, 256));
-	Message->StackTrace = Sys$Program$stack_trace(32);
-	return (Std$Object$t *)Message;
-};
-
-IO$Stream_messaget ConvertMessage[] = {{ConvertMessageT, "Conversion Error"}};
-IO$Stream_messaget GenericMessage[] = {{GenericMessageT, "Generic Error"}};
-IO$Stream_messaget OpenMessage[] = {{OpenMessageT, "Open Error"}};
-IO$Stream_messaget ReadMessage[] = {{ReadMessageT, "Read Error"}};
-IO$Stream_messaget WriteMessage[] = {{WriteMessageT, "Write Error"}};
-IO$Stream_messaget FlushMessage[] = {{FlushMessageT, "Flush Error"}};
-IO$Stream_messaget SeekMessage[] = {{SeekMessageT, "Seek Error"}};
-IO$Stream_messaget CloseMessage[] = {{CloseMessageT, "Close Error"}};
-IO$Stream_messaget PollMessage[] = {{PollMessageT, "Poll Error"}};
 #endif
 
 SUBMODULE(Message);
@@ -134,9 +93,9 @@ SUBMODULE(Message);
 TYPE(CloseModeT);
 #endif
 
-Std$Integer_smallt _CLOSE_BOTH[] = {{CloseModeT, IO$Stream$CLOSE_BOTH}};
-Std$Integer_smallt _CLOSE_READ[] = {{CloseModeT, IO$Stream$CLOSE_READ}};
-Std$Integer_smallt _CLOSE_WRITE[] = {{CloseModeT, IO$Stream$CLOSE_WRITE}};
+Std$Integer$smallt _CLOSE_BOTH[] = {{CloseModeT, IO$Stream$CLOSE_BOTH}};
+Std$Integer$smallt _CLOSE_READ[] = {{CloseModeT, IO$Stream$CLOSE_READ}};
+Std$Integer$smallt _CLOSE_WRITE[] = {{CloseModeT, IO$Stream$CLOSE_WRITE}};
 
 SUBMODULE(CloseMode);
 //@T : Std$Type$T
@@ -148,7 +107,7 @@ SUBMODULE(CloseMode);
 //@Both : CloseMode.T
 // Close the stream for further reading or writing.
 
-static Std$Integer_smallt *_CLOSE[] = {_CLOSE_BOTH, _CLOSE_READ, _CLOSE_WRITE};
+static Std$Integer$smallt *_CLOSE[] = {_CLOSE_BOTH, _CLOSE_READ, _CLOSE_WRITE};
 
 #ifdef DOCUMENTING
 #define SeekModeT ?SeekMode.T
@@ -156,9 +115,9 @@ static Std$Integer_smallt *_CLOSE[] = {_CLOSE_BOTH, _CLOSE_READ, _CLOSE_WRITE};
 TYPE(SeekModeT);
 #endif
 
-Std$Integer_smallt _SEEK_SET[] = {{SeekModeT, IO$Stream$SEEK_SET}};
-Std$Integer_smallt _SEEK_CUR[] = {{SeekModeT, IO$Stream$SEEK_CUR}};
-Std$Integer_smallt _SEEK_END[] = {{SeekModeT, IO$Stream$SEEK_END}};
+Std$Integer$smallt _SEEK_SET[] = {{SeekModeT, IO$Stream$SEEK_SET}};
+Std$Integer$smallt _SEEK_CUR[] = {{SeekModeT, IO$Stream$SEEK_CUR}};
+Std$Integer$smallt _SEEK_END[] = {{SeekModeT, IO$Stream$SEEK_END}};
 
 SUBMODULE(SeekMode);
 //@T : Std$Type$T
@@ -170,9 +129,9 @@ SUBMODULE(SeekMode);
 //@End : SeekMode.T
 // Seek to position relative to end of stream.
 
-static Std$Integer_smallt *_SEEK[] = {_SEEK_SET, _SEEK_CUR, _SEEK_END};
+static Std$Integer$smallt *_SEEK[] = {_SEEK_SET, _SEEK_CUR, _SEEK_END};
 
-static IO$Stream_buffer * restrict Buffers;
+static IO$Stream$buffer * restrict Buffers;
 
 #ifdef WINDOWS
 static CRITICAL_SECTION BufferMutex;
@@ -180,14 +139,14 @@ static CRITICAL_SECTION BufferMutex;
 static pthread_mutex_t BufferMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-IO$Stream_buffer * restrict _alloc_buffer(void) {
+IO$Stream$buffer * restrict _alloc_buffer(void) {
 #ifdef WINDOWS
     EnterCriticalSection(&BufferMutex);
 #else
 	pthread_mutex_lock(&BufferMutex);
 #endif
 	if (Buffers) {
-		IO$Stream_buffer * restrict Buffer = Buffers;
+		IO$Stream$buffer * restrict Buffer = Buffers;
 		Buffers = Buffer->Next;
 #ifdef WINDOWS
 		LeaveCriticalSection(&BufferMutex);
@@ -202,13 +161,13 @@ IO$Stream_buffer * restrict _alloc_buffer(void) {
 #else
 		pthread_mutex_unlock(&BufferMutex);
 #endif
-		IO$Stream_buffer * restrict Buffer = (IO$Stream_buffer *)Riva$Memory$alloc_uncollectable(sizeof(IO$Stream_buffer));
+		IO$Stream$buffer * restrict Buffer = (IO$Stream$buffer *)Riva$Memory$alloc_uncollectable(sizeof(IO$Stream$buffer));
 		Buffer->Next = 0;
 		return Buffer;
 	};
 };
 
-void _free_buffer(IO$Stream_buffer * restrict Buffer) {
+void _free_buffer(IO$Stream$buffer * restrict Buffer) {
 #ifdef WINDOWS
     EnterCriticalSection(&BufferMutex);
 #else
@@ -223,7 +182,7 @@ void _free_buffer(IO$Stream_buffer * restrict Buffer) {
 #endif
 };
 
-void _free_buffers(IO$Stream_buffer * restrict Head, IO$Stream_buffer * restrict Tail) {
+void _free_buffers(IO$Stream$buffer * restrict Head, IO$Stream$buffer * restrict Tail) {
 #ifdef WINDOWS
 	EnterCriticalSection(&BufferMutex);
 #else
@@ -250,78 +209,78 @@ static fast_buffer *restrict alloc_fast_buffer(void) {
 	return Buffer;
 };
 
-TYPED_FUNCTION(int, _t_close, IO$Stream_t *Stream, IO$Stream_closemode Mode) {
+TYPED_FUNCTION(int, _t_close, IO$Stream$t *Stream, IO$Stream$closemode Mode) {
 	printf("No method defined for \"close\"\n");
 };
 
-TYPED_FUNCTION(int, _t_read, IO$Stream_t *Stream, char *Buffer, int Count, int Blocking) {
+TYPED_FUNCTION(int, _t_read, IO$Stream$t *Stream, char *Buffer, int Count, int Blocking) {
 	printf("No method defined for \"read\"\n");
 };
 
-TYPED_FUNCTION(char, _t_readc, IO$Stream_t *Stream) {
+TYPED_FUNCTION(char, _t_readc, IO$Stream$t *Stream) {
 	printf("No method defined for \"readc\"\n");
 };
 
-TYPED_FUNCTION(char *, _t_readx, IO$Stream_t *Stream, int Count, const char *Term, int Blocking) {
+TYPED_FUNCTION(char *, _t_readx, IO$Stream$t *Stream, int Count, const char *Term, int Blocking) {
 	printf("No method defined for \"readx\"\n");
 };
 
-TYPED_FUNCTION(char *, _t_readi, IO$Stream_t *Stream, int Count, const char *Buffer, int Blocking) {
+TYPED_FUNCTION(char *, _t_readi, IO$Stream$t *Stream, int Count, const char *Buffer, int Blocking) {
 	printf("No method defined for \"readi\"\n");
 };
 
-TYPED_FUNCTION(char *, _t_readl, IO$Stream_t *Stream) {
+TYPED_FUNCTION(char *, _t_readl, IO$Stream$t *Stream) {
 	printf("No method defined for \"readl\"\n");
 };
 
-TYPED_FUNCTION(char, _t_eoi, IO$Stream_t *Stream) {
+TYPED_FUNCTION(char, _t_eoi, IO$Stream$t *Stream) {
 	printf("No method defined for \"eoi\"\n");
 };
 
-TYPED_FUNCTION(int, _t_write, IO$Stream_t *Stream, const char *Buffer, int Count, int Blocking) {
+TYPED_FUNCTION(int, _t_write, IO$Stream$t *Stream, const char *Buffer, int Count, int Blocking) {
 	printf("No method defined for \"write\"\n");
 };
 
-TYPED_FUNCTION(void, _t_writec, IO$Stream_t *Stream, char Char) {
+TYPED_FUNCTION(void, _t_writec, IO$Stream$t *Stream, char Char) {
 	printf("No method defined for \"writec\"\n");
 };
 
-TYPED_FUNCTION(void, _t_writes, IO$Stream_t *Stream, char *String) {
+TYPED_FUNCTION(void, _t_writes, IO$Stream$t *Stream, char *String) {
 	printf("No method defined for \"writes\"\n");
 };
 
-TYPED_FUNCTION(void, _t_writef, IO$Stream_t *Stream, char *Format, ...) {
+TYPED_FUNCTION(void, _t_writef, IO$Stream$t *Stream, char *Format, ...) {
 	printf("No method defined for \"writef\"\n");
 };
 
-TYPED_FUNCTION(void, _t_flush, IO$Stream_t *Stream) {
+TYPED_FUNCTION(void, _t_flush, IO$Stream$t *Stream) {
 	printf("No method defined for \"flush\"\n");
 };
 
-TYPED_FUNCTION(int, _t_seek, IO$Stream_t *Stream, int Position, IO$Stream_seekmode Mode) {
+TYPED_FUNCTION(int, _t_seek, IO$Stream$t *Stream, int Position, IO$Stream$seekmode Mode) {
 	printf("No method defined for \"seek\"\n");
 };
 
-TYPED_FUNCTION(int, _t_tell, IO$Stream_t *Stream) {
+TYPED_FUNCTION(int, _t_tell, IO$Stream$t *Stream) {
 	printf("No method defined for \"tell\"\n");
 };
 
-TYPED_FUNCTION(size_t, _t_remaining, IO$Stream_t *Stream) {
+TYPED_FUNCTION(size_t, _t_remaining, IO$Stream$t *Stream) {
 	printf("No method defined for \"remaining\"\n");
 };
 
-TYPED_INSTANCE(void, _t_flush, T, IO$Stream_t *Stream) {
-	Std$Function_result Result;
+TYPED_INSTANCE(void, _t_flush, T, IO$Stream$t *Stream) {
+	Std$Function$result Result;
 	Std$Function$call($flush, 1, &Result, Stream, 0);
 };
 
-TYPED_INSTANCE(int, _t_close, T, IO$Stream_t *Stream, IO$Stream_closemode Mode) {
-	Std$Function_result Result;
+TYPED_INSTANCE(int, _t_close, T, IO$Stream$t *Stream, IO$Stream$closemode Mode) {
+	Std$Function$result Result;
 	return Std$Function$call($close, 2, &Result, Stream, 0, _CLOSE[Mode], 0) > SUCCESS;
 };
 
-TYPED_INSTANCE(int, _t_eoi, ReaderT, IO$Stream_t *Stream) {
-	Std$Function_result Result;
+TYPED_INSTANCE(int, _t_eoi, ReaderT, IO$Stream$t *Stream) {
+	Std$Function$result Result;
 	if (Std$Function$call($eoi, 1, &Result, Stream, 0) < FAILURE) {
 		return 1;
 	} else {
@@ -329,10 +288,10 @@ TYPED_INSTANCE(int, _t_eoi, ReaderT, IO$Stream_t *Stream) {
 	};
 };
 
-TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream_t *Stream, char * restrict Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream$t *Stream, char * restrict Buffer, int Count, int Block) {
 	if (Block) {
 		int Read = 0;
-		Std$Function_result Result;
+		Std$Function$result Result;
 		while (Count) {
 			switch (Std$Function$call($read, 3, &Result, Stream, 0, Std$Address$new(Buffer), 0, Std$Integer$new_small(Count), 0, $block, 0)) {
 			case SUSPEND: case SUCCESS: {
@@ -350,7 +309,7 @@ TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream_t *Stream, char * restrict Buffe
 		};
 		return Read;
 	} else {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call($read, 2, &Result, Stream, 0, Std$Address$new(Buffer), 0, Std$Integer$new_small(Count), 0)) {
 		case SUSPEND: case SUCCESS:
 			return Std$Integer$get_small(Result.Val);
@@ -362,8 +321,8 @@ TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream_t *Stream, char * restrict Buffe
 	};
 };
 
-TYPED_INSTANCE(const char *, _t_readx, ReaderT, IO$Stream_t *Stream, int Max, char *Term, int TermSize) {
-	Std$Function_result Result;
+TYPED_INSTANCE(const char *, _t_readx, ReaderT, IO$Stream$t *Stream, int Max, char *Term, int TermSize) {
+	Std$Function$result Result;
 	switch (Std$Function$call($readx, 3, &Result, Stream, 0, Std$Integer$new_small(Max), 0, TermSize ? Std$String$new_length(Term, TermSize) : Std$String$Empty, 0)) {
 	case SUCCESS: case SUSPEND:
 		return Std$String$flatten(Result.Val);
@@ -374,8 +333,8 @@ TYPED_INSTANCE(const char *, _t_readx, ReaderT, IO$Stream_t *Stream, int Max, ch
 	};
 };
 
-TYPED_INSTANCE(const char *, _t_readi, ReaderT, IO$Stream_t *Stream, int Max, const char *Term, int TermSize) {
-	Std$Function_result Result;
+TYPED_INSTANCE(const char *, _t_readi, ReaderT, IO$Stream$t *Stream, int Max, const char *Term, int TermSize) {
+	Std$Function$result Result;
 	switch (Std$Function$call($readi, 3, &Result, Stream, 0, Std$Integer$new_small(Max), 0, TermSize ? Std$String$new_length(Term, TermSize) : Std$String$Empty, 0)) {
 	case SUCCESS: case SUSPEND:
 		return Std$String$flatten(Result.Val);
@@ -386,9 +345,9 @@ TYPED_INSTANCE(const char *, _t_readi, ReaderT, IO$Stream_t *Stream, int Max, co
 	};
 };
 
-TYPED_INSTANCE(char, _t_readc, ReaderT, IO$Stream_t *Stream) {
-	static Std$Integer_smallt One[1] = {{Std$Integer$SmallT, 1}};
-	Std$Function_result Result;
+TYPED_INSTANCE(char, _t_readc, ReaderT, IO$Stream$t *Stream) {
+	static Std$Integer$smallt One[1] = {{Std$Integer$SmallT, 1}};
+	Std$Function$result Result;
 	switch (Std$Function$call($read, 3, &Result, Stream, 0, One, 0, $block, 0)) {
 	case SUCCESS: case SUSPEND:
 		return Std$String$get_char(Result.Val);
@@ -399,8 +358,8 @@ TYPED_INSTANCE(char, _t_readc, ReaderT, IO$Stream_t *Stream) {
 	};
 };
 
-TYPED_INSTANCE(const char *, _t_readl, ReaderT, IO$Stream_t *Stream) {
-	Std$Function_result Result;
+TYPED_INSTANCE(const char *, _t_readl, ReaderT, IO$Stream$t *Stream) {
+	Std$Function$result Result;
 	switch (Std$Function$call($read, 1, &Result, Stream, 0)) {
 	case SUCCESS: case SUSPEND:
 		return Std$String$flatten(Result.Val);
@@ -411,9 +370,9 @@ TYPED_INSTANCE(const char *, _t_readl, ReaderT, IO$Stream_t *Stream) {
 	};
 };
 
-TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream_t *Stream, const char *Buffer, int Count, int Block) {
+TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream$t *Stream, const char *Buffer, int Count, int Block) {
 	if (Block) {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		int Written = 0;
 		while (Count) {
 			switch (Std$Function$call($write, 3, &Result, Stream, 0, Std$Address$new(Buffer), 0, Std$Integer$new_small(Count), 0, $block, 0)) {
@@ -432,7 +391,7 @@ TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream_t *Stream, const char *Buffer, 
 		};
 		return Written;
 	} else {
-		Std$Function_result Result;
+		Std$Function$result Result;
 		switch (Std$Function$call($write, 2, &Result, Stream, 0, Std$Address$new(Buffer), 0, Std$Integer$new_small(Count), 0)) {
 		case SUSPEND: case SUCCESS:
 			return Std$Integer$get_small(Result.Val);
@@ -444,31 +403,31 @@ TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream_t *Stream, const char *Buffer, 
 	};
 };
 
-TYPED_INSTANCE(int, _t_writec, WriterT, IO$Stream_t *Stream, char Char) {
-	Std$Object_t *String = Std$String$new_char(Char);
-	Std$Function_result Result;
+TYPED_INSTANCE(int, _t_writec, WriterT, IO$Stream$t *Stream, char Char) {
+	Std$Object$t *String = Std$String$new_char(Char);
+	Std$Function$result Result;
 	return Std$Function$call($write, 2, &Result, Stream, 0, String, 0) > SUCCESS;
 };
 
-TYPED_INSTANCE(int, _t_writes, WriterT, IO$Stream_t *Stream, const char *Text) {
-	Std$Object_t *String = Std$String$new(Text);
-	Std$Function_result Result;
+TYPED_INSTANCE(int, _t_writes, WriterT, IO$Stream$t *Stream, const char *Text) {
+	Std$Object$t *String = Std$String$new(Text);
+	Std$Function$result Result;
 	return Std$Function$call($write, 2, &Result, Stream, 0, String, 0) > SUCCESS;
 };
 
-TYPED_INSTANCE(int, _t_writef, WriterT, IO$Stream_t *Stream, const char *Format, ...) {
+TYPED_INSTANCE(int, _t_writef, WriterT, IO$Stream$t *Stream, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	char *Buffer;
 	int Length = vasprintf(&Buffer, Format, Args);
-	Std$Object_t *String = Std$String$new_length(Buffer, Length);
-	Std$Function_result Result;
+	Std$Object$t *String = Std$String$new_length(Buffer, Length);
+	Std$Function$result Result;
 	return Std$Function$call($write, 2, &Result, Stream, 0, String, 0) > SUCCESS;
 };
 
-TYPED_INSTANCE(int, _t_seek, SeekerT, IO$Stream_t *Stream, int Position, IO$Stream_seekmode Mode) {
+TYPED_INSTANCE(int, _t_seek, SeekerT, IO$Stream$t *Stream, int Position, IO$Stream$seekmode Mode) {
 	if ((Mode < IO$Stream$SEEK_SET) || (Mode > IO$Stream$SEEK_END)) return -1;
-	Std$Function_result Result;
+	Std$Function$result Result;
 	if (Std$Function$call($seek, 3, &Result, Stream, 0, Std$Integer$new_small(Position), 0, _SEEK[Mode], 0) < FAILURE) {
 		return Std$Integer$get_small(Result.Val);
 	} else {
@@ -476,8 +435,8 @@ TYPED_INSTANCE(int, _t_seek, SeekerT, IO$Stream_t *Stream, int Position, IO$Stre
 	};
 };
 
-TYPED_INSTANCE(int, _t_tell, SeekerT, IO$Stream_t *Stream) {
-	Std$Function_result Result;
+TYPED_INSTANCE(int, _t_tell, SeekerT, IO$Stream$t *Stream) {
+	Std$Function$result Result;
 	if (Std$Function$call($tell, 1, &Result, Stream, 0) < FAILURE) {
 		return Std$Integer$get_small(Result.Val);
 	} else {
@@ -485,8 +444,8 @@ TYPED_INSTANCE(int, _t_tell, SeekerT, IO$Stream_t *Stream) {
 	};
 };
 
-TYPED_INSTANCE(size_t, _t_remaining, SeekerT, IO$Stream_t *Stream) {
-	Std$Function_result Result;
+TYPED_INSTANCE(size_t, _t_remaining, SeekerT, IO$Stream$t *Stream) {
+	Std$Function$result Result;
 	if (Std$Function$call($remaining, 1, &Result, Stream, 0) < FAILURE) {
 		return Std$Integer$get_small(Result.Val);
 	} else {
@@ -503,28 +462,28 @@ INITIAL() {
 METHOD("flush", TYP, T) {
 //@t
 // Completes any pending operations on <var>t</var>.
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("close", TYP, T) {
 //@t
 // Closes <var>t</var> for further reading or writing
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("closed", TYP, T) {
 //@t
 // Fails if <var>t</var> is still open for reading or writing.
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
 METHOD("eoi", TYP, ReaderT) {
 //@t
 // Succeeds if <var>t</var> has read an end of file marker.
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -535,7 +494,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 //:Std$Integer$SmallT
 // Reads up to <var>length</var> bytes from <var>rd</var> into <var>buffer</var>
 // Returns the number of bytes read
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -550,16 +509,16 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 // If <code>terminal = ""</code>, then only the number of bytes is checked
 // If both <code>max = 0</code> and <code>terminal = ""</code> then all the remaining bytes from <var>rd</var> are returned.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
-	const Std$String_t *Term = (Std$String_t *)Args[2].Val;
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
+	const Std$String$t *Term = (Std$String$t *)Args[2].Val;
 	int Max = Std$Integer$get_small(Args[1].Val);
 	unsigned char Char;
 	switch (read(Stream, &Char, 1, 0)) {
-	case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+	case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -581,7 +540,7 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (IsTerm[Char]) {
 			} else {
@@ -601,9 +560,9 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
+			Std$String$block *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -629,16 +588,16 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 // If <code>terminal = ""</code>, then only the number of bytes is checked
 // If both <code>max = 0</code> and <code>terminal = ""</code> then all the remaining bytes from <var>rd</var> are returned.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
-	const Std$String_t *Term = (Std$String_t *)Args[2].Val;
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
+	const Std$String$t *Term = (Std$String$t *)Args[2].Val;
 	int Max = Std$Integer$get_small(Args[1].Val);
 	unsigned char Char;
 	switch (read(Stream, &Char, 1, 0)) {
-	case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+	case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (const Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		const unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -659,7 +618,7 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (Space == 0) {
 				Tail = (Tail->Next = alloc_fast_buffer());
@@ -676,9 +635,9 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
+			Std$String$block *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -698,7 +657,7 @@ METHOD("rest", TYP, ReaderT) {
 //:Std$String$T
 // Returns the remaining contents of <var>rd</var>.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
 	fast_buffer *Head, *Tail;
 	Head = Tail = alloc_fast_buffer();
 	int Length = 0, NoOfBlocks = 1;
@@ -707,7 +666,7 @@ METHOD("rest", TYP, ReaderT) {
 	for (;;) {
 		int Bytes = read(Stream, Ptr, Space, 0);
 		if (Bytes == -1) {
-			Result->Val = (Std$Object_t *)ReadMessage;
+			Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Bytes == 0) break;
@@ -722,9 +681,9 @@ METHOD("rest", TYP, ReaderT) {
 		};
 	};
 	if (Ptr == Tail->Chars) NoOfBlocks--;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Length.Value = Length;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 		Block->Length.Value = FastBufferSize;
 		Block->Chars.Value = Buffer->Chars;
@@ -744,7 +703,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 //:Std$String$T
 // Reads <var>count</var> bytes from <var>rd</var> and returns them as a string.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
 	int Max = Std$Integer$get_small(Args[1].Val);
 	if (Max <= FastBufferSize) {
 		char *String = Riva$Memory$alloc_atomic(Max + 1);
@@ -754,7 +713,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 			int Bytes = read(Stream, Buffer, Max, 1);
 			if (Bytes == 0) break;
 			if (Bytes == -1) {
-				Result->Val = (Std$Object_t *)ReadMessage;
+				Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Buffer += Bytes;
@@ -777,7 +736,7 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		while (Max) {
 			int Bytes = read(Stream, Ptr, Space, 1);
 			if (Bytes == -1) {
-				Result->Val = (Std$Object_t *)ReadMessage;
+				Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			if (Bytes == 0) break;
@@ -794,9 +753,9 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		};
 		if (Length == 0) return FAILURE;
 		if (Ptr == Tail->Chars) NoOfBlocks--;
-		Std$String_t *String = Std$String$alloc(NoOfBlocks);
+		Std$String$t *String = Std$String$alloc(NoOfBlocks);
 		String->Length.Value = Length;
-		Std$String_block *Block = String->Blocks;
+		Std$String$block *Block = String->Blocks;
 		for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 			Block->Length.Value = FastBufferSize;
 			Block->Chars.Value = Buffer->Chars;
@@ -817,11 +776,11 @@ METHOD("read", TYP, TextReaderT) {
 // Reads the next line of text from <var>rd</var> and returns it as a string without the carriage return.
 // This methods differs from <code>t:readx("\n", 0)</code> in that it treats <code>"\r\n"</code> as a single carriage return.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Stream->Type);
 	char Char;
 	do {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		case 0: return FAILURE;
 		};
 	} while (Char == '\r');
@@ -836,7 +795,7 @@ METHOD("read", TYP, TextReaderT) {
 	++Length;
 	for (;;) {
 		switch (read(Stream, &Char, 1, 0)) {
-		case -1: Result->Val = (Std$Object_t *)ReadMessage; return MESSAGE;
+		case -1: Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__); return MESSAGE;
 		default: {
 			if (Char == '\n') {
 			} else if (Char == '\r') {
@@ -855,9 +814,9 @@ METHOD("read", TYP, TextReaderT) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
+			Std$String$block *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -877,17 +836,17 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT) {
 //@wr
 //:Std$Integer$T
 // Copies the contents of <var>rd</var> to <var>wr</var>.
-	IO$Stream_t *Rd = Args[0].Val;
-	IO$Stream_t *Wr = Args[1].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
-	IO$Stream_writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
+	IO$Stream$t *Rd = Args[0].Val;
+	IO$Stream$t *Wr = Args[1].Val;
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
+	IO$Stream$writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
 	int Rem = Std$Integer$get_small(Args[2].Val);
 	int Total = 0;
 	char Buffer[1024];
 	for (;;) {
 		int Read = read(Rd, Buffer, 1024, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object_t *)ReadMessage;
+			Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		if (Read == 0) break;
@@ -895,7 +854,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT) {
 		while (Read) {
 			int Written = write(Wr, Ptr, Read, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object_t *)WriteMessage;
+				Result->Val = Sys$Program$error_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Written;
@@ -913,17 +872,17 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 //@count
 //:Std$Integer$SmallT
 // Copies <var>count</var> bytes from <var>rd</var> to <var>wr</var>.
-	IO$Stream_t *Rd = Args[0].Val;
-	IO$Stream_t *Wr = Args[1].Val;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
-	IO$Stream_writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
+	IO$Stream$t *Rd = Args[0].Val;
+	IO$Stream$t *Wr = Args[1].Val;
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
+	IO$Stream$writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
 	int Rem = Std$Integer$get_small(Args[2].Val);
 	int Total = 0;
 	char Buffer[1024];
 	while (Rem > 1024) {
 		int Read = read(Rd, Buffer, 1024, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object_t *)ReadMessage;
+			Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Rem -= Read;
@@ -931,7 +890,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 		while (Read) {
 			int Written = write(Wr, Ptr, Read, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object_t *)WriteMessage;
+				Result->Val = Sys$Program$error_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Total += Written;
@@ -944,7 +903,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	while (Rem) {
 		int Read = read(Rd, Ptr, Rem, 0);
 		if (Read == -1) {
-			Result->Val = (Std$Object_t *)ReadMessage;
+			Result->Val = Sys$Program$error_new_format(ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Rem -= Read;
@@ -954,7 +913,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	while (Rem2) {
 		int Written = write(Wr, Ptr, Rem2, 1);
 		if (Written == -1) {
-			Result->Val = (Std$Object_t *)WriteMessage;
+			Result->Val = Sys$Program$error_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		Total += Written;
@@ -971,7 +930,7 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 //@length
 // Writes up to <var>length</var> bytes to <var>wr</var> from <var>buffer</var>
 // Returns the number of bytes written
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -980,13 +939,13 @@ METHOD("write", TYP, TextWriterT, ANY) {
 //@value
 //:TextWriterT
 // Writes <code>value@Std.String.T</code> to <var>wr</var>.
-	Std$Function_result Result0;
-	switch (Std$Function$call($AS, 2, &Result0, Args[1].Val, Args[1].Ref, Std$String$T, 0)) {
+	Std$Function$result Result0;
+	switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, Args[1].Ref)) {
 	case SUSPEND:
 	case SUCCESS:
 		return Std$Function$call($write, 2, Result, Args[0].Val, Args[0].Ref, Result0.Val, Result0.Ref);
 	case FAILURE:
-		Result->Val = (Std$Object_t *)ConvertMessage;
+		Result->Val = Sys$Program$error_new_format(ConvertMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	case MESSAGE:
 		Result->Arg = Result0.Arg;
@@ -1011,15 +970,15 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 //:WriterT
 // Writes <var>string</var> to <var>wr</var>.
 	stream_t *Stream = Args[0].Val;
-	IO$Stream_writefn write = Util$TypedFunction$get(_t_write, Stream->Type);
-	const const Std$String_t *String = (Std$String_t *)Args[1].Val;
-	for (const Std$String_block *Block = String->Blocks; Block->Length.Value; Block++) {
+	IO$Stream$writefn write = Util$TypedFunction$get(_t_write, Stream->Type);
+	const const Std$String$t *String = (Std$String$t *)Args[1].Val;
+	for (const Std$String$block *Block = String->Blocks; Block->Length.Value; Block++) {
 		int Length = Block->Length.Value;
 		const char *Chars = Block->Chars.Value;
 		while (Length) {
 			int Written = write(Stream, Chars, Length, 1);
 			if (Written == -1) {
-				Result->Val = (Std$Object_t *)WriteMessage;
+				Result->Val = Sys$Program$error_new_format(WriteMessageT, "%s:%d", __FILE__, __LINE__);
 				return MESSAGE;
 			};
 			Chars += Written;
@@ -1034,7 +993,7 @@ METHOD("seek", TYP, SeekerT, TYP, Std$Integer$SmallT, TYP, SeekModeT) {
 //@t
 //@position
 // Seeks to the <var>position</var><sup>th</sup> byte in <var>t</var>
-	Result->Val = (Std$Object_t *)GenericMessage;
+	Result->Val = Sys$Program$error_new_format(GenericMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };
 
@@ -1045,7 +1004,7 @@ METHOD("tell", TYP, T) {
 	stream_t *Stream = Args[0].Val;
 	int Seek = _t_seek(Stream, Std$Integer$get_small(Args[1].Val), IO$Stream$SEEK_CUR);
 	if (Seek == -1) {
-		Result->Val = (Std$Object_t *)SeekMessage;
+		Result->Val = Sys$Program$error_new_format(SeekMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 	Result->Val = Std$Integer$new_small(Seek);
@@ -1057,19 +1016,19 @@ METHOD("tell", TYP, T) {
 #include <pthread.h>
 
 typedef struct pair_t {
-	IO$Stream_t *Rd, *Wr;
+	IO$Stream$t *Rd, *Wr;
 } pair_t;
 
 static void *_link_thread_func(pair_t * restrict Pair) {
 	char Buffer[256];
-	IO$Stream_t *Rd = Pair->Rd;
-	IO$Stream_t *Wr = Pair->Wr;
-	IO$Stream_readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
-	IO$Stream_writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
+	IO$Stream$t *Rd = Pair->Rd;
+	IO$Stream$t *Wr = Pair->Wr;
+	IO$Stream$readfn read = Util$TypedFunction$get(_t_read, Rd->Type);
+	IO$Stream$writefn write = Util$TypedFunction$get(_t_write, Wr->Type);
 	Pair = 0;
 	for (;;) {
 		int BytesRead = read(Rd, Buffer, 256, 0);
-		if (BytesRead <= 0) {
+		if (BytesRead == -1) {
 			_t_close(Wr, 1);
 			return 0;
 		};

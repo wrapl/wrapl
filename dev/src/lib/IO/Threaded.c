@@ -18,7 +18,7 @@ typedef struct node_t {
 } node_t;
 
 typedef struct buffer_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	node_t *Head, *Tail;
 	pthread_cond_t Ready[1];
 	pthread_mutex_t Lock[1];
@@ -68,7 +68,7 @@ static int buffer_close(buffer_t *Stream, int Mode) {
 	unlock(Stream);
 };
 
-static Std$Integer_smallt Zero[] = {{Std$Integer$SmallT, 0}};
+static Std$Integer$smallt Zero[] = {{Std$Integer$SmallT, 0}};
 
 static inline int read(buffer_t *Stream, char *Buffer, int Count) {
 	lock(Stream);
@@ -616,7 +616,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 			return SUCCESS;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -629,9 +629,9 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	};
 	uint32_t Total = 0;
 	const char *Src = Node->Chars;
-	const char *Dst = ((Std$Address_t *)Args[1].Val)->Value;
+	const char *Dst = ((Std$Address$t *)Args[1].Val)->Value;
 	uint32_t Rem0 = Node->Length;
-	uint32_t Rem1 = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	uint32_t Rem1 = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	while (Rem0 <= Rem1) {
 		Dst = mempcpy(Dst, Src, Rem0);
 		Rem1 -= Rem0;
@@ -667,7 +667,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 			return SUCCESS;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -680,9 +680,9 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 	};
 	uint32_t Total = 0;
 	const char *Src = Node->Chars;
-	const char *Dst = ((Std$Address_t *)Args[1].Val)->Value;
+	const char *Dst = ((Std$Address$t *)Args[1].Val)->Value;
 	uint32_t Rem0 = Node->Length;
-	uint32_t Rem1 = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	uint32_t Rem1 = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	while (Rem0 <= Rem1) {
 		Dst = mempcpy(Dst, Src, Rem0);
 		Rem1 -= Rem0;
@@ -709,12 +709,12 @@ done:
 	return SUCCESS;
 };
 
-static Std$String_t *extract_string_rest(buffer_t *Stream) {
+static Std$String$t *extract_string_rest(buffer_t *Stream) {
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -738,7 +738,7 @@ METHOD("rest", TYP, T) {
 		};
 		if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -750,9 +750,9 @@ METHOD("rest", TYP, T) {
 	};
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -765,13 +765,13 @@ METHOD("rest", TYP, T) {
 	return SUCCESS;
 };
 
-static Std$String_t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOffset) {
+static Std$String$t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOffset) {
 	int NoOfBlocks = EndOffset ? 1 : 0;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) ++NoOfBlocks;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
 	int Length = 0;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) {
 		Length += (Block->Length.Value = Node->Length);
 		Block->Chars.Value = Node->Chars;
@@ -794,7 +794,7 @@ static Std$String_t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOf
 	return String;
 };
 
-static Std$String_t *read_string_length(buffer_t *Stream, int Max) {
+static Std$String$t *read_string_length(buffer_t *Stream, int Max) {
 	node_t *Node = Stream->Head;
 	int Remaining = Max;
 	while (Node) {
@@ -818,7 +818,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -827,8 +827,8 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		};
 	};
-	Std$String_t *Term = Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$String$t *Term = Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	node_t *Node = Stream->Head;
 	if (Term->Length.Value == 0) {
 		if (Max == 0) {
@@ -887,7 +887,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+		for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 			unsigned char *Chars = Block->Chars.Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
@@ -957,7 +957,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -966,8 +966,8 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 			return FAILURE;
 		};
 	};
-	Std$String_t *Term = Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$String$t *Term = Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	node_t *Node = Stream->Head;
 	if (Term->Length.Value == 0) {
 		if (Max == 0) {
@@ -1016,7 +1016,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+		for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 			unsigned char *Chars = Block->Chars.Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
@@ -1071,7 +1071,7 @@ METHOD("read", TYP, T, TYP, Std$Integer$SmallT) {
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
 			unlock(Stream);
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -1080,7 +1080,7 @@ METHOD("read", TYP, T, TYP, Std$Integer$SmallT) {
 			return FAILURE;
 		};
 	};
-	Result->Val = read_string_length(Stream, ((Std$Integer_smallt *)Args[1].Val)->Value);
+	Result->Val = read_string_length(Stream, ((Std$Integer$smallt *)Args[1].Val)->Value);
 	return SUCCESS;
 };
 
@@ -1093,7 +1093,7 @@ METHOD("read", TYP, T) {
 			unlock(Stream);
 			return FAILURE;
 		} else if (Stream->Closed == 2) {
-			Result->Val = IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};
 		wait(Stream);
@@ -1124,9 +1124,9 @@ METHOD("read", TYP, T) {
 
 METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	buffer_t *Stream = Args[0].Val;
-	long Length = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	long Length = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	char *Chars = Riva$Memory$alloc_atomic(Length);
-	memcpy(Chars, ((Std$Address_t *)Args[1].Val)->Value, Length);
+	memcpy(Chars, ((Std$Address$t *)Args[1].Val)->Value, Length);
 	node_t *Node = new(node_t);
 	Node->Length = Length;
 	Node->Chars = Chars;
@@ -1146,8 +1146,8 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("write", TYP, T, TYP, Std$String$T) {
 	buffer_t *Stream = Args[0].Val;
-	int NoOfBlocks = ((Std$String_t *)Args[1].Val)->Count;
-	Std$String_block *Block = ((Std$String_t *)Args[1].Val)->Blocks;
+	int NoOfBlocks = ((Std$String$t *)Args[1].Val)->Count;
+	Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks;
 	if (Block->Length.Value) {
 		node_t *Node = new(node_t);
 		Node->Chars = Block->Chars.Value;

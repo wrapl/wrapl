@@ -7,17 +7,17 @@
 |.type THREAD, debug_thread_t
 |.type CLOSURE, closure_t
 |.type CODE, code_t
-|.type VALUE, Std$Object_t
-|.type TYPE, Std$Type_t
-|.type LIST, Agg$List_t
-|.type LISTNODE, Agg$List_node
-|.type SMALL, Std$Integer_smallt
+|.type VALUE, Std$Object$t
+|.type TYPE, Std$Type$t
+|.type LIST, Agg$List$t
+|.type LISTNODE, Agg$List$node
+|.type SMALL, Std$Integer$smallt
 |.type VARIADIC, variadic_t
 
 |.actionlist ActionList
 |.globals Globals_
 
-extern Std$Type_t VariadicT[];
+extern Std$Type$t VariadicT[];
 static variadic_t EmptyVariadic[1] = {{VariadicT, {Std$Integer$SmallT, 0}}};
 
 void encode_entry(assembler_t *Assembler) {
@@ -417,7 +417,7 @@ static inline void store_reg(assembler_t *Assembler, operand_t *Operand) {
 		break;
 	}
 	case operand_t::TVAR: {
-		| jmp &incorrect_assign
+		| mov [ebp + Assembler->Temps + 8 * Operand->Index], ecx
 		break;
 	}
 	case operand_t::TREF: {
@@ -483,7 +483,7 @@ void store_con_inst_t::encode(assembler_t *Assembler) {
 			break;
 		}
 		case operand_t::TVAR: {
-			| jmp &incorrect_assign
+			| mov dword [ebp + Assembler->Temps + 8 * Operand->Index], Value
 			break;
 		}
 		case operand_t::TREF: {
@@ -1130,6 +1130,21 @@ void test_skip_inst_t::encode(assembler_t *Assembler) {
 	| inc dword [ebp + Assembler->Temps + 8 * Temp]
 }
 
+void test_unique_inst_t::encode(assembler_t *Assembler) {
+	| push ecx
+	| push edx
+	| push 0
+	| push ecx
+	| push dword [ebp + Assembler->Temps + 8 * Temp]
+	| call &Agg$Table$missing
+	| add esp, 12
+	| test eax, eax
+	| pop edx
+	| pop ecx
+	| lea edi, [ebp + Assembler->Temps + 8 * Trap]
+	| jz &backtrack
+}
+
 void type_of_inst_t::encode(assembler_t *Assembler) {
 	switch (Type) {
 	case LOAD_VAL: {
@@ -1167,7 +1182,7 @@ void value_of_inst_t::encode(assembler_t *Assembler) {
 }
 
 void new_list_inst_t::encode(assembler_t *Assembler) {
-	| push sizeof(Agg$List_t);
+	| push sizeof(Agg$List$t);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov dword LIST:eax->Type, Agg$List$T
@@ -1178,7 +1193,7 @@ void new_list_inst_t::encode(assembler_t *Assembler) {
 
 void store_list_inst_t::encode(assembler_t *Assembler) {
 	| mov ebx, ecx
-	| push sizeof(Agg$List_node);
+	| push sizeof(Agg$List$node);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov LISTNODE:eax->Value, ebx
@@ -1214,8 +1229,21 @@ void store_table_inst_t::encode(assembler_t *Assembler) {
 	| add esp, 12
 }
 
+void store_table2_inst_t::encode(assembler_t *Assembler) {
+	if (Reverse) {
+		| push dword [ebp + Assembler->Temps + 8 * Key]
+		| push ecx
+	} else {
+		| push ecx
+		| push dword [ebp + Assembler->Temps + 8 * Key]
+	}
+	| push dword [ebp + Assembler->Temps + 8 * Index]
+	| call &Agg$Table$insert
+	| add esp, 12
+}
+
 void new_count_inst_t::encode(assembler_t *Assembler) {
-	| push sizeof(Std$Integer_smallt);
+	| push sizeof(Std$Integer$smallt);
 	| call &Riva$Memory$alloc
 	| pop edx
 	| mov dword SMALL:eax->Type, Std$Integer$SmallT

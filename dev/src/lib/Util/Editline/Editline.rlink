@@ -1,6 +1,6 @@
 include("libncursesw.so")
 include("libtinfo.so")
-include("Util/Tre")
+include("Util/Tre.rlink")
 
 export("T")
 export("New")

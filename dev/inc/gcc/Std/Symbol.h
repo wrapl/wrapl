@@ -9,14 +9,14 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	long Reserved[8];
-	Std$String_t *Name;
+	Std$String$t *Name;
 };
 
 RIVA_STRUCT(nomethodmessage) {
-	const Std$Type_t *Type;
-	const Std$Symbol_t *Symbol;
+	const Std$Type$t *Type;
+	const Std$Symbol$t *Symbol;
 	int Count;
 	char *Stack[12];
 };
@@ -28,15 +28,15 @@ RIVA_OBJECT(Set);
 RIVA_OBJECT(Get);
 RIVA_OBJECT(Default);
 
-RIVA_CFUN(Std$Object_t *, new, void) __attribute__ ((malloc));
-RIVA_CFUN(Std$Object_t *, new_string, const char *) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, void) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new_string, const char *) __attribute__ ((malloc));
 
 #define Std$Symbol$get_name(A) ((Std$Symbol$t *)A)->Name
 
 RIVA_STRUCT(array) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	unsigned long Count;
-	const Std$Symbol_t *Values[];
+	const Std$Symbol$t *Values[];
 };
 
 RIVA_TYPE(ArrayT);
@@ -56,7 +56,7 @@ RIVA_TYPE(ArrayT);
 #else
 
 #define SYMBOL(NAME, VALUE)\
-	extern Std$Object_t NAME[];\
+	extern Std$Object$t NAME[];\
 	static const char __symbol ## NAME[] __asmify(NAME) __attribute__ ((section (".symbols"), used)) = VALUE;
 
 #define ANY (void *)1
@@ -66,35 +66,35 @@ RIVA_TYPE(ArrayT);
 
 #define _METHOD(TOKEN, SYMBOL, SIGNATURE...)\
 	static const char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
-	static const Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, &__concat(__invoke, TOKEN)};\
+	static FUNCTION_ATTRS Std$Function$status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static const Std$Function$ct __concat(__method, TOKEN) = {Std$Function$CT, &__concat(__invoke, TOKEN)};\
 	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
 		__concat(__symbol, TOKEN), SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function$status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
 
 #define _GLOBAL_METHOD(TOKEN, NAME, COUNT, SYMBOL, SIGNATURE...)\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS);\
-	Std$Function_checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS);\
+	Std$Function$checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
 	static const char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
-	static Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, invoke_ ## NAME};\
+	static FUNCTION_ATTRS Std$Function$status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static Std$Function$ct __concat(__method, TOKEN) = {Std$Function$CT, invoke_ ## NAME};\
 	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
 		__concat(__symbol, TOKEN), SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS)
 
 #define _ASYMBOL(TOKEN, NAME)\
-	extern Std$Object_t NAME[];\
+	extern Std$Object$t NAME[];\
 	char __symbol ## NAME[] __asmify(NAME) __attribute__ ((section (".asymbol"))) = "";
 
 #define _AMETHOD(TOKEN, SYMBOL, SIGNATURE...)\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
-	static Std$Function_ct __concat(__method, TOKEN) = {Std$Function$CT, __concat(__invoke, TOKEN)};\
+	static FUNCTION_ATTRS Std$Function$status __concat(__invoke, TOKEN)(FUNCTION_PARAMS);\
+	static Std$Function$ct __concat(__method, TOKEN) = {Std$Function$CT, __concat(__invoke, TOKEN)};\
 	const void *__concat(__instance, TOKEN)[] __attribute__ ((section (".methods"))) = {\
 		SYMBOL, SIGNATURE, 0, &__concat(__method, TOKEN)\
 	};\
-	static FUNCTION_ATTRS Std$Function_status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function$status __concat(__invoke, TOKEN)(FUNCTION_PARAMS)
 
 #define _SET_METHOD(TOKEN, SYMBOL, FUNCTION, SIGNATURE...)\
 	static char __concat(__symbol, TOKEN)[] __attribute__ ((section (".symbols"))) = SYMBOL;\

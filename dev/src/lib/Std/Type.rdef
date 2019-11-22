@@ -1,9 +1,0 @@
-require("Std/Methods")
-
-export("T")
-export("T.invoke")
-export("Of")
-export("_is")
-export("New")
-export("New.invoke")
-export("Fields")

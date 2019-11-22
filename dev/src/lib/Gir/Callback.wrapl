@@ -62,7 +62,7 @@ TO :generate_c(type@T) (
 	VAR i;
 	EVERY i <- 1:to(n) DO line <- line + ', {types[i]:ctype} arg{i - 1}';
 	r:put(line + ") {");
-	r:put('\tStd$Function_argument Params[{SUM types:values:riva_argcount}];');
+	r:put('\tStd$Function$argument Params[{SUM types:values:riva_argcount}];');
 	VAR r1 <- [];
 	VAR argindex <- 0, paramindex <- 0, paramtype;
 	EVERY paramtype <- types:values DO (
@@ -75,7 +75,7 @@ TO :generate_c(type@T) (
 		paramindex <- paramindex + paramtype:riva_argcount;
 	);
 	EVERY r:put(r1:values);
-	r:put("\tStd$Function_result Result;");
+	r:put("\tStd$Function$result Result;");
 	r:put('\tStd$Function$invoke(Function, {SUM types:values:riva_argcount}, &Result, Params);');
 	argindex <- 0;
 	paramindex <- 0;
@@ -112,7 +112,7 @@ TO :generate_c(type@T) (
 		'\treturn ({type:ctype})(Thunk + 3);',
 		"};",
 		"",
-		'{rettype:ctype} _invoke(Gir${type:namespace}${type:name}$t *Callback, int Count, Std$Function_result *Result, Std$Function_argument *Args) \{'
+		'{rettype:ctype} _invoke(Gir${type:namespace}${type:name}$t *Callback, int Count, Std$Function$result *Result, Std$Function$argument *Args) \{'
 	);
 	argindex <- 0;
 	paramindex <- 0;
@@ -150,7 +150,7 @@ TO :generate_c(type@T) (
 
 TO :generate_h(type@T) [
 	"typedef struct {",
-	"\tStd$Function_ct _Base;",
+	"\tStd$Function$ct _Base;",
 	'\t{type:ctype} _function;',
 	'} Gir${type:namespace}${type:name}$t;',
 	"",

@@ -11,12 +11,13 @@
 
 typedef struct dident_t {
 	const Std$Type$t *Type;
+	Std$Function$status (*Invoke)(FUNCTION_PARAMS);
 	dident Value;
 } dident_t;
 
-extern Std$Type$t DidentT[1];
+FUNCTIONAL_TYPE(DidentT, Std$Function$CT);
 
-METHOD("@", TYP, DidentT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, DidentT) {
 	dident_t *Dident = (dident_t *)Args[0].Val;
 	int Length = DidLength(Dident->Value);
 	char *String = Riva$Memory$alloc_atomic(Length + 4);
@@ -32,6 +33,24 @@ typedef struct pword_t {
 } pword_t;
 
 TYPE(PWordT);
+
+static Std$Function$status dident_invoke(FUNCTION_PARAMS) {
+	dident_t *Dident = (dident_t *)Fun;
+	int Arity = DidArity(Dident->Value);
+	pword Arguments[Count];
+	for (int I = 0; I < Count; ++I) to_eclipse(Args[I].Val, Arguments + I);
+	pword_t *Term = new(pword_t);
+	Term->Type = PWordT;
+	if (Arity == Count) {
+		Term->Value = ec_term_array(Dident->Value, Arguments);
+	} else if (Arity == 0) {
+		dident D = ec_did(DidName(Dident->Value), Count);
+		Term->Value = ec_term_array(D, Arguments);
+	} else {
+		SEND(Std$String$new_format("Error: arity mismatch: %d expected, %d received", Arity, Count));
+	}
+	RETURN(Term);
+}
 
 GLOBAL_FUNCTION(Var, 0) {
 	pword_t *Var = new(pword_t);
@@ -81,8 +100,14 @@ static Std$Function$status from_eclipse(pword PWord, Std$Function$result *Result
 	} else if (ec_get_atom(PWord, &Dident) == PSUCCEED) {
 		dident_t *Atom = new(dident_t);
 		Atom->Type = DidentT;
+		Atom->Invoke = dident_invoke;
 		Atom->Value = Dident;
 		RETURN(Dident);
+	} else if (ec_get_functor(PWord, &Dident) == PSUCCEED) {
+		pword_t *Value = new(pword_t);
+		Value->Type = PWordT;
+		Value->Value = PWord;
+		RETURN(Value);
 	} else if (ec_is_var(PWord) == PSUCCEED) {
 		FAIL;
 	} else {
@@ -211,26 +236,12 @@ TYPED_INSTANCE(int, to_eclipse, RefT, ref_t *Ref, pword *Dest) {
 	return 0;
 }
 
-Std$Function$status dident_invoke(const dident_t *Dident, unsigned long Count, const Std$Function$argument *Args, Std$Function$result *Result) {
-	printf("Calling dident %s/%d with %d arguments\n", DidName(Dident->Value), DidArity(Dident->Value), Count);
-	pword Arguments[Count];
-	for (int I = 0; I < Count; ++I) to_eclipse(Args[I].Val, Arguments + I);
-	pword_t *Term = new(pword_t);
-	Term->Type = PWordT;
-	if (DidArity(Dident->Value) != Count) {
-		dident D = ec_did(DidName(Dident->Value), Count);
-		Term->Value = ec_term_array(D, Arguments);
-	} else {
-		Term->Value = ec_term_array(Dident->Value, Arguments);
-	}
-	RETURN(Term);
-}
-
 METHOD("[]", TYP, DidentT, TYP, Std$Integer$SmallT) {
 	dident_t *Dident0 = (dident_t *)Args[0].Val;
 	int N = Std$Integer$get_small(Args[1].Val);
 	dident_t *DidentN = new(dident_t);
 	DidentN->Type = DidentT;
+	DidentN->Invoke = dident_invoke;
 	DidentN->Value = ec_did(DidName(Dident0->Value), N);
 	RETURN(DidentN);
 }
@@ -238,6 +249,7 @@ METHOD("[]", TYP, DidentT, TYP, Std$Integer$SmallT) {
 static int dident_import(void *Engine, const char *Name, int *IsRef, void **Data) {
 	dident_t *Dident = new(dident_t);
 	Dident->Type = DidentT;
+	Dident->Invoke = dident_invoke;
 	Dident->Value = ec_did(Name, 0);
 	Data[0] = Dident;
 	IsRef[0] = 0;
@@ -265,8 +277,16 @@ INITIAL(Riva$Module$provider_t *Provider) {
 		LibPath = Riva$Memory$alloc_atomic(NewLength);
 		stpcpy(stpcpy(LibPath, ModulePath), "/eclipse/lib/i386_linux");
 	}
+	const char *SoFileName = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse/lib/i386_linux/libeclipse.so") + 1);
+	stpcpy(stpcpy(SoFileName, ModulePath), "/eclipse/lib/i386_linux/libeclipse.so");
+	printf("Trying to load <%s>\n", SoFileName);
+	if (!dlopen(SoFileName, RTLD_GLOBAL)) {
+		printf("Error: %s\n", strerror(Riva$System$get_errno()));
+	}
+
 	printf("Setting LD_LIBRARY_PATH=<%s>\n", LibPath);
-	setenv("LD_LIBRARY_PATH", LibPath, 1);	const char *EclipsePath = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse") + 1);
+	setenv("LD_LIBRARY_PATH", LibPath, 1);
+	const char *EclipsePath = Riva$Memory$alloc_atomic(strlen(ModulePath) + strlen("/eclipse") + 1);
 	strcpy(stpcpy(EclipsePath, ModulePath), "/eclipse");
 	printf("Setting Eclipse path = %s\n", EclipsePath);
 	ec_set_option_ptr(EC_OPTION_ECLIPSEDIR, EclipsePath);

@@ -10,23 +10,30 @@ VAR log <- IO.File.Open("convert.log", IO.File.Flag.Write + IO.File.Flag.Text);
 
 VAR gir_dirs <- [
 	"/usr/lib/girepository-1.0",
+	"/usr/local/lib/girepository-1.0",
 	"/usr/lib/i386-linux-gnu/girepository-1.0",
 	"Arrow/arrow/lib"
 ];
 
+DEF Skip {
+	"Gdk-2.0.typelib",
+	"Gtk-2.0.typelib",
+	"Vte-0.0.typelib",
+	"Dfu-1.0.typelib",
+	"HarfBuzz-0.0.typelib",
+	"GtkSource-3.0.typelib"
+};
+
 VAR gir_file, gir_dir, gir;
 EVERY gir_file <- Sys.FileSys.ListDir(gir_dir <- Sys.FileSys.Exists(gir_dirs:values)) DO gir_file[1] ~= "." => (
-	gir_file = "Gtk-2.0.typelib" => STEP;
-	gir_file = "Vte-0.0.typelib" => STEP;
-	gir_file = "Dfu-1.0.typelib" => STEP;
-	gir_file = "HarfBuzz-0.0.typelib" => STEP;
+	Skip[gir_file] => STEP;
 	Out:write('File: {gir_file}\n');
 	WHILE gir <- IO.Process.Open("g-ir-generate", '{gir_dir}/{gir_file}');
 	VAR gir_xml <- Xml.Load(gir, Xml.NoText);
 	gir:wait;
 	gir:close;
 	EVERY namespace <- gir_xml[:namespace] DO api:append(ProcessNamespace());
-	RECV msg DO Err:write('Error: {msg}\n');
+	RECV msg DO Err:write('Error: {gir_file} -> {msg}\n');
 );
 
 -- Additional fixups go here
@@ -132,11 +139,35 @@ DEF Opaque {
 		"XMLRPCParams"
 	],
 	"Poppler" IS [
+		"TextSpan",
 		"IndexIter",
 		"FontsIter",
 		"StructureElementIter",
-		"TextSpan",
-		"Rectangle"
+		"LayersIter"
+	],
+	"Vips" IS [
+		"RefString",
+		"Blob",
+		"ArrayInt",
+		"ArrayDouble",
+		"ArrayImage"
+	],
+	"WebKit2" IS [
+		"NetworkProxySettings",
+		"UserContentFilter",
+		"ScriptDialog",
+		"ApplicationInfo",
+		"NavigationAction",
+		"UserStyleSheet",
+		"Credential",
+		"SecurityOrigin",
+		"OptionMenuItem",
+		"UserScript",
+		"WebViewSessionState",
+		"JavascriptResult",
+		"MimeInfo",
+		"WebsiteData",
+		"GeolocationPosition"
 	]
 };
 
@@ -191,6 +222,8 @@ EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'Closure'}][:fi
 EVERY api[:namespace, {"name" IS "GObject"}][:struct, {"name" IS 'TypeInstance'}][:field]:detach;
 api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "Object"}][:constructor, {"cname" IS "g_object_newv"}][:parameters][:parameter, {"name" IS "parameters"}].type <- 'sized-1-!GObject.Parameter';
 api[:namespace, {"name" IS "GObject"}][:object, {"name" IS "Object"}][:method, {"cname" IS "g_object_get_property"}][:parameters][:parameter, {"name" IS "value"}].type <- 'g_object_get_property_return';
+api[:namespace, {"name" IS "GObject"}][:class, {"name" IS "Main"}][:method, {"cname" IS "g_clear_signal_handler"}][:parameters][:parameter, {"name" IS "handler_id_ptr"}].type <- 'ref-{$}';
+
 
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "OutputMessage"}][:field, {"name" IS "control_messages"}]:detach;
 api[:namespace, {"name" IS "Gio"}][:struct, {"name" IS "InputMessage"}][:field, {"name" IS "vectors"}]:detach;
@@ -255,14 +288,6 @@ api[:namespace, {"name" IS "Pango"}][:class, {"name" IS 'Main'}][:method, {"name
 api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "ScriptForLang"}]:detach;
 api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "GlyphString"}][:field, {"name" IS "glyphs"}]:detach;
 
-api[:namespace, {"name" IS "Pango"}][:struct, {"name" IS "AttrFontDesc"}]:prepend(
-	Xml.New(:constructor, {"name" IS "new", "cname" IS "pango_attr_font_desc_new"}, [
-		Xml.New(:parameters, [
-			Xml.New(:parameter, {"name" IS "desc", "type" IS "Pango.FontDescription"})
-		])
-	])
-);
-
 api[:namespace, {"name" IS "PangoCairo"}][:object, {"name" IS "FcFontMap"}]:detach;
 
 api[:namespace, {"name" IS "Gdk"}][:object, {"name" IS "Cursor"}][:method, {"name" IS "get_surface"}][:parameters][:parameter, {"name" IS "x_hot"}].type <- 'out-{$}';
@@ -293,6 +318,12 @@ api[:namespace, {"name" IS "Gtk"}][:object, {"name" IS "RcStyle"}][:field, {"nam
 api[:namespace, {"name" IS "Gtk"}][:struct, {"name" IS "BindingSignal"}][:field, {"name" IS "args"}]:detach;
 api[:namespace][][:method, {"cname" IS "gtk_cell_accessible_parent_get_column_header_cells"}]:detach;
 api[:namespace][][:method, {"cname" IS "gtk_cell_accessible_parent_get_row_header_cells"}]:detach;
+EVERY api[:namespace, {"name" IS "Gtk"}][{"name" IS 	"_MountOperationHandlerSkeleton" |
+	"_MountOperationHandlerIface" |
+	"_MountOperationHandlerProxyClass" |
+	"_MountOperationHandlerSkeletonClass" |
+	"_MountOperationHandlerProxy"
+}]:detach;
 
 api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "Blob"}][:field, {"name" IS "data"}].type <- '!{$}';
 api[:namespace, {"name" IS "Gda"}][:struct, {"name" IS "MetaView"}][:field, {"name" IS "table"}].type <- '!{$}';
@@ -366,13 +397,49 @@ api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Server"}]:prepend(
 );
 EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
 EVERY api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:method, {"name" IS "get_data"}][:parameters][:parameter, {"name" IS "data"}].type <- 'out-void*';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:method, {"name" IS "get_data"}][:parameters][:parameter, {"name" IS "length"}].type <- 'out-int';
+api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "Buffer"}][:field, {"name" IS "data"}].type <- 'void*';
 
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_body"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "request_headers"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_body"}].type <- $:after('!');
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:field, {"name" IS "response_headers"}].type <- $:after('!');
+
+WITH parameters <- api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:method, {"name" IS "set_request"}][:parameters] DO (
+	parameters[:parameter, {"name" IS "req_body"}].type <- 'guchar*';
+	parameters[:parameter, {"name" IS "req_length"}].type <- 'string_length-3';
+);
+WITH parameters <- api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "Message"}][:method, {"name" IS "set_response"}][:parameters] DO (
+	parameters[:parameter, {"name" IS "resp_body"}].type <- 'guchar*';
+	parameters[:parameter, {"name" IS "resp_length"}].type <- 'string_length-3';
+);
+
+WITH poppler <- api[:namespace, {"name" IS "Poppler"}] DO (
+	poppler[:struct, {"name" IS "LinkMapping"}][:field, {"name" IS "area"}].type <- '!{$}';
+	poppler[:struct, {"name" IS "AnnotMapping"}][:field, {"name" IS "area"}].type <- '!{$}';
+	poppler[:struct, {"name" IS "FormFieldMapping"}][:field, {"name" IS "area"}].type <- '!{$}';
+	poppler[:struct, {"name" IS "ImageMapping"}][:field, {"name" IS "area"}].type <- '!{$}';
+	EVERY poppler[:struct, {"name" IS "Quadrilateral"}][:field, {"name" IS "p1" | "p2" | "p3" | "p4"}].type <- '!{$}';
+	poppler[:object, {"name" IS "Attachment"}][:field, {"name" IS "checksum"}].type <- $:after("!");
+	poppler[:struct, {"name" IS "TextAttributes"}][:field, {"name" IS "color"}].type <- '!{$}';
+	EVERY poppler[:struct, {"name" IS "Action"}][:field].type <- '!{$}';
+	poppler[:object, {"name" IS "Document"}][:method, {"cname" IS "poppler_document_get_print_scaling"}]:detach;
+	WITH parameters <- poppler[:object, {"name" IS "Document"}][:constructor, {"cname" IS "poppler_document_new_from_data"}][:parameters] DO (
+		parameters[:parameter, {"name" IS "data"}].type <- 'guchar*';
+		parameters[:parameter, {"name" IS "length"}].type <- 'string_length-1';
+	);
+);
+
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "data"}].type <- 'void*';
 api[:namespace, {"name" IS "Soup"}][:object, {"name" IS "WebsocketConnection"}][:method, {"name" IS "send_binary"}][:parameters][:parameter, {"name" IS "length"}].type <- 'int';
+WITH parameters <- api[:namespace, {"name" IS "Soup"}][:struct, {"name" IS "MessageBody"}][:method, {"name" IS "append"}][:parameters] DO (
+	parameters[:parameter, {"name" IS "data"}].type <- 'guchar*';
+	parameters[:parameter, {"name" IS "length"}].type <- 'string_length-1';
+);
+
+EVERY api[:namespace, {"name" IS "WebKit2"}][].cname <- $:map(["WebKit2"], ["WebKit"]);
+EVERY api[:namespace, {"name" IS "JavaScriptCore"}][].cname <- $:map(["JavaScriptCore"], ["JSC"]);
 
 VAR cairo <- api[:namespace, {"name" IS "cairo"}];
 
@@ -385,8 +452,10 @@ EVERY WITH cname <- cairo[].cname DO (
 		i <- j;
 	);
 	s:put('t');
-	cname <- s @ (Std.String.T, '_');
+	cname <- Std.String.Of(s, "_");
 );
+
+EVERY cairo[][:method, {"name" IS "GetType"}]:detach;
 
 VAR cairo_api <- Xml.LoadFile(Main:path + "/Cairo/extra.xml", Xml.NoText);
 EVERY WITH method <- cairo_api[][:method] DO method.shared // (
@@ -395,7 +464,7 @@ EVERY WITH method <- cairo_api[][:method] DO method.shared // (
 		s:put(method.name[i, j]:lower);
 		i <- j;
 	);
-	method.name <- s @ (Std.String.T, '_');
+	method.name <- Std.String.Of(s, "_");
 );
 EVERY WITH node <- cairo_api[] DO (
 	VAR name <- ALL node.cname:split('_');
@@ -438,6 +507,73 @@ cairo.name <- "Cairo";
 
 EVERY WITH node <- api:find(; node) node.type:find("cairo.") DO (
 	node.type <- $:map(["cairo."], ["Cairo."]);
+);
+
+DEF VipsOutParams {
+	"ColCh2ab" IS ["a", "b"],
+	"ColLab2XYZ" IS ["X", "Y", "Z"],
+	"ColXYZ2Lab" IS ["L", "a", "b"],
+	"ColXYZ2scRGB" IS ["R", "G", "B"],
+	"ColAb2Ch" IS ["C", "h"],
+	"ColSRGB2scRGB16" IS ["R", "G", "B"],
+	"ColSRGB2scRGB16Noclip" IS ["R", "G", "B"],
+	"ColSRGB2scRGB8" IS ["R", "G", "B"],
+	"ColSRGB2scRGB8Noclip" IS ["R", "G", "B"],
+	"ColScRGB2XYZ" IS ["X", "Y", "Z"],
+	"ColScRGB2sRGB16" IS ["r", "g", "b", "og"],
+	"ColScRGB2BW16" IS ["g", "og"],
+	"ColScRGB2BW8" IS ["g", "og"],
+	"ColScRGB2sRGB8" IS ["r", "g", "b", "og"]
+};
+
+WITH vips <- api[:namespace, {"name" IS "Vips"}] DO (
+	EVERY WITH struct <- vips[:struct] DO (
+		WITH parent <- struct[:field, {"name" IS "parent"}]:detach DO (
+			struct:attrs:insert("parent", parent.type);
+		); 
+	);
+	EVERY vips[:struct, {"name" IS Opaque["Vips"]:values}][:field]:detach;
+	EVERY WITH field <- vips[][:field, {"type" IS "!GLib.Mutex"}] DO field.type <- $[2, 0];
+	EVERY WITH field <- vips[][:field, {"type" IS "!GLib.Thread"}] DO field.type <- $[2, 0];
+	EVERY WITH field <- vips[][:field, {"type" IS "!GLib.HashTable"}] DO field.type <- $[2, 0];
+	EVERY WITH field <- vips[][:field, {"type" IS "!Vips.ArrayDouble"}] DO field.type <- $[2, 0];
+	EVERY WITH field <- vips[][:field, {"type" IS "!Vips.Progress"}] DO field.type <- $[2, 0];
+	EVERY vips[:object][:field, {"type" IS "!any"}]:detach;
+	
+	vips[:class, {"name" IS "Main"}][:method, {"name" IS "ColSRGB2scRGB16Noclip"}]:detach;
+	vips[:class, {"name" IS "Main"}][:method, {"name" IS "ColSRGB2scRGB8Noclip"}]:detach;
+	
+	VAR names;
+	EVERY vips[:class, {"name" IS "Main"}][:method, {"name" IS VipsOutParams:keys(names)}][:parameters][:parameter, {"name" IS names:values}].type <- 'out-{$}';
+	WITH method <- vips[:class, {"name" IS "Main"}][:method, {"cname" IS "vips_value_get_array_double"}] DO (
+		method[:"return-type"].type <- 'sized-1-double';
+		method[:parameters][:parameter, {"name" IS "n"}].type <- 'out-{$}';
+	);
+	vips[:object, {"name" IS "Image"}][:method, {"cname" IS "vips_image_get_double"}][:parameters][:parameter, {"name" IS "out"}].type <- 'out-{$}';
+	vips[:object, {"name" IS "Object"}][:method, {"cname" IS "vips_object_set_required"}]:detach;
+);
+
+EVERY WITH struct <- api[:namespace, {"name" IS "Graphene"}][] DO (
+	VAR cname <- "", char, num <- :false;
+	EVERY char <- struct.cname:chars DO (
+		'A' <= char <= 'Z' => (
+			num == :true => (
+				cname <- '{cname}{char:lower}';
+			) // (
+				cname <- '{cname}_{char:lower}';
+			);
+		) // '0' <= char <= '9' => (
+			num <- :true;
+			cname <- '{cname}{char}';
+		) // (
+			num <- :false;
+			cname <- '{cname}{char}';
+		);
+	);
+	struct.cname <- cname[2, 0] + '_t';
+	struct.name = "Point" | "Point3D" | "Size" | "Rectangle" // (
+		EVERY struct[:field]:detach;
+	);
 );
 
 VAR out <- IO.File.Open(Sys.Program.Args[2], IO.File.Flag.Write + IO.File.Flag.Text) | Out;
@@ -551,6 +687,10 @@ DEF ProcessClass(class) (
 	EVERY child <- class[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= class."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
@@ -572,6 +712,10 @@ DEF ProcessInterface(interface) (
 	EVERY child <- interface[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= interface."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
@@ -603,6 +747,10 @@ DEF ProcessRecord(record) (
 	EVERY child <- record[:function] DO (
 		Xml.New(output, :method, {"name" IS CamelCaseName(child.name), "cname" IS child."c:identifier", "shared" IS "true"}, ProcessFunction(child));
 	);
+	Xml.New(output, :method, {"name" IS "GetType", "cname" IS "intern" ~= record."glib:get-type", "shared" IS "true"}, [
+		Xml.New(:"return-type", {"type" IS "GType"}),
+		Xml.New(:parameters)
+	]);
 	RET output;
 );
 
@@ -673,7 +821,7 @@ DEF ProcessFunction(function) (
 	VAR parameter <- {}, return, array, aux <- {};
 	return <- function[:"return-value"];
 	(array <- return[:array]) => (
-		array.length => aux:insert(array.length @ Std.Integer.T, 'out-size');
+		array.length => aux:insert(Std.Integer.Of(array.length), 'out-size');
 	);
 	VAR return_type <- Xml.New(:"return-type", {"type" IS ProcessType(return[])});
 	return_type == NIL => (
@@ -682,7 +830,7 @@ DEF ProcessFunction(function) (
 		Sys.Program.Exit(1);
 	);
 	EVERY parameter <- function[:parameters][:parameter] DO (
-		(array <- parameter[:array]) => aux:insert(array.length @ Std.Integer.T, 'length-{array.length}');
+		(array <- parameter[:array]) => aux:insert(Std.Integer.Of(array.length), 'length-{array.length}');
 	);
 	VAR i <- 0;
 	VAR parameters <- Xml.New(:parameters);

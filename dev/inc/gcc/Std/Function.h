@@ -7,17 +7,17 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(argument) {
-	Std$Object_t *Val;
-	Std$Object_t **Ref;
+	Std$Object$t *Val;
+	Std$Object$t **Ref;
 };
 
 RIVA_STRUCT(result) {
 	union {
 		struct {
-			Std$Object_t *Val;
-			Std$Object_t **Ref;
+			Std$Object$t *Val;
+			Std$Object$t **Ref;
 		};
-		Std$Function_argument Arg;
+		Std$Function$argument Arg;
 	};
 	void *State;
 };
@@ -29,21 +29,18 @@ RIVA_STRUCT(result) {
 
 typedef int Std$Function$status;
 
-typedef Std$Function$status Std$Function_status;
-
-typedef Std$Object_t Std$Function_t;
 typedef Std$Object$t Std$Function$t;
 
 #define FUNCTION_PARAMS const Std$Function$ct *Fun, unsigned long Count, const Std$Function$argument *Args, Std$Function$result *Result
 #define FUNCTION_ATTRS __attribute__ ((force_align_arg_pointer))
 
 RIVA_STRUCT(asmt) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	void *Invoke;
 };
 
 RIVA_STRUCT(checkedasmt) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	Std$Function$t Target;
 };
 
@@ -66,7 +63,7 @@ RIVA_STRUCT(cstate);
 RIVA_STRUCT(cresumedata);
 
 typedef Std$Function$status (* Std$Function$cresumefn)(Std$Function$result *Result);
-typedef Std$Function$cresumefn Std$Function_cresumefn;
+typedef Std$Function$cresumefn Std$Function$cresumefn;
 
 RIVA_STRUCT(state_t) {
 	void *Run;
@@ -97,15 +94,15 @@ RIVA_OBJECT(IteratorNew);
 RIVA_OBJECT(IteratorNext);
 RIVA_OBJECT(Fold);
 
-RIVA_CFUN(Std$Object_t *, constant_new, Std$Object_t *);
+RIVA_CFUN(Std$Object$t *, constant_new, Std$Object$t *);
 
 RIVA_CFUN(long, invoke_c);
-RIVA_CFUN(Std$Function_status, resume_c, Std$Function$result *) __attribute__ ((warn_unused_result));
-RIVA_CFUN(Std$Function_status, invoke, const Std$Object_t *, long, Std$Function_result *, const Std$Function_argument *) __attribute__ ((warn_unused_result));
-RIVA_CFUN(Std$Function_status, call, const Std$Object_t *, long, Std$Function_result *, ...) __attribute__ ((warn_unused_result));
-RIVA_CFUN(Std$Function_status, resume, Std$Function_result *) __attribute__ ((warn_unused_result));
+RIVA_CFUN(Std$Function$status, resume_c, Std$Function$result *) __attribute__ ((warn_unused_result));
+RIVA_CFUN(Std$Function$status, invoke, const Std$Object$t *, long, Std$Function$result *, const Std$Function$argument *) __attribute__ ((warn_unused_result));
+RIVA_CFUN(Std$Function$status, call, const Std$Object$t *, long, Std$Function$result *, ...) __attribute__ ((warn_unused_result));
+RIVA_CFUN(Std$Function$status, resume, Std$Function$result *) __attribute__ ((warn_unused_result));
 
-RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, const Std$Type_t *, const Std$Type_t *);
+RIVA_CFUN(Std$Object$t *, new_arg_type_message, const Std$Function$ct *, int, const Std$Type$t *, const Std$Type$t *);
 
 #ifdef DOCUMENTING
 
@@ -115,14 +112,14 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 #else
 
 #define LOCAL_FUNCTION(NAME)\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS);\
-	static Std$Function_ct NAME[] = {{Std$Function$CT, invoke_ ## NAME}};\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS);\
+	static Std$Function$ct NAME[] = {{Std$Function$CT, invoke_ ## NAME}};\
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS)
 
 #define GLOBAL_FUNCTION(NAME, COUNT)\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS);\
-	Std$Function_checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
-	static FUNCTION_ATTRS Std$Function_status invoke_ ## NAME(FUNCTION_PARAMS)
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS);\
+	Std$Function$checkedct NAME[] = {{Std$Function$CheckedCT, invoke_ ## NAME, COUNT, __FILE__, __LINE__}};\
+	static FUNCTION_ATTRS Std$Function$status invoke_ ## NAME(FUNCTION_PARAMS)
 
 #endif
 
@@ -139,14 +136,14 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 	}
 
 #define FUNCTIONAL_TYPE(NAME, PARENTS...)\
-	extern const Std$Type_t NAME[];\
-	static const Std$Type_t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
-	static const Std$Array_t NAME ## _fields[] = {{\
+	extern const Std$Type$t NAME[];\
+	static const Std$Type$t *NAME ## _parents[] = {NAME, ## PARENTS, 0};\
+	static const Std$Array$t NAME ## _fields[] = {{\
 		Std$Array$T, 0,\
 		{Std$Integer$SmallT, 0}\
 	}};\
 	static unsigned long NAME ## _levels[] = __concat(LEVELS_, PP_NARG(NAME, ## PARENTS));\
-	const Std$Type_t NAME[] = {{\
+	const Std$Type$t NAME[] = {{\
 		Std$Type$T, \
 		NAME ## _parents, \
 		(void *)Std$Function$invoke_c, \
@@ -155,7 +152,7 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 	}}
 
 #define RETURN(X) {\
-	Result->Val = (Std$Object$t *)X;\
+	Result->Val = (Std$Object$t *)(X);\
 	return SUCCESS;\
 }
 
@@ -174,7 +171,7 @@ RIVA_CFUN(Std$Object_t *, new_arg_type_message, const Std$Function_ct *, int, co
 }
 
 #define SEND(X) {\
-	Result->Val = (Std$Object$t *)X;\
+	Result->Val = (Std$Object$t *)(X);\
 	return MESSAGE;\
 }
 

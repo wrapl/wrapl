@@ -4,7 +4,7 @@ IMP IO.Terminal USE Out;
 IMP Sys.Module;
 
 IMP .Log USE Log;
-IMP .List, .Reference, .Array, .Alias, .Varargs, .Value;
+IMP .List, .Reference, .Array, .Alias, .Varargs, .Value, .Common;
 
 DEF T! <- <[] cname, gname, desc>;
 TO :headers(type@T) {};
@@ -66,7 +66,8 @@ DEF ModifierTable <- {
     "varargs" IS Varargs.New,
     "count" IS Varargs.CountNew,
     "struct" IS <x> Lookup(x:after("_")),
-	"value" IS Value.New
+	"value" IS Value.New,
+	"string_length" IS Common.StringLengthNew
 };
 
 TO :parent(type@T) NIL;

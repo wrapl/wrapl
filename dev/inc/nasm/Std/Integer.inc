@@ -18,7 +18,7 @@ riva_extern T
 riva_extern SmallT
 riva_extern BigT
 riva_extern ToSmallSmall
-riva_extern New
+riva_extern Of
 riva_extern Compare
 riva_extern Hash
 

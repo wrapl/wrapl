@@ -11,9 +11,9 @@ RIVA_STRUCT(t);
 
 RIVA_TYPE(T);
 
-RIVA_CFUN(Sys$Service_t *, new, const char *);
-RIVA_CFUN(void, start, Sys$Service_t *, Std$Object_t *);
-RIVA_CFUN(Std$Object_t *, get, const char *);
+RIVA_CFUN(Sys$Service$t *, new, const char *);
+RIVA_CFUN(void, start, Sys$Service$t *, Std$Object$t *);
+RIVA_CFUN(Std$Object$t *, get, const char *);
 
 #undef RIVA_MODULE
 

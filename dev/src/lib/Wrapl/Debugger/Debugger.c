@@ -17,10 +17,10 @@
 
 typedef struct variable_t variable_t;
 typedef struct thread_t thread_t;
-typedef struct Wrapl$Loader_debug_module module_t;
-typedef struct Wrapl$Loader_debug_state state_t;
-typedef struct Wrapl$Loader_debug_function function_t;
-typedef struct Wrapl$Loader_debug_instance instance_t;
+typedef struct Wrapl$Loader$debug_module module_t;
+typedef struct Wrapl$Loader$debug_state state_t;
+typedef struct Wrapl$Loader$debug_function function_t;
+typedef struct Wrapl$Loader$debug_instance instance_t;
 typedef struct watch_t watch_t;
 
 struct variable_t {
@@ -29,7 +29,7 @@ struct variable_t {
 	variable_t *Next;
 };
 
-struct Wrapl$Loader_debug_module {
+struct Wrapl$Loader$debug_module {
 	const char *Name;
 	int Index;
 	int NoOfLines;
@@ -39,7 +39,7 @@ struct Wrapl$Loader_debug_module {
 	char *Breakpoints;
 };
 
-struct Wrapl$Loader_debug_function {
+struct Wrapl$Loader$debug_function {
 	const char *Name;
 	module_t *Module;
 	int NoOfLocals;
@@ -48,12 +48,12 @@ struct Wrapl$Loader_debug_function {
 	variable_t *Locals, *LastLocal;
 };
 
-struct Wrapl$Loader_debug_instance {
+struct Wrapl$Loader$debug_instance {
 	instance_t *Up;
 	struct thread_t *Thread;
 	function_t *Function;
 	GtkTreePath *Path;
-	Std$Object_t **Locals;
+	Std$Object$t **Locals;
 };
 
 struct thread_t {
@@ -139,7 +139,7 @@ static void add_line(module_t *Module, const char *Line) {
 	gdk_threads_leave();
 };
 
-static void add_global(module_t *Module, const char *Name, Std$Object_t **Address) {
+static void add_global(module_t *Module, const char *Name, Std$Object$t **Address) {
 //	printf("Adding global variable to %s: %s @ %x\n", Module->Name, Name, Address);
 	gdk_threads_enter();
 	GtkTreeIter Parent, Iter;
@@ -184,7 +184,7 @@ static void unpause_thread(thread_t *Thread) {DEBUG
 
 SYMBOL($AS, "@");
 /*static const char *to_string(Std$Object$t *Value) {
-	Std$Function_result Result;
+	Std$Function$result Result;
 	const char *Module, *Import;
 	if (Std$Function$call($AS, 2, &Result, Value, 0, Std$String$T, 0) < FAILURE) {
 		return Std$String$flatten(Result.Val);
@@ -202,7 +202,7 @@ SYMBOL($AS, "@");
 };*/
 
 static const char *to_string(Std$Object$t *Value) {
-	Std$Function_result Result;
+	Std$Function$result Result;
 	if (Std$Function$call($AS, 2, &Result, Value, 0, Std$String$T, 0) < FAILURE) {
 		return Std$String$flatten(Result.Val);
 	} else {
@@ -210,7 +210,7 @@ static const char *to_string(Std$Object$t *Value) {
 	};
 };
 
-static void display_variable(GtkTreeModel *Variables, GtkTreeIter *Iter, Std$Object$t *Value, Std$Object_t **Address) {
+static void display_variable(GtkTreeModel *Variables, GtkTreeIter *Iter, Std$Object$t *Value, Std$Object$t **Address) {
 	//printf("Address = 0x%x, Value = 0x%x\n", Address, Value);
 	const char *String;
 	if (Value->Type == Agg$Table$T) {
@@ -275,7 +275,7 @@ static void display_variable(GtkTreeModel *Variables, GtkTreeIter *Iter, Std$Obj
 
 static void variable_expanded(GtkTreeView *View, GtkTreeIter *Iter, GtkTreePath *Path, void *Data) {
 	GtkTreeModel *Variables = gtk_tree_view_get_model(View);
-	Std$Object_t **Address, *Value;
+	Std$Object$t **Address, *Value;
 	const char *Name;
 	int IsFunction;
 	gtk_tree_model_get(Variables, Iter, 0, &Name, 2, &Address, 3, &Value, 4, &IsFunction, -1);
@@ -295,7 +295,7 @@ static gboolean refresh_variable(GtkTreeModel *Variables, GtkTreePath *Path, Gtk
 	GtkTreePath *Parent = gtk_tree_path_copy(Path);
 	gtk_tree_path_up(Parent);
 	if (!gtk_tree_view_row_expanded(View, Parent)) return FALSE;
-	Std$Object_t **Address, *Value;
+	Std$Object$t **Address, *Value;
 	const char *Name;
 	gtk_tree_model_get(Variables, Iter, 0, &Name, 2, &Address, 3, &Value, -1);
 	//printf("Name, Address, Value = %s, %x, %x, %x\n", Name, Address, Address ? Address[0] : 0, Value);
@@ -311,7 +311,7 @@ static gboolean update_variable(GtkTreeModel *Variables, GtkTreePath *Path, GtkT
 	GtkTreePath *Parent = gtk_tree_path_copy(Path);
 	gtk_tree_path_up(Parent);
 	if (!gtk_tree_view_row_expanded(View, Parent)) return FALSE;
-	Std$Object_t **Address, *Value;
+	Std$Object$t **Address, *Value;
 	const char *Name;
 	gtk_tree_model_get(Variables, Iter, 0, &Name, 2, &Address, 3, &Value, -1);
 	//printf("Name, Address, Value = %s, %x, %x, %x\n", Name, Address, Address ? Address[0] : 0, Value);
@@ -459,7 +459,7 @@ static void exit_function(instance_t *Instance) {DEBUG
 	if (Thread == DisplayedThread) gdk_threads_leave();
 };
 
-static void alloc_local(instance_t *Instance, int Index, Std$Object_t **Address) {DEBUG
+static void alloc_local(instance_t *Instance, int Index, Std$Object$t **Address) {DEBUG
 	if (Instance == (instance_t *)0xFFFFFFFF) return;
 	thread_t *Thread = Instance->Thread;
 	if (Thread == DisplayedThread) gdk_threads_enter();
@@ -793,7 +793,7 @@ static void *debugger_thread(void *Arg) {
 };
 
 INITIAL() {
-	static Wrapl$Loader_debugger Debugger[1] = {{
+	static Wrapl$Loader$debugger Debugger[1] = {{
 		.add_module = add_module,
 		.add_line = add_line,
 		.add_global = add_global,

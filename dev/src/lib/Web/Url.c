@@ -28,7 +28,7 @@ static inline void advance(decoder_t *Decoder) {
 	};
 };
 
-static Std$String_t *next(decoder_t *Decoder, int Index) {
+static Std$String$t *next(decoder_t *Decoder, int Index) {
 	char *Chars = Riva$Memory$alloc_atomic(64);
 	size_t Length = 0, Max = 64;
 	while (Decoder->Next) {
@@ -50,7 +50,7 @@ static Std$String_t *next(decoder_t *Decoder, int Index) {
 		Chars[Length] = Char;
 		if (++Length == Max) {
 			if (Max == 16384) {
-				Std$String_t *Key = next(Decoder, Index + 1);
+				Std$String$t *Key = next(Decoder, Index + 1);
 				Key->Length.Value += Length;
 				Key->Blocks[Index].Length.Value = Length;
 				Key->Blocks[Index].Chars.Value = Chars;
@@ -65,7 +65,7 @@ static Std$String_t *next(decoder_t *Decoder, int Index) {
 	};
 finished:
 	if (Length) {
-		Std$String_t *Key = Std$String$alloc(Index + 1);
+		Std$String$t *Key = Std$String$alloc(Index + 1);
 		Key->Length.Value = Length;
 		Key->Blocks[Index].Length.Value = Length;
 		Key->Blocks[Index].Chars.Value = Chars;
@@ -78,10 +78,10 @@ finished:
 ASYMBOL(Decode);
 
 static Std$Function$status decode(decoder_t *Decoder, Std$Function$result *Result) {
-	Std$Object_t *Table = Agg$Table$new(0, 0);
+	Std$Object$t *Table = Agg$Table$new(0, 0);
 	while (Decoder->Next) {
-		Std$Object_t *Key = Std$String$freeze(next(Decoder, 0));
-		Std$Object_t *Value = Std$Object$Nil;
+		Std$Object$t *Key = Std$String$freeze(next(Decoder, 0));
+		Std$Object$t *Value = Std$Object$Nil;
 		if (Decoder->Next && Decoder->Next[0] == '=') {
 			advance(Decoder);
 			Value = Std$String$freeze(next(Decoder, 0));
@@ -100,7 +100,7 @@ static Std$Function$status decode(decoder_t *Decoder, Std$Function$result *Resul
 
 typedef struct string_decoder_t {
 	decoder_t Base;
-	Std$String_block *Block;
+	Std$String$block *Block;
 } string_decoder_t;
 
 static void string_advance(string_decoder_t *Decoder) {
@@ -114,10 +114,10 @@ static void string_advance(string_decoder_t *Decoder) {
 
 AMETHOD(Decode, TYP, Std$String$T) {
 	string_decoder_t Decoder[1];
-	Decoder->Base.Next = ((Std$String_t *)Args[0].Val)->Blocks->Chars.Value;
-	Decoder->Base.Rem = ((Std$String_t *)Args[0].Val)->Blocks->Length.Value;
+	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Chars.Value;
+	Decoder->Base.Rem = ((Std$String$t *)Args[0].Val)->Blocks->Length.Value;
 	Decoder->Base.advance = string_advance;
-	Decoder->Block = ((Std$String_t *)Args[0].Val)->Blocks + 1;
+	Decoder->Block = ((Std$String$t *)Args[0].Val)->Blocks + 1;
 	return decode(Decoder, Result);
 };
 
@@ -149,10 +149,10 @@ GLOBAL_FUNCTION(DecodeStream, 1) {
 
 GLOBAL_FUNCTION(DecodeString, 1) {
 	string_decoder_t Decoder[1];
-	Decoder->Base.Next = ((Std$String_t *)Args[0].Val)->Blocks->Chars.Value;
-	Decoder->Base.Rem = ((Std$String_t *)Args[0].Val)->Blocks->Length.Value;
+	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Chars.Value;
+	Decoder->Base.Rem = ((Std$String$t *)Args[0].Val)->Blocks->Length.Value;
 	Decoder->Base.advance = string_advance;
-	Decoder->Block = ((Std$String_t *)Args[0].Val)->Blocks + 1;
+	Decoder->Block = ((Std$String$t *)Args[0].Val)->Blocks + 1;
 	Result->Val = Std$String$freeze(next(Decoder, 0));
 	return SUCCESS;
 };
@@ -166,10 +166,10 @@ Std$Object$t *_decode(const char *Chars, size_t Length) {
 	Decoder->Base.Rem = Length;
 	Decoder->Base.advance = string_advance;
 	Decoder->Block = Blocks;
-	Std$Object_t *Table = Agg$Table$new(0, 0);
+	Std$Object$t *Table = Agg$Table$new(0, 0);
 	while (Decoder->Base.Next) {
-		Std$Object_t *Key = Std$String$freeze(next(Decoder, 0));
-		Std$Object_t *Value = Std$Object$Nil;
+		Std$Object$t *Key = Std$String$freeze(next(Decoder, 0));
+		Std$Object$t *Value = Std$Object$Nil;
 		if (Decoder->Base.Next[0] == '=') {
 			advance(Decoder);
 			Value = Std$String$freeze(next(Decoder, 0));
@@ -277,16 +277,14 @@ GLOBAL_FUNCTION(EncodeString, 1) {
 };
 
 
-SYMBOL($AS, "@");
-
 static void encode_key_value(Std$Object$t *Key, Std$Object$t *Value, encoder_t *Encoder) {
 	if (Encoder->Sep) encoder_write("&", 1, Encoder);
 	Std$Function$result Result[1];
-	if (Std$Function$call($AS, 2, Result, Key, 0, Std$String$T, 0) <= SUCCESS) {
+	if (Std$Function$call(Std$String$Of, 1, Result, Key, 0) <= SUCCESS) {
 		encode_string((Std$String$t *)Result->Val, Encoder);
 	};
 	encoder_write("=", 1, Encoder);
-	if (Std$Function$call($AS, 2, Result, Value, 0, Std$String$T, 0) <= SUCCESS) {
+	if (Std$Function$call(Std$String$Of, 1, Result, Value, 0) <= SUCCESS) {
 		encode_string((Std$String$t *)Result->Val, Encoder);
 	};
 	Encoder->Sep = 1;

@@ -113,7 +113,7 @@ GLOBAL_METHOD(QueueLength, 1, "length", TYP, QueueT) {
 };
 
 GLOBAL_FUNCTION(Sleep, 1) {
-    sleep(((Std$Integer_smallt *)Args[0].Val)->Value);
+    sleep(((Std$Integer$smallt *)Args[0].Val)->Value);
     return SUCCESS;
 };
 
@@ -186,10 +186,10 @@ typedef struct thread_key_t {
 
 static void *thread_func(thread_t *Thread) {
 	pthread_setspecific(ThreadKey, Thread);
-	Std$Function_argument Args[Thread->Count];
+	Std$Function$argument Args[Thread->Count];
 	Std$Object$t *Function = Thread->Function;
 	unsigned long Count = Thread->Count;
-	memcpy(Args, Thread->Args, Count * sizeof(Std$Function_argument));
+	memcpy(Args, Thread->Args, Count * sizeof(Std$Function$argument));
 	Thread->Data = Std$Object$Nil;
 	Thread->Status = FAILURE;
 	Thread->Status = Std$Function$invoke(Function, Count, &Thread->Result, Args);
@@ -209,7 +209,7 @@ thread_t *thread_self(void) {
 	return Thread;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	thread_t *Thread = (thread_t *)Args[0].Val;
 	char *Buffer;
 	Result->Val = Std$String$new_length(Buffer, asprintf(&Buffer, "<thread @ %x>", Thread->Handle));
@@ -221,8 +221,8 @@ GLOBAL_FUNCTION(New, 1) {
 	Thread->Type = T;
 	Thread->Function = Args[Count - 1].Val;
 	Thread->Count = Count - 1;
-	Thread->Args = (Std$Function_argument *)Riva$Memory$alloc(Thread->Count * sizeof(Std$Function_argument));
-	memcpy(Thread->Args, Args, Thread->Count * sizeof(Std$Function_argument));
+	Thread->Args = (Std$Function$argument *)Riva$Memory$alloc(Thread->Count * sizeof(Std$Function$argument));
+	memcpy(Thread->Args, Args, Thread->Count * sizeof(Std$Function$argument));
 	pthread_create(&Thread->Handle, 0, thread_func, (void *)Thread);
 	//printf("\e[32mCreating thread <thread @ %x>\e[0m\n", Thread);
 	Result->Val = (Std$Object$t *)Thread;
@@ -623,19 +623,19 @@ GLOBAL_METHOD(KeySet, 2, "set", TYP, KeyT, ANY) {
 
 GLOBAL_FUNCTION(Sleep, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-    sleep(((Std$Integer_smallt *)Args[0].Val)->Value);
+    sleep(((Std$Integer$smallt *)Args[0].Val)->Value);
     return SUCCESS;
 };
 
 GLOBAL_FUNCTION(USleep, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-    usleep(((Std$Integer_smallt *)Args[0].Val)->Value);
+    usleep(((Std$Integer$smallt *)Args[0].Val)->Value);
     return SUCCESS;
 };
 
 typedef struct queue_node {
 	struct queue_node *Next;
-	Std$Function_argument Arg;
+	Std$Function$argument Arg;
 } queue_node;
 
 typedef struct queue_t {

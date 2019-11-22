@@ -209,6 +209,13 @@ static Std$Object$t *recv_timestamp_text(char *Data, int Length) {
 	return (Std$Object$t *)Time;
 }
 
+static Std$Object$t *recv_uuid_text(char *Data, int Length) {
+	Alg$UUID$t *UUID = new(Alg$UUID$t);
+	UUID->Type = Alg$UUID$T;
+	uuid_parse(Data, UUID->Value);
+	return (Std$Object$t *)UUID;
+}
+
 recv_value_fn lookup_recv_value_fn(const PGresult *Res, int Col) {
 	switch (PQfformat(Res, Col)) {
 	case 0:
@@ -228,6 +235,8 @@ recv_value_fn lookup_recv_value_fn(const PGresult *Res, int Col) {
 		case TIMESTAMPOID:
 		case TIMESTAMPTZOID:
 			return recv_timestamp_text;
+		case UUIDOID:
+			return recv_uuid_text;
 		}
 		printf("Unknown OID: %d\n", PQftype(Res, Col));
 		return recv_nil;
@@ -267,10 +276,11 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
 	case PGRES_EMPTY_QUERY:
 		PQclear(Res);
 		return FAILURE;
-	case PGRES_COMMAND_OK:
+	case PGRES_COMMAND_OK: {
+		Result->Val = Std$Integer$new_small(atoi(PQcmdTuples(Res)));
 		PQclear(Res);
-		Result->Arg = Args[0];
 		return SUCCESS;
+	}
 	case PGRES_TUPLES_OK:
 	case PGRES_SINGLE_TUPLE: {
 		result_t *Results = new(result_t);
@@ -298,7 +308,7 @@ METHOD("exec", TYP, T, TYP, Std$String$T) {
 	}
 }
 
-METHOD("rows", TYP, ResultT) {
+METHOD("count", TYP, ResultT) {
 	result_t *Results = (result_t *)Args[0].Val;
 	Result->Val = Std$Integer$new_small(Results->RowCount);
 	return SUCCESS;

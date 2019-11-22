@@ -84,9 +84,9 @@ METH :prepend(node+ @ NodeT, text @ String.T) (
 
 METH :detach(node+ @ NodeT) node:parent:content:remove(node);
 
-METH :"@"(node @ NodeT, =String.T) (
-	VAR s <- "<" + node:tag @ String.T;
-	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{(v @ String.T):map(SpecialChars, XmlEntities)}"';
+METH String.Of(node @ NodeT) (
+	VAR s <- '<{node:tag}';
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{String.Of(v):map(SpecialChars, XmlEntities)}"';
 	node:content:length = 0 => RET s + "/>";
 	s <- $ + ">";
 	VAR child; EVERY child <- node:content:values DO (
@@ -95,7 +95,7 @@ METH :"@"(node @ NodeT, =String.T) (
 		) // ?child == EntityT => (
 			s <- '{$}&{child:ref};';
 		) // (
-			s <- $ + child @ String.T;
+			s <- $ + String.Of(child);
 		);
 	);
 	s <- '{$}</{node:tag}>';
@@ -103,8 +103,8 @@ METH :"@"(node @ NodeT, =String.T) (
 );
 
 METH :write(s @ Stream.T, node @ NodeT) (
-	s:write("<" + node:tag @ String.T);
-	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{(v @ String.T):map(SpecialChars, XmlEntities)}"');
+	s:write('<{node:tag}');
+	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{String.Of(v):map(SpecialChars, XmlEntities)}"');
 	node:content:length = 0 => RET s:write("/>");
 	s:write(">");
 	VAR child; EVERY child <- node:content:values DO (
@@ -128,6 +128,11 @@ METH :"[]"(node+ @ NodeT, tag @ Symbol.T) EVERY SUSP node:content:values \ (?$ =
 METH :"[]"(node+ @ NodeT, tag @ Symbol.T, attrs @ Table.T) (
 	VAR child, value;
 	EVERY child <- node[tag] DO (child:attrs[attrs:keys(value)] ~= value) // SUSP child;
+);
+
+METH :"[]"(node+ @ NodeT, attrs @ Table.T) (
+	VAR child, value;
+	EVERY child <- node[] DO (child:attrs[attrs:keys(value)] ~= value) // SUSP child;
 );
 
 METH :"[]"(node+ @ NodeT, tag @ Symbol.T, filter) EVERY SUSP node:content:values \ (?$ == NodeT & $:tag == tag & filter($));

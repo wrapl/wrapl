@@ -11,8 +11,8 @@ DEF NoText! 1;
 
 DEF NodeT! <[] parent, tag, attrs, content>;
 
-METH :"@"(node @ NodeT, =String.T) (
-	VAR s <- "<" + node:tag @ String.T;
+METH String.Of(node @ NodeT) (
+	VAR s <- '<{node:tag}';
 	VAR k, v; EVERY node:attrs:loop(k, v) DO s <- '{s} {k}="{v:map(SpecialChars, HtmlEntities)}"';
 	node:content:length = 0 => RET s + "/>";
 	s <- s + ">";
@@ -28,7 +28,7 @@ METH :"@"(node @ NodeT, =String.T) (
 );
 
 METH :write(s @ Stream.T, node @ NodeT) (
-	s:write("<" + node:tag @ String.T);
+	s:write('<{node:tag}');
 	VAR k, v; EVERY node:attrs:loop(k, v) DO s:write(' {k}="{v:map(SpecialChars, HtmlEntities)}"');
 	node:content:length = 0 => RET s:write("/>");
 	s:write(">");

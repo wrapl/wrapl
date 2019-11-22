@@ -1,0 +1,20 @@
+LIBEVENT_URL := "https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz"
+
+var LIBEVENT_LIB := EXT_DIR / "lib/libevent.a" => fun() do
+	file("libevent"):rmdir:mkdir:chdir
+	execute("wget -nv", LIBEVENT_URL, "-O- | tar xvzP --strip-components=1")
+	execute("./configure --disable-shared --enable-static",
+		'--prefix={EXT_DIR}',
+		"--without-man-pages",
+		'CFLAGS=\"{LIBCFLAGS}\"',
+		'LDFLAGS=\"{LIBLDFLAGS}\"'
+	)
+	execute("make clean")
+	execute("make install")
+end
+
+LIBEVENT_RLINK[riva_module_auto("Util/Event/libevent", [], [LIBEVENT_LIB])]
+
+riva_module("Util/Event/Base", [file("Base.o")], [LIBEVENT_RLINK])
+riva_module("Util/Event/Buffer", [file("Buffer.o")], [LIBEVENT_RLINK])
+riva_module("Util/Event/Http", [file("Http.o")], [LIBEVENT_RLINK])

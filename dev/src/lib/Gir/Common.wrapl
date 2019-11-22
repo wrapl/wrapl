@@ -9,10 +9,16 @@ IMP .Type, .Docs, .API;
 IMP .Log USE Log, List;
 
 DEF PrefixLength!(namespace, cname) (
-	VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
-	("A" <= namespace[-1] <= "Z") => n <- n + 1;
-	cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
-	RET n;
+	cname:begins("WebKit2") => (
+		RET cname:length - 1 + COUNT cname:chars IN String.Upper;
+	) // cname:begins("WebKit") => (
+		RET cname:length + COUNT cname:chars IN String.Upper;
+	) // (
+		VAR n <- cname:length + (ALL (cname + "_"):split(String.Upper)):length;
+		("A" <= namespace[-1] <= "Z") => n <- n + 1;
+		cname[1] = "G" & cname[2] IN String.Upper => n <- n + 1;
+		RET n;
+	);
 );
 
 DEF ConstructorName(type, cname) (
@@ -24,14 +30,14 @@ DEF ConstructorName(type, cname) (
 	cname[i] = "_" => (i <- i + 1);
 	name <- name + cname[i]:upper;
 	REP (
-	i <- i + 1;
-	UNTIL i > n;
-	cname[i] = "_" => (
 		i <- i + 1;
-		name <- name + cname[i]:upper;
-	) // (
-		name <- name + cname[i];
-	);
+		UNTIL i > n;
+		cname[i] = "_" => (
+			i <- i + 1;
+			name <- name + cname[i]:upper;
+		) // (
+			name <- name + cname[i];
+		);
 	);
 	RET name;
 );
@@ -376,7 +382,7 @@ TO :generate_c(field@ArrayFieldT) (
 	'//@index',
 	'//:{type:rtype}',
 	'\t{object:ctype} param0;',
-	'\tint index = ((Std$Integer_smallt *)Args[1].Val)->Value;'
+	'\tint index = ((Std$Integer$smallt *)Args[1].Val)->Value;'
 	] + (ALL "\t" + object:riva_to_c('Args[0].Val', 'param0', 'precall0'):values)
 	+ (ALL "\t" + type:c_to_riva('param0->{field:cname}[index]', "Result->Val", 'postcall0'):values) + [
 	'\treturn SUCCESS;',
@@ -390,11 +396,12 @@ TO :generate_c_file(type@Type.T, basedir) (
 	API.ns <- type:namespace;
 	API.cname <- type:cname;
 	API.name <- type:name;
-	VAR headers <- type:base_headers;
+	VAR headers <- type:base_headers:copy;
 	VAR item;
 	EVERY item <- type:items:values DO (
 		EVERY headers:insert(item:headers:keys);
 	);
+	headers:insert("Gir/GObject/Riva.h");
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.c', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.c\n');
 	file:write("#include <Riva.h>\n");
@@ -410,11 +417,12 @@ TO :generate_c_file(type@Type.T, basedir) (
 );
 
 TO :generate_rdef_file(type@Type.T, basedir) (
-	VAR libraries <- type:base_libraries;
+	VAR libraries <- type:base_libraries:copy;
 	VAR item;
 	EVERY item <- type:items:values DO (
 		EVERY libraries:insert(item:libraries:keys);
 	);
+	libraries:insert("Gir/GObject/Riva.rlib");
 	VAR file <- File.Open('{basedir}/{type:namespace}/{type:name}.rdef', File.Flag.Write + File.Flag.Text);
 	List:write('{basedir}/{type:namespace}/{type:name}.rdef\n');
 	type:namespace ~= "GObject" => file:write('require(\"Gir/GObject/Init\")\n');
@@ -595,6 +603,27 @@ TO :generate(type@Type.T, objdir, incdir, libdir) (
 	Type.Define("xmlChar*", string);
 	Type.Define("gchar**", Type.Lookup("array-gchar*"));
 );
+
+DEF StringLengthT! <- <[Type.T] index>;
+
+DEF StringLengthNew!(base) (
+    VAR index <- Integer.Of(base);
+    VAR type <- StringLengthT();
+    type:index <- index;
+    RET type;
+);
+
+TO :ctype(type@StringLengthT) "int";
+TO :rtype(type@StringLengthT) FAIL;
+
+TO :c_argcount(type@StringLengthT) 0;
+TO :c_precall(type@StringLengthT, argindex, paramindex) [
+    'int param{paramindex} = Std$String$get_length(Args[{type:index}].Val);'
+];
+TO :riva_argcount(type@StringLengthT) 0;
+TO :riva_precall(type@StringLengthT, argindex, paramindex) [
+	'int param{paramindex}_value = arg{type:index};'
+];
 
 (VAR double <- Type.T("double");
 	TO :rtype(=double) "Std$Real$T";

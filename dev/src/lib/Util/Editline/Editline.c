@@ -5,12 +5,12 @@
 #include <histedit.h>
 
 typedef struct editline_t {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	EditLine *Handle;
 	History *HistoryHandle;
 	HistEvent HistoryEvent[1];
 	int Continuation;
-	Std$Object_t *PromptFn;
+	Std$Object$t *PromptFn;
 } editline_t;
 
 TYPE(T);
@@ -35,7 +35,7 @@ GLOBAL_FUNCTION(New, 1) {
 static char *call_prompt(EditLine *Handle) {
 	editline_t *Edit;
 	el_get(Handle, EL_CLIENTDATA, &Edit);
-	Std$Function_result Result;
+	Std$Function$result Result;
 	Std$Function$call(Edit->PromptFn, 1, &Result, Edit, 0);
 	return Std$String$flatten(Result.Val);
 };

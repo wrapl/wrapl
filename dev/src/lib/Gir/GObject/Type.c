@@ -13,7 +13,7 @@
 
 TYPE(T, Gir$GObject$Object$T);
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	Gir$GObject$Type$t *Type = (Gir$GObject$Type$t *)Args[0].Val;
 	Result->Val = Std$String$new(g_type_name(Type->Value));
 	return SUCCESS;

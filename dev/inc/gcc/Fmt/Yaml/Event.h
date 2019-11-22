@@ -8,7 +8,7 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
+	const Std$Type$t *Type;
 	yaml_event_t Handle[1];
 };
 

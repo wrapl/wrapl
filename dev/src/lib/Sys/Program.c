@@ -6,7 +6,9 @@
 #include <Riva/Thread.h>
 #include <Riva/System.h>
 #include <Riva/Debug.h>
+#include <Util/TypedFunction.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <signal.h>
 #include <setjmp.h>
 
@@ -16,15 +18,61 @@
 #include <windows.h>
 #endif
 
+Sys$Program$stack_trace_t *_stack_trace(int MaxDepth);
+
 TYPE(ErrorT);
+
+TYPED_FUNCTION(const char *, _error_name, Sys$Program$error_t *Error) {
+	return "Generic error";
+}
+
+AMETHOD(Std$String$Of, TYP, ErrorT) {
+	Sys$Program$error_t *Error = (Sys$Program$error_t *)Args[0].Val;
+	RETURN(Std$String$new_format("%s: %s", _error_name(Error), Error->Message));
+}
+
+Std$Object$t *_error_new(const Std$Type$t *Type, const char *Description) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	Error->Message = Description;
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+Std$Object$t *_error_new_format(const Std$Type$t *Type, const char *Format, ...) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	va_list Args;
+	va_start(Args, Format);
+	int Length = vasprintf(&Error->Message, Format, Args);
+	va_end(Args);
+	Error->Errno = Riva$System$get_errno();
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+Std$Object$t *_error_from_errno(const Std$Type$t *Type) {
+	Sys$Program$error_t *Error = new(Sys$Program$error_t);
+	Error->Type = Type;
+	char Buffer[256];
+	Error->Errno = Riva$System$get_errno();
+	Error->Message = Riva$Memory$strdup(strerror_r(Error->Errno, Buffer, 256));
+	Error->StackTrace = _stack_trace(32);
+	return (Std$Object$t *)Error;
+};
+
+METHOD("errno", TYP, ErrorT) {
+	Sys$Program$error_t *Error = (Sys$Program$error_t *)Args[0].Val;
+	RETURN(Std$Integer$new_small(Error->Errno));
+}
 
 #ifdef LINUX
 
-Std$Object_t *IntHandler;
+Std$Object$t *IntHandler;
 
 void inthandler(int Signal) {
-	Std$Function_result Result;
-	Std$Function_status Status = Std$Function$call(IntHandler, 0, &Result);
+	Std$Function$result Result;
+	Std$Function$status Status = Std$Function$call(IntHandler, 0, &Result);
 };
 
 GLOBAL_FUNCTION(OnInt, 1) {
@@ -39,11 +87,11 @@ GLOBAL_FUNCTION(OnInt, 1) {
 	return SUCCESS;
 };
 
-Std$Object_t *UrgHandler;
+Std$Object$t *UrgHandler;
 
 void urghandler(int Signal) {
-	Std$Function_result Result;
-	Std$Function_status Status = Std$Function$call(UrgHandler, 0, &Result);
+	Std$Function$result Result;
+	Std$Function$status Status = Std$Function$call(UrgHandler, 0, &Result);
 };
 
 GLOBAL_FUNCTION(OnUrg, 1) {
@@ -69,21 +117,21 @@ Sys$Program$stack_trace_t *_stack_trace(int MaxDepth) {
 GLOBAL_FUNCTION(Exit, 0) {
 //@code : Std$Integer$SmallT = 0
 // Terminates the program with exit code <var>code</var>.
-	exit(Count ? ((Std$Integer_smallt *)Args[0].Val)->Value : 0);
+	exit(Count ? ((Std$Integer$smallt *)Args[0].Val)->Value : 0);
 };
 
 #ifdef LINUX
 
 GLOBAL_FUNCTION(Sleep, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	return sleep(((Std$Integer_smallt *)Args[0].Val)->Value) ? FAILURE : SUCCESS;
+	return sleep(((Std$Integer$smallt *)Args[0].Val)->Value) ? FAILURE : SUCCESS;
 };
 
 #else
 
 GLOBAL_FUNCTION(_Sleep, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	Sleep(((Std$Integer_smallt *)Args[0].Val)->Value * 1000);
+	Sleep(((Std$Integer$smallt *)Args[0].Val)->Value * 1000);
 	return SUCCESS;
 };
 
@@ -102,7 +150,7 @@ GLOBAL_FUNCTION(CurrentDir, 0) {
 	RETURN(Std$String$new(getcwd(0, 0)));
 }
 
-GLOBAL(Agg$List$T, Agg$List_t, Args)[] = {{
+GLOBAL(Agg$List$T, Agg$List$t, Args)[] = {{
 // The command line arguments.
 	Agg$List$T,
 	0, 0, 0, 0,
@@ -112,14 +160,14 @@ GLOBAL(Agg$List$T, Agg$List_t, Args)[] = {{
 
 INITIAL() {
 	if (Riva$System$_NoOfArgs > 0) {
-		Agg$List_node *Node = new(Agg$List_node);
+		Agg$List$node *Node = new(Agg$List$node);
 		Node->Value = Std$String$new(Riva$System$_Args[0]);
 		Args->Head = Node;
 		Args->Cache = Node;
 		Args->Index = 1;
 		for (int I = 1; I < Riva$System$_NoOfArgs; ++I) {
-			Agg$List_node *Prev = Node;
-			Node = new(Agg$List_node);
+			Agg$List$node *Prev = Node;
+			Node = new(Agg$List$node);
 			(Node->Prev = Prev)->Next = Node;
 			Node->Value = Std$String$new(Riva$System$_Args[I]);
 		};

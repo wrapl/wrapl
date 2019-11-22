@@ -45,6 +45,6 @@ static int global_import(void *Module, const char *Name, int *Type, void **Value
 	return 1;
 };
 
-INIT(Sys$Module_t *Module) {
+INIT(Sys$Module$t *Module) {
 	Riva$Module$set_import_func(Riva$Module$get_default_provider(Module), 0, global_import);
 };

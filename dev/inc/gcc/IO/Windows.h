@@ -8,7 +8,7 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	HANDLE Handle;
 };
 
@@ -19,7 +19,7 @@ RIVA_TYPE(SeekerT);
 RIVA_TYPE(TextReaderT);
 RIVA_TYPE(TextWriterT);
 
-RIVA_CFUN(IO$Windows_t *, new, Std$Type_t *, int);
+RIVA_CFUN(IO$Windows_t *, new, Std$Type$t *, int);
 RIVA_CFUN(void, register_finalizer, IO$Windows_t *);
 
 #undef RIVA_MODULE

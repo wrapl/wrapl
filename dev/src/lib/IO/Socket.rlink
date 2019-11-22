@@ -1,3 +1,5 @@
+include("Sys/Program.rlink")
+
 export("T")
 export("New")
 export("Message")

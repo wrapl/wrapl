@@ -104,11 +104,15 @@ pkg_config := fun(Options) expr(Options) => fun() shell("pkg-config", Options):t
 
 GCC_RLINK := GEN_LIB / "Gcc.rlink"
 GMP_RLINK := GEN_LIB / "Gmp.rlink"
+FFI_RLINK := GEN_LIB / "FFI.rlink"
+
+LIBEVENT_RLINK := GEN_LIB / "Util/Event/libevent.rlink"
+HIREDIS_RLINK := GEN_LIB / "DB/hiredis.rlink"
 
 subdir("Lib")
 
 scope("lib";) do
-	PREBUILDS := old + [GCC_RLINK, GMP_RLINK]
+	PREBUILDS := old + [GCC_RLINK, GMP_RLINK, FFI_RLINK]
 	subdir("Std")
 	subdir("Sys")
 	subdir("IO")
@@ -122,13 +126,72 @@ scope("lib";) do
 	--subdir("Boost")
 	subdir("Stat")
 	--subdir("OpenCV")
-	subdir("ML")
-	subdir("DB")
-	subdir("Net")
-	subdir("Num")
 	
 	if PLATFORM = "Linux" then
 		subdir("Gir")
 		subdir("Snd")
+		subdir("Img")
 	end
+	
+	subdir("ML")
+	subdir("DB")
+	subdir("Net")
+	subdir("Num")
 end
+
+var DevBinaries := [
+	(PREFIX / "bin/rlink")[RLINK] => fun(Target) do
+		RLINK:copy(Target, "a+x")
+		execute("chmod", "a+x", Target)
+	end 
+]
+
+var DevHeaders := DEFAULT:scan("DevHeaders") => fun() do
+	var Targets := []
+	var TargetDir := PREFIX / "include/riva-dev"
+	var SourceDir := DEV_INC / "gcc"
+	for Source in SourceDir:ls("^.+\\.h$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	SourceDir := GEN_INC / "gcc"
+	for Source in SourceDir:ls("^.+\\.h$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	return Targets
+end
+
+var DevLibraries := DEFAULT:scan("DevLibraries") => fun() do
+	var Targets := []
+	var TargetDir := PREFIX / "lib/riva-dev"
+	var SourceDir := DEV_LIB
+	for Source in SourceDir:ls("^.+\\.rlink$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	SourceDir := GEN_LIB
+	for Source in SourceDir:ls("^.+\\.rlink$", :R) do
+		var Target := Source:map(SourceDir, TargetDir)
+		Target[Source] => fun() do
+			Target:dir:mkdir
+			Source:copy(Target)
+		end
+		Targets:put(Target)
+	end
+	return Targets
+end
+
+INSTALL[DevBinaries, DevHeaders, DevLibraries]

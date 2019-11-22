@@ -62,7 +62,7 @@ typedef int (*module_suggest_callback)(const char *Name, void *Data);
 typedef int (*module_suggest_func)(const void *Handle, const char *Prefix, module_suggest_callback Callback, void *Data);
 
 struct module_provider_t {
-	const struct Std$Type_t *Type;
+	const struct Std$Type$t *Type;
 	module_t *Module;
 	module_provider_t *Next;
 	union {
@@ -80,7 +80,7 @@ struct module_provider_t {
 };
 
 struct module_t {
-	const struct Std$Type_t *Type;
+	const struct Std$Type$t *Type;
 	const char *Path, *Name;
 	stringtable_t Symbols;
 	int Version, TimeStamp;

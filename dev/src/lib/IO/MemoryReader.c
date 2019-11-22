@@ -1,5 +1,4 @@
 #include <Std.h>
-#include <Agg/Buffer.h>
 #include <Riva/Memory.h>
 #include <IO/Stream.h>
 #include <Util/TypedFunction.h>
@@ -36,14 +35,14 @@ TYPED_INSTANCE(int, IO$Stream$read, T, reader_t *Stream, char *Buffer, int Count
 
 ASYMBOL(New);
 
-AMETHOD(New, TYP, Agg$Buffer$T) {
+AMETHOD(New, TYP, Std$Address$SizedT) {
 //@buffer
 //:T
 // Returns a new reader starting at <code>buffer</code> with length <code>buffer:length</code>.
 	reader_t *Reader = new(reader_t);
 	Reader->Type = T;
-	Reader->Address = Agg$Buffer$get_value(Args[0].Val);
-	Reader->Length = Agg$Buffer$get_length(Args[0].Val);
+	Reader->Address = Std$Address$get_value(Args[0].Val);
+	Reader->Length = Std$Address$get_size(Args[0].Val);
 	Result->Val = (Std$Object$t *)Reader;
 	return SUCCESS;
 }

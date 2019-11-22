@@ -150,6 +150,7 @@
       <keyword>COUNT</keyword>
       <keyword>MUST</keyword>
       <keyword>UNIQ</keyword>
+      <keyword>MAP</keyword>
       <keyword>\$</keyword>
     </context>
     <context id="keywords2" style-ref="keyword">

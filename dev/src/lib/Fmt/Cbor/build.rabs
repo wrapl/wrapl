@@ -1,0 +1,15 @@
+var MinicborH := file("minicbor.h") => fun() do
+	var Path := file("minicbor"):rmdir
+	execute('git clone -b dev https://github.com/rajamukherji/minicbor.git')
+	execute('mv minicbor/minicbor* .')
+end
+
+file("minicbor_reader.c")[MinicborH] => fun() nil
+file("minicbor_writer.c")[MinicborH] => fun() nil
+
+CFLAGS := old + ["-I", PATH, "-DMINICBOR_PREFIX=riva_cbor_", "-DMINICBOR_READDATA_TYPE=\"struct decoder_t *\"", "-DMINICBOR_READ_FN_PREFIX=riva_cbor_read_"]
+LDFLAGS := old + ["Riva/Memory.rlib"]
+PREBUILDS := old + [MinicborH]
+riva_module("Fmt/Cbor/Decoder", [file("Decoder.o"), file("minicbor_reader.o")])
+riva_module("Fmt/Cbor/Encoder", [file("Encoder.o"), file("minicbor_writer.o")])
+wrapl_module("Fmt/Cbor")

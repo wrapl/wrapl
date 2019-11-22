@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
 	libkrb5-dev \
 	libsoup2.4-dev \
 	librsvg2-dev \
+	libvips-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
 	liblz4-dev \
@@ -48,7 +49,17 @@ RUN apt-get update && apt-get install -y \
 	autopoint \
 	flex \
 	bison \
-	libssh-dev
+	libssh-dev \
+	libpocketsphinx-dev \
+	libsphinxbase-dev \
+	texinfo \
+	libmad0-dev \
+	libmp3lame-dev \
+	libid3tag0-dev \
+	libmagic-dev \
+	libopencore-amrnb-dev \
+	libopencore-amrwb-dev \
+	libc-dev
 
 RUN apt-get clean
 
@@ -75,5 +86,7 @@ RUN mv /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 RUN mv /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 RUN mv /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
 RUN mv /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
+RUN cp -R /tmp/wrapl/dev/gen/inc/gcc/* /usr/include/riva-dev/
 RUN mv /tmp/wrapl/dev/lib /usr/lib/riva-dev
+RUN cp -R /tmp/wrapl/dev/gen/lib/* /usr/lib/riva-dev/
 RUN rm -rf /tmp/wrapl

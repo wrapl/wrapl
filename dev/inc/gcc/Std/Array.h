@@ -7,16 +7,16 @@
 #include <Riva-Header.h>
 
 RIVA_STRUCT(t) {
-	const Std$Type_t *Type;
-	Std$Object_t **Values;
-	Std$Integer_smallt Length;
+	const Std$Type$t *Type;
+	Std$Object$t **Values;
+	Std$Integer$smallt Length;
 };
 
 RIVA_TYPE(T);
 RIVA_OBJECT(New);
 RIVA_OBJECT(Alloc);
 
-RIVA_CFUN(Std$Object_t *, new, int) __attribute__ ((malloc));
+RIVA_CFUN(Std$Object$t *, new, int) __attribute__ ((malloc));
 
 #undef RIVA_MODULE
 

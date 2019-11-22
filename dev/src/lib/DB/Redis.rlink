@@ -1,0 +1,6 @@
+export("StatusT")
+export("ErrorT")
+export("T")
+export("New")
+export("AsyncT")
+export("NewAsync")

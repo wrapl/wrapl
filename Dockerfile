@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
 	libkrb5-dev \
 	libsoup2.4-dev \
 	librsvg2-dev \
+	libvips-dev \
 	libpq-dev \
 	libgoocanvas-2.0-dev \
 	liblz4-dev \
@@ -48,7 +49,17 @@ RUN apt-get update && apt-get install -y \
 	autopoint \
 	flex \
 	bison \
-	libssh-dev
+	libssh-dev \
+	libpocketsphinx-dev \
+	libsphinxbase-dev \
+	texinfo \
+	libmad0-dev \
+	libmp3lame-dev \
+	libid3tag0-dev \
+	libmagic-dev \
+	libopencore-amrnb-dev \
+	libopencore-amrwb-dev \
+	libc-dev
 
 RUN apt-get clean
 
@@ -75,6 +86,7 @@ RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y \
 	libgssapi-krb5-2:i386 \
 	libgtk-3-0:i386 \
+	libvips42:i386 \
 	libgtksourceview-3.0-1:i386 \
 	libncursesw6:i386 \
 	libjansson4:i386 \
@@ -84,7 +96,13 @@ RUN apt-get update && apt-get install -y \
 	libgcrypt20:i386 \
 	libesmtp6:i386 \
 	libcurl4:i386 \
-	libssh-4:i386
+	libssh-4:i386 \
+	libmad0:i386 \
+	libmp3lame0:i386 \
+	libid3tag0:i386 \
+	libmagic1:i386 \
+	libopencore-amrnb0:i386 \
+	libopencore-amrwb0:i386
 
 RUN apt-get clean
 
@@ -95,4 +113,6 @@ COPY --from=build /tmp/wrapl/dev/bin/riva.conf.debian /usr/bin/riva.conf
 COPY --from=build /tmp/wrapl/dev/bin/wrapl.debian /usr/bin/wrapl
 COPY --from=build /tmp/wrapl/dev/bin/wrpp.debian /usr/bin/wrpp
 COPY --from=build /tmp/wrapl/dev/inc/gcc /usr/include/riva-dev
+COPY --from=build /tmp/wrapl/dev/gen/inc/gcc/* /usr/include/riva-dev/
 COPY --from=build /tmp/wrapl/dev/lib /usr/lib/riva-dev
+COPY --from=build /tmp/wrapl/dev/gen/lib/* /usr/lib/riva-dev/

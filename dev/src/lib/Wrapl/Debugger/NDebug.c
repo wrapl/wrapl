@@ -14,10 +14,10 @@
 
 typedef struct variable_t variable_t;
 typedef struct thread_t thread_t;
-typedef struct Wrapl$Loader_debug_module module_t;
-typedef struct Wrapl$Loader_debug_state state_t;
-typedef struct Wrapl$Loader_debug_function function_t;
-typedef struct Wrapl$Loader_debug_instance instance_t;
+typedef struct Wrapl$Loader$debug_module module_t;
+typedef struct Wrapl$Loader$debug_state state_t;
+typedef struct Wrapl$Loader$debug_function function_t;
+typedef struct Wrapl$Loader$debug_instance instance_t;
 
 struct variable_t {
 	const char *Name;
@@ -25,7 +25,7 @@ struct variable_t {
 	variable_t *Next;
 };
 
-struct Wrapl$Loader_debug_module {
+struct Wrapl$Loader$debug_module {
 	Std$Type$t *Type;
 	const char *Name;
 	int Index;
@@ -36,7 +36,7 @@ struct Wrapl$Loader_debug_module {
 	char *Breakpoints;
 };
 
-struct Wrapl$Loader_debug_function {
+struct Wrapl$Loader$debug_function {
 	Std$Type$t *Type;
 	const char *Name;
 	module_t *Module;
@@ -46,12 +46,12 @@ struct Wrapl$Loader_debug_function {
 	variable_t *Locals, *LastLocal;
 };
 
-struct Wrapl$Loader_debug_instance {
+struct Wrapl$Loader$debug_instance {
 	Std$Type$t *Type;
 	instance_t *Up, *Down;
 	struct thread_t *Thread;
 	function_t *Function;
-	Std$Object_t **Locals;
+	Std$Object$t **Locals;
 };
 
 struct thread_t {
@@ -106,7 +106,7 @@ static void add_line(module_t *Module, const char *Line) {
 	Module->NoOfLines++;
 };
 
-static void add_global(module_t *Module, const char *Name, Std$Object_t **Address) {
+static void add_global(module_t *Module, const char *Name, Std$Object$t **Address) {
 //	printf("Adding global variable to %s: %s @ %x\n", Module->Name, Name, Address);
 	Agg$StringTable$put(Module->Globals, Name, strlen(Name), Address);
 };
@@ -223,7 +223,7 @@ static void exit_function(instance_t *Instance) {DEBUG
 	pthread_mutex_unlock(&Thread->Lock);
 };
 
-static void alloc_local(instance_t *Instance, int Index, Std$Object_t **Address) {DEBUG
+static void alloc_local(instance_t *Instance, int Index, Std$Object$t **Address) {DEBUG
 	if (Instance == (instance_t *)0xFFFFFFFF) return;
 	thread_t *Thread = Instance->Thread;
 };
@@ -490,7 +490,7 @@ GLOBAL_FUNCTION(ClearBreakpoint, 2) {
 };
 
 GLOBAL_FUNCTION(Init, 0) {
-	static Wrapl$Loader_debugger Debugger[1] = {{
+	static Wrapl$Loader$debugger Debugger[1] = {{
 		.add_module = add_module,
 		.add_line = add_line,
 		.add_global = add_global,

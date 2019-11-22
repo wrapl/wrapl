@@ -7,15 +7,15 @@
 #include <stdio.h>
 #include <string.h>
 
-TYPE(T, NATIVE($SeekerT), NATIVE($T), IO$Stream$SeekerT, IO$Stream$T);
+TYPE(T, IO$Native$(SeekerT), IO$Native$(T), IO$Stream$SeekerT, IO$Stream$T);
 
-TYPE(ReaderT, T, NATIVE($ReaderT), NATIVE($SeekerT), NATIVE($T), IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
-TYPE(WriterT, T, NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
-TYPE(ReaderWriterT, ReaderT, WriterT, T, NATIVE($ReaderT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(ReaderT, T, IO$Native$(ReaderT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(WriterT, T, IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(ReaderWriterT, ReaderT, WriterT, T, IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
-TYPE(TextReaderT, ReaderT, T, NATIVE($TextReaderT), NATIVE($ReaderT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
-TYPE(TextWriterT, WriterT, T, NATIVE($TextWriterT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
-TYPE(TextReaderWriterT, ReaderT, WriterT, T, NATIVE($TextReaderT), NATIVE($TextWriterT), NATIVE($ReaderT), NATIVE($WriterT), NATIVE($SeekerT), NATIVE($T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(TextReaderT, ReaderT, T, IO$Native$(TextReaderT), IO$Native$(ReaderT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(TextWriterT, WriterT, T, IO$Native$(TextWriterT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
+TYPE(TextReaderWriterT, ReaderT, WriterT, T, IO$Native$(TextReaderT), IO$Native$(TextWriterT), IO$Native$(ReaderT), IO$Native$(WriterT), IO$Native$(SeekerT), IO$Native$(T), IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 
 Std$Integer$smallt READ[] = {{Std$Integer$SmallT, IO$File$OPEN_READ}};
 Std$Integer$smallt WRITE[] = {{Std$Integer$SmallT, IO$File$OPEN_WRITE}};
@@ -39,7 +39,7 @@ SUBMODULE(Flag);
 
 #if defined(WINDOWS) && !defined(CYGWIN)
 
-typedef struct {const Std$Type_t *Type; int Access, Create;} openmode_t;
+typedef struct {const Std$Type$t *Type; int Access, Create;} openmode_t;
 
 static openmode_t OpenModes[] = {
 	{T, 0, 0}, {ReaderT, GENERIC_READ, OPEN_EXISTING},
@@ -50,7 +50,7 @@ static openmode_t OpenModes[] = {
 
 #else
 
-typedef struct {const Std$Type_t *Type; int Flags;} openmode_t;
+typedef struct {const Std$Type$t *Type; int Flags;} openmode_t;
 
 static openmode_t OpenModes[] = {
 	{T, 0}, {ReaderT, O_RDONLY}, {WriterT, O_WRONLY | O_CREAT}, {ReaderWriterT, O_RDWR | O_CREAT},
@@ -66,8 +66,8 @@ GLOBAL_FUNCTION(Open, 2) {
 //Opens filename with the correct mode and returns a file object
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	CHECK_EXACT_ARG_TYPE(1, Std$Integer$SmallT);
-	const Std$String_t *Arg0 = (Std$String_t *)Args[0].Val;
-	int Flags = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
+	int Flags = ((Std$Integer$smallt *)Args[1].Val)->Value;
 #if defined(WINDOWS) && !defined(CYGWIN)
     char *FileName = Std$String$flatten(Args[0].Val);
     openmode_t OpenMode = OpenModes[Flags % 8];
@@ -76,13 +76,13 @@ GLOBAL_FUNCTION(Open, 2) {
 	};
     HANDLE Handle = CreateFile(FileName, OpenMode.Access, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OpenMode.Create, 0, 0);
     if (Handle == INVALID_HANDLE_VALUE) {
-        Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+        Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
 		SetFilePointer(Handle, 0, 0, FILE_END);
 	};
-	Result->Val = NATIVE($new)(OpenMode.Type, Handle);
+	Result->Val = IO$Native$(new)(OpenMode.Type, Handle);
 	return SUCCESS;
 #else
 	char FileName[Arg0->Length.Value + 1];
@@ -94,7 +94,7 @@ GLOBAL_FUNCTION(Open, 2) {
 	if (Flags & IO$File$OPEN_TRUNCATE) Flags0 |= O_TRUNC;
 	int Handle = open64(FileName, Flags0, 0644);
 	if (Handle < 0) {
-		Result->Val = IO$Stream$Message$from_errno(IO$Stream$OpenMessageT);
+		Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;
 	};
 	if (Flags & IO$File$OPEN_APPEND) {
@@ -102,18 +102,18 @@ GLOBAL_FUNCTION(Open, 2) {
 	} else if (Flags & IO$File$OPEN_WRITE) {
 		int Tmp = ftruncate(Handle, 0);
 	};
-	Result->Val = NATIVE($new)(OpenMode.Type, Handle);
+	Result->Val = IO$Native$(new)(OpenMode.Type, Handle);
 	return SUCCESS;
 #endif
 };
 
 #if defined(WINDOWS) && !defined(CYGWIN)
-NATIVE(_t) *__file_open(const char *FileName, int Flags) {
+IO$Native$(_t) *__file_open(const char *FileName, int Flags) {
     openmode_t OpenMode = OpenModes[Flags % 8];
     HANDLE Handle = CreateFile(FileName, OpenMode.Access, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OpenMode.Create, 0, 0);
 	if (Handle == INVALID_HANDLE_VALUE) return 0;
 	if (Flags & IO$File$OPEN_APPEND) SetFilePointer(Handle, 0, 0, FILE_END);
-	return NATIVE($new)(OpenMode.Type, Handle);
+	return IO$Native$(new)(OpenMode.Type, Handle);
 };
 
 GLOBAL_FUNCTION(Temp, 0) {
@@ -121,7 +121,7 @@ GLOBAL_FUNCTION(Temp, 0) {
 
 #else
 
-Std$Object_t *__file_open(const char *FileName, int Flags) {
+Std$Object$t *__file_open(const char *FileName, int Flags) {
 	int Mode;
 	openmode_t OpenMode = OpenModes[Flags % 8];
 	int Flags0 = OpenMode.Flags;
@@ -129,7 +129,7 @@ Std$Object_t *__file_open(const char *FileName, int Flags) {
 	int Handle = open(FileName, Flags0, 0644);
 	if (Handle < 0) return 0;
 	if (Flags & IO$File$OPEN_APPEND) lseek(Handle, 0, SEEK_END);
-	return NATIVE($new)(OpenMode.Type, Handle);
+	return IO$Native$(new)(OpenMode.Type, Handle);
 };
 
 GLOBAL_FUNCTION(Temp, 0) {
@@ -137,10 +137,10 @@ GLOBAL_FUNCTION(Temp, 0) {
 // Creates and opens a temporary file. The file is automatically deleted when closed.
 	int Handle = fileno(tmpfile());
 	if (Handle) {
-		Result->Val = NATIVE($new)(TextReaderWriterT, Handle);;
+		Result->Val = IO$Native$(new)(TextReaderWriterT, Handle);;
 		return SUCCESS;
 	} else {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	};
 };
@@ -151,11 +151,11 @@ GLOBAL_FUNCTION(Pipe, 2) {
 // Creates a pipe and storing the reader / writer streams in <var>rd</var> / <var>wr</var> respectively.
 	int Handles[2];
 	if (pipe(Handles)) {
-		Result->Val = IO$Stream$OpenMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$OpenMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	} else {
-		if (Args[0].Ref) Args[0].Ref[0] = NATIVE($new)(TextReaderT, Handles[0]);
-		if (Args[1].Ref) Args[1].Ref[0] = NATIVE($new)(TextWriterT, Handles[1]);
+		if (Args[0].Ref) Args[0].Ref[0] = IO$Native$(new)(TextReaderT, Handles[0]);
+		if (Args[1].Ref) Args[1].Ref[0] = IO$Native$(new)(TextWriterT, Handles[1]);
 		return SUCCESS;
 	};
 };

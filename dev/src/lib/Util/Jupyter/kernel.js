@@ -33,7 +33,7 @@ CodeMirror.defineMode("wrapl", function () {
 		ALL: true, EVERY: true, DO: true, IS: true, RET: true, SUSP: true, NIL: true, BACK: true,
 		FAIL: true, IMP: true, USE: true, AS: true, IN: true, OF: true, MOD: true, TO: true, RECV: true,
 		SEND: true, NOT: true, WHEN: true, END: true, SKIP: true, WITH: true, UNIQ: true, SUM: true,
-		PROD: true, COUNT: true, METH: true
+		PROD: true, COUNT: true, METH: true, MAP: true
 	};
 
 	const IdInit = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";

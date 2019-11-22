@@ -28,8 +28,8 @@ struct dstate_t {
 	void *Run;
 	Std$Function$state_t *Chain;
 	void *Resume;
-	Std$Object_t *Val;
-	Std$Object_t **Ref;
+	Std$Object$t *Val;
+	Std$Object$t **Ref;
 	void *Code;
 	void *Handler;
 	void *UpState;

@@ -5,17 +5,19 @@
 #include <Std/Integer.h>
 #include <Std/Function.h>
 #include <Util/TypedFunction.h>
+#include <Riva/Memory.h>
+#include <gmp.h>
 
-extern Std$Type_t T[];
-extern Std$Type_t SmallT[];
-extern Std$Type_t BigT[];
+extern Std$Type$t T[];
+extern Std$Type$t SmallT[];
+extern Std$Type$t BigT[];
 
-extern Std$Object_t *_new_small(int32_t);
-extern Std$Object_t *_new_big(mpz_t);
+ASYMBOL(Of);
 
-SYMBOL($AS, "@");
+extern Std$Object$t *_new_small(int32_t);
+extern Std$Object$t *_new_big(mpz_t);
 
-TYPED_FUNCTION(int, _int, Std$Object_t *A) {
+TYPED_FUNCTION(int, _int, Std$Object$t *A) {
 	return 0;
 };
 
@@ -23,19 +25,19 @@ TYPED_INSTANCE(int, _int, SmallT, Std$Integer$smallt *A) {
 	return A->Value;
 };
 
-TYPED_INSTANCE(int, Std$Number$is0, SmallT, Std$Integer_smallt *A) {
+TYPED_INSTANCE(int, Std$Number$is0, SmallT, Std$Integer$smallt *A) {
 	return A->Value == 0;
 };
 
-TYPED_INSTANCE(int, Std$Number$is1, SmallT, Std$Integer_smallt *A) {
+TYPED_INSTANCE(int, Std$Number$is1, SmallT, Std$Integer$smallt *A) {
 	return A->Value == 1;
 };
 
-TYPED_INSTANCE(int, Std$Number$is0, BigT, Std$Integer_bigt *A) {
+TYPED_INSTANCE(int, Std$Number$is0, BigT, Std$Integer$bigt *A) {
 	return 0;
 };
 
-TYPED_INSTANCE(int, Std$Number$is1, BigT, Std$Integer_bigt *A) {
+TYPED_INSTANCE(int, Std$Number$is1, BigT, Std$Integer$bigt *A) {
 	return 0;
 };
 
@@ -47,12 +49,12 @@ TYPED_INSTANCE(double, Std$Real$double, BigT, Std$Integer$bigt *A) {
 	return mpz_get_d(A->Value);
 };
 
-uint64_t _get_u64(Std$Object_t *Integer) {
+uint64_t _get_u64(Std$Object$t *Integer) {
 	if (Integer->Type == SmallT) {
-		return ((Std$Integer_smallt *)Integer)->Value;
+		return ((Std$Integer$smallt *)Integer)->Value;
 	} else if (Integer->Type == BigT) {
 		mpz_t Temp;
-		mpz_init_set(Temp, ((Std$Integer_bigt *)Integer)->Value);
+		mpz_init_set(Temp, ((Std$Integer$bigt *)Integer)->Value);
 		mpz_tdiv_r_2exp(Temp, Temp, 64);
 		uint64_t Value = 0;
 		mpz_export(&Value, 0, -1, 1, 0, 0, Temp);
@@ -62,12 +64,12 @@ uint64_t _get_u64(Std$Object_t *Integer) {
 	};
 };
 
-int64_t _get_s64(Std$Object_t *Integer) {
+int64_t _get_s64(Std$Object$t *Integer) {
 	if (Integer->Type == SmallT) {
-		return ((Std$Integer_smallt *)Integer)->Value;
+		return ((Std$Integer$smallt *)Integer)->Value;
 	} else if (Integer->Type == BigT) {
 		mpz_t Temp;
-		mpz_init_set(Temp, ((Std$Integer_bigt *)Integer)->Value);
+		mpz_init_set(Temp, ((Std$Integer$bigt *)Integer)->Value);
 		mpz_tdiv_r_2exp(Temp, Temp, 63);
 		int64_t Value = 0;
 		mpz_export(&Value, 0, -1, 1, 0, 0, Temp);
@@ -77,8 +79,8 @@ int64_t _get_s64(Std$Object_t *Integer) {
 	};
 };
 
-Std$Object_t *_new_u64(uint64_t Value) {
-	int32_t Value0 = (int32_t)Value;
+Std$Object$t *_new_u64(uint64_t Value) {
+	uint32_t Value0 = (uint32_t)Value;
 	if (Value0 == Value) return _new_small(Value0);
 	mpz_t Temp;
 	mpz_init_set_ui(Temp, (uint32_t)(Value >> 32));
@@ -87,7 +89,7 @@ Std$Object_t *_new_u64(uint64_t Value) {
 	return _new_big(Temp);
 };
 
-Std$Object_t *_new_s64(int64_t Value) {
+Std$Object$t *_new_s64(int64_t Value) {
 	int32_t Value0 = (int32_t)Value;
 	if (Value0 == Value) return _new_small(Value0);
 	mpz_t Temp;
@@ -101,24 +103,24 @@ Std$Object_t *_new_s64(int64_t Value) {
 GLOBAL_FUNCTION(NextPrime, 1) {
 	if (Args[0].Val->Type == SmallT) {
 		mpz_t Z;
-		mpz_init_set_ui(Z, ((Std$Integer_smallt *)Args[0].Val)->Value);
+		mpz_init_set_ui(Z, ((Std$Integer$smallt *)Args[0].Val)->Value);
 		mpz_nextprime(Z, Z);
 		if (mpz_fits_slong_p(Z)) {
-			Result->Val = Std$Integer$new_small(mpz_get_si(Z));
+			Result->Val = _new_small(mpz_get_si(Z));
 			return SUCCESS;
 		} else {
-			Result->Val = Std$Integer$new_big(Z);
+			Result->Val = _new_big(Z);
 			return SUCCESS;
 		};
 	} else if (Args[0].Val->Type == BigT) {
 		mpz_t Z;
 		mpz_init(Z);
-		mpz_nextprime(Z, ((Std$Integer_bigt *)Args[0].Val)->Value);
+		mpz_nextprime(Z, ((Std$Integer$bigt *)Args[0].Val)->Value);
 		if (mpz_fits_slong_p(Z)) {
-			Result->Val = Std$Integer$new_small(mpz_get_si(Z));
+			Result->Val = _new_small(mpz_get_si(Z));
 			return SUCCESS;
 		} else {
-			Result->Val = Std$Integer$new_big(Z);
+			Result->Val = _new_big(Z);
 			return SUCCESS;
 		};
 	} else {

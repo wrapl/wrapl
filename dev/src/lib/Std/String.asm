@@ -932,7 +932,7 @@ function Compare, 2
 	xor eax, eax
 	ret
 
-symbol $AS, "@"
+asymbol Of
 
 _function Create
 ;@value&lt;sub&gt;1&lt;/sub&gt;,...,value&lt;sub&gt;k&lt;/sub&gt;
@@ -952,14 +952,12 @@ _function Create
 	push edi
 
 	push byte 0
-	push dword T
-	push byte 0
 	push ecx
-	mov esi, 2
+	mov esi, 1
 	mov edi, esp
-	mov ecx, $AS
+	mov ecx, Of
 	call Std$Symbol$T.invoke
-	add esp, byte 16
+	add esp, byte 8
 
 	cmp eax, byte 0
 	jg .error
@@ -1025,14 +1023,12 @@ _function Create
 	je .already_string1
 
 	push byte 0
-	push dword T
-	push byte 0
 	push ecx
-	mov esi, 2
+	mov esi, 1
 	mov edi, esp
-	mov ecx, $AS
+	mov ecx, Of
 	call Std$Symbol$T.invoke
-	add esp, byte 16
+	add esp, byte 8
 
 	cmp eax, byte 0
 	jg .error1

@@ -2,13 +2,12 @@
 #include <Riva/Memory.h>
 
 typedef struct complex_t {
-	Std$Type_t *Type;
-	Std$Object_t *Re, *Im;
+	Std$Type$t *Type;
+	Std$Object$t *Re, *Im;
 } complex_t;
 
 TYPE(T);
 
-SYMBOL($AT, "@");
 SYMBOL($ADD, "+");
 SYMBOL($SUB, "-");
 SYMBOL($MUL, "*");
@@ -60,12 +59,12 @@ GLOBAL_FUNCTION(New, 2) {
 	return SUCCESS;
 };
 
-METHOD("@", TYP, T, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, T) {
 	const complex_t *Complex = Args[0].Val;
-	Std$Function_result Buffer;
-	Std$Function$call($AT, 2, &Buffer, Complex->Re, 0, Std$String$T, 0);
-	Std$String_t *Final = Std$String$add(Buffer.Val, SpacePlusSpace);
-	Std$Function$call($AT, 2, &Buffer, Complex->Im, 0, Std$String$T, 0);
+	Std$Function$result Buffer;
+	Std$Function$call(Std$String$Of, 1, &Buffer, Complex->Re, 0);
+	Std$String$t *Final = Std$String$add(Buffer.Val, SpacePlusSpace);
+	Std$Function$call(Std$String$Of, 1, &Buffer, Complex->Im, 0);
 	Final = Std$String$add(Final, Buffer.Val);
 	Result->Val = Std$String$add(Final, iStr);
 	return SUCCESS;
@@ -76,7 +75,7 @@ METHOD("+", TYP, T, TYP, T) {
 	const complex_t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($ADD, 2, &Buffer, A->Re, 0, B->Re, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($ADD, 2, &Buffer, A->Im, 0, B->Im, 0);
@@ -86,11 +85,11 @@ METHOD("+", TYP, T, TYP, T) {
 };
 
 METHOD("+", TYP, Std$Number$T, TYP, T) {
-	const Std$Object_t *A = Args[0].Val;
+	const Std$Object$t *A = Args[0].Val;
 	const complex_t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($ADD, 2, &Buffer, A, 0, B->Re, 0);
 	C->Re = Buffer.Val;
 	C->Im = B->Im;
@@ -100,10 +99,10 @@ METHOD("+", TYP, Std$Number$T, TYP, T) {
 
 METHOD("+", TYP, T, TYP, Std$Number$T) {
 	const complex_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($ADD, 2, &Buffer, A->Re, 0, B, 0);
 	C->Re = Buffer.Val;
 	C->Im = A->Im;
@@ -115,7 +114,7 @@ METHOD("-", TYP, T) {
 	const complex_t *A = Args[0].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($SUB, 1, &Buffer, A->Re, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($SUB, 1, &Buffer, A->Im, 0);
@@ -130,7 +129,7 @@ METHOD("-", TYP, T, TYP, T) {
 	const complex_t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($SUB, 2, &Buffer, A->Re, 0, B->Re, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($SUB, 2, &Buffer, A->Im, 0, B->Im, 0);
@@ -140,11 +139,11 @@ METHOD("-", TYP, T, TYP, T) {
 };
 
 METHOD("-", TYP, Std$Number$T, TYP, T) {
-	const Std$Object_t *A = Args[0].Val;
+	const Std$Object$t *A = Args[0].Val;
 	const complex_t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($SUB, 2, &Buffer, A, 0, B->Re, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($SUB, 1, &Buffer, B->Im, 0);
@@ -155,10 +154,10 @@ METHOD("-", TYP, Std$Number$T, TYP, T) {
 
 METHOD("-", TYP, T, TYP, Std$Number$T) {
 	const complex_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($SUB, 2, &Buffer, A->Re, 0, B, 0);
 	C->Re = Buffer.Val;
 	C->Im = A->Im;
@@ -168,7 +167,7 @@ METHOD("-", TYP, T, TYP, Std$Number$T) {
 
 static inline void conj(complex_t *R, const complex_t *A) {
 	R->Re = A->Re;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($SUB, 1, &Buffer, A->Im, 0);
 	R->Im = Buffer.Val;
 };
@@ -182,11 +181,11 @@ METHOD("~", TYP, T) {
 };
 
 static inline void multiply(complex_t *R, const complex_t *A, const complex_t *B) {
-	Std$Function_result Buffer0, Buffer1;
+	Std$Function$result Buffer0, Buffer1;
 	Std$Function$call($MUL, 2, &Buffer0, A->Re, 0, B->Re, 0);
 	Std$Function$call($MUL, 2, &Buffer1, A->Im, 0, B->Im, 0);
 	Std$Function$call($SUB, 2, &Buffer0, Buffer0.Val, 0, Buffer1.Val, 0);
-	Std$Object_t *Re = Buffer0.Val;
+	Std$Object$t *Re = Buffer0.Val;
 	Std$Function$call($MUL, 2, &Buffer0, A->Re, 0, B->Im, 0);
 	Std$Function$call($MUL, 2, &Buffer1, A->Im, 0, B->Re, 0);
 	Std$Function$call($ADD, 2, &Buffer0, Buffer0.Val, 0, Buffer1.Val, 0);
@@ -206,10 +205,10 @@ METHOD("*", TYP, T, TYP, T) {
 
 METHOD("*", TYP, T, TYP, Std$Number$T) {
 	const complex_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($MUL, 2, &Buffer, A->Re, 0, B, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($MUL, 2, &Buffer, A->Im, 0, B, 0);
@@ -219,11 +218,11 @@ METHOD("*", TYP, T, TYP, Std$Number$T) {
 };
 
 METHOD("*", TYP, Std$Number$T, TYP, T) {
-	const Std$Object_t *A = Args[0].Val;
+	const Std$Object$t *A = Args[0].Val;
 	const complex_t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($MUL, 2, &Buffer, A, 0, B->Re, 0);
 	C->Re = Buffer.Val;
 	Std$Function$call($MUL, 2, &Buffer, A, 0, B->Im, 0);
@@ -232,8 +231,8 @@ METHOD("*", TYP, Std$Number$T, TYP, T) {
 	return SUCCESS;
 };
 
-static Std$Object_t *norm2(complex_t *A) {
-	Std$Function_result Buffer0, Buffer1;
+static Std$Object$t *norm2(complex_t *A) {
+	Std$Function$result Buffer0, Buffer1;
 	Std$Function$call($MUL, 2, &Buffer0, A->Re, 0, A->Re, 0);
 	Std$Function$call($MUL, 2, &Buffer1, A->Im, 0, A->Im, 0);
 	Std$Function$call($ADD, 2, &Buffer0, Buffer0.Val, 0, Buffer1.Val, 0);
@@ -241,7 +240,7 @@ static Std$Object_t *norm2(complex_t *A) {
 };
 
 static inline void inverse(complex_t *R, const complex_t *A) {
-	Std$Function_result Buffer0, Buffer1;
+	Std$Function$result Buffer0, Buffer1;
 	Std$Function$call($MUL, 2, &Buffer0, A->Re, 0, A->Re, 0);
 	Std$Function$call($MUL, 2, &Buffer1, A->Im, 0, A->Im, 0);
 	Std$Function$call($ADD, 2, &Buffer0, Buffer0.Val, 0, Buffer1.Val, 0);
@@ -254,10 +253,10 @@ static inline void inverse(complex_t *R, const complex_t *A) {
 
 METHOD("/", TYP, T, TYP, Std$Number$T) {
 	const complex_t *A = Args[0].Val;
-	const Std$Object_t *B = Args[1].Val;
+	const Std$Object$t *B = Args[1].Val;
 	complex_t *C = new(complex_t);
 	C->Type = T;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($DIV, 2, &Buffer, A->Re, 0, B);
 	C->Re = Buffer.Val;
 	Std$Function$call($DIV, 2, &Buffer, A->Im, 0, B);
@@ -267,7 +266,7 @@ METHOD("/", TYP, T, TYP, Std$Number$T) {
 };
 
 METHOD("/", TYP, Std$Number$T, TYP, T) {
-	const Std$Object_t *A = Args[0].Val;
+	const Std$Object$t *A = Args[0].Val;
 	const complex_t *B = Args[1].Val;
 	complex_t Inverse;
 	inverse(&Inverse, B);
@@ -287,7 +286,7 @@ METHOD("abs", TYP, T) {
 	return Std$Function$call($sqrt, 1, Result, norm2(A), 0);
 };
 
-static inline Std$Function_status power(Std$Function_result *Result, const complex_t *A, int Power) {
+static inline Std$Function$status power(Std$Function$result *Result, const complex_t *A, int Power) {
 	if (Power == 1) {
 		Result->Val = A;
 		return SUCCESS;
@@ -311,7 +310,7 @@ static inline Std$Function_status power(Std$Function_result *Result, const compl
 
 METHOD("^", TYP, T, TYP, Std$Integer$SmallT) {
 	const complex_t *A = Args[0].Val;
-	int Power = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	int Power = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (Power > 0) {
 		return power(Result, A, Power);
 	} else if (Power < 0) {
@@ -326,9 +325,9 @@ METHOD("^", TYP, T, TYP, Std$Integer$SmallT) {
 
 METHOD("exp", TYP, T) {
 	const complex_t *A = Args[0].Val;
-	Std$Function_result Buffer;
+	Std$Function$result Buffer;
 	Std$Function$call($exp, 1, &Buffer, A->Re, 0);
-	Std$Object_t *Exp = Buffer.Val;
+	Std$Object$t *Exp = Buffer.Val;
 	complex_t *R = new(complex_t);
 	R->Type = T;
 	Std$Function$call($cos, 1, &Buffer, A->Im, 0);

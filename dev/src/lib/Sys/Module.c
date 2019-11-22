@@ -9,9 +9,9 @@ TYPE(T);
 //  A handle to a loaded module.
 
 typedef struct info_t {
-	const Std$Type_t *Type;
-	Std$Object_t *Module;
-	Std$Object_t *Import;
+	const Std$Type$t *Type;
+	Std$Object$t *Module;
+	Std$Object$t *Import;
 } info_t;
 
 TYPE(InfoT);
@@ -26,7 +26,7 @@ GLOBAL_FUNCTION(GetInfo, 1) {
 		Info->Type = InfoT;
 		Info->Module = Std$String$new(ModuleName);
 		Info->Import = Std$String$new(SymbolName);
-		Result->Val = (Std$Object_t *)Info;
+		Result->Val = (Std$Object$t *)Info;
 		return SUCCESS;
 	} else {
 		return FAILURE;
@@ -71,14 +71,14 @@ GLOBAL_FUNCTION(FromRef, 1) {
 	};
 };
 
-Sys$Module_t *_new(const char *Name) {
+Sys$Module$t *_new(const char *Name) {
 	if (Name == 0) Name = "Anonymous Module";
-	Sys$Module_t *Module = Riva$Module$new(Name);
+	Sys$Module$t *Module = Riva$Module$new(Name);
 	return Module;
 };
 
-Sys$Module_t *_load(const char *Path, const char *Name) {
-	Sys$Module_t *Module = Riva$Module$load(Path, Name);
+Sys$Module$t *_load(const char *Path, const char *Name) {
+	Sys$Module$t *Module = Riva$Module$load(Path, Name);
 	if (Module) {
 		return Module;
 	} else {
@@ -86,23 +86,23 @@ Sys$Module_t *_load(const char *Path, const char *Name) {
 	};
 };
 
-int _import(Sys$Module_t *Module, const char *Name, int *IsRef, void **Data) {
+int _import(Sys$Module$t *Module, const char *Name, int *IsRef, void **Data) {
 	return Riva$Module$import(Module, Name, IsRef, Data);
 };
 
-void _export(Sys$Module_t *Module, const char *Name, int IsRef, void *Data) {
+void _export(Sys$Module$t *Module, const char *Name, int IsRef, void *Data) {
 	Riva$Module$export(Module, Name, IsRef, Data);
 };
 
-void _set_path(Sys$Module_t *Module, const char *Path) {
+void _set_path(Sys$Module$t *Module, const char *Path) {
 	Riva$Module$set_path(Module, Path);
 };
 
-const char *_get_path(Sys$Module_t *Module) {
+const char *_get_path(Sys$Module$t *Module) {
 	return Riva$Module$get_path(Module);
 };
 
-const char *_get_name(Sys$Module_t *Module) {
+const char *_get_name(Sys$Module$t *Module) {
 	return Riva$Module$get_name(Module);
 };
 
@@ -123,8 +123,8 @@ GLOBAL_FUNCTION(New, 0) {
 	} else {
 		Name = "Anonymous Module";
 	};
-	Sys$Module_t *Module = Riva$Module$new(Name);
-	Result->Val = (Std$Object_t *)Module;
+	Sys$Module$t *Module = Riva$Module$new(Name);
+	Result->Val = (Std$Object$t *)Module;
 	return SUCCESS;
 };
 
@@ -137,9 +137,9 @@ GLOBAL_FUNCTION(Load, 2) {
 	CHECK_EXACT_ARG_TYPE(1, Std$String$T);
 	const char *Path = (Args[0].Val == Std$Object$Nil) ? 0 :Std$String$flatten(Args[0].Val);
 	const char *Name = Std$String$flatten(Args[1].Val);
-	Riva$Module_t *Module = Riva$Module$load(Path, Name);
+	Riva$Module$t *Module = Riva$Module$load(Path, Name);
 	if (Module) {
-		Result->Val = (Std$Object_t *)Module;
+		Result->Val = (Std$Object$t *)Module;
 		return SUCCESS;
 	} else {
 		Result->Val = Std$String$new("Module not found");
@@ -155,9 +155,9 @@ GLOBAL_FUNCTION(LoadFile, 1) {
 	CHECK_EXACT_ARG_TYPE(0, Std$String$T);
 	const char *Name = Std$String$flatten(Args[0].Val);
 	const char *Type = (Count > 1) ? Std$String$flatten(Args[1].Val) : 0;
-	Riva$Module_t *Module = Riva$Module$load_file(Name, Type);
+	Riva$Module$t *Module = Riva$Module$load_file(Name, Type);
 	if (Module) {
-		Result->Val = (Std$Object_t *)Module;
+		Result->Val = (Std$Object$t *)Module;
 		return SUCCESS;
 	} else {
 		Result->Val = Std$String$new("Module not found");
@@ -165,8 +165,8 @@ GLOBAL_FUNCTION(LoadFile, 1) {
 	};
 };
 
-static int function_import(Std$Object_t *Function, const char *Symbol, int *IsRef, void **Data) {
-	Std$Function_result Result;
+static int function_import(Std$Object$t *Function, const char *Symbol, int *IsRef, void **Data) {
+	Std$Function$result Result;
 	if (Std$Function$call(Function, 1, &Result, Std$String$new(Symbol), 0) < FAILURE) {
 		if (Result.Ref) {
 			*IsRef = 1;
@@ -182,13 +182,13 @@ static int function_import(Std$Object_t *Function, const char *Symbol, int *IsRe
 };
 
 METHOD("refresh", TYP, T) {
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	Riva$Module$refresh(Module);
 	RETURN0;
 }
 
 METHOD("set_import_func", TYP, T, TYP, Std$Function$T) {
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	Riva$Module$set_import_func(Riva$Module$get_default_provider(Module), Args[1].Val, (Riva$Module$import_func)function_import);
 	Result->Arg = Args[0];
 	return SUCCESS;
@@ -200,7 +200,7 @@ METHOD("import", TYP, T, TYP, Std$String$T) {
 //:Std$Object$T
 //  Returns the imported value <code>module.id</code>.
 	const char *Symbol = Std$String$flatten(Args[1].Val);
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	int IsRef; void *Data;
 	if (Riva$Module$import(Module, Symbol, &IsRef, &Data)) {
 		if (IsRef) {
@@ -225,7 +225,7 @@ static int suggest_callback(const char *Name, Std$Object$t *Matches) {
 }
 
 METHOD("suggest", TYP, T, TYP, Std$String$T) {
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	const char *Prefix = Std$String$flatten(Args[1].Val);
 	Std$Object$t *Matches = Agg$List$new0();
 	Riva$Module$suggest(Module, Prefix, suggest_callback, Matches);
@@ -238,7 +238,7 @@ METHOD("export", TYP, T, TYP, Std$String$T, ANY) {
 //@value
 // Adds the export <var>value</var> to <var>module</var> with the name <var>id</var>.
 	const char *Symbol = Std$String$flatten(Args[1].Val);
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	if (Args[2].Ref) {
 		Riva$Module$export(Module, Symbol, 1, Args[2].Ref);
 	} else {
@@ -254,7 +254,7 @@ METHOD(".", TYP, T, TYP, Std$String$T) {
 //:Std$Object$T
 //  Returns the imported value <code>module.id</code>.
 	const char *Symbol = Std$String$flatten(Args[1].Val);
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	int IsRef; void *Data;
 	if (Riva$Module$import(Module, Symbol, &IsRef, &Data)) {
 		if (IsRef) {
@@ -277,7 +277,7 @@ METHOD("name", TYP, T) {
 //@module
 //:Std$String$T
 // Returns the name of <var>module</var>.
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	Result->Val = Std$String$new(Riva$Module$get_name(Module) ?: "<anonymous module>");
 	return SUCCESS;
 };
@@ -286,7 +286,7 @@ METHOD("path", TYP, T) {
 //@module
 //:Std$String$T
 // Returns the path of <var>module</var>.
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	Result->Val = Std$String$new(Riva$Module$get_path(Module));
 	return SUCCESS;
 };
@@ -295,7 +295,7 @@ METHOD("version", TYP, T) {
 //@module
 //:Std$Integer$SmallT
 // Returns the version of <var>module</var>.
-	Riva$Module_t *Module = (Sys$Module_t *)Args[0].Val;
+	Riva$Module$t *Module = (Sys$Module$t *)Args[0].Val;
 	Result->Val = Std$Integer$new_small(Riva$Module$get_version(Module));
 	return SUCCESS;
 };

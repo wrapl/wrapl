@@ -6,7 +6,7 @@ var GMP_LIB := EXT_DIR / "lib/libgmp.a" => fun() do
 	GMP_DIR:chdir
 	execute("./configure --disable-shared --enable-static",
 		'--prefix={EXT_DIR}',
-		"ABI=32",
+		'ABI={if MACHINE = "x86_64" then "64" else "32" end}',
 		"--without-man-pages",
 		'CFLAGS=\"{LIBCFLAGS}\"',
 		'LDFLAGS=\"{LIBLDFLAGS}\"'
@@ -16,10 +16,9 @@ var GMP_LIB := EXT_DIR / "lib/libgmp.a" => fun() do
 	execute("make install")
 end
 
-file("Gmp.o")[GMP_LIB]
-
 scope("gmp";) do
 	LDFLAGS := old + ["Riva/Memory.rlib", "-d", '-x{GMP_LIB}', "-XGmp.exports"]
+	PREBUILDS := old + [GMP_LIB]
 	GMP_RLINK[riva_module("Gmp", [file("Gmp.o")])] => fun() do
 		var Out := GMP_RLINK:open("w")
 		Out:write('module(\"Gmp\")\nprefix(\"\")\n')
@@ -44,6 +43,35 @@ scope("libc";) do
 		var Out := GCC_RLINK:open("w")
 		Out:write('module(\"Gcc\")\nprefix(\"\")\n')
 		var In := file("Gcc.exports"):open("r")
+		loop
+			var Line := while In:read
+			Out:write(Line)
+		end
+		In:close
+		Out:close
+	end
+end
+
+scope("ffi";) do
+	var FFI_LIB := EXT_DIR / "lib/libffi.a" => fun() do
+		file("ffi"):rmdir:mkdir:chdir
+		execute("wget https://github.com/libffi/libffi/archive/v3.2.1.tar.gz -O- | tar xzP --strip-components=1")
+		execute("./autogen.sh")
+		execute("./configure --disable-shared --enable-static",
+			'--prefix={EXT_DIR}',
+			"ABI=32",
+			"--without-man-pages",
+			'CFLAGS=\"{LIBCFLAGS}\"',
+			'LDFLAGS=\"{LIBLDFLAGS}\"'
+		)
+		execute("make -j4")
+		execute("make install")
+	end
+	LDFLAGS := old + ['-x{FFI_LIB}', "libpthread.rlib", "-XFFI.exports"]
+	FFI_RLINK[riva_module("FFI", [], [FFI_LIB])] => fun() do
+		var Out := FFI_RLINK:open("w")
+		Out:write('module(\"FFI\")\nprefix(\"\")\n')
+		var In := file("FFI.exports"):open("r")
 		loop
 			var Line := while In:read
 			Out:write(Line)

@@ -87,11 +87,14 @@
 #define tkMAX                            83
 #define tkMIN                            84
 #define tkCOUNT                          85
-#define tkUNIQ                           86
+#define tkMAP                            86
 #define tkNEW                            87
 #define tkMUST                           88
 #define tkLOGICALAND                     89
 #define tkLOGICALOR                      90
+#define tkUNIQ                           91
+#define tkPARALLEL                       92
+#define tkLET                            93
 
 extern const char *Tokens[];
 
@@ -99,17 +102,17 @@ extern const char *Tokens[];
 #include <setjmp.h>
 #include "debugger.h"
 
-extern const Std$Type_t ParseErrorMessageT[];
+extern const Std$Type$t ParseErrorMessageT[];
 
 struct scanner_t {
-	IO$Stream_t *Source;
+	IO$Stream$t *Source;
 	const char *NextChar;
 
 	struct {
 		int Type;
 		int LineNo;
 		union {
-			Std$Object_t *Const;
+			Std$Object$t *Const;
 			const char *Ident;
 			struct expr_t *Expr;
 		};
@@ -117,20 +120,25 @@ struct scanner_t {
 
 	struct {
 		jmp_buf Handler;
-		const Std$Type_t *Type;
+		const Std$Type$t *Type;
 		const char *Message;
 		int LineNo;
 	} Error;
 
 	debug_module_t *DebugInfo;
 
-	scanner_t(IO$Stream_t *Source);
+	scanner_t(IO$Stream$t *Source);
 	const char *readl(void);
 	void flush();
+	int next();
+	void parse() {
+		Token = NextToken;
+		NextToken.Type = 0;
+	}
 	bool parse(int Type);
 	void accept(int Type);
 	void unparse();
-	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type_t *Type, const char *Format, ...);
+	__attribute__ ((noreturn)) void raise_error(int LineNo, const Std$Type$t *Type, const char *Format, ...);
 };
 
 #endif

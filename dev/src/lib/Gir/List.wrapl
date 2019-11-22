@@ -26,7 +26,7 @@ TO :ctype(type@SingleT) "GSList *";
 
 TO :riva_to_c(type@SingleT, in, out, tmp) [
     'GSList *{tmp}_list = 0;',
-    'for (Agg$List_node *{tmp}_node = ((Agg$List$t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
+    'for (Agg$List$node *{tmp}_node = ((Agg$List$t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
     '\t{type:base:ctype} {tmp}_value;'
 ] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_value', '{tmp}_base'):values) + [
     '\t{tmp}_list = g_slist_prepend({tmp}_list, {tmp}_value);',
@@ -59,7 +59,7 @@ TO :ctype(type@DoubleT) "GList *";
 
 TO :riva_to_c(type@DoubleT, in, out, tmp) [
     'GList *{tmp}_list = 0;',
-    'for (Agg$List_node *{tmp}_node = ((Agg$List$t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
+    'for (Agg$List$node *{tmp}_node = ((Agg$List$t *){in})->Tail; {tmp}_node; {tmp}_node = {tmp}_node->Prev) \{',
     '\t{type:base:ctype} {tmp}_value;'
 ] + (ALL "\t" + type:base:riva_to_c('{tmp}_node->Value', '{tmp}_value', '{tmp}_base'):values) + [
     '\t{tmp}_list = g_slist_prepend({tmp}_list, {tmp}_value);',
@@ -80,7 +80,7 @@ TO :c_to_riva(type@DoubleT, in, out, tmp) [
 DEF LengthT! <- <[Type.T] index>;
 
 DEF LengthNew!(base) (
-    VAR index <- base @ Integer.T;
+    VAR index <- Integer.Of(base);
     VAR type <- LengthT();
     type:index <- index;
     RET type;

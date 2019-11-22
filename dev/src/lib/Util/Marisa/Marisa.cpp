@@ -117,14 +117,14 @@ METHOD("[]", TYP, T, TYP, Std$Integer$SmallT) {
 }
 
 typedef struct agent_generator {
-	Std$Function_cstate State;
+	Std$Function$cstate State;
 	marisa::Agent Agent[1];
 	marisa::Trie *Trie;
 } agent_generator;
 
 typedef struct agent_resume_data {
 	agent_generator *Generator;
-	Std$Function_argument Result;
+	Std$Function$argument Result;
 } agent_resume_data;
 
 static Std$Function$status resume_common_prefix_search(agent_resume_data *Data) {
@@ -146,7 +146,7 @@ METHOD("common_prefix_search", TYP, T, TYP, Std$String$T) {
 		Result->Val = Std$String$copy_length(Generator->Agent->key().ptr(), Generator->Agent->key().length());
 		Generator->Trie = Trie->Handle;
 		Generator->State.Run = (void *)Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_common_prefix_search;
+		Generator->State.Invoke = (Std$Function$cresumefn)resume_common_prefix_search;
 		Result->State = Generator;
 		return SUSPEND;
 	} else {
@@ -173,7 +173,7 @@ METHOD("predictive_search", TYP, T, TYP, Std$String$T) {
 		Result->Val = Std$String$copy_length(Generator->Agent->key().ptr(), Generator->Agent->key().length());
 		Generator->Trie = Trie->Handle;
 		Generator->State.Run = (void *)Std$Function$resume_c;
-		Generator->State.Invoke = (Std$Function_cresumefn)resume_predictive_search;
+		Generator->State.Invoke = (Std$Function$cresumefn)resume_predictive_search;
 		Result->State = Generator;
 		return SUSPEND;
 	} else {

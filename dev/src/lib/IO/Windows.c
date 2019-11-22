@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-SYMBOL($AS, "@");
 SYMBOL($block, "block");
 
 TYPE(T, IO$Stream$T);
@@ -18,12 +17,12 @@ TYPE(SeekerT, T, IO$Stream$SeekerT, IO$Stream$T);
 TYPE(TextReaderT, T, ReaderT, IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$T);
 TYPE(TextWriterT, T, WriterT, IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$T);
 
-static IO$Stream_messaget ConvertMessage[] = {{IO$Stream$MessageT, "Conversion Error"}};
-static IO$Stream_messaget ReadMessage[] = {{IO$Stream$MessageT, "Read Error"}};
-static IO$Stream_messaget WriteMessage[] = {{IO$Stream$MessageT, "Write Error"}};
-static IO$Stream_messaget FlushMessage[] = {{IO$Stream$MessageT, "Flush Error"}};
-static IO$Stream_messaget SeekMessage[] = {{IO$Stream$MessageT, "Seek Error"}};
-static IO$Stream_messaget CloseMessage[] = {{IO$Stream$MessageT, "Close Error"}};
+static IO$Stream$messaget ConvertMessage[] = {{IO$Stream$MessageT, "Conversion Error"}};
+static IO$Stream$messaget ReadMessage[] = {{IO$Stream$MessageT, "Read Error"}};
+static IO$Stream$messaget WriteMessage[] = {{IO$Stream$MessageT, "Write Error"}};
+static IO$Stream$messaget FlushMessage[] = {{IO$Stream$MessageT, "Flush Error"}};
+static IO$Stream$messaget SeekMessage[] = {{IO$Stream$MessageT, "Seek Error"}};
+static IO$Stream$messaget CloseMessage[] = {{IO$Stream$MessageT, "Close Error"}};
 
 typedef struct fast_buffer {
 	struct fast_buffer *Next;
@@ -54,7 +53,7 @@ void _windows_register_finalizer(IO$Windows_t *Stream) {
 	Riva$Memory$register_finalizer(Stream, windows_finalize, 0, 0, 0);
 };
 
-IO$Windows_t *_windows_new(Std$Type_t *Type, int Handle) {
+IO$Windows_t *_windows_new(Std$Type$t *Type, int Handle) {
 	IO$Windows_t *Stream = new(IO$Windows_t);
 	Stream->Type = Type;
 	Stream->Handle = Handle;
@@ -127,7 +126,7 @@ static char *windows_readx(IO$Windows_t *Stream, int Max, const char *Term, int 
 		Chars[1] = 0;
 		return Chars;
 	};
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -142,7 +141,7 @@ static char *windows_readx(IO$Windows_t *Stream, int Max, const char *Term, int 
 			if (IsTerm[Char]) {
 			} else {
 				if (Space == 0) {
-					IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+					IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 					Tail = (Tail->Next = Buffer);
 					Space = IO$Stream$BufferSize;
 					Ptr = Tail->Chars;
@@ -159,7 +158,7 @@ static char *windows_readx(IO$Windows_t *Stream, int Max, const char *Term, int 
 		case 0: {
 			unsigned char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -189,7 +188,7 @@ static char *windows_readi(IO$Windows_t *Stream, int Max, const char *Term, int 
 		Chars[1] = 0;
 		return Chars;
 	};
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -202,7 +201,7 @@ static char *windows_readi(IO$Windows_t *Stream, int Max, const char *Term, int 
 		case -1: IO$Stream$free_buffers(Head, Tail); return -1;
 		default: {
 			if (Space == 0) {
-				IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+				IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 				Tail = (Tail->Next = Buffer);
 				Space = IO$Stream$BufferSize;
 				Ptr = Tail->Chars;
@@ -218,7 +217,7 @@ static char *windows_readi(IO$Windows_t *Stream, int Max, const char *Term, int 
 		case 0: {
 			unsigned char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -251,7 +250,7 @@ static char *windows_readl(IO$Windows_t *Stream) {
 		};
 	} while (Char == '\r');
 	if (Char == '\n') return "";
-	IO$Stream_buffer *Head, *Tail;
+	IO$Stream$buffer *Head, *Tail;
 	Head = Tail = IO$Stream$alloc_buffer();
 	int Length = 0;
 	int Space = IO$Stream$BufferSize;
@@ -268,7 +267,7 @@ static char *windows_readl(IO$Windows_t *Stream) {
 				break;
 			} else {
 				if (Space == 0) {
-					IO$Stream_buffer *Buffer = IO$Stream$alloc_buffer();
+					IO$Stream$buffer *Buffer = IO$Stream$alloc_buffer();
 					Tail = (Tail->Next = Buffer);
 					Space = IO$Stream$BufferSize;
 					Ptr = Tail->Chars;
@@ -282,7 +281,7 @@ static char *windows_readl(IO$Windows_t *Stream) {
 		case 0: {
 			char *Chars = Riva$Memory$alloc_atomic(Length + 1);
 			Ptr = Chars;
-			IO$Stream_buffer *Buffer = Head;
+			IO$Stream$buffer *Buffer = Head;
 			while (Buffer->Next) {
 				memcpy(Ptr, Buffer->Chars, IO$Stream$BufferSize);
 				Ptr += IO$Stream$BufferSize;
@@ -383,8 +382,8 @@ METHOD("closed", TYP, T) {
 
 METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	size_t BytesRead = read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
 		Result->Val = IO$Stream$ReadMessage;
@@ -396,8 +395,8 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	size_t BytesRead = 0;
 	while (Size) {
 		long Bytes = read(Stream->Handle, Buffer, Size);
@@ -416,15 +415,15 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $
 
 METHOD("readx", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	int Handle = ((IO$Windows_t *)Args[0].Val)->Handle;
-	Std$String_t *Term = Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$String$t *Term = Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
 	case -1: Result->Val = IO$Stream$ReadMessage; return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -466,9 +465,9 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
+			Std$String$block *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -486,15 +485,15 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 
 METHOD("readi", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	int Handle = ((IO$Windows_t *)Args[0].Val)->Handle;
-	Std$String_t *Term = Args[2].Val;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	Std$String$t *Term = Args[2].Val;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	unsigned char Char;
 	switch (read(Handle, &Char, 1)) {
 	case -1: Result->Val = IO$Stream$ReadMessage; return MESSAGE;
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (Std$String_block *Block = Term->Blocks; Block->Length.Value; Block++) {
+	for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
 		unsigned char *Chars = Block->Chars.Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
@@ -532,10 +531,10 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
-			IO$Stream_buffer *Buffer = Head;
+			Std$String$block *Block = String->Blocks;
+			IO$Stream$buffer *Buffer = Head;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -576,9 +575,9 @@ METHOD("rest", TYP, ReaderT) {
 		};
 	};
 	if (Ptr == Tail->Chars) NoOfBlocks--;
-	Std$String_t *String = Std$String$alloc(NoOfBlocks);
+	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Length.Value = Length;
-	Std$String_block *Block = String->Blocks;
+	Std$String$block *Block = String->Blocks;
 	for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 		Block->Length.Value = FastBufferSize;
 		Block->Chars.Value = Buffer->Chars;
@@ -595,7 +594,7 @@ METHOD("rest", TYP, ReaderT) {
 
 METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 	int Handle = ((IO$Windows_t *)Args[0].Val)->Handle;
-	int Max = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	int Max = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	if (Max <= FastBufferSize) {
 		char *String = Riva$Memory$alloc_atomic(Max + 1);
 		int Length = 0;
@@ -644,9 +643,9 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		};
 		if (Length == 0) return FAILURE;
 		if (Ptr == Tail->Chars) NoOfBlocks--;
-		Std$String_t *String = Std$String$alloc(NoOfBlocks);
+		Std$String$t *String = Std$String$alloc(NoOfBlocks);
 		String->Length.Value = Length;
-		Std$String_block *Block = String->Blocks;
+		Std$String$block *Block = String->Blocks;
 		for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 			Block->Length.Value = FastBufferSize;
 			Block->Chars.Value = Buffer->Chars;
@@ -701,9 +700,9 @@ METHOD("read", TYP, TextReaderT) {
 			};
 		};
 		case 0: {
-			Std$String_t *String = Std$String$alloc(NoOfBlocks);
+			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String_block *Block = String->Blocks;
+			Std$String$block *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
 				Block->Chars.Value = Buffer->Chars;
@@ -721,8 +720,8 @@ METHOD("read", TYP, TextReaderT) {
 
 METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	size_t BytesWritten = write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
 		Result->Val = IO$Stream$WriteMessage;
@@ -734,8 +733,8 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 
 METHOD("write", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address_t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer_smallt *)Args[2].Val)->Value;
+	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
+	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
 	size_t BytesWritten = 0;
 	while (Size) {
 		long Bytes = write(Stream->Handle, Buffer, Size);
@@ -754,7 +753,7 @@ METHOD("write", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, 
 
 METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	IO$Windows_t *Stream = Args[0].Val;
-	Std$String_t *String = Args[1].Val;
+	Std$String$t *String = Args[1].Val;
 	for (long I = 0; I < String->Count; ++I) {
 		if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
 			Result->Val = IO$Stream$WriteMessage;
@@ -767,11 +766,11 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 
 METHOD("write", TYP, TextWriterT, ANY) {
 	IO$Windows_t *Stream = Args[0].Val;
-	Std$Function_result Result0;
-	switch (Std$Function$call($AS, 2, &Result0, Args[1].Val, Args[1].Ref, Std$String$T, 0)) {
+	Std$Function$result Result0;
+	switch (Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, Args[1].Ref)) {
 	case SUSPEND:
 	case SUCCESS: {
-		Std$String_t *String = Result0.Val;
+		Std$String$t *String = Result0.Val;
 		for (long I = 0; I < String->Count; ++I) {
 			if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
 				Result->Val = IO$Stream$WriteMessage;
@@ -792,7 +791,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 
 METHOD("seek", TYP, SeekerT, TYP, Std$Integer$SmallT) {
 	IO$Windows_t *Stream = Args[0].Val;
-	long Position = ((Std$Integer_smallt *)Args[1].Val)->Value;
+	long Position = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	Position = SetFilePointer(Stream->Handle, Position, 0, FILE_BEGIN);
 	if (Position < 0) {
 		Result->Val = SeekMessage;

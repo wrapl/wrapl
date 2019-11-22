@@ -1,4 +1,4 @@
-CFLAGS := old + ["-std=gnu99", pkg_config("--cflags gtksourceview-3.0"), "-include gtksourceview/gtksource.h -include gtksourceview/completion-providers/words/gtksourcecompletionwords.h"]
-LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gtksourceview-3.0")]
+CFLAGS := old + ["-std=gnu99", pkg_config("--cflags gtksourceview-4"), "-include gtksourceview/gtksource.h -include gtksourceview/completion-providers/words/gtksourcecompletionwords.h"]
+LDFLAGS := old + ["libdl.rlib", pkg_config("--libs-only-l gtksourceview-4")]
 
 detect_modules("Gir/GtkSource")

@@ -203,7 +203,7 @@ typedef struct ssh_known_host_t {
 
 TYPE(SSHKnownHostT);
 
-METHOD("@", TYP, SSHKnownHostT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SSHKnownHostT) {
 	ssh_known_host_t *KnownHost = (ssh_known_host_t *)Args[0].Val;
 	Result->Val = Std$String$new(KnownHost->Name);
 	return SUCCESS;
@@ -274,7 +274,7 @@ typedef struct ssh_auth_t {
 
 TYPE(SSHAuthT);
 
-METHOD("@", TYP, SSHAuthT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SSHAuthT) {
 	ssh_auth_t *Auth = (ssh_auth_t *)Args[0].Val;
 	Result->Val = Std$String$new(Auth->Name);
 	return SUCCESS;
@@ -734,7 +734,7 @@ METHOD("read", TYP, SFTPFileReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT
 	int Size = Std$Integer$get_small(Args[2].Val);
 	int BytesRead = sftp_read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	}
 	Result->Val = Std$Integer$new_small(BytesRead);
@@ -750,7 +750,7 @@ METHOD("read", TYP, SFTPFileReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT
 		int Request = Size <= 16384 ? Size : 16384;
 		int Bytes = sftp_read(Stream->Handle, Buffer, Request);
 		if (BytesRead < 0) {
-			Result->Val = (Std$Object_t *)IO$Stream$ReadMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		}
 		if (Bytes == 0) break;
@@ -768,7 +768,7 @@ METHOD("write", TYP, SFTPFileWriterT, TYP, Std$Address$T, TYP, Std$Integer$Small
 	int Size = Std$Integer$get_small(Args[2].Val);
 	int BytesWritten = sftp_write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
-		Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
 	}
 	Result->Val = Std$Integer$new_small(BytesWritten);
@@ -784,7 +784,7 @@ METHOD("write", TYP, SFTPFileWriterT, TYP, Std$Address$T, TYP, Std$Integer$Small
 		int Request = Size <= 16384 ? Size : 16384;
 		int Bytes = sftp_write(File->Handle, Buffer, Request);
 		if (Bytes < 0) {
-			Result->Val = (Std$Object_t *)IO$Stream$WriteMessage;
+			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		}
 		if (Bytes == 0) break;
@@ -879,7 +879,7 @@ sftp_file_type_t SFTPFileTypeSymLink[] = {{SFTPFileTypeT, "symlink", SSH_FILEXFE
 sftp_file_type_t SFTPFileTypeSpecial[] = {{SFTPFileTypeT, "special", SSH_FILEXFER_TYPE_SPECIAL}};
 sftp_file_type_t SFTPFileTypeUnknown[] = {{SFTPFileTypeT, "unknown", SSH_FILEXFER_TYPE_UNKNOWN}};
 
-METHOD("@", TYP, SFTPFileTypeT, VAL, Std$String$T) {
+AMETHOD(Std$String$Of, TYP, SFTPFileTypeT) {
 	sftp_file_type_t *FileType = (sftp_file_type_t *)Args[0].Val;
 	Result->Val = Std$String$new(FileType->Name);
 	return SUCCESS;

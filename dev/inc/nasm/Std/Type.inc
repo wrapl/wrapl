@@ -7,10 +7,11 @@
 riva_module Std$Type
 
 riva_struct t, Std$Object_t
-	.Types:		resd 1
-	.Invoke:	resd 1; invoke(value, args, count)
-	.Fields:	resd 1
-	.Levels:	resd 1
+	.Types: resd 1
+	.Invoke: resd 1; invoke(value, args, count)
+	.Fields: resd 1
+	.Levels: resd 1
+;	.Of: resd 1
 endstruct
 
 riva_extern T
@@ -25,18 +26,23 @@ ctype __LINE__, %1
 %else
 
 %macro ctype 1-2+ 0
+;section .asymbol
+;%1 %+ Of: dd 0
 datasect
 	align 8
 %ifdef WINDOWS
 	global %1
+	global %1 %+ Of
 %else
 	global %1:data
+	global %1 %+ Of:data
 %endif
 %1: dd Std$Type$T
 	dd .types
 	dd .invoke
 	dd .fields
 	dd .levels
+;	dd %1 %+ Of
 .types:
 	dd %1, %2, 0
 .fields:

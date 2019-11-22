@@ -4,7 +4,7 @@
 #include <libtecla.h>
 
 typedef struct tecla_t {
-	Std$Type_t *Type;
+	Std$Type$t *Type;
 	GetLine *Handle;
 } tecla_t;
 
@@ -13,7 +13,7 @@ TYPE(T);
 GLOBAL_FUNCTION(New, 2) {
 	tecla_t *Tecla = new(tecla_t);
 	Tecla->Type = T;
-	Tecla->Handle = new_GetLine(((Std$Integer_smallt *)Args[0].Val)->Value, ((Std$Integer_smallt *)Args[1].Val)->Value);
+	Tecla->Handle = new_GetLine(((Std$Integer$smallt *)Args[0].Val)->Value, ((Std$Integer$smallt *)Args[1].Val)->Value);
 	Result->Val = Tecla;
 	return SUCCESS;
 };

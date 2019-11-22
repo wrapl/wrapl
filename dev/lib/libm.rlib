@@ -322,4 +322,5 @@ if LINUX then
 	export("fegetexceptflag")
 	export("lgammaf_r")
 	export("__pow_finite")
+	export("__hypot_finite")
 end

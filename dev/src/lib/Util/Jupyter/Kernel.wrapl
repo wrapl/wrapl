@@ -4,34 +4,79 @@ IMP IO.Terminal USE Out;
 IMP Std, Sys, Agg, Util, Alg, IO, Net, Wrapl;
 IMP Fmt USE Json, Xml;
 
+DEF DisplayCacheItemT <[] index, used>;
+
 DEF Display! :?;
 
-METH Display(x) '{x}';
+METH Display(x, data @ Agg.Table.T) IS <x, data, cache | Agg.Table.New(Std.Object.Compare, Std.Object.Hash)> '{x}' RECV msg DO (
+	VAR cache_item;
+	(cache_item <- cache:missing(x, cache_item) <- DisplayCacheItemT(cache:size)) // (
+		cache_item:used <- :true;
+		data:insert('text/html', '{Xml.New(:b, ['=@{cache_item:index}'])}');
+		RET '=@{cache_item:index}';
+	);
+	VAR contents <- ['('];
+	VAR field, value_text, value_data;
+	VAR sep <- "";
+	EVERY field <- (?x):fields:values DO (
+		value_text <- Display(field(x), value_data <- {}, cache);
+		contents:put(
+			Xml.New(:i, ['{sep}{field}: ']),
+			Xml.LoadString(value_data["text/html"]) | value_text
+		);
+		sep <- ", ";
+	);
+	contents:put(')');
+	VAR html <- Xml.New(:span, contents);
+	cache_item:used == :true => (
+		html <- Xml.New(:span, ['@{cache_item:index}', html]);
+	);
+	data:insert('text/html', '{html}');
+	RET '<object>';
+);
 
-METH Display(list @ Agg.List.T, data @ Agg.Table.T) (
+METH Display(list @ Agg.List.T, data @ Agg.Table.T) IS <list, data, cache | Agg.Table.New(Std.Object.Compare, Std.Object.Hash)> (
+	VAR cache_item;
+	(cache_item <- cache:missing(list, cache_item) <- DisplayCacheItemT(cache:size)) // (
+		cache_item:used <- :true;
+		data:insert('text/html', '{Xml.New(:b, ['=@{cache_item:index}'])}');
+		RET '=@{cache_item:index}';
+	);
 	VAR html <- Xml.New(:ol);
 	VAR value, value_text, value_data;
 	EVERY value <- list:values DO (
-		value_text <- Display(value, value_data <- {});
-		html:append(Xml.New(html, :li, [
+		value_text <- Display(value, value_data <- {}, cache);
+		Xml.New(html, :li, [
 			Xml.LoadString(value_data["text/html"]) | value_text
-		]));
+		]);
+	);
+	cache_item:used == :true => (
+		html <- Xml.New(:span, ['@{cache_item:index}', html]);
 	);
 	data:insert('text/html', '{html}');
 	RET '{list}';
 );
 
-METH Display(table @ Agg.Table.T, data @ Agg.Table.T) (
+METH Display(table @ Agg.Table.T, data @ Agg.Table.T) IS <table, data, cache | Agg.Table.New(Std.Object.Compare, Std.Object.Hash)> (
+	VAR cache_item;
+	(cache_item <- cache:missing(table, cache_item) <- DisplayCacheItemT(cache:size)) // (
+		cache_item:used <- :true;
+		data:insert('text/html', '{Xml.New(:b, ['=@{cache_item:index}'])}');
+		RET '=@{cache_item:index}';
+	);
 	VAR html <- Xml.New(:ul);
 	VAR key, key_text, key_data;
 	VAR value, value_text, value_data;
 	EVERY table:loop(key, value) DO (
-		key_text <- Display(key, key_data <- {});
-		value_text <- Display(value, value_data <- {});
-		html:append(Xml.New(:li, [
+		key_text <- Display(key, key_data <- {}, cache);
+		value_text <- Display(value, value_data <- {}, cache);
+		Xml.New(html, :li, [
 			Xml.New(:b, [Xml.LoadString(key_data["text/html"]) | key_text, ": "]),
 			Xml.LoadString(value_data["text/html"]) | value_text
-		]));
+		]);
+	);
+	cache_item:used == :true => (
+		html <- Xml.New(:span, ['@{cache_item:index}', html]);
 	);
 	data:insert('text/html', '{html}');
 	RET '{table}';
@@ -43,6 +88,39 @@ Log.INFO('Starting wrapl kernel');
 
 DEF InT <[IO.Stream.TextReaderT, IO.Stream.ReaderT, IO.Stream.T] parent>;
 DEF OutT <[IO.Stream.TextWriterT, IO.Stream.WriterT, IO.Stream.T] type, parent>;
+
+DEF CommT <[] id, callback>;
+VAR targets <- {};
+VAR comms <- {};
+
+DEF RegisterTarget!(target_name, callback) (
+	targets:insert(target_name, callback);
+);
+
+DEF OpenComm!(target_name, data, callback) (
+	VAR comm <- CommT('{Alg.UUID.New()}', callback);
+	comms:insert(comm:id, comm);
+	Send(shell, NIL, "comm_open", out:parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+	RET comm;
+);
+
+METH :send(comm @ CommT, data) IS <comm, data, parent> (
+	Send(shell, NIL, "comm_msg", parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+);
+
+METH :close(comm @ CommT, data) IS <comm, data, parent> (
+	comms:delete(comm:id);
+	Send(shell, NIL, "comm_close", parent, {}, {
+		"comm_id" IS comm:id,
+		"data" IS data
+	});
+);
 
 VAR connection <- Json.LoadFile(Sys.Program.Args[1]);
 VAR key <- connection.key;
@@ -170,6 +248,10 @@ DEF Handle(socket, msg) (
 		});
 		Terminal:export("Out", out <- OutT("stdout", {}));
 		Terminal:export("Err", err <- OutT("stderr", {}));
+	) IS "comm_info_request" DO (
+		Send(shell, ids, "comm_info_reply", req_header, {}, {
+			"comms" IS {}
+		});
 	) IS "execute_request" DO (
 		execution_count <- $ + 1;
 		input:write(req_content.code);
@@ -196,7 +278,7 @@ DEF Handle(socket, msg) (
 			);
 		);
 		VAR data <- {};
-		data:insert("text/plain", Display(result, data) RECV msg DO "<value>");
+		data:insert("text/plain", Display(result, data) RECV msg DO '{msg}');
 		Send(iopub, NIL, "execute_result", req_header, {}, {
 			"execution_count" IS execution_count,
 			"data" IS data
@@ -229,7 +311,22 @@ DEF Handle(socket, msg) (
 	) IS "shutdown_request" DO (
 		Log.INFO("Shutting down");
 		SEND "Shutdown";
+	) IS "comm_open" DO (
+		Log.INFO("Comm open");
+		targets[req_content.target_name](req_content.comm_id, req_content.data);
+		RECV msg DO Log.ERROR("Comm open ", msg);
+	) IS "comm_msg" DO (
+		Log.INFO("Comm message");
+		comms[req_content.comm_id](req_content.data);
+		RECV msg DO Log.ERROR("Comm message ", msg);
 	);
+);
+
+DEF DisplayData!(data, metadata | {}) (
+	Send(iopub, NIL, "display_data", out:parent, {}, {
+		"data" IS data,
+		"metadata" IS metadata
+	});
 );
 
 END Kernel.

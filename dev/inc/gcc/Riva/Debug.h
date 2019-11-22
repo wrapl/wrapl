@@ -10,6 +10,7 @@ RIVA_STRUCT(hdr) {
 };
 
 RIVA_CFUN(int, stack_trace, void **, char **, int);
+RIVA_CFUN(int, caller_info, void *, char **, int **);
 
 #undef RIVA_MODULE
 

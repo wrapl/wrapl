@@ -47,3 +47,5 @@ tst
 /.vscode/
 /bin/
 /.externalToolBuilders/
+/build.rabs.db/
+/lib/
