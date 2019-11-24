@@ -51,10 +51,10 @@ AMETHOD(OpenRead, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-AMETHOD(OpenRead, TYP, Std$Address$SizedT) {
+AMETHOD(OpenRead, TYP, Std$Address$T) {
 	format_t *Format = new(format_t);
 	Format->Type = FormatT;
-	Std$Address$sizedt *Buffer = (Std$Address$sizedt *)Args[0].Val;
+	Std$Address$t *Buffer = (Std$Address$t *)Args[0].Val;
 	// TODO: Support optional parameters
 	sox_signalinfo_t *Signal = 0;
 	sox_encodinginfo_t *Encoding = 0;
@@ -212,8 +212,8 @@ static int riva_effect_flow(sox_effect_t *E, sox_sample_t *IBuf, sox_sample_t *O
 	Std$Object$t *OSampVal = Std$Integer$new_small(OSamp[0]);
 	Std$Function$argument Args[5] = {
 		{Effect, 0},
-		{Std$Address$new_sized(IBuf, ISamp[0] * sizeof(sox_sample_t)), 0},
-		{Std$Address$new_sized(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
+		{Std$Address$new(IBuf, ISamp[0] * sizeof(sox_sample_t)), 0},
+		{Std$Address$new(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
 		{ISampVal, &ISampVal},
 		{OSampVal, &OSampVal}
 	};
@@ -229,7 +229,7 @@ static int riva_effect_drain(sox_effect_t *E, sox_sample_t *OBuf, size_t *OSamp)
 	Std$Object$t *OSampVal = Std$Integer$new_small(OSamp[0]);
 	Std$Function$argument Args[3] = {
 		{Effect, 0},
-		{Std$Address$new_sized(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
+		{Std$Address$new(OBuf, OSamp[0] * sizeof(sox_sample_t)), 0},
 		{OSampVal, &OSampVal}
 	};
 	Std$Function$result Result[1];

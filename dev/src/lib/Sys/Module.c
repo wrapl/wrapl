@@ -301,7 +301,7 @@ METHOD("version", TYP, T) {
 };
 
 GLOBAL_FUNCTION(LoadSymbol, 1) {
-	Result->Val = Std$Address$new(Riva$Module$load_symbol(Std$String$flatten(Args[0].Val)));
+	Result->Val = Std$Address$new(Riva$Module$load_symbol(Std$String$flatten(Args[0].Val)), 0);
 	return SUCCESS;
 };
 

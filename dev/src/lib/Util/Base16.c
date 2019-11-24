@@ -8,8 +8,8 @@ GLOBAL_FUNCTION(Encode, 1) {
 	int Length = String->Length.Value * 2;
 	char *Hex = Riva$Memory$alloc_atomic(Length + 1);
 	char *HP = Hex;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
-		char *CP = Block->Chars.Value;
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {
+		char *CP = Block->Value;
 		for (int I = Block->Length.Value; --I >= 0;) {
 			char C = *CP++;
 			*HP++ = HexDigits[(C >> 4) & 15];
@@ -27,8 +27,8 @@ GLOBAL_FUNCTION(Decode, 1) {
 	char *Str = Riva$Memory$alloc_atomic(Length + 1);
 	char *SP = Str;
 	int Odd = 1;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
-		char *CP = Block->Chars.Value;
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {
+		char *CP = Block->Value;
 		for (int I = Block->Length.Value; --I >= 0;) {
 			char C = *CP++;
 			if (C >= 'a') {

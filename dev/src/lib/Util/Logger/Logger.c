@@ -72,8 +72,8 @@ static void write_json_chars(const char *Chars, int Length, Std$Object$t *Stream
 
 static inline write_json_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream$writefn write) {
 	if (Val->Type == Std$String$T) {
-		for (Std$String$block *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
-			write_json_chars(Block->Chars.Value, Block->Length.Value, Stream, write);
+		for (Std$Address$t *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
+			write_json_chars(Block->Value, Block->Length.Value, Stream, write);
 		}
 	} else {
 		write(Stream, "<value>", strlen("<value>"), 1);
@@ -167,8 +167,8 @@ GLOBAL_FUNCTION(JsonStream, 2) {
 
 static inline write_text_string(Std$Object$t *Val, Std$Object$t *Stream, IO$Stream$writefn write) {
 	if (Val->Type == Std$String$T) {
-		for (Std$String$block *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
-			write(Stream, Block->Chars.Value, Block->Length.Value, 1);
+		for (Std$Address$t *Block = ((Std$String$t *)Val)->Blocks; Block->Length.Value; ++Block) {
+			write(Stream, Block->Value, Block->Length.Value, 1);
 		}
 	} else {
 		write(Stream, "<value>", strlen("<value>"), 1);

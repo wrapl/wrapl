@@ -216,7 +216,7 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	yajl_handle *Handle = ((parser_t *)Args[0].Val)->Handle;
 	Std$String$t *String = Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
-		switch (yajl_parse(Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value)) {
+		switch (yajl_parse(Handle, String->Blocks[I].Value, String->Blocks[I].Length.Value)) {
 		case yajl_status_ok: break;
 		case yajl_status_client_canceled: {
 			Result->Val = Std$String$new("Parse cancelled!");

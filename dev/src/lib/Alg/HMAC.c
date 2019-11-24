@@ -24,8 +24,8 @@ GLOBAL_FUNCTION(Name ## New, 1) {\
 METHOD("update", TYP, Name ## T, TYP, Std$String$T) {\
 	name ## _t *HMAC = Args[0].Val;\
 	Std$String$t *String = Args[1].Val;\
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {\
-		hmac_ ## name ## _update(HMAC->Context, Block->Length.Value, Block->Chars.Value);\
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {\
+		hmac_ ## name ## _update(HMAC->Context, Block->Length.Value, Block->Value);\
 	};\
 	RETURN0;\
 }\

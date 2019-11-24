@@ -33,6 +33,7 @@ Num$Array$t *_new(Num$Array$format_t Format, int Degree) {
 	};
 	Num$Array$t *Array = Riva$Memory$alloc(sizeof(Num$Array$t) + Degree * sizeof(Num$Array$dimension_t));
 	Array->Type = Types[Format];
+	Array->Length.Type = Std$Integer$SmallT;
 	Array->Degree = Degree;
 	Array->Format = Format;
 	return Array;
@@ -101,6 +102,7 @@ GLOBAL_FUNCTION(New, 2) {
 		DataSize *= Array->Dimensions[I].Size;
 	}
 	Array->Data = Riva$Memory$alloc_atomic(DataSize);
+	Array->Length.Value = DataSize;
 	RETURN(Array);
 }
 
@@ -148,5 +150,6 @@ GLOBAL_FUNCTION(Wrap, 4) {
 		StrideNode = StrideNode->Next;
 	}
 	Array->Data = Std$Address$get_value(Args[1].Val);
+	Array->Length.Value = Std$Address$get_size(Args[1].Val);
 	RETURN(Array);
 }

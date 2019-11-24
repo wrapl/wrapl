@@ -23,6 +23,7 @@ typedef enum {
 RIVA_STRUCT(t) {
 	const Std$Type$t *Type;
 	void *Data;
+	Std$Integer$smallt Length;
 	int Degree, Format;
 	Num$Array$dimension_t Dimensions[];
 };

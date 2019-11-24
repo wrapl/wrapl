@@ -107,7 +107,7 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
 	Std$String$t *String = Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
-		switch (XML_Parse(Parser, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 0)) {
+		switch (XML_Parse(Parser, String->Blocks[I].Value, String->Blocks[I].Length.Value, 0)) {
 		case XML_STATUS_ERROR: {
 			enum XML_Error Error = XML_GetErrorCode(Parser);
 			SEND(Std$String$new(XML_ErrorString(Error)));

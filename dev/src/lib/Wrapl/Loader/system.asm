@@ -619,16 +619,7 @@ amethod Std$String$Of, TYP, IncorrectTypeMessageT
 	xor eax, eax
 	ret
 section .data
-.String:
-	dd Std$String$T
-	dd 1
-	dd Std$Integer$SmallT, 25
-	dd 0, 0
-	dd Std$Integer$SmallT, 25
-	dd Std$Address$T, .chars
-	dd 0, 0, 0, 0
-.chars:
-	db "Object has incorrect type", 0
+cstring .String, "Object has incorrect type"
 
 cdata IncorrectTypeMessage
 	dd IncorrectTypeMessageT
@@ -649,16 +640,7 @@ amethod Std$String$Of, TYP, IncorrectAssignMessageT
 	xor eax, eax
 	ret
 section .data
-.String:
-	dd Std$String$T
-	dd 1
-	dd Std$Integer$SmallT, 24
-	dd 0, 0
-	dd Std$Integer$SmallT, 24
-	dd Std$Address$T, .chars
-	dd 0, 0, 0, 0
-.chars:
-	db "Assignment to location 0", 0
+cstring .String, "Assignment to location 0"
 
 cdata IncorrectAssignMessage
 	dd IncorrectAssignMessageT
@@ -693,8 +675,8 @@ cfunction select_string
 	push ebp
 	mov ebp, esp
 	cmp [Std$String_t(ecx).Count], dword 1
-	mov ebx, [Std$Address_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Value]
-	mov eax, [Std$Integer_smallt(Std$String_block(Std$String_t(ecx).Blocks).Length).Value]
+	mov ebx, [Std$Address_t(Std$String_t(ecx).Blocks).Value]
+	mov eax, [Std$Integer_smallt(Std$Address_t(Std$String_t(ecx).Blocks).Length).Value]
         ;int3
 	jbe .simplestring
 	;jb .default
@@ -705,11 +687,11 @@ cfunction select_string
 	mov edi, esp
 	lea ebx, [Std$String_t(ecx).Blocks]
 .copyloop:
-	mov ecx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
 	jecxz .copied
-	mov esi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov esi, [Std$Address_t(ebx).Value]
 	rep movsb
-	add ebx, byte sizeof(Std$String_block)
+	add ebx, byte sizeof(Std$Address_t)
 	jmp .copyloop
 .copied:
 	mov ebx, esp

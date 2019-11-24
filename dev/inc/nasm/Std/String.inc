@@ -6,11 +6,6 @@
 %include "Riva-Header.inc"
 riva_module Std$String
 
-riva_struct block
-	.Length:	resv(Std$Integer_smallt)
-	.Chars:		resv(Std$Address_t)
-endstruct
-
 riva_struct t, Std$Object_t
 	.Count:		resd 1
 	.Length:	resv(Std$Integer_smallt)
@@ -44,14 +39,30 @@ datasect
 	dd 1
 	dd Std$Integer$SmallT, .end - .chars
 	dd 0, 0
-	dd Std$Integer$SmallT, .end - .chars
 	dd Std$Address$T, .chars
+	dd Std$Integer$SmallT, .end - .chars
 	dd 0, 0, 0, 0
 .chars:
 %endmacro
 
 %macro cstrend 0
 .end: db 0
+%endmacro
+
+%macro cstring 2
+datasect
+%1:
+	dd Std$String$T
+	dd 1
+	dd Std$Integer$SmallT, .end - .chars
+	dd 0, 0
+	dd Std$Address$T, .chars
+	dd Std$Integer$SmallT, .end - .chars
+	dd 0, 0, 0, 0
+.chars:
+	db %2
+.end:
+	db 0
 %endmacro
 
 %endif

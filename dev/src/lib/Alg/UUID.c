@@ -20,7 +20,7 @@ AMETHOD(Std$String$Of, TYP, T) {
 
 AMETHOD(Std$Address$Of, TYP, T) {
 	_uuid_t *UUID = (_uuid_t *)Args[0].Val;
-	RETURN(Std$Address$new_sized(UUID->Value, 16));
+	RETURN(Std$Address$new(UUID->Value, 16));
 }
 
 GLOBAL_METHOD(Hash, 1, "#", TYP, T) {
@@ -55,7 +55,7 @@ GLOBAL_FUNCTION(New, 0) {
 			if (uuid_parse(Std$String$flatten(Args[0].Val), UUID->Value)) {
 				SEND(Std$String$new("UUID parse error"));
 			}
-		} else if (Args[0].Val->Type == Std$Address$SizedT) {
+		} else if (Args[0].Val->Type == Std$Address$T) {
 			if (Std$Address$get_size(Args[0].Val) < 16) {
 				SEND(Std$String$new("UUID size error"));
 			}

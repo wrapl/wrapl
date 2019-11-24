@@ -243,7 +243,7 @@ METHOD("_bytes", TYP, MessageT) {
 //@message
 //:Std.Address.T
 	message_t *Message = (message_t *)Args[0].Val;
-	Result->Val = Std$Address$new(Message->Value->body.bytes);
+	Result->Val = Std$Address$new(Message->Value->body.bytes, Message->Value->body.len);
 	return SUCCESS;
 }
 
@@ -729,7 +729,7 @@ METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP
 	}
 }
 
-METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Address$SizedT) {
+METHOD("basic_publish", TYP, ChannelT, TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Address$T) {
 //@channel
 //@exchange
 //@routing_key

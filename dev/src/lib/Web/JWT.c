@@ -23,14 +23,9 @@ GLOBAL_FUNCTION(New, 0) {
 		} else if (Args[1].Val->Type == Std$String$T) {
 			Key = Std$String$flatten(Args[1].Val);
 			KeyLen = Std$String$get_length(Args[1].Val);
-		} else if (Args[1].Val->Type == Std$Address$SizedT) {
+		} else if (Args[1].Val->Type == Std$Address$T) {
 			Key = Std$Address$get_value(Args[1].Val);
 			KeyLen = Std$Address$get_size(Args[1].Val);
-		} else if (Args[1].Val->Type == Std$Address$T) {
-			if (Count == 2) SEND(Std$String$new("Expected 3 arguments"));
-			CHECK_ARG_TYPE(2, Std$Integer$SmallT);
-			Key = Std$Address$get_value(Args[1].Val);
-			KeyLen = Std$Integer$get_small(Args[2].Val);
 		}
 		if (jwt_decode(&Jwt->Handle, Token, Key, KeyLen)) {
 			SEND(Std$String$new("Error decoding JWT"));
@@ -232,20 +227,11 @@ METHOD("set_alg", TYP, T, TYP, AlgT, TYP, Std$String$T) {
 	RETURN0;
 }
 
-METHOD("set_alg", TYP, T, TYP, AlgT, TYP, Std$Address$SizedT) {
+METHOD("set_alg", TYP, T, TYP, AlgT, TYP, Std$Address$T) {
 	riva_jwt_t *Jwt = (riva_jwt_t *)Args[0].Val;
 	jwt_alg_t Alg = Std$Integer$get_small(Args[1].Val);
 	const char *Key = Std$Address$get_value(Args[2].Val);
 	int Len = Std$Address$get_size(Args[2].Val);
-	jwt_set_alg(Jwt->Handle, Alg, Key, Len);
-	RETURN0;
-}
-
-METHOD("set_alg", TYP, T, TYP, AlgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	riva_jwt_t *Jwt = (riva_jwt_t *)Args[0].Val;
-	jwt_alg_t Alg = Std$Integer$get_small(Args[1].Val);
-	const char *Key = Std$Address$get_value(Args[2].Val);
-	int Len = Std$Integer$get_small(Args[3].Val);
 	jwt_set_alg(Jwt->Handle, Alg, Key, Len);
 	RETURN0;
 }

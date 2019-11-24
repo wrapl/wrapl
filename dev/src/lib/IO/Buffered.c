@@ -313,22 +313,22 @@ static Std$Function$status string_rest(buffered_t *Stream, Std$Function$result *
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -451,22 +451,22 @@ static Std$Function$status stringn(buffered_t *Stream, int Max, Std$Function$res
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -481,22 +481,22 @@ static Std$Function$status stringn(buffered_t *Stream, int Max, Std$Function$res
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Chars = Tail->Chars;
 				Read->Head = Tail->Tail + Remaining;
@@ -717,8 +717,8 @@ TYPED_INSTANCE(char *, IO$Stream$readx, ReaderT, buffered_t *Stream, int Max, ch
 static Std$Function$status stringx_nolimit(buffered_t *Stream, const Std$String$t *Term, Std$Function$result *Result) {
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		const unsigned char *Chars = Block->Chars.Value;
+	for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		const unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	char *InitialChars = 0;
@@ -753,22 +753,22 @@ static Std$Function$status stringx_nolimit(buffered_t *Stream, const Std$String$
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -784,22 +784,22 @@ static Std$Function$status stringx_nolimit(buffered_t *Stream, const Std$String$
 					if (Ptr != Tail->Chars) ++NoOfBlocks;
 					Std$String$t *String = Std$String$alloc(NoOfBlocks);
 					String->Length.Value = TotalLength;
-					Std$String$block *Block = String->Blocks;
+					Std$Address$t *Block = String->Blocks;
 					if (InitialLength) {
 						Block->Length.Value = InitialLength;
-						Block->Chars.Value = InitialChars;
+						Block->Value = InitialChars;
 						++Block;
 					};
 					for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 						Block->Length.Value = Buffer->Length;
-						Block->Chars.Value = Buffer->Chars;
+						Block->Value = Buffer->Chars;
 						++Block;
 					};
 					if (Ptr != Tail->Chars) {
 						char *Chars = Riva$Memory$alloc_atomic(Ptr - Tail->Chars);
 						memcpy(Chars, Tail->Chars, Ptr - Tail->Chars);
 						Block->Length.Value = Ptr - Tail->Chars;
-						Block->Chars.Value = Chars;
+						Block->Value = Chars;
 					};
 					Read->Chars = Tail->Chars;
 					Read->Head = Ptr + 1;
@@ -828,8 +828,8 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	if (Max == 0) return stringx_nolimit(Stream, Term, Result);
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		const unsigned char *Chars = Block->Chars.Value;
+	for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		const unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	char *InitialChars = 0;
@@ -886,22 +886,22 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -918,22 +918,22 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 						if (Ptr != Tail->Chars) ++NoOfBlocks;
 						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String$block *Block = String->Blocks;
+						Std$Address$t *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
-							Block->Chars.Value = InitialChars;
+							Block->Value = InitialChars;
 							++Block;
 						};
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 							Block->Length.Value = Buffer->Length;
-							Block->Chars.Value = Buffer->Chars;
+							Block->Value = Buffer->Chars;
 							++Block;
 						};
 						if (Ptr != Tail->Chars) {
 							char *Chars = Riva$Memory$alloc_atomic(Ptr - Tail->Chars);
 							memcpy(Chars, Tail->Chars, Ptr - Tail->Chars);
 							Block->Length.Value = Ptr - Tail->Chars;
-							Block->Chars.Value = Chars;
+							Block->Value = Chars;
 						};
 						Read->Chars = Tail->Chars;
 						Read->Head = Ptr + 1;
@@ -949,22 +949,22 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Chars = Tail->Chars;
 				Read->Head = Tail->Tail + Remaining;
@@ -981,22 +981,22 @@ METHOD("readx", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 						if (Ptr != Tail->Chars) ++NoOfBlocks;
 						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String$block *Block = String->Blocks;
+						Std$Address$t *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
-							Block->Chars.Value = InitialChars;
+							Block->Value = InitialChars;
 							++Block;
 						};
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 							Block->Length.Value = Buffer->Length;
-							Block->Chars.Value = Buffer->Chars;
+							Block->Value = Buffer->Chars;
 							++Block;
 						};
 						if (Ptr != Tail->Chars) {
 							char *Chars = Riva$Memory$alloc_atomic(Ptr - Tail->Chars);
 							memcpy(Chars, Tail->Chars, Ptr - Tail->Chars);
 							Block->Length.Value = Ptr - Tail->Chars;
-							Block->Chars.Value = Chars;
+							Block->Value = Chars;
 						};
 						Read->Chars = Tail->Chars;
 						Read->Head = Ptr + 1;
@@ -1213,8 +1213,8 @@ TYPED_INSTANCE(char *, IO$Stream$readi, ReaderT, buffered_t *Stream, int Max, ch
 static Std$Function$status stringi_nolimit(buffered_t *Stream, const Std$String$t *Term, Std$Function$result *Result) {
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		const unsigned char *Chars = Block->Chars.Value;
+	for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		const unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	char *InitialChars = 0;
@@ -1249,22 +1249,22 @@ static Std$Function$status stringi_nolimit(buffered_t *Stream, const Std$String$
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -1280,21 +1280,21 @@ static Std$Function$status stringi_nolimit(buffered_t *Stream, const Std$String$
 					++NoOfBlocks;
 					Std$String$t *String = Std$String$alloc(NoOfBlocks);
 					String->Length.Value = TotalLength;
-					Std$String$block *Block = String->Blocks;
+					Std$Address$t *Block = String->Blocks;
 					if (InitialLength) {
 						Block->Length.Value = InitialLength;
-						Block->Chars.Value = InitialChars;
+						Block->Value = InitialChars;
 						++Block;
 					};
 					for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 						Block->Length.Value = Buffer->Length;
-						Block->Chars.Value = Buffer->Chars;
+						Block->Value = Buffer->Chars;
 						++Block;
 					};
 					char *Chars = Riva$Memory$alloc_atomic((Ptr + 1) - Tail->Chars);
 					memcpy(Chars, Tail->Chars, (Ptr + 1) - Tail->Chars);
 					Block->Length.Value = (Ptr + 1) - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 					Read->Chars = Tail->Chars;
 					Read->Head = Ptr + 1;
 					Read->Tail = Tail->Tail + Bytes;
@@ -1322,8 +1322,8 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	if (Max == 0) return stringi_nolimit(Stream, Term, Result);
 	read_buffer_t *Read = Stream->Read;
 	char IsTerm[256] = {0,};
-	for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		const unsigned char *Chars = Block->Chars.Value;
+	for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		const unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	char *InitialChars = 0;
@@ -1380,22 +1380,22 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Head = Read->Tail = Read->Chars = Tail->Chars;
 				Read->Length = Tail->Length;
@@ -1412,21 +1412,21 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 						++NoOfBlocks;
 						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String$block *Block = String->Blocks;
+						Std$Address$t *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
-							Block->Chars.Value = InitialChars;
+							Block->Value = InitialChars;
 							++Block;
 						};
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 							Block->Length.Value = Buffer->Length;
-							Block->Chars.Value = Buffer->Chars;
+							Block->Value = Buffer->Chars;
 							++Block;
 						};
 						char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 						memcpy(Chars, Tail->Chars, (Ptr + 1) - Tail->Chars);
 						Block->Length.Value = (Ptr + 1) - Tail->Chars;
-						Block->Chars.Value = Chars;
+						Block->Value = Chars;
 						Read->Chars = Tail->Chars;
 						Read->Head = Ptr + 1;
 						Read->Tail = Tail->Tail + Bytes;
@@ -1441,22 +1441,22 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 				if (Tail->Tail != Tail->Chars) ++NoOfBlocks;
 				Std$String$t *String = Std$String$alloc(NoOfBlocks);
 				String->Length.Value = TotalLength;
-				Std$String$block *Block = String->Blocks;
+				Std$Address$t *Block = String->Blocks;
 				if (InitialLength) {
 					Block->Length.Value = InitialLength;
-					Block->Chars.Value = InitialChars;
+					Block->Value = InitialChars;
 					++Block;
 				};
 				for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 					Block->Length.Value = Buffer->Length;
-					Block->Chars.Value = Buffer->Chars;
+					Block->Value = Buffer->Chars;
 					++Block;
 				};
 				if (Tail->Tail != Tail->Chars) {
 					char *Chars = Riva$Memory$alloc_atomic(Tail->Tail - Tail->Chars);
 					memcpy(Chars, Tail->Chars, Tail->Tail - Tail->Chars);
 					Block->Length.Value = Tail->Tail - Tail->Chars;
-					Block->Chars.Value = Chars;
+					Block->Value = Chars;
 				};
 				Read->Chars = Tail->Chars;
 				Read->Head = Tail->Tail + Remaining;
@@ -1473,21 +1473,21 @@ METHOD("readi", TYP, ReaderT, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 						++NoOfBlocks;
 						Std$String$t *String = Std$String$alloc(NoOfBlocks);
 						String->Length.Value = TotalLength;
-						Std$String$block *Block = String->Blocks;
+						Std$Address$t *Block = String->Blocks;
 						if (InitialLength) {
 							Block->Length.Value = InitialLength;
-							Block->Chars.Value = InitialChars;
+							Block->Value = InitialChars;
 							++Block;
 						};
 						for (temp_buffer_t *Buffer = Head; Buffer != Tail; Buffer = Buffer->Next) {
 							Block->Length.Value = Buffer->Length;
-							Block->Chars.Value = Buffer->Chars;
+							Block->Value = Buffer->Chars;
 							++Block;
 						};
 						char *Chars = Riva$Memory$alloc_atomic((Ptr + 1) - Tail->Chars);
 						memcpy(Chars, Tail->Chars, (Ptr + 1) - Tail->Chars);
 						Block->Length.Value = (Ptr + 1) - Tail->Chars;
-						Block->Chars.Value = Chars;
+						Block->Value = Chars;
 						Read->Chars = Tail->Chars;
 						Read->Head = Ptr + 1;
 						Read->Tail = Tail->Tail + Bytes;
@@ -1633,7 +1633,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
 	const Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (int I = 0; I < String->Count; ++I) {
-		if (buffered_write(Stream, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value, 1) < 0) {
+		if (buffered_write(Stream, String->Blocks[I].Value, String->Blocks[I].Length.Value, 1) < 0) {
 			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 			return MESSAGE;
 		};

@@ -1721,6 +1721,7 @@ static command_expr_t *accept_commandimp(scanner_t *Scanner) {
 command_expr_t *accept_command(scanner_t *Scanner) {
 	if (Scanner->parse(tkIMP)) return accept_commandimp(Scanner);
 	if (Scanner->parse(tkDEF)) return accept_commanddef(Scanner);
+	if (Scanner->parse(tkLET)) return accept_commanddef(Scanner);
 	if (Scanner->parse(tkVAR)) return accept_commandvar(Scanner);
 	command_expr_t *Module = new command_expr_t;
 	Module->Body = accept_expr(Scanner);

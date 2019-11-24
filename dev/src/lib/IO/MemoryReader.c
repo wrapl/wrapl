@@ -35,7 +35,7 @@ TYPED_INSTANCE(int, IO$Stream$read, T, reader_t *Stream, char *Buffer, int Count
 
 ASYMBOL(New);
 
-AMETHOD(New, TYP, Std$Address$SizedT) {
+AMETHOD(New, TYP, Std$Address$T) {
 //@buffer
 //:T
 // Returns a new reader starting at <code>buffer</code> with length <code>buffer:length</code>.

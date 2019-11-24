@@ -121,7 +121,7 @@ METHOD("urge", TYP, T, TYP, Std$String$T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
 	Std$String$t *String = (Std$String$t *)Args[1].Val;
 	for (long I = 0; I < String->Count; ++I) {
-		if (send_all_oob(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
+		if (send_all_oob(Stream->Handle, String->Blocks[I].Value, String->Blocks[I].Length.Value) < 0) {
 			Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
 			return MESSAGE;
 		};

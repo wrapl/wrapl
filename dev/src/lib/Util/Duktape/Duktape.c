@@ -150,7 +150,7 @@ static Std$Object$t *to_riva(duk_context *Context, duk_idx_t Index) {
 	} else if (duk_is_number(Context, Index)) {
 		return Std$Real$new(duk_get_number(Context, Index));
 	} else if (duk_is_pointer(Context, Index)) {
-		return Std$Address$new(duk_get_pointer(Context, Index));
+		return Std$Address$new(duk_get_pointer(Context, Index), 0);
 	} else if (duk_is_object(Context, Index)) {
 		object_t *Object = new(object_t);
 		Object->Type = ObjectT;

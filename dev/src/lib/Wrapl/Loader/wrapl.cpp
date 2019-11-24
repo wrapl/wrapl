@@ -227,8 +227,8 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$Number$T) {
 	Std$Function$result Result0;
 	Std$Function$call(Std$String$Of, 1, &Result0, Args[1].Val, 0);
 	Std$String$t *String = (Std$String$t *)Result0.Val;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
-		IO$Stream$write(Args[0].Val, (const char *)Block->Chars.Value, Block->Length.Value, 1);
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {
+		IO$Stream$write(Args[0].Val, (const char *)Block->Value, Block->Length.Value, 1);
 	}
 	Result->Arg = Args[0];
 	return SUCCESS;
@@ -240,8 +240,8 @@ AMETHOD(WriteExpr, TYP, IO$Stream$WriterT, TYP, Std$String$T) {
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	IO$Stream$write(Stream, "\"", 1, 1);
 	Std$String$t *String = (Std$String$t *)Args[1].Val;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
-		const char *I = Block->Chars.Value;
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {
+		const char *I = Block->Value;
 		const char *J = I;
 		const char *L = I + Block->Length.Value;
 		for (; J < L; ++J) {

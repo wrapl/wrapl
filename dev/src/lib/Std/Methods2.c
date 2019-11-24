@@ -104,16 +104,16 @@ ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	Std$String$t *String = Std$String$alloc(NumBlocks);
 	String->Length.Value = Length;
 	void *Source = Std$Address$get_value(Args[0].Val);
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	while (Length > Std$String$MaxBlockSize) {
-		void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		void *Dest = Block->Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
 		Block->Length.Value = Std$String$MaxBlockSize;
 		memcpy(Dest, Source, Std$String$MaxBlockSize);
 		Source += Std$String$MaxBlockSize;
 		Length -= Std$String$MaxBlockSize;
 		++Block;
 	}
-	void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	void *Dest = Block->Value = Riva$Memory$alloc_atomic(Length);
 	Block->Length.Value = Length;
 	memcpy(Dest, Source, Length);
 	Result->Val = Std$String$freeze(String);
@@ -126,16 +126,16 @@ ADDRESS_METHOD("gets", TYP, Std$Address$T, TYP, Std$Integer$SmallT, TYP, Std$Int
 	Std$String$t *String = Std$String$alloc(NumBlocks);
 	String->Length.Value = Length;
 	void *Source = Std$Address$get_value(Args[0].Val) + Std$Integer$get_small(Args[2].Val);
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	while (Length > Std$String$MaxBlockSize) {
-		void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
+		void *Dest = Block->Value = Riva$Memory$alloc_atomic(Std$String$MaxBlockSize);
 		Block->Length.Value = Std$String$MaxBlockSize;
 		memcpy(Dest, Source, Std$String$MaxBlockSize);
 		Source += Std$String$MaxBlockSize;
 		Length -= Std$String$MaxBlockSize;
 		++Block;
 	}
-	void *Dest = Block->Chars.Value = Riva$Memory$alloc_atomic(Length);
+	void *Dest = Block->Value = Riva$Memory$alloc_atomic(Length);
 	Block->Length.Value = Length;
 	memcpy(Dest, Source, Length);
 	Result->Val = Std$String$freeze(String);
@@ -153,7 +153,7 @@ AMETHOD(Std$String$Of, TYP, Std$Real$T, TYP, Std$String$T) {
 
 typedef struct chars_generator {
 	Std$Function$cstate State;
-	const Std$String$block *Subject;
+	const Std$Address$t *Subject;
 	long Left;
 	const unsigned char *Next;
 } chars_generator;
@@ -162,7 +162,7 @@ static long resume_chars_string(Std$Function$result *Result) {
 	chars_generator *Gen = Result->State;
 	if (--Gen->Left < 0) {
 		if ((Gen->Left = (++Gen->Subject)->Length.Value - 1) < 0) return FAILURE;
-		Gen->Next = Gen->Subject->Chars.Value;
+		Gen->Next = Gen->Subject->Value;
 	};
 	Result->Val = Std$String$new_char(*Gen->Next++);
 	return SUSPEND;
@@ -177,7 +177,7 @@ STRING_METHOD("chars", TYP, Std$String$T) {
 	chars_generator *Gen = new(chars_generator);
 	Gen->Subject = Arg->Blocks;
 	Gen->Left = Gen->Subject->Length.Value - 1;
-	Gen->Next = Gen->Subject->Chars.Value;
+	Gen->Next = Gen->Subject->Value;
 	Gen->State.Run = Std$Function$resume_c;
 	Gen->State.Invoke = (Std$Function$cresumefn)resume_chars_string;
 	Result->Val = Std$String$new_char(*Gen->Next++);
@@ -200,14 +200,14 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	memset(LeftChars, ' ', LeftLength);
 	LeftChars[LeftLength] = 0;
 	New->Blocks[0].Length.Value = LeftLength;
-	New->Blocks[0].Chars.Value = LeftChars;
-	Std$String$block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String$block));
+	New->Blocks[0].Value = LeftChars;
+	Std$Address$t *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$Address$t));
 	int RightLength = Padding - LeftLength;
 	unsigned char *RightChars = Riva$Memory$alloc_atomic(RightLength + 1);
 	memset(RightChars, ' ', RightLength);
 	RightChars[RightLength] = 0;
 	Last->Length.Value = RightLength;
-	Last->Chars.Value = RightChars;
+	Last->Value = RightChars;
 	Result->Val = Std$String$freeze(New);
 	return SUCCESS;
 };
@@ -219,7 +219,7 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Str
 		Result->Val = (Std$Object$t *)Str;
 		return SUCCESS;
 	};
-	unsigned char PadChar = *(unsigned char *)Pad->Blocks[0].Chars.Value;
+	unsigned char PadChar = *(unsigned char *)Pad->Blocks[0].Value;
 	int Target = ((Std$Integer$smallt *)Args[1].Val)->Value;
 	int Padding = Target - Str->Length.Value;
 	if (Padding <= 0) {
@@ -233,14 +233,14 @@ STRING_METHOD("centre", TYP, Std$String$T, TYP, Std$Integer$SmallT, TYP, Std$Str
 	memset(LeftChars, PadChar, LeftLength);
 	LeftChars[LeftLength] = 0;
 	New->Blocks[0].Length.Value = LeftLength;
-	New->Blocks[0].Chars.Value = LeftChars;
-	Std$String$block *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$String$block));
+	New->Blocks[0].Value = LeftChars;
+	Std$Address$t *Last = mempcpy(New->Blocks + 1, Str->Blocks, Str->Count * sizeof(Std$Address$t));
 	int RightLength = Padding - LeftLength;
 	unsigned char *RightChars = Riva$Memory$alloc_atomic(RightLength + 1);
 	memset(RightChars, PadChar, RightLength);
 	RightChars[RightLength] = 0;
 	Last->Length.Value = RightLength;
-	Last->Chars.Value = RightChars;
+	Last->Value = RightChars;
 	Result->Val = Std$String$freeze(New);
 	return SUCCESS;
 };
@@ -252,11 +252,11 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 // Returns <var>a</var> if it is a substring of <var>b</var>, fails otherwise.
 	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
 	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Start = 0;
 	for (;;) {
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -264,10 +264,10 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -279,12 +279,12 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -299,12 +299,12 @@ STRING_METHOD("begins", TYP, Std$String$T, TYP, Std$String$T) {
 	const Std$String$t *Subject = (Std$String$t *)Args[0].Val;
 	const Std$String$t *Pattern = (Std$String$t *)Args[1].Val;
 	
-	const Std$String$block *S1 = Subject->Blocks;
+	const Std$Address$t *S1 = Subject->Blocks;
 	unsigned long SL = S1->Length.Value;
-	const unsigned char *SC = S1->Chars.Value;
-	const Std$String$block *P1 = Pattern->Blocks;
+	const unsigned char *SC = S1->Value;
+	const Std$Address$t *P1 = Pattern->Blocks;
 	unsigned long PL = P1->Length.Value;
-	const unsigned char *PC = P1->Chars.Value;
+	const unsigned char *PC = P1->Value;
 	for (;;) {
 		if (PL == 0) {
 			Result->Arg = Args[0];
@@ -315,12 +315,12 @@ STRING_METHOD("begins", TYP, Std$String$T, TYP, Std$String$T) {
 		if (--SL == 0) {
 			S1 += 1;
 			SL = S1->Length.Value;
-			SC = S1->Chars.Value;
+			SC = S1->Value;
 		};
 		if (--PL == 0) {
 			P1 += 1;
 			PL = P1->Length.Value;
-			PC = P1->Chars.Value;
+			PC = P1->Value;
 		};
 	};
 	return FAILURE;
@@ -336,7 +336,7 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 
 	if (Subject->Length.Value < Pattern->Length.Value) return FAILURE;
 
-	const Std$String$block *S1 = Subject->Blocks;
+	const Std$Address$t *S1 = Subject->Blocks;
 	unsigned long SL = S1->Length.Value;
 	unsigned long Skip = Subject->Length.Value - Pattern->Length.Value;
 	while (Skip >= SL) {
@@ -345,10 +345,10 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 		SL = S1->Length.Value;
 	};
 	SL -= Skip;
-	const unsigned char *SC = (unsigned char *)S1->Chars.Value + Skip;
-	const Std$String$block *P1 = Pattern->Blocks;
+	const unsigned char *SC = (unsigned char *)S1->Value + Skip;
+	const Std$Address$t *P1 = Pattern->Blocks;
 	unsigned long PL = P1->Length.Value;
-	const unsigned char *PC = P1->Chars.Value;
+	const unsigned char *PC = P1->Value;
 	for (;;) {
 		if (PL == 0) {
 			Result->Arg = Args[0];
@@ -359,12 +359,12 @@ STRING_METHOD("ends", TYP, Std$String$T, TYP, Std$String$T) {
 		if (--SL == 0) {
 			S1 += 1;
 			SL = S1->Length.Value;
-			SC = S1->Chars.Value;
+			SC = S1->Value;
 		};
 		if (--PL == 0) {
 			P1 += 1;
 			PL = P1->Length.Value;
-			PC = P1->Chars.Value;
+			PC = P1->Value;
 		};
 	};
 	return FAILURE;
@@ -394,18 +394,18 @@ STRING_METHOD("~", TYP, Std$String$T, TYP, Std$String$T) {
 	}
 	for (int Index = 0; Index < LengthA; ++Index) Cache[Index] = Index + 1;
 	int PosB = 0, R;
-	for (Std$String$block *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
+	for (Std$Address$t *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
 		int BlockLengthB = BlockB->Length.Value;
-		char *BlockCharsB = BlockB->Chars.Value;
+		char *BlockCharsB = BlockB->Value;
 		for (int IndexB = 0; IndexB < BlockLengthB; ++IndexB) {
 			char C = BlockCharsB[IndexB];
 			int DistanceA = PosB;
 			R = PosB;
 			++PosB;
 			int PosA = 0;
-			for (Std$String$block *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
+			for (Std$Address$t *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
 				int BlockLengthA = BlockA->Length.Value;
-				char *BlockCharsA = BlockA->Chars.Value;
+				char *BlockCharsA = BlockA->Value;
 				for (int IndexA = 0; IndexA < BlockLengthA; ++IndexA) {
 					int DistanceB = C == BlockCharsA[IndexA] ? DistanceA : DistanceA + 1;
 					DistanceA = Cache[PosA];
@@ -449,12 +449,12 @@ STRING_METHOD("distance", TYP, Std$String$T, TYP, Std$String$T) {
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
 	int I = 0;
 	char PrevA, PrevB;
-	for (Std$String$block *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
-		for (char *PtrA = BlockA->Chars.Value, *EndA = PtrA + BlockA->Length.Value; PtrA < EndA; ++PtrA, ++I) {
+	for (Std$Address$t *BlockA = A->Blocks; BlockA->Length.Value; ++BlockA) {
+		for (char *PtrA = BlockA->Value, *EndA = PtrA + BlockA->Length.Value; PtrA < EndA; ++PtrA, ++I) {
 			Row2[0] = (I + 1) * Delete;
 			int J = 0;
-			for (Std$String$block *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
-				for (char *PtrB = BlockB->Chars.Value, *EndB = PtrB + BlockB->Length.Value; PtrB < EndB; ++PtrB, ++J) {
+			for (Std$Address$t *BlockB = B->Blocks; BlockB->Length.Value; ++BlockB) {
+				for (char *PtrB = BlockB->Value, *EndB = PtrB + BlockB->Length.Value; PtrB < EndB; ++PtrB, ++J) {
 					int Min = Row1[J] + Replace * (*PtrA != *PtrB);
 					if (I > 0 && J > 0 && PrevA == *PtrB && *PtrA == PrevB && Min > Row0[J - 1] + Swap) {
 						Min = Row0[J - 1] + Swap;
@@ -484,12 +484,12 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 // Generate each position where <var>a</var> occurs in <var>b</var>.
 	const Std$String$t *Arg0 = (Std$String$t *)Args[0].Val;
 	const Std$String$t *Arg1 = (Std$String$t *)Args[1].Val;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Position = 0, Start = 0;
 	for (;;) {
 		++Position;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -497,10 +497,10 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -521,12 +521,12 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T) {
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -544,8 +544,8 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -554,7 +554,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	};
 	for (;;) {
 		++Position;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -562,10 +562,10 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -586,12 +586,12 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -611,8 +611,8 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
 	unsigned long Limit = ((Std$Integer$smallt *)Args[3].Val)->Value;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -622,7 +622,7 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -630,10 +630,10 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = S1->Chars.Value + Start;
+		const unsigned char *SC = S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -654,12 +654,12 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -669,21 +669,21 @@ STRING_METHOD("in", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Small
 
 typedef struct find_generator {
 	Std$Function$cstate State;
-	const Std$String$block *Subject, *Pattern;
+	const Std$Address$t *Subject, *Pattern;
 	unsigned long Start, Position, Limit;
 } find_generator;
 
 static long resume_find_string_string(Std$Function$result *Result) {
 	// Search for occurences of Pattern in Subject starting at Index
 	find_generator *Generator = Result->State;
-	const Std$String$block *Subject = Generator->Subject;
-	const Std$String$block *Pattern = Generator->Pattern;
+	const Std$Address$t *Subject = Generator->Subject;
+	const Std$Address$t *Pattern = Generator->Pattern;
 	unsigned long Position = Generator->Position, Start = Generator->Start;
 	unsigned long Limit = Generator->Limit;
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -691,10 +691,10 @@ static long resume_find_string_string(Std$Function$result *Result) {
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -709,12 +709,12 @@ static long resume_find_string_string(Std$Function$result *Result) {
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -724,21 +724,21 @@ static long resume_find_string_string(Std$Function$result *Result) {
 typedef struct find_char_generator {
 	Std$Function$cstate State;
 	unsigned char Char;
-	const Std$String$block *Subject;
+	const Std$Address$t *Subject;
 	unsigned long Start, Index, Limit;
 } find_char_generator;
 
 static long resume_find_char_string(Std$Function$result *Result) {
 	find_char_generator *Generator = Result->State;
-	const Std$String$block *Subject = Generator->Subject;
+	const Std$Address$t *Subject = Generator->Subject;
 	unsigned char Char = Generator->Char;
 	unsigned long Index = Generator->Index;
-	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
+	const unsigned char *SC = (unsigned char *)Subject->Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
 	while (SC) {
 		const unsigned char *Position = memchr(SC, Char, SL);
 		if (Position) {
-			unsigned int Last = Position - (unsigned char *)Subject->Chars.Value + 1;
+			unsigned int Last = Position - (unsigned char *)Subject->Value + 1;
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
@@ -748,7 +748,7 @@ static long resume_find_char_string(Std$Function$result *Result) {
 		Index += Subject->Length.Value;
 		++Subject;
 		SL = Subject->Length.Value;
-		SC = Subject->Chars.Value;
+		SC = Subject->Value;
 	};
 	return FAILURE;
 };
@@ -765,13 +765,13 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 	if (Arg0->Length.Value == 0) {
 		return Std$Function$call(Std$Integer$ToSmallSmall, 2, Result, Std$Integer$new_small(1), 0, &Arg1->Length, 0);
 	} else if (Arg0->Length.Value == 1) {
-		unsigned char Char = ((unsigned char *)Arg0->Blocks[0].Chars.Value)[0];
+		unsigned char Char = ((unsigned char *)Arg0->Blocks[0].Value)[0];
 		unsigned long Index = 0;
-		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
-			const unsigned char *Position = memchr(Subject->Chars.Value, Char, Subject->Length.Value);
+		for (const Std$Address$t *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+			const unsigned char *Position = memchr(Subject->Value, Char, Subject->Length.Value);
 			if (Position) {
 				find_char_generator *Generator = new(find_char_generator);
-				unsigned int Last = Position - (unsigned char *)Subject->Chars.Value + 1;
+				unsigned int Last = Position - (unsigned char *)Subject->Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				Generator->Char = Char;
@@ -786,12 +786,12 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 		};
 		return FAILURE;
 	} else {
-		const Std$String$block *Subject = Arg1->Blocks;
-		const Std$String$block *Pattern = Arg0->Blocks;
+		const Std$Address$t *Subject = Arg1->Blocks;
+		const Std$Address$t *Pattern = Arg0->Blocks;
 		unsigned long Position = 0, Start = 0;
 		for (;;) {
 			++Position;
-			const Std$String$block *S1 = Subject;
+			const Std$Address$t *S1 = Subject;
 			unsigned long SL = S1->Length.Value - Start;
 			if (SL == 0) {
 				S1 = ++Subject;
@@ -799,10 +799,10 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 				if (SL == 0) return FAILURE;
 				Start = 0;
 			};
-			const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
+			const unsigned char *SC = (unsigned char *)S1->Value + Start;
 			++Start;
-			const Std$String$block *P1 = Pattern;
-			const unsigned char *PC = P1->Chars.Value;
+			const Std$Address$t *P1 = Pattern;
+			const unsigned char *PC = P1->Value;
 			unsigned long PL = P1->Length.Value;
 			for (;;) {
 				if (PL == 0) {
@@ -823,12 +823,12 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T) {
 				if (--SL == 0) {
 					S1 += 1;
 					SL = S1->Length.Value;
-					SC = S1->Chars.Value;
+					SC = S1->Value;
 				};
 				if (--PL == 0) {
 					P1 += 1;
 					PL = P1->Length.Value;
-					PC = P1->Chars.Value;
+					PC = P1->Value;
 				};
 			};
 		};
@@ -847,8 +847,8 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	int Start = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -857,7 +857,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	};
 	for (;;) {
 		++Position;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -865,10 +865,10 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -889,12 +889,12 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -914,8 +914,8 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	if (Start < 0) Start += Arg1->Length.Value + 1;
 	if (Start < 0) return FAILURE;
 	unsigned long Limit = ((Std$Integer$smallt *)Args[3].Val)->Value;
-	const Std$String$block *Subject = Arg1->Blocks;
-	const Std$String$block *Pattern = Arg0->Blocks;
+	const Std$Address$t *Subject = Arg1->Blocks;
+	const Std$Address$t *Pattern = Arg0->Blocks;
 	unsigned long Position = Start;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
@@ -925,7 +925,7 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	for (;;) {
 		++Position;
 		if (Position > Limit) return FAILURE;
-		const Std$String$block *S1 = Subject;
+		const Std$Address$t *S1 = Subject;
 		unsigned long SL = S1->Length.Value - Start;
 		if (SL == 0) {
 			S1 = ++Subject;
@@ -933,10 +933,10 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (SL == 0) return FAILURE;
 			Start = 0;
 		};
-		const unsigned char *SC = (unsigned char *)S1->Chars.Value + Start;
+		const unsigned char *SC = (unsigned char *)S1->Value + Start;
 		++Start;
-		const Std$String$block *P1 = Pattern;
-		const unsigned char *PC = P1->Chars.Value;
+		const Std$Address$t *P1 = Pattern;
+		const unsigned char *PC = P1->Value;
 		unsigned long PL = P1->Length.Value;
 		for (;;) {
 			if (PL == 0) {
@@ -957,12 +957,12 @@ STRING_METHOD("find", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			if (--SL == 0) {
 				S1 += 1;
 				SL = S1->Length.Value;
-				SC = S1->Chars.Value;
+				SC = S1->Value;
 			};
 			if (--PL == 0) {
 				P1 += 1;
 				PL = P1->Length.Value;
-				PC = P1->Chars.Value;
+				PC = P1->Value;
 			};
 		};
 	};
@@ -978,14 +978,14 @@ STRING_METHOD("reverse", TYP, Std$String$T) {
 	New->Length.Value = Str->Length.Value;
 	int BlockCount = New->Count = Str->Count;
 	for (int I = 0; I < BlockCount; ++I) {
-		Std$String$block *OldBlock = Str->Blocks + (BlockCount - 1 - I);
+		Std$Address$t *OldBlock = Str->Blocks + (BlockCount - 1 - I);
 		int Length = OldBlock->Length.Value;
-		const unsigned char *OldChars = OldBlock->Chars.Value;
+		const unsigned char *OldChars = OldBlock->Value;
 		unsigned char *NewChars = Riva$Memory$alloc_atomic(Length + 1);
 		for (int J = 0; J < Length; ++J) NewChars[J] = OldChars[Length - 1 - J];
 		NewChars[Length] = 0;
 		New->Blocks[I].Length.Value = Length;
-		New->Blocks[I].Chars.Value = NewChars;
+		New->Blocks[I].Value = NewChars;
 	};
 	Result->Val = Std$String$freeze(New);
 	return SUCCESS;
@@ -1117,52 +1117,52 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$String$T) {
 		Result->Val = Std$String$new("Operands to :map must have same length");
 		return MESSAGE;
 	};
-	const Std$String$block *ToBlock = ((Std$String$t *)Args[2].Val)->Blocks;
-	const unsigned char *ToChars = ToBlock->Chars.Value;
+	const Std$Address$t *ToBlock = ((Std$String$t *)Args[2].Val)->Blocks;
+	const unsigned char *ToChars = ToBlock->Value;
 	int K = 0;
-	for (const Std$String$block *FromBlock = ((Std$String$t *)Args[1].Val)->Blocks; FromBlock->Length.Value; ++FromBlock) {
-		const unsigned char *FromChars = FromBlock->Chars.Value;
+	for (const Std$Address$t *FromBlock = ((Std$String$t *)Args[1].Val)->Blocks; FromBlock->Length.Value; ++FromBlock) {
+		const unsigned char *FromChars = FromBlock->Value;
 		for (int J = 0; J < FromBlock->Length.Value; ++J) {
 			Map[FromChars[J]] = ToChars[K];
 			if (++K >= ToBlock->Length.Value) {
 				++ToBlock;
-				ToChars = ToBlock->Chars.Value;
+				ToChars = ToBlock->Value;
 				K = 0;
 			};
 		};
 	};
-	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$Address$t);
 	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
-		const unsigned char *SourceChars = Source->Blocks[I].Chars.Value;
+		const unsigned char *SourceChars = Source->Blocks[I].Value;
 		unsigned char *DestChars = Riva$Memory$alloc_atomic(Length);
 		for (int J = 0; J < Length; ++J) DestChars[J] = Map[SourceChars[J]];
-		Dest->Blocks[I].Chars.Value = DestChars;
+		Dest->Blocks[I].Value = DestChars;
 	};
 	Result->Val = Std$String$freeze(Dest);
 	return SUCCESS;
 };
 
-extern int match_substring(const Std$String$block *StartBlock, int StartOffset, const Std$String$t *String, const Std$String$block **EndBlock, int *EndOffset);
+extern int match_substring(const Std$Address$t *StartBlock, int StartOffset, const Std$String$t *String, const Std$Address$t **EndBlock, int *EndOffset);
 
-static Std$String$t *map_next(int L, const Std$String$block *StartBlock, int StartOffset, const Agg$List$t *FromList, const Agg$List$t *ToList) {
+static Std$String$t *map_next(int L, const Std$Address$t *StartBlock, int StartOffset, const Agg$List$t *FromList, const Agg$List$t *ToList) {
 	for (const Agg$List$node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
-		const Std$String$block *EndBlock;
+		const Std$Address$t *EndBlock;
 		int EndOffset;
 		if (match_substring(StartBlock, StartOffset, (Std$String$t *)FromNode->Value, &EndBlock, &EndOffset)) {
 			const Std$String$t *To = (Std$String$t *)ToNode->Value;
 			Std$String$t *New = map_next(L + To->Count, EndBlock, EndOffset, FromList, ToList);
-			memcpy(New->Blocks + L, To->Blocks, To->Count * sizeof(Std$String$block));
+			memcpy(New->Blocks + L, To->Blocks, To->Count * sizeof(Std$Address$t));
 			return New;
 		};
 	};
-	const Std$String$block *MiddleBlock = StartBlock;
+	const Std$Address$t *MiddleBlock = StartBlock;
 	int MiddleOffset = StartOffset;
 	while (MiddleBlock->Length.Value) {
 		for (const Agg$List$node *FromNode = FromList->Head, *ToNode = ToList->Head; FromNode; FromNode = FromNode->Next, ToNode = ToNode->Next) {
-			const Std$String$block *EndBlock;
+			const Std$Address$t *EndBlock;
 			int EndOffset;
 			if (match_substring(MiddleBlock, MiddleOffset, (Std$String$t *)FromNode->Value, &EndBlock, &EndOffset)) {
 				const Std$String$t *To = (Std$String$t *)ToNode->Value;
@@ -1172,11 +1172,11 @@ static Std$String$t *map_next(int L, const Std$String$block *StartBlock, int Sta
 				};
 				int M = MiddleBlock - StartBlock + 1;
 				Std$String$t *New = map_next(L + M + To->Count, EndBlock, EndOffset, FromList, ToList);
-				memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String$block));
-				New->Blocks[L].Chars.Value += StartOffset;
+				memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$Address$t));
+				New->Blocks[L].Value += StartOffset;
 				New->Blocks[L + M - 1].Length.Value = MiddleOffset;
 				New->Blocks[L].Length.Value -= StartOffset;
-				memcpy(New->Blocks + L + M, To->Blocks, To->Count * sizeof(Std$String$block));
+				memcpy(New->Blocks + L + M, To->Blocks, To->Count * sizeof(Std$Address$t));
 				return New;
 			};
 		};
@@ -1186,11 +1186,11 @@ static Std$String$t *map_next(int L, const Std$String$block *StartBlock, int Sta
 		};
 	};
 	int M = MiddleBlock - StartBlock + 1;
-	Std$String$t *New = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + (L + M + 1) * sizeof(Std$String$block));
+	Std$String$t *New = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + (L + M + 1) * sizeof(Std$Address$t));
 	New->Type = Std$String$T;
 	New->Length.Type = Std$Integer$SmallT;
-	memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$String$block));
-	New->Blocks[L].Chars.Value += StartOffset;
+	memcpy(New->Blocks + L, StartBlock, M * sizeof(Std$Address$t));
+	New->Blocks[L].Value += StartOffset;
 	New->Blocks[L].Length.Value -= StartOffset;
 	return New;
 };
@@ -1222,7 +1222,7 @@ STRING_METHOD("map", TYP, Std$String$T, TYP, Agg$List$T, TYP, Agg$List$T) {
 		};
 	};
 	Std$String$t *New = map_next(0, Subject->Blocks, 0, (Agg$List$t *)Args[1].Val, (Agg$List$t *)Args[2].Val);
-	for (const Std$String$block *Block = New->Blocks; Block->Length.Value; ++Block) {
+	for (const Std$Address$t *Block = New->Blocks; Block->Length.Value; ++Block) {
 		New->Length.Value += Block->Length.Value;
 		New->Count += 1;
 	};
@@ -1255,15 +1255,15 @@ STRING_METHOD("lower", TYP, Std$String$T) {
 		Result->Val = (Std$Object$t *)Source;
 		return SUCCESS;
 	};
-	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$Address$t);
 	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
-		const unsigned char *SourceChars = Source->Blocks[I].Chars.Value;
+		const unsigned char *SourceChars = Source->Blocks[I].Value;
 		unsigned char *DestChars = Riva$Memory$alloc_atomic(Length);
 		for (int J = 0; J < Length; ++J) DestChars[J] = Map[SourceChars[J]];
-		Dest->Blocks[I].Chars.Value = DestChars;
+		Dest->Blocks[I].Value = DestChars;
 	};
 	Result->Val = Std$String$freeze(Dest);
 	return SUCCESS;
@@ -1293,15 +1293,15 @@ STRING_METHOD("upper", TYP, Std$String$T) {
 		Result->Val = (Std$Object$t *)Source;
 		return SUCCESS;
 	};
-	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$String$block);
+	int Size = sizeof(Std$String$t) + (Source->Count + 1) * sizeof(Std$Address$t);
 	Std$String$t *Dest = (Std$String$t *)Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dest, Source, Size);
 	for (int I = 0; I < Source->Count; ++I) {
 		int Length = Source->Blocks[I].Length.Value;
-		unsigned const char *SourceChars = Source->Blocks[I].Chars.Value;
+		unsigned const char *SourceChars = Source->Blocks[I].Value;
 		unsigned char *DestChars = Riva$Memory$alloc_atomic(Length);
 		for (int J = 0; J < Length; ++J) DestChars[J] = Map[SourceChars[J]];
-		Dest->Blocks[I].Chars.Value = DestChars;
+		Dest->Blocks[I].Value = DestChars;
 	};
 	Result->Val = Std$String$freeze(Dest);
 	return SUCCESS;
@@ -1310,7 +1310,7 @@ STRING_METHOD("upper", TYP, Std$String$T) {
 typedef struct any_char_generator {
 	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String$block *Subject;
+	const Std$Address$t *Subject;
 	unsigned long Start, Index, Limit;
 } any_char_generator;
 
@@ -1326,14 +1326,14 @@ static inline const unsigned char *findcset(const unsigned char *Chars, uint8_t 
 
 static long resume_any_char_string(Std$Function$result * restrict Result) {
 	any_char_generator *Generator = Result->State;
-	const Std$String$block *Subject = Generator->Subject;
+	const Std$Address$t *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
-	const unsigned char *SC = (unsigned char *)Subject->Chars.Value + Generator->Start;
+	const unsigned char *SC = (unsigned char *)Subject->Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
 	while (SC) {
 		const unsigned char *Position = findcset(SC, Generator->Mask, SL);
 		if (Position) {
-			unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+			unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
@@ -1343,7 +1343,7 @@ static long resume_any_char_string(Std$Function$result * restrict Result) {
 		Index += Subject->Length.Value;
 		++Subject;
 		SL = Subject->Length.Value;
-		SC = Subject->Chars.Value;
+		SC = Subject->Value;
 	};
 	return FAILURE;
 };
@@ -1361,19 +1361,19 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T) {
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
+	    for (const Std$Address$t *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	        const unsigned char *Chars = Block->Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
 	            Mask[Char >> 3] |= 1 << (Char & 7);
 	        };
 	    };
 		unsigned long Index = 0;
-		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
-			const unsigned char *Position = findcset(Subject->Chars.Value, Mask, Subject->Length.Value);
+		for (const Std$Address$t *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+			const unsigned char *Position = findcset(Subject->Value, Mask, Subject->Length.Value);
 			if (Position) {
 				any_char_generator *Generator = new(any_char_generator);
-				unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+				unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				memcpy(Generator->Mask, Mask, 32);
@@ -1407,27 +1407,27 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
+	    for (const Std$Address$t *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	        const unsigned char *Chars = Block->Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
 	            Mask[Char >> 3] |= 1 << (Char & 7);
 	        };
 	    };
 		unsigned long Index = 0;
-		const Std$String$block *Subject = Arg1->Blocks;
+		const Std$Address$t *Subject = Arg1->Blocks;
 		while (Start >= Subject->Length.Value) {
 			Index += Subject->Length.Value;
 			Start -= Subject->Length.Value;
 			++Subject;
 		};
-		const unsigned char *SC = Subject->Chars.Value + Start;
+		const unsigned char *SC = Subject->Value + Start;
 		unsigned long SL = Subject->Length.Value - Start;
 		while (Subject->Length.Value) {
 			const unsigned char *Position = findcset(SC, Mask, SL);
 			if (Position) {
 				any_char_generator *Generator = new(any_char_generator);
-				unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+				unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				memcpy(Generator->Mask, Mask, 32);
@@ -1440,7 +1440,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 			};
 			Index += Subject->Length.Value;
 			++Subject;
-			SC = Subject->Chars.Value;
+			SC = Subject->Value;
 			SL = Subject->Length.Value;
 		};
 		return FAILURE;
@@ -1450,7 +1450,7 @@ STRING_METHOD("any", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Smal
 typedef struct split_char_generator {
 	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String$block *SB;
+	const Std$Address$t *SB;
 	const unsigned char *SC;
 	unsigned long SL, SI;
 } split_char_generator;
@@ -1463,14 +1463,14 @@ static long resume_split_char_string(Std$Function$result *Result) {
 	split_char_generator *Generator = Result->State;
 	uint8_t *Mask = Generator->Mask;
 	unsigned long SI = Generator->SI;
-	const Std$String$block *SB = Generator->SB;
+	const Std$Address$t *SB = Generator->SB;
 	const unsigned char *SC = Generator->SC;
 	unsigned long SL = Generator->SL;
 	while (charcset(*SC, Mask) != 0) {
 		++SI;
 		if (--SL == 0) {
 			++SB;
-			SC = SB->Chars.Value;
+			SC = SB->Value;
 			SL = SB->Length.Value;
 			if (SC == 0) return FAILURE;
 		} else {
@@ -1478,22 +1478,22 @@ static long resume_split_char_string(Std$Function$result *Result) {
 		};
 	};
 	unsigned long SI0 = SI;
-	const Std$String$block *SB0 = SB;
+	const Std$Address$t *SB0 = SB;
 	const unsigned char *SC0 = SC;
 	unsigned long SL0 = SL;
 	while (charcset(*SC, Mask) == 0) {
 		++SI;
 		if (--SL == 0) {
 			++SB;
-			SC = SB->Chars.Value;
+			SC = SB->Value;
 			SL = SB->Length.Value;
 			if (SC == 0) {
 				int NoOfBlocks = SB - SB0;
 				Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 				Slice->Length.Value = SI - SI0;
 				Slice->Blocks[0].Length.Value = SL0;
-				Slice->Blocks[0].Chars.Value = SC0;
-				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+				Slice->Blocks[0].Value = SC0;
+				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
 				Result->Val = Std$String$freeze(Slice);
 				return SUCCESS;
 			};
@@ -1506,8 +1506,8 @@ static long resume_split_char_string(Std$Function$result *Result) {
 		Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 		Slice->Length.Value = SI - SI0;
 		Slice->Blocks[0].Length.Value = SL0;
-		Slice->Blocks[0].Chars.Value = SC0;
-		if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+		Slice->Blocks[0].Value = SC0;
+		if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
 		Result->Val = Std$String$freeze(Slice);
 	} else {
 		int NoOfBlocks = (SB - SB0) + 1;
@@ -1515,13 +1515,13 @@ static long resume_split_char_string(Std$Function$result *Result) {
 		Slice->Length.Value = SI - SI0;
 		if (--NoOfBlocks) {
 			Slice->Blocks[0].Length.Value = SL0;
-			Slice->Blocks[0].Chars.Value = SC0;
+			Slice->Blocks[0].Value = SC0;
 			Slice->Blocks[NoOfBlocks].Length.Value = SB->Length.Value - SL;
-			Slice->Blocks[NoOfBlocks].Chars.Value = SB->Chars.Value;
-			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+			Slice->Blocks[NoOfBlocks].Value = SB->Value;
+			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
 		} else {
 			Slice->Blocks[0].Length.Value = SL0 - SL;
-			Slice->Blocks[0].Chars.Value = SC0;
+			Slice->Blocks[0].Value = SC0;
 		};
 		Result->Val = Std$String$freeze(Slice);
 	};
@@ -1545,7 +1545,7 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 		chars_generator *Gen = new(chars_generator);
 		Gen->Subject = Arg1->Blocks;
 		Gen->Left = Gen->Subject->Length.Value - 1;
-		Gen->Next = Gen->Subject->Chars.Value;
+		Gen->Next = Gen->Subject->Value;
 		Gen->State.Run = Std$Function$resume_c;
 		Gen->State.Invoke = (Std$Function$cresumefn)resume_chars_string;
 		Result->Val = Std$String$new_char(*Gen->Next++);
@@ -1554,22 +1554,22 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
+	    for (const Std$Address$t *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	        const unsigned char *Chars = Block->Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
 	            Mask[Char >> 3] |= 1 << (Char & 7);
 	        };
 	    };
 		unsigned long SI = 1;
-		const Std$String$block *SB = Arg1->Blocks;
-		const unsigned char *SC = SB->Chars.Value;
+		const Std$Address$t *SB = Arg1->Blocks;
+		const unsigned char *SC = SB->Value;
 		unsigned long SL = SB->Length.Value;
 		while (charcset(*SC, Mask) != 0) {
 			++SI;
 			if (--SL == 0) {
 				++SB;
-				SC = SB->Chars.Value;
+				SC = SB->Value;
 				SL = SB->Length.Value;
 				if (SC == 0) return FAILURE;
 			} else {
@@ -1577,22 +1577,22 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 			};
 		};
 		unsigned long SI0 = SI;
-        const Std$String$block *SB0 = SB;
+        const Std$Address$t *SB0 = SB;
         const unsigned char *SC0 = SC;
         unsigned long SL0 = SL;
         while (charcset(*SC, Mask) == 0) {
         	++SI;
         	if (--SL == 0) {
         		++SB;
-        		SC = SB->Chars.Value;
+        		SC = SB->Value;
         		SL = SB->Length.Value;
         		if (SC == 0) {
         			int NoOfBlocks = SB - SB0;
         			Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
         			Slice->Length.Value = SI - SI0;
         			Slice->Blocks[0].Length.Value = SL0;
-        			Slice->Blocks[0].Chars.Value = SC0;
-        			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+        			Slice->Blocks[0].Value = SC0;
+        			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
         			Result->Val = Std$String$freeze(Slice);
         			return SUCCESS;
         		};
@@ -1605,8 +1605,8 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 			Std$String$t *Slice = Std$String$alloc(NoOfBlocks);
 			Slice->Length.Value = SI - SI0;
 			Slice->Blocks[0].Length.Value = SL0;
-			Slice->Blocks[0].Chars.Value = SC0;
-			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+			Slice->Blocks[0].Value = SC0;
+			if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
 			Result->Val = Std$String$freeze(Slice);
         } else {
 			int NoOfBlocks = (SB - SB0) + 1;
@@ -1614,13 +1614,13 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 			Slice->Length.Value = SI - SI0;
 			if (--NoOfBlocks) {
 				Slice->Blocks[0].Length.Value = SL0;
-				Slice->Blocks[0].Chars.Value = SC0;
+				Slice->Blocks[0].Value = SC0;
 				Slice->Blocks[NoOfBlocks].Length.Value = SB->Length.Value - SL;
-				Slice->Blocks[NoOfBlocks].Chars.Value = SB->Chars.Value;
-				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$String$block));
+				Slice->Blocks[NoOfBlocks].Value = SB->Value;
+				if (--NoOfBlocks) memcpy(Slice->Blocks + 1, SB0 + 1, NoOfBlocks * sizeof(Std$Address$t));
 			} else {
 				Slice->Blocks[0].Length.Value = SL0 - SL;
-				Slice->Blocks[0].Chars.Value = SC0;
+				Slice->Blocks[0].Value = SC0;
 			};
 			Result->Val = Std$String$freeze(Slice);
         };
@@ -1640,7 +1640,7 @@ STRING_METHOD("split", TYP, Std$String$T, TYP, Std$String$T) {
 typedef struct skip_char_generator {
 	Std$Function$cstate State;
 	uint8_t Mask[32];
-	const Std$String$block *Subject;
+	const Std$Address$t *Subject;
 	unsigned long Start, Index, Limit;
 } skip_char_generator;
 
@@ -1656,14 +1656,14 @@ static inline const unsigned char *skipcset(const unsigned char *Chars, uint8_t 
 
 static long resume_skip_char_string(Std$Function$result *Result) {
 	skip_char_generator *Generator = Result->State;
-	const Std$String$block *Subject = Generator->Subject;
+	const Std$Address$t *Subject = Generator->Subject;
 	unsigned long Index = Generator->Index;
-	const unsigned char *SC = Subject->Chars.Value + Generator->Start;
+	const unsigned char *SC = Subject->Value + Generator->Start;
 	unsigned long SL = Subject->Length.Value - Generator->Start;
 	while (SC) {
 		const unsigned char *Position = skipcset(SC, Generator->Mask, SL);
 		if (Position) {
-			unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+			unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 			Generator->Index = Index;
 			Generator->Start = Last;
 			Generator->Subject = Subject;
@@ -1673,7 +1673,7 @@ static long resume_skip_char_string(Std$Function$result *Result) {
 		Index += Subject->Length.Value;
 		++Subject;
 		SL = Subject->Length.Value;
-		SC = Subject->Chars.Value;
+		SC = Subject->Value;
 	};
 	return FAILURE;
 };
@@ -1690,19 +1690,19 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T) {
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
+	    for (const Std$Address$t *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	        const unsigned char *Chars = Block->Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
 	            Mask[Char >> 3] |= 1 << (Char & 7);
 	        };
 	    };
 		unsigned long Index = 0;
-		for (const Std$String$block *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
-			const unsigned char *Position = skipcset(Subject->Chars.Value, Mask, Subject->Length.Value);
+		for (const Std$Address$t *Subject = Arg1->Blocks; Subject->Length.Value; ++Subject) {
+			const unsigned char *Position = skipcset(Subject->Value, Mask, Subject->Length.Value);
 			if (Position) {
 				skip_char_generator *Generator = new(skip_char_generator);
-				unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+				unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				memcpy(Generator->Mask, Mask, 32);
@@ -1736,27 +1736,27 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 	} else {
 	    uint8_t Mask[32];
 	    memset(Mask, 0, 32);
-	    for (const Std$String$block *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
-	        const unsigned char *Chars = Block->Chars.Value;
+	    for (const Std$Address$t *Block = Arg0->Blocks; Block->Length.Value; ++Block) {
+	        const unsigned char *Chars = Block->Value;
 	        for (int I = 0; I < Block->Length.Value; ++I) {
 	            unsigned char Char = Chars[I];
 	            Mask[Char >> 3] |= 1 << (Char & 7);
 	        };
 	    };
 		unsigned long Index = 0;
-		const Std$String$block *Subject = Arg1->Blocks;
+		const Std$Address$t *Subject = Arg1->Blocks;
 		while (Start >= Subject->Length.Value) {
 			Index += Subject->Length.Value;
 			Start -= Subject->Length.Value;
 			++Subject;
 		};
-		const unsigned char *SC = Subject->Chars.Value + Start;
+		const unsigned char *SC = Subject->Value + Start;
 		unsigned long SL = Subject->Length.Value - Start;
 		while (Subject->Length.Value) {
 			const unsigned char *Position = skipcset(SC, Mask, SL);
 			if (Position) {
 				skip_char_generator *Generator = new(skip_char_generator);
-				unsigned int Last = Position - (const unsigned char *)Subject->Chars.Value + 1;
+				unsigned int Last = Position - (const unsigned char *)Subject->Value + 1;
 				Generator->Start = Last;
 				Generator->Index = Index;
 				memcpy(Generator->Mask, Mask, 32);
@@ -1769,7 +1769,7 @@ STRING_METHOD("skip", TYP, Std$String$T, TYP, Std$String$T, TYP, Std$Integer$Sma
 			};
 			Index += Subject->Length.Value;
 			++Subject;
-			SC = Subject->Chars.Value;
+			SC = Subject->Value;
 			SL = Subject->Length.Value;
 		};
 		return FAILURE;
@@ -2517,7 +2517,7 @@ NORMAL_METHOD("trace", TYP, Std$Symbol$NoMethodMessageT) {
 
 /*
 typedef struct scanner_position {
-	Std$String$block *Block;
+	Std$Address$t *Block;
 	uint32_t Offset;
 	uint32_t Index;
 } scanner_position;
@@ -2558,8 +2558,8 @@ METHOD("get", TYP, ScannerT) {
 	scanner_t *Scanner = Args[0].Val;
 	int N = Scanner->Cur.Block - Scanner->Old.Block + 1;
 	Std$String$t *String = Std$String$alloc(N);
-	memcpy(String->Blocks, Scanner->Old.Block, N * sizeof(Std$String$block));
-	String->Blocks[0].Chars.Value += Scanner->Old.Offset;
+	memcpy(String->Blocks, Scanner->Old.Block, N * sizeof(Std$Address$t));
+	String->Blocks[0].Value += Scanner->Old.Offset;
 	String->Blocks[N - 1].Length.Value = Scanner->Cur.Offset;
 	String->Blocks[0].Length.Value -= Scanner->Old.Offset;
 	Riva$Memory$freeze_stubborn(String);
@@ -2567,18 +2567,18 @@ METHOD("get", TYP, ScannerT) {
 
 METHOD("any", TYP, ScannerT, TYP, Std$String$T) {
 	scanner_t *Scanner = Args[0].Val;
-	if (Scanner->Cur.Block->Chars.Value == 0) return FAILURE;
+	if (Scanner->Cur.Block->Value == 0) return FAILURE;
 	const Std$String$t *Chars = Args[1].Val;
 	uint8_t Mask[32];
 	memset(Mask, 0, 32);
-	for (Std$String$block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
-		unsigned char *Chars = Block->Chars.Value;
+	for (Std$Address$t *Block = Chars->Blocks; Block->Length.Value; ++Block) {
+		unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) {
 			unsigned char Char = Chars[I];
 			Mask[Char >> 3] |= 1 << (Char & 7);
 		};
 	};
-	unsigned char Char = ((unsigned char *)Scanner->Cur.Block->Chars.Value)[Scanner->Cur.Offset];
+	unsigned char Char = ((unsigned char *)Scanner->Cur.Block->Value)[Scanner->Cur.Offset];
 	if (Mask[Char >> 3] & (1 << (Char & 7))) {
 		scanner_restore_generator *Generator = new(scanner_restore_generator);
 		Generator->Scanner = Scanner;
@@ -2598,12 +2598,12 @@ METHOD("any", TYP, ScannerT, TYP, Std$String$T) {
 
 METHOD("upto", TYP, ScannerT, TYP, Std$String$T) {
 	scanner_t *Scanner = Args[0].Val;
-	if (Scanner->Cur.Block->Chars.Value == 0) return FAILURE;
+	if (Scanner->Cur.Block->Value == 0) return FAILURE;
 	const Std$String$t *Chars = Args[1].Val;
 	uint8_t Mask[32];
 	memset(Mask, 0, 32);
-	for (Std$String$block *Block = Chars->Blocks; Block->Length.Value; ++Block) {
-		unsigned char *Chars = Block->Chars.Value;
+	for (Std$Address$t *Block = Chars->Blocks; Block->Length.Value; ++Block) {
+		unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) {
 			unsigned char Char = Chars[I];
 			Mask[Char >> 3] |= 1 << (Char & 7);

@@ -714,10 +714,10 @@ static Std$String$t *extract_string_rest(buffer_t *Stream) {
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		Block++;
 	};
 	Std$String$freeze(String);
@@ -752,10 +752,10 @@ METHOD("rest", TYP, T) {
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		Block++;
 	};
 	Std$String$freeze(String);
@@ -771,15 +771,15 @@ static Std$String$t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOf
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Count = NoOfBlocks;
 	int Length = 0;
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) {
 		Length += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		++Block;
 	};
 	if (EndOffset) {
 		Length += (Block->Length.Value = EndOffset);
-		Block->Chars.Value = EndNode->Chars;
+		Block->Value = EndNode->Chars;
 		if ((EndNode->Length -= EndOffset) == 0) {
 			EndNode = EndNode->Next;
 		} else {
@@ -841,7 +841,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	} else if (Term->Length.Value == 1) {
 		if (Max == 0) {
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					Result->Val = extract_string(Stream, Node, Find - Node->Chars);
 					if (--Node->Length == 0) {
@@ -859,7 +859,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		} else {
 			int Remaining = Max;
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					int Offset = Find - Node->Chars;
 					if (Remaining < Offset) {
@@ -887,8 +887,8 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-			unsigned char *Chars = Block->Chars.Value;
+		for (Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+			unsigned char *Chars = Block->Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
 		if (Max == 0) {
@@ -980,7 +980,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	} else if (Term->Length.Value == 1) {
 		if (Max == 0) {
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					Result->Val = extract_string(Stream, Node, (Find + 1) - Node->Chars);
 					return SUCCESS;
@@ -993,7 +993,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		} else {
 			int Remaining = Max;
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					int Offset = Find - Node->Chars;
 					if (Remaining < Offset) {
@@ -1016,8 +1016,8 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-			unsigned char *Chars = Block->Chars.Value;
+		for (Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+			unsigned char *Chars = Block->Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
 		if (Max == 0) {
@@ -1147,10 +1147,10 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 METHOD("write", TYP, T, TYP, Std$String$T) {
 	buffer_t *Stream = Args[0].Val;
 	int NoOfBlocks = ((Std$String$t *)Args[1].Val)->Count;
-	Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks;
+	Std$Address$t *Block = ((Std$String$t *)Args[1].Val)->Blocks;
 	if (Block->Length.Value) {
 		node_t *Node = new(node_t);
-		Node->Chars = Block->Chars.Value;
+		Node->Chars = Block->Value;
 		Node->Length = Block->Length.Value;
 		lock(Stream);
 		if (Stream->Tail) {
@@ -1162,7 +1162,7 @@ METHOD("write", TYP, T, TYP, Std$String$T) {
 			node_t *Next = new(node_t);
 			Node->Next = Next;
 			Node = Next;
-			Node->Chars = Block->Chars.Value;
+			Node->Chars = Block->Value;
 			Node->Length = Block->Length.Value;
 		};
 		Stream->Tail = Node;

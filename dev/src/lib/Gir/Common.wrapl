@@ -668,7 +668,7 @@ TO :riva_precall(type@StringLengthT, argindex, paramindex) [
 	TO :rtype(=pointer) "Std$Address$T";
 	TO :ctype(=pointer) "void *";
 	TO :riva_to_c(=pointer, in, out, tmp) ['{out} = Std$Address$get_value({in});'];
-	TO :c_to_riva(=pointer, in, out, tmp) ['{out} = Std$Address$new({in});'];
+	TO :c_to_riva(=pointer, in, out, tmp) ['{out} = Std$Address$new({in}, 0);'];
 	Type.Define("void*", pointer);
 	Type.Define("gpointer", pointer);
 	Type.Define("pointer", pointer);

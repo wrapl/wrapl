@@ -84,23 +84,6 @@ METHOD("[]", TYP, Num$Array$T) {
 			Data += SourceDimension->Stride * IndexValue;
 		} else if (Index->Type == Agg$List$T) {
 			int Size = TargetDimension->Size = Agg$List$length(Index);
-			// TODO: Check if list can be replaced by a range
-			if (Size == 1) {
-				Agg$List$node *Node = Agg$List$head(Index);
-				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
-				Max = Min = Std$Integer$get_small(Node->Value);
-				Step = 1;
-				goto as_range;
-			} else if (Size == 2) {
-				Agg$List$node *Node = Agg$List$head(Index);
-				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
-				Min = Std$Integer$get_small(Node->Value);
-				Node = Node->Next;
-				if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
-				Max = Std$Integer$get_small(Node->Value);
-				Step = Max - Min;
-				goto as_range;
-			}
 			int *Indices = TargetDimension->Indices = (int *)Riva$Memory$alloc_atomic(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			for (Agg$List$node *Node = Agg$List$head(Index); Node; Node = Node->Next) {
@@ -118,18 +101,19 @@ METHOD("[]", TYP, Num$Array$T) {
 			Min = IndexValue->Min;
 			Max = IndexValue->Max;
 			Step = IndexValue->Step;
-			if (Min <= 1) Min += SourceDimension->Size + 1;
-			if (Max <= 1) Max += SourceDimension->Size + 1;
+			if (Min < 1) Min += SourceDimension->Size + 1;
+			if (Max < 1) Max += SourceDimension->Size + 1;
 		as_range:
-			if (--Min <= 0) FAIL;
+			if (--Min < 0) FAIL;
 			if (Min >= SourceDimension->Size) FAIL;
-			if (--Max <= 0) FAIL;
+			if (--Max < 0) FAIL;
 			if (Max >= SourceDimension->Size) FAIL;
 			if (Step == 0) FAIL;
-			int Size = TargetDimension->Size = (IndexValue->Max - IndexValue->Min) / IndexValue->Step + 1;
+			int Size = TargetDimension->Size = (Max - Min) / Step + 1;
 			if (Size < 0) FAIL;
-			TargetDimension->Stride = SourceDimension->Stride * IndexValue->Step;
-			Data += SourceDimension->Stride * IndexValue->Min;
+			TargetDimension->Indices = 0;
+			TargetDimension->Stride = SourceDimension->Stride * Step;
+			Data += SourceDimension->Stride * Min;
 			++TargetDimension;
 		} else if (Index == Std$Object$Nil) {
 			*TargetDimension = *SourceDimension;

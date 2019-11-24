@@ -91,9 +91,7 @@ symbol ?COMP, "?"
 symbol ?HASH, "#"
 symbol ?EQUAL, "="
 
-cstring CompareError
-	db "Compare Error"
-cstrend
+cstring CompareError, "Compare Error"
 
 object_method "max", ANY, ANY
 	push edi
@@ -552,11 +550,11 @@ address_method "put", ADDRESS, STRING
 	mov edi, [Std$Function_argument(edi).Val]
 	mov edi, [Std$Address_t(edi).Value]
 .loop:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .finished
-	mov esi, [Std$Integer_smallt(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .loop
 .finished:
 	mov ecx, Std$Object$Nil
@@ -576,11 +574,11 @@ address_method "put", ADDRESS, STRING, SMALLINT
 	mov edi, [Std$Address_t(edi).Value]
 	add edi, [Std$Integer_smallt(ebx).Value]
 .loop:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .finished
-	mov esi, [Std$Integer_smallt(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .loop
 .finished:
 	mov ecx, Std$Object$Nil
@@ -800,19 +798,19 @@ address_method "gets", ADDRESS, SMALLINT
 	mov ecx, [esp + 4]
 	rep movsb
 	mov [edi], byte 0
-	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$Address_t)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
 	mov ecx, eax
 	mov [Std$Object_t(ecx).Type], dword Std$String$T
 	mov [Std$Object_t(Std$String_t(ecx).Length).Type], dword Std$Integer$SmallT
-	pop dword [Std$Address_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Value]
+	pop dword [Std$Address_t(Std$String_t(ecx).Blocks).Value]
 	pop eax
 	mov [Std$Integer_smallt(Std$String_t(ecx).Length).Value], eax
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(ecx).Blocks).Length).Value], eax
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(ecx).Blocks).Length).Value], eax
 	mov [Std$String_t(ecx).Count], dword 1
-	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Type], dword Std$Address$T
+	mov [Std$Object_t(Std$Address_t(Std$String_t(ecx).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Object_t(Std$Address_t(Std$String_t(ecx).Blocks).Chars).Type], dword Std$Address$T
 	push ecx
 	call Riva$Memory$_freeze_stubborn
 	pop ecx
@@ -842,19 +840,19 @@ address_method "gets", ADDRESS, SMALLINT, SMALLINT
 	mov ecx, [esp + 4]
 	rep movsb
 	mov [edi], byte 0
-	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$Address_t)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
 	mov ecx, eax
 	mov [Std$Object_t(ecx).Type], dword Std$String$T
 	mov [Std$Object_t(Std$String_t(ecx).Length).Type], dword Std$Integer$SmallT
-	pop dword [Std$Address_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Value]
+	pop dword [Std$Address_t(Std$String_t(ecx).Blocks).Value]
 	pop eax
 	mov [Std$Integer_smallt(Std$String_t(ecx).Length).Value], eax
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(ecx).Blocks).Length).Value], eax
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(ecx).Blocks).Length).Value], eax
 	mov [Std$String_t(ecx).Count], dword 1
-	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Object_t(Std$String_block(Std$String_t(ecx).Blocks).Chars).Type], dword Std$Address$T
+	mov [Std$Object_t(Std$Address_t(Std$String_t(ecx).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Object_t(Std$Address_t(Std$String_t(ecx).Blocks).Chars).Type], dword Std$Address$T
 	push ecx
 	call Riva$Memory$_freeze_stubborn
 	pop ecx
@@ -937,12 +935,12 @@ datasect
 .format:
 	db "#%x", 0
 
-amethod Std$String$Of, TYP, Std$Address$SizedT
+amethod Std$String$Of, TYP, Std$Address$T
 	push byte 24
 	call Riva$Memory$_alloc_atomic
 	mov [esp], eax
 	mov ebx, [Std$Function_argument(edi).Val]
-	push dword [Std$Integer_smallt(Std$Address_sizedt(ebx).Length).Value]
+	push dword [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
 	push dword [Std$Address_t(ebx).Value]
 	push .format
 	push eax
@@ -958,18 +956,31 @@ datasect
 .format:
 	db "#%x:%d", 0, 0
 
-method "length", TYP, Std$Address$SizedT
+method "length", TYP, Std$Address$T
 	mov eax, [Std$Function_argument(edi).Val]
-	lea ecx, [Std$Address_sizedt(eax).Length]
+	lea ecx, [Std$Address_t(eax).Length]
 	xor edx, edx
 	xor eax, eax
 	ret
 
-method "size", TYP, Std$Address$SizedT
+method "size", TYP, Std$Address$T
 	mov eax, [Std$Function_argument(edi).Val]
-	lea ecx, [Std$Address_sizedt(eax).Length]
+	lea ecx, [Std$Address_t(eax).Length]
 	xor edx, edx
 	xor eax, eax
+	ret
+
+method "^", TYP, Std$Address$T, TYP, Std$Integer$SmallT
+	call Std$Address$_alloc
+	mov ecx, eax
+	mov eax, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
+	mov eax, [Std$Address_t(eax).Value]
+	mov edx, [Std$Integer_smallt(edx).Value]
+	mov [Std$Address_t(ecx).Value], eax
+	mov [Std$Integer_smallt(Std$Address_t(ecx).Length).Value], edx
+	xor eax, eax
+	xor edx, edx
 	ret
 
 extern Riva$Debug$_stack_trace
@@ -1068,17 +1079,7 @@ amethod Std$String$Of, VAL, Std$Object$Nil
 	xor eax, eax
 	ret
 datasect
-.nilstr:
-	dd Std$String$T
-	dd 1
-	dd Std$Integer$SmallT
-	dd 3
-	dd 0, 0
-	dd Std$Integer$SmallT, 3
-	dd Std$Address$T, .nil
-	dd 0, 0, 0, 0
-.nil:
-	db "NIL", 0
+cstring .nilstr, "NIL"
 
 amethod Std$String$Of, SYMBOL
 	mov edx, [Std$Function_argument(edi).Val]
@@ -1104,17 +1105,7 @@ amethod Std$String$Of, TYP, Std$Symbol$NoMethodMessageT
 	add esp, byte 16
 	ret
 datasect
-.messagestr:
-	dd Std$String$T
-	dd 1
-	dd Std$Integer$SmallT
-	dd 11
-	dd 0, 0
-	dd Std$Integer$SmallT, 11
-	dd Std$Address$T, .str
-	dd 0, 0, 0, 0
-.str:
-	db "no method: ", 0
+cstring .messagestr, "no method: "
 
 amethod Std$String$Of, TYP, Std$Function$FewArgsMessageT
 	sub esp, byte 4
@@ -1286,9 +1277,7 @@ amethod Std$String$Of, SMALLINT
 datasect
 .digits: db "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	align 4
-cstring .zerostr
-	db "0"
-cstrend
+cstring .zerostr, "0"
 
 ;	mov ebx, [Std$Function_argument(edi).Val]
 ;	mov esi, [Std$Integer_smallt(ebx).Value]
@@ -1336,9 +1325,7 @@ cstrend
 ;	xor edx, edx
 ;	xor eax, eax
 ;	ret
-;cstring .zerostr
-;	db "0"
-;cstrend
+;cstring .zerostr, "0"
 
 amethod Std$String$Of, SMALLINT, SMALLINT
 	mov ebx, [Std$Function_argument(edi, 1).Val]
@@ -1399,9 +1386,7 @@ amethod Std$String$Of, SMALLINT, SMALLINT
 datasect
 .digits: db "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	align 4
-cstring .zerostr
-	db "0"
-cstrend
+cstring .zerostr, "0"
 
 integer_method "repr", SMALLINT, SMALLINT
 	mov ebx, [Std$Function_argument(edi).Val]
@@ -1462,9 +1447,7 @@ integer_method "repr", SMALLINT, SMALLINT
 datasect
 .digits: db "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	align 4
-cstring .zerostr
-	db "0"
-cstrend
+cstring .zerostr, "0"
 
 integer_method "hex", SMALLINT
 	push byte 10
@@ -1531,11 +1514,11 @@ amethod Std$Integer$Of, STRING
 	mov edi, esp
 	lea eax, [Std$String_t(eax).Blocks]
 .copy:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .done
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .copy
 .done:
 	mov [edi], byte 0
@@ -1565,11 +1548,11 @@ integer_method "base", STRING, SMALLINT
 	mov edi, esp
 	lea eax, [Std$String_t(eax).Blocks]
 .copy:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .done
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .copy
 .done:
 	mov [edi], byte 0
@@ -1599,11 +1582,11 @@ amethod Std$Integer$Of, STRING, SMALLINT
 	mov edi, esp
 	lea eax, [Std$String_t(eax).Blocks]
 .copy:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .done
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .copy
 .done:
 	mov [edi], byte 0
@@ -1632,11 +1615,11 @@ amethod Std$Real$Of, STRING
 	mov edi, esp
 	lea eax, [Std$String_t(eax).Blocks]
 .copy:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .done
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .copy
 .done:
 	mov [edi], byte 0
@@ -4679,7 +4662,7 @@ string_method "_flatten", STRING
 	jb .unchanged
 .not_empty:
 	mov ecx, [Std$Integer_smallt(Std$String_t(edx).Length).Value]
-	mov eax, [Std$Address_t(Std$String_block(Std$String_t(edx).Blocks).Chars).Value]
+	mov eax, [Std$Address_t(Std$String_t(edx).Blocks).Value]
 	cmp [eax + ecx], byte 0
 	je .unchanged
 .not_simple:
@@ -4692,12 +4675,12 @@ string_method "_flatten", STRING
 	mov [esp], eax
 	mov edi, eax
 .loop:
-	mov ecx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
 	test ecx, ecx
 	jz .finished
-	mov esi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov esi, [Std$Address_t(ebx).Value]
 	rep movsb
-	add ebx, byte sizeof(Std$String_block)
+	add ebx, byte sizeof(Std$Address_t)
 	jmp .loop
 .unchanged:
 	mov ecx, edx
@@ -4737,7 +4720,7 @@ string_method "*", STRING, SMALLINT
 	push eax
 	push ecx
 	shl eax, 4
-	lea eax, [eax + sizeof(Std$String_t) + sizeof(Std$String_block)]
+	lea eax, [eax + sizeof(Std$String_t) + sizeof(Std$Address_t)]
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	mov [esp], eax
@@ -4784,7 +4767,7 @@ string_method "*", SMALLINT, STRING
 	push eax
 	push ecx
 	shl eax, 4
-	lea eax, [eax + sizeof(Std$String_t) + sizeof(Std$String_block)]
+	lea eax, [eax + sizeof(Std$String_t) + sizeof(Std$Address_t)]
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	mov [esp], eax
@@ -4833,7 +4816,7 @@ string_method "left", STRING, SMALLINT
 	inc eax
 	push eax
 	shl eax, 4
-	add eax, byte sizeof(Std$String_t) + sizeof(Std$String_block)
+	add eax, byte sizeof(Std$String_t) + sizeof(Std$Address_t)
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	pop edx
@@ -4845,10 +4828,10 @@ string_method "left", STRING, SMALLINT
 	rep movsd
 	pop edx
 	pop ecx
-	mov [Std$Object_t(Std$String_block(edi).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(edi).Chars).Value], edx
-	mov [Std$Object_t(Std$String_block(edi).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(edi).Length).Value], ecx
+	mov [Std$Object_t(edi).Type], dword Std$Address$T
+	mov [Std$Address_t(edi).Value], edx
+	mov [Std$Object_t(Std$Address_t(edi).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(edi).Length).Value], ecx
 	mov dword [Std$Object_t(Std$String_t(eax).Length).Type], Std$Integer$SmallT
 	pop dword [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	mov dword [Std$Object_t(eax).Type], Std$String$T
@@ -4880,22 +4863,22 @@ string_method "right", STRING, SMALLINT
 	inc eax
 	push eax
 	shl eax, 4
-	add eax, byte sizeof(Std$String_t) + sizeof(Std$String_block)
+	add eax, byte sizeof(Std$String_t) + sizeof(Std$Address_t)
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	pop edx
 	pop ecx
 	mov [Std$String_t(eax).Count], ecx
-	lea edi, [Std$String_t(eax).Blocks + sizeof(Std$String_block)]
+	lea edi, [Std$String_t(eax).Blocks + sizeof(Std$Address_t)]
 	lea esi, [Std$String_t(ebx).Blocks]
 	lea ecx, [4 * ecx - 4]
 	rep movsd
 	pop edx
 	pop ecx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], edx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], ecx
+	mov [Std$Object_t(Std$String_t(eax).Blocks).Type], dword Std$Address$T
+	mov [Std$Address_t(Std$String_t(eax).Blocks).Value], edx
+	mov [Std$Object_t(Std$Address_t(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], ecx
 	mov dword [Std$Object_t(Std$String_t(eax).Length).Type], Std$Integer$SmallT
 	pop dword [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	mov dword [Std$Object_t(eax).Type], Std$String$T
@@ -4921,7 +4904,7 @@ string_method "left", STRING, SMALLINT, STRING
 	mov edx, [Std$Function_argument(edi, 2).Val]
 	cmp [Std$Integer_smallt(Std$String_t(edx).Length).Value], dword 0
 	je .default
-	mov edx, [Std$Address_t(Std$String_block(Std$String_t(edx).Blocks).Chars).Value]
+	mov edx, [Std$Address_t(Std$String_t(edx).Blocks).Value]
 	mov edx, [edx]
 	mov [esp], edx
 .default:
@@ -4935,7 +4918,7 @@ string_method "left", STRING, SMALLINT, STRING
 	inc eax
 	push eax
 	shl eax, 4
-	add eax, byte sizeof(Std$String_t) + sizeof(Std$String_block)
+	add eax, byte sizeof(Std$String_t) + sizeof(Std$Address_t)
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	pop edx
@@ -4947,10 +4930,10 @@ string_method "left", STRING, SMALLINT, STRING
 	rep movsd
 	pop edx
 	pop ecx
-	mov [Std$Object_t(Std$String_block(edi).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(edi).Chars).Value], edx
-	mov [Std$Object_t(Std$String_block(edi).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(edi).Length).Value], ecx
+	mov [Std$Object_t(edi).Type], dword Std$Address$T
+	mov [Std$Address_t(edi).Value], edx
+	mov [Std$Object_t(Std$Address_t(edi).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(edi).Length).Value], ecx
 	mov dword [Std$Object_t(Std$String_t(eax).Length).Type], Std$Integer$SmallT
 	pop dword [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	mov dword [Std$Object_t(eax).Type], Std$String$T
@@ -4976,7 +4959,7 @@ string_method "right", STRING, SMALLINT, STRING
 	mov edx, [Std$Function_argument(edi, 2).Val]
 	cmp [Std$Integer_smallt(Std$String_t(edx).Length).Value], dword 0
 	je .default
-	mov edx, [Std$Address_t(Std$String_block(Std$String_t(edx).Blocks).Chars).Value]
+	mov edx, [Std$Address_t(Std$String_t(edx).Blocks).Value]
 	mov edx, [edx]
 	mov [esp], edx
 .default:
@@ -4990,22 +4973,22 @@ string_method "right", STRING, SMALLINT, STRING
 	inc eax
 	push eax
 	shl eax, 4
-	add eax, byte sizeof(Std$String_t) + sizeof(Std$String_block)
+	add eax, byte sizeof(Std$String_t) + sizeof(Std$Address_t)
 	push eax
 	call Riva$Memory$_alloc_stubborn
 	pop edx
 	pop ecx
 	mov [Std$String_t(eax).Count], ecx
-	lea edi, [Std$String_t(eax).Blocks + sizeof(Std$String_block)]
+	lea edi, [Std$String_t(eax).Blocks + sizeof(Std$Address_t)]
 	lea esi, [Std$String_t(ebx).Blocks]
 	lea ecx, [4 * ecx - 4]
 	rep movsd
 	pop edx
 	pop ecx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], edx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], ecx
+	mov [Std$Object_t(Std$String_t(eax).Blocks).Type], dword Std$Address$T
+	mov [Std$Address_t(Std$String_t(eax).Blocks).Value], edx
+	mov [Std$Object_t(Std$Address_t(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], ecx
 	mov dword [Std$Object_t(Std$String_t(eax).Length).Type], Std$Integer$SmallT
 	pop dword [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	mov dword [Std$Object_t(eax).Type], Std$String$T
@@ -5030,7 +5013,7 @@ string_method "ord", STRING
 	ret
 .nonempty:
 	xor edx, edx
-	mov eax, [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value]
+	mov eax, [Std$Address_t(Std$String_t(eax).Blocks).Value]
 	mov dl, [eax]
 	push edx
 	call Std$Integer$_alloc_small
@@ -5049,7 +5032,7 @@ string_method "chr", SMALLINT
 	mov [eax], cl
 	mov [eax + 1], byte 0
 	mov ebx, eax
-	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$Address_t)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
 	mov edx, 1
@@ -5057,10 +5040,10 @@ string_method "chr", SMALLINT
 	mov [Std$Object_t(Std$String_t(eax).Length).Type], dword Std$Integer$SmallT
 	mov [Std$Integer_smallt(Std$String_t(eax).Length).Value], edx
 	mov [Std$String_t(eax).Count], edx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], edx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], ebx
+	mov [Std$Object_t(Std$Address_t(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], edx
+	mov [Std$Object_t(Std$String_t(eax).Blocks).Type], dword Std$Address$T
+	mov [Std$Address_t(Std$String_t(eax).Blocks).Value], ebx
 	push eax
 	call Riva$Memory$_freeze_stubborn
 	pop ecx
@@ -5084,18 +5067,18 @@ string_method "[]", STRING, SMALLINT
 	cmp ebx, edx
 	jge near .outofbounds
 	xor edx, edx
-	lea esi, [Std$String_t(eax).Blocks - sizeof(Std$String_block)]
+	lea esi, [Std$String_t(eax).Blocks - sizeof(Std$Address_t)]
 .findfirstloop:
-	add esi, byte sizeof(Std$String_block)
-	add edx, [Std$Integer_smallt(Std$String_block(esi).Length).Value]
+	add esi, byte sizeof(Std$Address_t)
+	add edx, [Std$Integer_smallt(Std$Address_t(esi).Length).Value]
 	cmp edx, ebx
 	jbe .findfirstloop
 	push esi
-	sub edx, [Std$Integer_smallt(Std$String_block(esi).Length).Value]
+	sub edx, [Std$Integer_smallt(Std$Address_t(esi).Length).Value]
 	mov eax, ebx
 	sub eax, edx
 	push eax
-	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$Address_t)
 	call Riva$Memory$_alloc_stubborn
 	add esp, byte 4
 	mov [Std$Object_t(eax).Type], dword Std$String$T
@@ -5107,8 +5090,8 @@ string_method "[]", STRING, SMALLINT
 	lea edi, [Std$String_t(eax).Blocks]
 	rep movsd
 	pop edx
-	add [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], edx
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], dword 1
+	add [Std$Address_t(Std$String_t(eax).Blocks).Value], edx
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], dword 1
 	add esp, byte 4
 	push eax
 	call Riva$Memory$_freeze_stubborn
@@ -5152,27 +5135,27 @@ string_method "[]", STRING, SMALLINT, SMALLINT
 	ret
 .notempty:
 	xor edx, edx
-	lea esi, [Std$String_t(eax).Blocks - sizeof(Std$String_block)]
+	lea esi, [Std$String_t(eax).Blocks - sizeof(Std$Address_t)]
 .findfirstloop:
-	add esi, byte sizeof(Std$String_block)
-	add edx, [Std$Integer_smallt(Std$String_block(esi).Length).Value]
+	add esi, byte sizeof(Std$Address_t)
+	add edx, [Std$Integer_smallt(Std$Address_t(esi).Length).Value]
 	cmp edx, ebx
 	jbe .findfirstloop
 	push esi
-	sub edx, [Std$Integer_smallt(Std$String_block(esi).Length).Value]
+	sub edx, [Std$Integer_smallt(Std$Address_t(esi).Length).Value]
 	mov eax, ebx
 	sub eax, edx
 	push eax
-	sub esi, byte sizeof(Std$String_block)
+	sub esi, byte sizeof(Std$Address_t)
 .findsecondloop:
-	add esi, byte sizeof(Std$String_block)
-	add edx, [Std$Integer_smallt(Std$String_block(esi).Length).Value]
+	add esi, byte sizeof(Std$Address_t)
+	add edx, [Std$Integer_smallt(Std$Address_t(esi).Length).Value]
 	cmp edx, ecx
 	jb .findsecondloop
 	sub edx, ecx
 	push edx
 	sub esi, [esp + 8]
-	lea eax, [sizeof(Std$String_t) + esi + 2 * sizeof(Std$String_block)]
+	lea eax, [sizeof(Std$String_t) + esi + 2 * sizeof(Std$Address_t)]
 	shr esi, 4
 	push ecx
 	inc esi
@@ -5191,10 +5174,10 @@ string_method "[]", STRING, SMALLINT, SMALLINT
 	lea edi, [Std$String_t(eax).Blocks]
 	rep movsd
 	pop edx
-	sub [Std$Integer_smallt(Std$String_block(edi - sizeof(Std$String_block)).Length).Value], edx
+	sub [Std$Integer_smallt(Std$Address_t(edi - sizeof(Std$Address_t)).Length).Value], edx
 	pop edx
-	add [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], edx
-	sub [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], edx
+	add [Std$Address_t(Std$String_t(eax).Blocks).Value], edx
+	sub [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], edx
 	add esp, byte 4
 	push eax
 	call Riva$Memory$_freeze_stubborn
@@ -5206,13 +5189,7 @@ string_method "[]", STRING, SMALLINT, SMALLINT
 	mov eax, 1
 	ret
 datasect
-.empty_string:
-	dd Std$String$T
-	dd 0
-	dd Std$Integer$SmallT
-	dd 0
-	dd 0, 0
-	dd 0, 0, 0, 0
+cstring .empty_string, ""
 
 symbol ?init, "init"
 
@@ -5376,10 +5353,10 @@ object_method "init", ANY
 	lea eax, [Std$String_t(eax).Blocks]
 	lea ebx, [Std$String_t(ebx).Blocks]
 	push edi
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
-	mov edx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
-	mov edi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
+	mov esi, [Std$Address_t(eax).Value]
+	mov edx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
+	mov edi, [Std$Address_t(ebx).Value]
 	test ecx, ecx
 	jnz .first_not_empty0
 	test edx, edx
@@ -5397,23 +5374,23 @@ object_method "init", ANY
 .first_not_empty:
 	dec edx
 	jnz .compare_loop
-	add ebx, byte sizeof(Std$String_block)
-	mov edx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
+	add ebx, byte sizeof(Std$Address_t)
+	mov edx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
 	test edx, edx
-	mov edi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov edi, [Std$Address_t(ebx).Value]
 	jnz .compare_loop
 .greater:
 	pop edi
 	string_compare_finish %1
 .reload_first:
-	add eax, byte sizeof(Std$String_block)
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	add eax, byte sizeof(Std$Address_t)
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	test ecx, ecx
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	jnz .first_not_empty
 	dec edx
 	jnz .less
-	cmp [Std$Integer_smallt(Std$String_block(ebx + sizeof(Std$String_block)).Length).Value], dword 0
+	cmp [Std$Integer_smallt(Std$Address_t(ebx + sizeof(Std$Address_t)).Length).Value], dword 0
 	jne .less
 .equal:
 	pop edi
@@ -6213,7 +6190,7 @@ string_method "length", STRING
 	xor eax, eax
 	ret
 
-cfunction match_substring;(Std$String_block *StartBlock, int StartOffset, Std$String_t *String, Std$String_block **EndBlock, int *EndOffset)
+cfunction match_substring;(Std$Address_t *StartBlock, int StartOffset, Std$String_t *String, Std$Address_t **EndBlock, int *EndOffset)
 	push edi
 	push esi
 	push ebx
@@ -6221,12 +6198,12 @@ cfunction match_substring;(Std$String_block *StartBlock, int StartOffset, Std$St
 	mov ebx, [esp + 24]
 	mov eax, [esp + 16]
 	lea ebx, [Std$String_t(ebx).Blocks]
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	sub ecx, [esp + 20]
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	add esi, [esp + 20]
-	mov edx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
-	mov edi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov edx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
+	mov edi, [Std$Address_t(ebx).Value]
 	test ecx, ecx
 	jnz .first_not_empty0
 	test edx, edx
@@ -6243,14 +6220,14 @@ cfunction match_substring;(Std$String_block *StartBlock, int StartOffset, Std$St
 .first_not_empty:
 	dec edx
 	jnz .compare_loop
-	add ebx, byte sizeof(Std$String_block)
-	mov edx, [Std$Integer_smallt(Std$String_block(ebx).Length).Value]
+	add ebx, byte sizeof(Std$Address_t)
+	mov edx, [Std$Integer_smallt(Std$Address_t(ebx).Length).Value]
 	test edx, edx
-	mov edi, [Std$Address_t(Std$String_block(ebx).Chars).Value]
+	mov edi, [Std$Address_t(ebx).Value]
 	jnz .compare_loop
 .success:
 	mov ebx, [esp + 28]
-	sub ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	sub ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	mov [ebx], eax
 	neg ecx
 	mov ebx, [esp + 32]
@@ -6262,14 +6239,14 @@ cfunction match_substring;(Std$String_block *StartBlock, int StartOffset, Std$St
 	pop edi
 	ret
 .reload_first:
-	add eax, byte sizeof(Std$String_block)
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	add eax, byte sizeof(Std$Address_t)
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	test ecx, ecx
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	jnz .first_not_empty
 	dec edx
 	jnz .failure
-	cmp [Std$Integer_smallt(Std$String_block(ebx + sizeof(Std$String_block)).Length).Value], dword 0
+	cmp [Std$Integer_smallt(Std$Address_t(ebx + sizeof(Std$Address_t)).Length).Value], dword 0
 	je .success
 .failure:
 	xor eax, eax

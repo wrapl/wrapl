@@ -343,7 +343,7 @@ static size_t read_stream_function(void *Buffer, size_t Size, size_t Count, IO$S
 
 static size_t readwrite_function(void *Buffer, size_t Size, size_t Count, Std$Object$t *Func) {
 	Std$Function$result Result;
-	Std$Function$status Status = Std$Function$call(Func, 2, &Result, Std$Address$new(Buffer), 0, Std$Integer$new_small(Size * Count), 0);
+	Std$Function$status Status = Std$Function$call(Func, 2, &Result, Std$Address$new(Buffer, Size * Count), 0, Std$Integer$new_small(Size * Count), 0);
 	if (Status == MESSAGE) return CURL_READFUNC_ABORT;
 	return ((Std$Integer$smallt *)Result.Val)->Value;
 }

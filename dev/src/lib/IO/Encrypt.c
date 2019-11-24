@@ -185,13 +185,13 @@ static char cipher_readc(cipher_t *Stream) {
 };
 
 static inline Std$String$t *crypt_string(struct arcfour_ctx *Context, Std$String$t *Src) {
-	size_t Size = sizeof(Std$String$t) + (Src->Count + 1) * sizeof(Std$String$block);
+	size_t Size = sizeof(Std$String$t) + (Src->Count + 1) * sizeof(Std$Address$t);
 	Std$String$t *Dst = Riva$Memory$alloc_stubborn(Size);
 	memcpy(Dst, Src, Size);
-	for (Std$String$block *Block = Dst->Blocks; Block->Length.Value; Block++) {
+	for (Std$Address$t *Block = Dst->Blocks; Block->Length.Value; Block++) {
 		char *Chars = Riva$Memory$alloc_atomic(Block->Length.Value);
-		arcfour_crypt(Context, Block->Length.Value, Chars, Block->Chars.Value);
-		Block->Chars.Value = Chars;
+		arcfour_crypt(Context, Block->Length.Value, Chars, Block->Value);
+		Block->Value = Chars;
 	};
 	Riva$Memory$freeze_stubborn(Dst);
 	return Dst;

@@ -9,17 +9,12 @@
 
 #define Std$String$MaxBlockSize 32704
 
-RIVA_STRUCT(block) {
-	Std$Integer$smallt Length;
-	Std$Address$t Chars;
-};
-
 RIVA_STRUCT(t) {
 	const Std$Type$t *Type;
 	unsigned long Count;
 	Std$Integer$smallt Length;
 	Std$Integer$smallt Hash;
-	Std$String$block Blocks[];
+	Std$Address$t Blocks[];
 };
 
 #define STRING(NAME, VALUE)\
@@ -31,15 +26,15 @@ RIVA_STRUCT(t) {
 		unsigned long Count;\
 		Std$Integer$smallt Length;\
 		Std$Integer$smallt Hash;\
-		const Std$String$block Blocks[2];\
+		const Std$Address$t Blocks[2];\
 	} __string ## NAME[1] __asmify(NAME) __attribute__ ((used)) = {{\
 		Std$String$T,\
 		1,\
 		{Std$Integer$SmallT, sizeof(__chars ## NAME) - 1},\
 		{0, 0},\
 		{\
-			{{Std$Integer$SmallT, sizeof(__chars ## NAME) - 1}, {Std$Address$T, __chars ## NAME}},\
-			{{0, 0}, {0, 0}}\
+			{Std$Address$T, __chars ## NAME, {Std$Integer$SmallT, sizeof(__chars ## NAME) - 1}},\
+			{0, 0, {0, 0}}\
 		}\
 	}};
 
@@ -74,8 +69,8 @@ RIVA_CFUN(Std$Object$t *, freeze, Std$String$t *);
 #define Std$String$blocks(A) ((Std$String$t *)(A))->Blocks
 #define Std$String$get_length(A) ((Std$String$t *)(A))->Length.Value
 #define Std$String$get_block_length(A, N) ((Std$String$t *)(A))->Blocks[N].Length.Value
-#define Std$String$get_block_chars(A, N) (char *)((Std$String$t *)(A))->Blocks[N].Chars.Value
-#define Std$String$get_char(A) *((char *)((Std$String$t *)(A))->Blocks[0].Chars.Value)
+#define Std$String$get_block_chars(A, N) (char *)((Std$String$t *)(A))->Blocks[N].Value
+#define Std$String$get_char(A) *((char *)((Std$String$t *)(A))->Blocks[0].Value)
 
 #undef RIVA_MODULE
 

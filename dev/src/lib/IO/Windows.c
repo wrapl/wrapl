@@ -423,8 +423,8 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		unsigned char *Chars = Block->Chars.Value;
+	for (Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	if (IsTerm[Char]) {Result->Val = Std$String$Empty; return SUCCESS;};
@@ -467,14 +467,14 @@ METHOD("readx", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 		case 0: {
 			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String$block *Block = String->Blocks;
+			Std$Address$t *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
-				Block->Chars.Value = Buffer->Chars;
+				Block->Value = Buffer->Chars;
 				++Block;
 			};
 			Block->Length.Value = (Length - 1) % FastBufferSize + 1;
-			Block->Chars.Value = Tail->Chars;
+			Block->Value = Tail->Chars;
 			Std$String$freeze(String);
 			Result->Val = String;
 			return SUCCESS;
@@ -493,8 +493,8 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	case 0: return FAILURE;
 	};
 	unsigned char IsTerm[256] = {0,};
-	for (Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-		unsigned char *Chars = Block->Chars.Value;
+	for (Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+		unsigned char *Chars = Block->Value;
 		for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 	};
 	if (IsTerm[Char] || (Max == 1)) {
@@ -533,15 +533,15 @@ METHOD("readi", TYP, TextReaderT, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 		case 0: {
 			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String$block *Block = String->Blocks;
+			Std$Address$t *Block = String->Blocks;
 			IO$Stream$buffer *Buffer = Head;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
-				Block->Chars.Value = Buffer->Chars;
+				Block->Value = Buffer->Chars;
 				++Block;
 			};
 			Block->Length.Value = (Length - 1) % FastBufferSize + 1;
-			Block->Chars.Value = Tail->Chars;
+			Block->Value = Tail->Chars;
 			Std$String$freeze(String);
 			Result->Val = String;
 			return SUCCESS;
@@ -577,15 +577,15 @@ METHOD("rest", TYP, ReaderT) {
 	if (Ptr == Tail->Chars) NoOfBlocks--;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	String->Length.Value = Length;
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 		Block->Length.Value = FastBufferSize;
-		Block->Chars.Value = Buffer->Chars;
+		Block->Value = Buffer->Chars;
 		++Block;
 	};
 	if (Ptr != Tail->Chars) {
 		Block->Length.Value = Ptr - Tail->Chars;
-		Block->Chars.Value = Tail->Chars;
+		Block->Value = Tail->Chars;
 	};
 	Std$String$freeze(String);
 	Result->Val = String;
@@ -645,15 +645,15 @@ METHOD("read", TYP, ReaderT, TYP, Std$Integer$SmallT) {
 		if (Ptr == Tail->Chars) NoOfBlocks--;
 		Std$String$t *String = Std$String$alloc(NoOfBlocks);
 		String->Length.Value = Length;
-		Std$String$block *Block = String->Blocks;
+		Std$Address$t *Block = String->Blocks;
 		for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 			Block->Length.Value = FastBufferSize;
-			Block->Chars.Value = Buffer->Chars;
+			Block->Value = Buffer->Chars;
 			++Block;
 		};
 		if (Ptr != Tail->Chars) {
 			Block->Length.Value = Ptr - Tail->Chars;
-			Block->Chars.Value = Tail->Chars;
+			Block->Value = Tail->Chars;
 		};
 		Std$String$freeze(String);
 		Result->Val = String;
@@ -702,14 +702,14 @@ METHOD("read", TYP, TextReaderT) {
 		case 0: {
 			Std$String$t *String = Std$String$alloc(NoOfBlocks);
 			String->Length.Value = Length;
-			Std$String$block *Block = String->Blocks;
+			Std$Address$t *Block = String->Blocks;
 			for (fast_buffer *Buffer = Head; Buffer->Next; Buffer = Buffer->Next) {
 				Block->Length.Value = FastBufferSize;
-				Block->Chars.Value = Buffer->Chars;
+				Block->Value = Buffer->Chars;
 				++Block;
 			};
 			Block->Length.Value = (Length - 1) % FastBufferSize + 1;
-			Block->Chars.Value = Tail->Chars;
+			Block->Value = Tail->Chars;
 			Std$String$freeze(String);
 			Result->Val = String;
 			return SUCCESS;
@@ -755,7 +755,7 @@ METHOD("write", TYP, WriterT, TYP, Std$String$T) {
 	IO$Windows_t *Stream = Args[0].Val;
 	Std$String$t *String = Args[1].Val;
 	for (long I = 0; I < String->Count; ++I) {
-		if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
+		if (write_all(Stream->Handle, String->Blocks[I].Value, String->Blocks[I].Length.Value) < 0) {
 			Result->Val = IO$Stream$WriteMessage;
 			return MESSAGE;
 		};
@@ -772,7 +772,7 @@ METHOD("write", TYP, TextWriterT, ANY) {
 	case SUCCESS: {
 		Std$String$t *String = Result0.Val;
 		for (long I = 0; I < String->Count; ++I) {
-			if (write_all(Stream->Handle, String->Blocks[I].Chars.Value, String->Blocks[I].Length.Value) < 0) {
+			if (write_all(Stream->Handle, String->Blocks[I].Value, String->Blocks[I].Length.Value) < 0) {
 				Result->Val = IO$Stream$WriteMessage;
 				return MESSAGE;
 			};

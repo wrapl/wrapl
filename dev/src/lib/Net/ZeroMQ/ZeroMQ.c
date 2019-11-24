@@ -291,8 +291,8 @@ METHOD("send", TYP, SockT, TYP, Std$String$T) {
 	int Length = Std$String$get_length(Args[1].Val);
 	zframe_t *Frame = zframe_new(0, Length);
 	char *Data = zframe_data(Frame);
-	for (Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
-		memcpy(Data, Block->Chars.Value, Block->Length.Value);
+	for (Std$Address$t *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
+		memcpy(Data, Block->Value, Block->Length.Value);
 		Data += Block->Length.Value;
 	}
 	if (zframe_send(&Frame, Sock->Handle, 0) == -1) {
@@ -306,8 +306,8 @@ METHOD("sendm", TYP, SockT, TYP, Std$String$T) {
 	int Length = Std$String$get_length(Args[1].Val);
 	zframe_t *Frame = zframe_new(0, Length);
 	char *Data = zframe_data(Frame);
-	for (Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
-		memcpy(Data, Block->Chars.Value, Block->Length.Value);
+	for (Std$Address$t *Block = ((Std$String$t *)Args[1].Val)->Blocks; Block->Length.Value; ++Block) {
+		memcpy(Data, Block->Value, Block->Length.Value);
 		Data += Block->Length.Value;
 	}
 	if (zframe_send(&Frame, Sock->Handle, ZFRAME_MORE) == -1) {
@@ -627,7 +627,7 @@ METHOD("append", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	RETURN0;
 }
 
-METHOD("prepend", TYP, MsgT, TYP, Std$Address$SizedT) {
+METHOD("prepend", TYP, MsgT, TYP, Std$Address$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
@@ -636,7 +636,7 @@ METHOD("prepend", TYP, MsgT, TYP, Std$Address$SizedT) {
 	RETURN0;
 }
 
-METHOD("append", TYP, MsgT, TYP, Std$Address$SizedT) {
+METHOD("append", TYP, MsgT, TYP, Std$Address$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
@@ -658,7 +658,7 @@ METHOD("pop", TYP, MsgT, VAL, Std$String$T) {
 	}
 }
 
-METHOD("pop", TYP, MsgT, VAL, Std$Address$SizedT) {
+METHOD("pop", TYP, MsgT, VAL, Std$Address$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	if (!Msg->Handle) FAIL;
 	zframe_t *Frame = zmsg_pop(Msg->Handle);
@@ -667,7 +667,7 @@ METHOD("pop", TYP, MsgT, VAL, Std$Address$SizedT) {
 		void *Address = Riva$Memory$alloc_atomic(Size);
 		memcpy(Address, zframe_data(Frame), Size);
 		zframe_destroy(&Frame);
-		RETURN(Std$Address$new_sized(Address, Size));
+		RETURN(Std$Address$new(Address, Size));
 	} else {
 		FAIL;
 	}

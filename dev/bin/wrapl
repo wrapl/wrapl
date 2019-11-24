@@ -57,6 +57,9 @@ DEF Init() (
 		) IS "-L" DO (
 			i <- i + 1;
 			Module.AddDirectory(Args[i]);
+		) IS "-D" DO (
+			i <- i + 1;
+			Config.Set(Args[i]:before("="), Args[i]:after("="));
 		) DO (
 			Out:writes("Warning: unknown argument: ", Args[i], ".\n")
 		);

@@ -50,7 +50,7 @@ const Std$Object$t *_value_to_riva(const GValue *Value) {
 	case G_TYPE_FLOAT: return Std$Real$new(g_value_get_float(Value));
 	case G_TYPE_DOUBLE: return Std$Real$new(g_value_get_double(Value));
 	case G_TYPE_STRING: return Std$String$new(g_value_get_string(Value));
-	case G_TYPE_POINTER: return Std$Address$new(g_value_get_pointer(Value));
+	case G_TYPE_POINTER: return Std$Address$new(g_value_get_pointer(Value), 0);
 	default: {
 		Std$Type$t *Type;
 		if (G_VALUE_TYPE(Value) == Gir$GObject$Type$RIVA->Value) {
@@ -64,7 +64,7 @@ const Std$Object$t *_value_to_riva(const GValue *Value) {
 			return (const Std$Object$t *)Object;
 		} else {
 			printf("Warning: Unknown parameter type: %s\n", G_VALUE_TYPE_NAME(Value));
-			return Std$Address$new(g_value_peek_pointer(Value));
+			return Std$Address$new(g_value_peek_pointer(Value), 0);
 		};
 	};
 	};

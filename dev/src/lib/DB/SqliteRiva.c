@@ -182,7 +182,11 @@ METHOD("step", TYP, StatementT) {
 
 METHOD("column_blob", TYP, StatementT, TYP, Std$Integer$SmallT) {
 	statement_t *S = Args[0].Val;
-	Result->Val = Std$Address$new(sqlite3_column_blob(S->Handle, ((Std$Integer$smallt *)Args[1].Val)->Value));
+	int Index = Std$Integer$get_small(Args[1].Val);
+	Result->Val = Std$Address$new(
+		sqlite3_column_blob(S->Handle, Index),
+		sqlite3_column_bytes(S->Handle, Index)
+	);
 	return SUCCESS;
 }
 
@@ -259,7 +263,10 @@ static Std$Function$status resume_result_generator(Std$Function$result *Result) 
 				Value = Std$String$copy_length(sqlite3_column_text(Handle, I), sqlite3_column_bytes(S->Handle, I));
 				break;
 			case SQLITE_BLOB:
-				Value = Std$Address$new(sqlite3_column_blob(Handle, I));
+				Value = Std$Address$new(
+					sqlite3_column_blob(Handle, I),
+					sqlite3_column_bytes(Handle, I)
+				);
 				break;
 			case SQLITE_NULL:
 				Value = Std$Object$Nil;
@@ -323,7 +330,10 @@ METHOD("()", TYP, StatementT) {
 				Value = Std$String$copy_length(sqlite3_column_text(Handle, I), sqlite3_column_bytes(S->Handle, I));
 				break;
 			case SQLITE_BLOB:
-				Value = Std$Address$new(sqlite3_column_blob(Handle, I));
+				Value = Std$Address$new(
+					sqlite3_column_blob(Handle, I),
+					sqlite3_column_bytes(Handle, I)
+				);
 				break;
 			case SQLITE_NULL:
 				Value = Std$Object$Nil;

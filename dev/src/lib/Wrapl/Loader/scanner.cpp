@@ -373,7 +373,7 @@ static Std$String$t *scan_string_block_next(scanner_t *Scanner, const char *End,
 	while (*Prefix && *Prefix <= ' ') ++Prefix;
 	if (strncmp(Prefix, End, EndLength) == 0) {
 		*Current = Prefix + EndLength;
-		String = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + Index * sizeof(Std$String$block));
+		String = (Std$String$t *)Riva$Memory$alloc_stubborn(sizeof(Std$String$t) + Index * sizeof(Std$Address$t));
 		String->Type = Std$String$T;
 		String->Length.Type = Std$Integer$SmallT;
 		String->Count = Index;
@@ -383,8 +383,8 @@ static Std$String$t *scan_string_block_next(scanner_t *Scanner, const char *End,
 		String->Length.Value += Length;
 		String->Blocks[Index].Length.Type = Std$Integer$SmallT;
 		String->Blocks[Index].Length.Value = Length;
-		String->Blocks[Index].Chars.Type = Std$Address$T;
-		String->Blocks[Index].Chars.Value = Line;
+		String->Blocks[Index].Type = Std$Address$T;
+		String->Blocks[Index].Value = Line;
 	};
 	if (Index == 0) Std$String$freeze(String);
 	return String;
@@ -764,16 +764,16 @@ AMETHOD(Image, TYP, Std$String$T) {
 		return SUCCESS;
 	};
 	Std$String$t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String$block *Src = In->Blocks;
-	Std$String$block *Dst = Out->Blocks;
+	const Std$Address$t *Src = In->Blocks;
+	Std$Address$t *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 1;
-	Dst->Chars.Value = "\"";
+	Dst->Value = "\"";
 	Dst++;
 	for (int I = In->Count; --I >= 0;) {
 		int SrcLength = Src->Length.Value;
 		int DstLength = SrcLength;
-		const char *SrcChars = Src->Chars.Value;
+		const char *SrcChars = Src->Value;
 		for (int J = 0; J < SrcLength; ++J) {
 			unsigned char Char = SrcChars[J];
 			if (Char == '\"') {
@@ -832,12 +832,12 @@ AMETHOD(Image, TYP, Std$String$T) {
 		DstChars[DstLength] = 0;
 		Dst->Length.Type = Std$Integer$SmallT;
 		Dst->Length.Value = DstLength;
-		Dst->Chars.Type = Std$Address$T;
-		Dst->Chars.Value = DstChars;
+		Dst->Type = Std$Address$T;
+		Dst->Value = DstChars;
 		Dst++;
 	};
 	Dst->Length.Value = 1;
-	Dst->Chars.Value = "\"";
+	Dst->Value = "\"";
 	Out->Length.Value = Length;
 	Std$String$freeze(Out);
 	Result->Val = (Std$Object$t *)Out;
@@ -849,16 +849,16 @@ AMETHOD(Image, TYP, Std$Symbol$T) {
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	const Std$String$t *In = ((Std$Symbol$t *)Args[0].Val)->Name;
 	Std$String$t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String$block *Src = In->Blocks;
-	Std$String$block *Dst = Out->Blocks;
+	const Std$Address$t *Src = In->Blocks;
+	Std$Address$t *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 2;
-	Dst->Chars.Value = ":\"";
+	Dst->Value = ":\"";
 	Dst++;
 	for (int I = In->Count; --I >= 0;) {
 		int SrcLength = Src->Length.Value;
 		int DstLength = SrcLength;
-		const char *SrcChars = Src->Chars.Value;
+		const char *SrcChars = Src->Value;
 		for (int J = 0; J < SrcLength; ++J) {
 			unsigned char Char = SrcChars[J];
 			if (Char == '\"') {
@@ -917,12 +917,12 @@ AMETHOD(Image, TYP, Std$Symbol$T) {
 		DstChars[DstLength] = 0;
 		Dst->Length.Type = Std$Integer$SmallT;
 		Dst->Length.Value = DstLength;
-		Dst->Chars.Type = Std$Address$T;
-		Dst->Chars.Value = DstChars;
+		Dst->Type = Std$Address$T;
+		Dst->Value = DstChars;
 		Dst++;
 	};
 	Dst->Length.Value = 1;
-	Dst->Chars.Value = "\"";
+	Dst->Value = "\"";
 	Out->Length.Value = Length;
 	Std$String$freeze(Out);
 	Result->Val = (Std$Object$t *)Out;

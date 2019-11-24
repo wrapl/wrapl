@@ -8,7 +8,7 @@
 typedef struct reader_t {
 	const Std$Type$t *Type;
 	Std$String$t *String;
-	Std$String$block *Block;
+	Std$Address$t *Block;
 	int Offset;
 } reader_t;
 
@@ -19,7 +19,7 @@ TYPED_INSTANCE(int, IO$Stream$eoi, T, reader_t *Stream) {
 };
 
 TYPED_INSTANCE(int, IO$Stream$read, T, reader_t *Stream, char *Buffer, int Count, int Blocking) {
-	Std$String$block *Block = Stream->Block;
+	Std$Address$t *Block = Stream->Block;
 	int Offset = Stream->Offset;
 	int Total = 0;
 	while (Count) {
@@ -29,13 +29,13 @@ TYPED_INSTANCE(int, IO$Stream$read, T, reader_t *Stream, char *Buffer, int Count
 		}
 		int Remaining = Block->Length.Value - Offset;
 		if (Remaining > Count) {
-			memcpy(Buffer, Block->Chars.Value + Offset, Count);
+			memcpy(Buffer, Block->Value + Offset, Count);
 			Stream->Block = Block;
 			Stream->Offset = Offset + Count;
 			return Total + Count;
 			Count = 0;
 		} else {
-			memcpy(Buffer, Block->Chars.Value + Offset, Remaining);
+			memcpy(Buffer, Block->Value + Offset, Remaining);
 			Total += Remaining;
 			Count -= Remaining;
 			++Block;

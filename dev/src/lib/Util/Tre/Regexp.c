@@ -42,16 +42,16 @@ AMETHOD(Std$String$Of, TYP, T) {
 	Std$String$t *In = (Std$String$t *)R->Pattern;
 	static char Hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	Std$String$t *Out = Std$String$alloc(In->Count + 2);
-	const Std$String$block *Src = In->Blocks;
-	Std$String$block *Dst = Out->Blocks;
+	const Std$Address$t *Src = In->Blocks;
+	Std$Address$t *Dst = Out->Blocks;
 	int Length = In->Length.Value + 2;
 	Dst->Length.Value = 1;
-	Dst->Chars.Value = "/";
+	Dst->Value = "/";
 	Dst++;
 	for (int I = In->Count; --I >= 0;) {
 		int SrcLength = Src->Length.Value;
 		int DstLength = SrcLength;
-		const char *SrcChars = Src->Chars.Value;
+		const char *SrcChars = Src->Value;
 		for (int J = 0; J < SrcLength; ++J) {
 			unsigned char Char = SrcChars[J];
 			if (Char == '\"') {
@@ -110,20 +110,20 @@ AMETHOD(Std$String$Of, TYP, T) {
 		DstChars[DstLength] = 0;
 		Dst->Length.Type = Std$Integer$SmallT;
 		Dst->Length.Value = DstLength;
-		Dst->Chars.Type = Std$Address$T;
-		Dst->Chars.Value = DstChars;
+		Dst->Type = Std$Address$T;
+		Dst->Value = DstChars;
 		Dst++;
 	};
 	Dst->Length.Value = 1;
-	Dst->Chars.Value = "/";
+	Dst->Value = "/";
 	Out->Length.Value = Length;
 	Std$String$freeze(Out);
 	RETURN(Out);
 }
 
 typedef struct context_t {
-	Std$String$block *Head;
-	Std$String$block *Block;
+	Std$Address$t *Head;
+	Std$Address$t *Block;
 	char *Chars;
 	int Rem;
 	int Offset;
@@ -134,7 +134,7 @@ static int get_next_char(tre_char_t *Char, unsigned int *PosAdd, context_t *Cont
 		Context->Block++;
 		Context->Rem = Context->Block->Length.Value;
 		if (Context->Rem == 0) return 1;
-		Char = Context->Block->Chars.Value;
+		Char = Context->Block->Value;
 	};
 	Char[0] = *(Context->Chars++);
 	PosAdd[0] = 1;
@@ -142,7 +142,7 @@ static int get_next_char(tre_char_t *Char, unsigned int *PosAdd, context_t *Cont
 };
 
 static void rewind(size_t Pos, context_t *Context) {
-	Std$String$block *Block = Context->Head;
+	Std$Address$t *Block = Context->Head;
 	Pos += Context->Offset;
 	while (Pos >= Block->Length.Value) {
 		Pos -= Block->Length.Value;
@@ -150,38 +150,38 @@ static void rewind(size_t Pos, context_t *Context) {
 	};
 	Context->Block = Block;
 	Context->Rem = Block->Length.Value - Pos;
-	Context->Chars = Block->Chars.Value + Pos;
+	Context->Chars = Block->Value + Pos;
 };
 
 static int compare(size_t Pos1, size_t Pos2, size_t Len, context_t *Context) {
 	Pos1 += Context->Offset;
 	Pos2 += Context->Offset;
-	Std$String$block *Block1 = Context->Head;
+	Std$Address$t *Block1 = Context->Head;
 	while (Pos1 >= Block1->Length.Value) {
 		Pos1 -= Block1->Length.Value;
 		Block1++;
 	};
 	int Rem1 = Block1->Length.Value - Pos1;
-	char *Chars1 = Block1->Chars.Value + Pos1;
-	Std$String$block *Block2 = Context->Head;
+	char *Chars1 = Block1->Value + Pos1;
+	Std$Address$t *Block2 = Context->Head;
 	while (Pos2 >= Block2->Length.Value) {
 		Pos2 -= Block2->Length.Value;
 		Block2++;
 	};
 	int Rem2 = Block2->Length.Value - Pos2;
-	char *Chars2 = Block2->Chars.Value + Pos2;
+	char *Chars2 = Block2->Value + Pos2;
 	while (Len--) {
 		if (Rem1-- == 0) {
 			Block1++;
 			Rem1 = Block1->Length.Value;
 			if (Rem1 == 0) return 1;
-			Chars1 = Block1->Chars.Value;
+			Chars1 = Block1->Value;
 		};
 		if (Rem2-- == 0) {
 			Block2++;
 			Rem2 = Block2->Length.Value;
 			if (Rem2 == 0) return 1;
-			Chars2 = Block2->Chars.Value;
+			Chars2 = Block2->Value;
 		};
 		if (*(Chars1++) != *(Chars2++)) return 1;
 	};
@@ -245,7 +245,7 @@ METHOD("match", TYP, T, TYP, Std$String$T) {
 	context_t Context[1] = {{
 		String->Blocks,
 		String->Blocks,
-		String->Blocks->Chars.Value,
+		String->Blocks->Value,
 		String->Blocks->Length.Value,
 		0
 	}};
@@ -291,7 +291,7 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	Std$String$t *String = Args[1].Val;
 	uint32_t Offset = ((Std$Integer$smallt *)Args[2].Val)->Value - 1;
 	uint32_t Start = Offset;
-	Std$String$block *Subject = String->Blocks;
+	Std$Address$t *Subject = String->Blocks;
 	while (Start >= Subject->Length.Value) {
 		Start -= Subject->Length.Value;
 		++Subject;
@@ -300,7 +300,7 @@ METHOD("match", TYP, T, TYP, Std$String$T, TYP, Std$Integer$SmallT) {
 	context_t Context[1] = {{
 		String->Blocks,
 		Subject,
-		Subject->Chars.Value + Start,
+		Subject->Value + Start,
 		Subject->Length.Value - Start,
 		Offset
 	}};

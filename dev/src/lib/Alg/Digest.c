@@ -22,8 +22,8 @@ GLOBAL_FUNCTION(Md5New, 0) {
 METHOD("update", TYP, Md5T, TYP, Std$String$T) {
 	md5_t *Digest = Args[0].Val;
 	Std$String$t *String = Args[1].Val;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; Block++) {
-		md5_update(Digest->Context, Block->Length.Value, Block->Chars.Value);
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; Block++) {
+		md5_update(Digest->Context, Block->Length.Value, Block->Value);
 	};
 	Result->Arg = Args[0];
 	return SUCCESS;

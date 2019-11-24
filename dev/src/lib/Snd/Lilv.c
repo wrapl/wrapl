@@ -270,7 +270,7 @@ METHOD("extension", TYP, InstanceT, TYP, Std$String$T) {
 	LilvInstance *Instance = ((Snd$Lilv$instance_t *)Args[0].Val)->Handle;
 	const void *Data = lilv_instance_get_extension_data(Instance, Std$String$flatten(Args[1].Val));
 	if (Data) {
-		Result->Val = Std$Address$new(Data);
+		Result->Val = Std$Address$new(Data, 0);
 		return SUCCESS;
 	} else {
 		return FAILURE;

@@ -12,7 +12,8 @@ GLOBAL_FUNCTION(Alloc, 1) {
 //:Std$Address$T
 // Allocates and returns the address of <var>size</var> bytes of memory in the heap.
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	Result->Val = Std$Address$new(Riva$Memory$alloc(((Std$Integer$smallt *)Args[0].Val)->Value));
+	int Size = Std$Integer$get_small(Args[0].Val);
+	Result->Val = Std$Address$new(Riva$Memory$alloc(Size), Size);
 	return SUCCESS;
 };
 
@@ -21,7 +22,8 @@ GLOBAL_FUNCTION(AllocAtomic, 1) {
 //:Std$Address$T
 // Allocates and returns the address of <var>size</var> bytes of pointer free memory in the heap.
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	Result->Val = Std$Address$new(Riva$Memory$alloc_atomic(((Std$Integer$smallt *)Args[0].Val)->Value));
+	int Size = Std$Integer$get_small(Args[0].Val);
+	Result->Val = Std$Address$new(Riva$Memory$alloc_atomic(Size), Size);
 	return SUCCESS;
 };
 
@@ -30,12 +32,13 @@ GLOBAL_FUNCTION(AllocUncollectable, 1) {
 //:Std$Address$T
 // Allocates and returns the address of <var>size</var> bytes of uncollectable memory in the heap.
 	CHECK_EXACT_ARG_TYPE(0, Std$Integer$SmallT);
-	Result->Val = Std$Address$new(Riva$Memory$alloc_uncollectable(((Std$Integer$smallt *)Args[0].Val)->Value));
+	int Size = Std$Integer$get_small(Args[0].Val);
+	Result->Val = Std$Address$new(Riva$Memory$alloc_uncollectable(Size), Size);
 	return SUCCESS;
 };
 
 static void _finalize(void *Value, Std$Object$t *Finalizer) {
-	Std$Address$t Address[1] = {{Std$Address$T, Value}};
+	Std$Address$t Address[1] = {{Std$Address$T, Value, {Std$Integer$SmallT, 0}}};
 	Std$Function$result Result[1];
 	Std$Function$call(Finalizer, 1, Result, Address, 0);
 };

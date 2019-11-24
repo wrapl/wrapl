@@ -100,7 +100,7 @@ static Std$Function$status decode(decoder_t *Decoder, Std$Function$result *Resul
 
 typedef struct string_decoder_t {
 	decoder_t Base;
-	Std$String$block *Block;
+	Std$Address$t *Block;
 } string_decoder_t;
 
 static void string_advance(string_decoder_t *Decoder) {
@@ -218,7 +218,7 @@ static void encoder_write(const char *Chars, size_t Length, encoder_t *Encoder) 
 };
 
 static void encode_string(Std$String$t *String, encoder_t *Encoder) {
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	while (Block->Length.Value) {
 		size_t Length = Block->Length.Value;
 		const char *Chars = Block->Chars.Value;

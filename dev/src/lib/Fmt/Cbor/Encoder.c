@@ -240,7 +240,7 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	RETURN0;
 }
 
-METHOD("write", TYP, T, TYP, Std$Address$SizedT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	//printf("%s()\n", __func__);
 	encoder_t *Encoder = (encoder_t *)Args[0].Val;
 	int Size = Std$Address$get_size(Args[1].Val);
@@ -254,8 +254,8 @@ METHOD("write", TYP, T, TYP, Std$String$T) {
 	encoder_t *Encoder = (encoder_t *)Args[0].Val;
 	int Size = Std$String$get_length(Args[1].Val);
 	riva_cbor_write_string(Encoder->Stream, Encoder->WriteFn, Size);
-	for (Std$String$block *Block = Std$String$blocks(Args[1].Val); Block->Length.Value; ++Block) {
-		Encoder->WriteFn(Encoder->Stream, Block->Chars.Value, Block->Length.Value);
+	for (Std$Address$t *Block = Std$String$blocks(Args[1].Val); Block->Length.Value; ++Block) {
+		Encoder->WriteFn(Encoder->Stream, Block->Value, Block->Length.Value);
 	}
 	RETURN0;
 }

@@ -349,15 +349,7 @@ _function New
 	xor eax, eax
 	ret
 section .data
-.anonymous_str:
-	dd Std$String$T
-	dd Std$Integer$SmallT
-	dd 6, 1
-	dd Std$Integer$SmallT, 6
-	dd Std$Address$T, .anonymous
-	dd 0, 0, 0, 0
-.anonymous:
-	db "<anon>", 0, 0
+cstring .anonymous_str, "<anon>"
 
 cfunction _new_string
 	push byte sizeof(Std$Symbol_t)
@@ -1021,15 +1013,7 @@ cglobal $Default, T
 	dd 0
 	dd nodefaultmethod
 	dd .name
-.name:
-	dd Std$String$T
-	dd Std$Integer$SmallT
-	dd 9, 1
-	dd Std$Integer$SmallT, 9
-	dd Std$Address$T, .chars
-	dd 0, 0, 0, 0
-.chars:
-	db "<default>", 0, 0
+cstring .name, "<default>"
 
 %ifdef DOCUMENTING
 

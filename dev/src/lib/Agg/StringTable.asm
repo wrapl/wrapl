@@ -127,7 +127,7 @@ method "[]", TYP, T, TYP, Std$String$T
 	mov edx, [Std$Integer_smallt(Std$String_t(eax).Length).Value]
 	cmp [Std$String_t(eax).Count], dword 1
 	jne .complex_string
-	mov esi, [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value]
+	mov esi, [Std$Address_t(Std$String_t(eax).Blocks).Value]
 	jmp .string_ready
 .complex_string:
 	push byte 0
@@ -135,11 +135,11 @@ method "[]", TYP, T, TYP, Std$String$T
 	mov edi, esp
 	lea eax, [Std$String_t(eax).Blocks]
 .copy:
-	mov ecx, [Std$Integer_smallt(Std$String_block(eax).Length).Value]
+	mov ecx, [Std$Integer_smallt(Std$Address_t(eax).Length).Value]
 	jecxz .done
-	mov esi, [Std$Address_t(Std$String_block(eax).Chars).Value]
+	mov esi, [Std$Address_t(eax).Value]
 	rep movsb
-	add eax, byte sizeof(Std$String_block)
+	add eax, byte sizeof(Std$Address_t)
 	jmp .copy
 .done:
 	mov [edi], byte 0
@@ -217,7 +217,7 @@ convert_key:
 	push eax
 	push ecx
 	push edx
-	push byte sizeof(Std$String_t) + 2 * sizeof(Std$String_block)
+	push byte sizeof(Std$String_t) + 2 * sizeof(Std$Address_t)
 	call Riva$Memory$_alloc
 	pop ecx
 	mov edx, [node(ebx).Length]
@@ -226,10 +226,10 @@ convert_key:
 	mov [Std$Object_t(Std$String_t(eax).Length).Type], dword Std$Integer$SmallT
 	mov [Std$Integer_smallt(Std$String_t(eax).Length).Value], edx
 	mov [Std$String_t(eax).Count], dword 1
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
-	mov [Std$Integer_smallt(Std$String_block(Std$String_t(eax).Blocks).Length).Value], edx
-	mov [Std$Object_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Type], dword Std$Address$T
-	mov [Std$Address_t(Std$String_block(Std$String_t(eax).Blocks).Chars).Value], ecx
+	mov [Std$Object_t(Std$Address_t(Std$String_t(eax).Blocks).Length).Type], dword Std$Integer$SmallT
+	mov [Std$Integer_smallt(Std$Address_t(Std$String_t(eax).Blocks).Length).Value], edx
+	mov [Std$Object_t(Std$String_t(eax).Blocks).Type], dword Std$Address$T
+	mov [Std$Address_t(Std$String_t(eax).Blocks).Value], ecx
 	mov ebx, eax
 	pop edx
 	pop ecx

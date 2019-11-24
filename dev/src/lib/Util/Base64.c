@@ -43,27 +43,27 @@ GLOBAL_FUNCTION(Encode, 1) {
 	
 	Std$String$t *OutString = Std$String$alloc((TotalInLength + BlockSize * 3 - 1) / (BlockSize * 3));
 	int TotalOutLength = 0;
-	Std$String$block *OutBlock = OutString->Blocks;
+	Std$Address$t *OutBlock = OutString->Blocks;
 	
-	Std$String$block *InBlock = InString->Blocks;
+	Std$Address$t *InBlock = InString->Blocks;
 	size_t InLength = InBlock->Length.Value;
-	const unsigned char *InChars = InBlock->Chars.Value;
+	const unsigned char *InChars = InBlock->Value;
 	
 	unsigned char *OutChars;
 	while (TotalInLength > 3 * BlockSize) {
 		int NumBlocks = BlockSize;
 		OutBlock->Length.Value = BlockSize * 4;
-		OutBlock->Chars.Value = OutChars = Riva$Memory$alloc_atomic(BlockSize * 4);
+		OutBlock->Value = OutChars = Riva$Memory$alloc_atomic(BlockSize * 4);
 		TotalOutLength += BlockSize * 4;
 		TotalInLength -= BlockSize * 3;
 		while (--NumBlocks >= 0) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char1 = *InChars++;
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char2 = *InChars++;
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char3 = *InChars++;
 			--InLength;
 			OutChars[0] = Base64Chars[Char1 >> 2];
@@ -80,16 +80,16 @@ GLOBAL_FUNCTION(Encode, 1) {
 		int OutLength = NumBlocks * 4;
 		if (Remainder) OutLength += 4;
 		OutBlock->Length.Value = OutLength;
-		OutBlock->Chars.Value = OutChars = Riva$Memory$alloc_atomic(OutLength);
+		OutBlock->Value = OutChars = Riva$Memory$alloc_atomic(OutLength);
 		TotalOutLength += OutLength;
 		while (--NumBlocks >= 0) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char1 = *InChars++;
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char2 = *InChars++;
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char3 = *InChars++;
 			--InLength;
 			OutChars[0] = Base64Chars[Char1 >> 2];
@@ -99,17 +99,17 @@ GLOBAL_FUNCTION(Encode, 1) {
 			OutChars += 4;
 		};
 		if (Remainder == 1) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char1 = *InChars++;
 			OutChars[0] = Base64Chars[Char1 >> 2];
 			OutChars[1] = Base64Chars[(Char1 << 4) & 63];
 			OutChars[2] = '=';
 			OutChars[3] = '=';
 		} else if (Remainder == 2) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char1 = *InChars++;
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			unsigned char Char2 = *InChars++;
 			OutChars[0] = Base64Chars[Char1 >> 2];
 			OutChars[1] = Base64Chars[((Char1 << 4) & 63) + (Char2 >> 4)];
@@ -159,30 +159,30 @@ GLOBAL_FUNCTION(Decode, 1) {
 	
 	Std$String$t *OutString = Std$String$alloc((TotalInLength + BlockSize * 4 - 1) / (BlockSize * 4));
 	int TotalOutLength = 0;
-	Std$String$block *OutBlock = OutString->Blocks;
+	Std$Address$t *OutBlock = OutString->Blocks;
 	
-	Std$String$block *InBlock = InString->Blocks;
+	Std$Address$t *InBlock = InString->Blocks;
 	size_t InLength = InBlock->Length.Value;
-	const unsigned char *InChars = InBlock->Chars.Value;
+	const unsigned char *InChars = InBlock->Value;
 	
 	unsigned char *OutChars;
 	while (TotalInLength > 4 * BlockSize) {
 		int NumBlocks = BlockSize;
 		OutBlock->Length.Value = BlockSize * 3;
-		OutBlock->Chars.Value = OutChars = Riva$Memory$alloc_atomic(BlockSize * 3);
+		OutBlock->Value = OutChars = Riva$Memory$alloc_atomic(BlockSize * 3);
 		TotalOutLength += BlockSize * 3;
 		TotalInLength -= BlockSize * 4;
 		while (--NumBlocks >= 0) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte1 = Base64Value[*InChars++];
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte2 = Base64Value[*InChars++];
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte3 = Base64Value[*InChars++];
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte4 = Base64Value[*InChars++];
 			--InLength;
 			OutChars[0] = (Byte1 << 2) + (Byte2 >> 4);
@@ -196,10 +196,10 @@ GLOBAL_FUNCTION(Decode, 1) {
 		int NumBlocks = TotalInLength / 4;
 		int OutLength = NumBlocks * 3;
 		OutBlock->Length.Value = OutLength;
-		OutBlock->Chars.Value = OutChars = Riva$Memory$alloc_atomic(OutLength);
+		OutBlock->Value = OutChars = Riva$Memory$alloc_atomic(OutLength);
 		TotalOutLength += OutLength;
 		while (--NumBlocks >= 0) {
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte1 = Base64Value[*InChars++];
 			if (Byte1 == 255) {
 				OutBlock->Length.Value -= 3;
@@ -207,7 +207,7 @@ GLOBAL_FUNCTION(Decode, 1) {
 				break;
 			};
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte2 = Base64Value[*InChars++];
 			if (Byte2 == 255) {
 				OutBlock->Length.Value -= 3;
@@ -215,7 +215,7 @@ GLOBAL_FUNCTION(Decode, 1) {
 				break;
 			};
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte3 = Base64Value[*InChars++];
 			if (Byte3 == 255) {
 				OutChars[0] = (Byte1 << 2) + (Byte2 >> 4);
@@ -224,7 +224,7 @@ GLOBAL_FUNCTION(Decode, 1) {
 				break;
 			};
 			--InLength;
-			while (InLength == 0) { ++InBlock; InChars = InBlock->Chars.Value; InLength = InBlock->Length.Value; };
+			while (InLength == 0) { ++InBlock; InChars = InBlock->Value; InLength = InBlock->Length.Value; };
 			uint8_t Byte4 = Base64Value[*InChars++];
 			if (Byte4 == 255) {
 				OutChars[0] = (Byte1 << 2) + (Byte2 >> 4);

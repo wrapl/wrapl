@@ -134,7 +134,7 @@ void riva_cbor_read_bytes_fn(decoder_t *Decoder, int Size) {
 		Collection->Blocks = 0;
 		Decoder->Collection = Collection;
 	} else {
-		value_handler(Decoder, Std$Address$new_sized(NULL, 0));
+		value_handler(Decoder, Std$Address$new(NULL, 0));
 	}
 }
 
@@ -151,7 +151,7 @@ void riva_cbor_read_bytes_piece_fn(decoder_t *Decoder, const void *Bytes, int Si
 			Buffer -= B->Length;
 			memcpy(Buffer, B->Data, B->Length);
 		}
-		value_handler(Decoder, Std$Address$new_sized(Buffer, Collection->Remaining + Size));
+		value_handler(Decoder, Std$Address$new(Buffer, Collection->Remaining + Size));
 	} else {
 		block_t *Block = new(block_t);
 		Block->Prev = Collection->Blocks;
@@ -186,14 +186,14 @@ void riva_cbor_read_string_piece_fn(decoder_t *Decoder, const void *Bytes, int S
 			Decoder->Collection = Collection->Prev;
 			Decoder->Tags = Collection->Tags;
 			Std$String$t *String = Std$String$alloc(Collection->Remaining + 1);
-			Std$String$block *Block = String->Blocks + Collection->Remaining;
-			char *Chars = Block->Chars.Value = Riva$Memory$alloc_atomic(Size + 1);
+			Std$Address$t *Block = String->Blocks + Collection->Remaining;
+			char *Chars = Block->Value = Riva$Memory$alloc_atomic(Size + 1);
 			memcpy(Chars, Bytes, Size);
 			Chars[Size] = 0;
 			int Total = Block->Length.Value = Size;
 			for (block_t *B = Collection->Blocks; B; B = B->Prev) {
 				--Block;
-				Block->Chars.Value = B->Data;
+				Block->Value = B->Data;
 				Block->Length.Value = B->Length;
 				Total += B->Length;
 			}
@@ -203,11 +203,11 @@ void riva_cbor_read_string_piece_fn(decoder_t *Decoder, const void *Bytes, int S
 			Decoder->Collection = Collection->Prev;
 			Decoder->Tags = Collection->Tags;
 			Std$String$t *String = Std$String$alloc(Collection->Remaining);
-			Std$String$block *Block = String->Blocks + Collection->Remaining;
+			Std$Address$t *Block = String->Blocks + Collection->Remaining;
 			int Total = 0;
 			for (block_t *B = Collection->Blocks; B; B = B->Prev) {
 				--Block;
-				Block->Chars.Value = B->Data;
+				Block->Value = B->Data;
 				Block->Length.Value = B->Length;
 				Total += B->Length;
 			}
@@ -385,8 +385,8 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	decoder_t *Decoder = (decoder_t *)Args[0].Val;
 	Std$String$t *String = Args[1].Val;
-	for (Std$String$block *Block = String->Blocks; Block->Length.Value; ++Block) {
-		riva_cbor_read(Decoder->Reader, Block->Chars.Value, Block->Length.Value);
+	for (Std$Address$t *Block = String->Blocks; Block->Length.Value; ++Block) {
+		riva_cbor_read(Decoder->Reader, Block->Value, Block->Length.Value);
 	}
 	RETURN0;
 }

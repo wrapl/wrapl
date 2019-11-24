@@ -488,10 +488,10 @@ static Std$Object$t *extract_string_rest(buffer_t *Stream) {
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		Block++;
 	};
 	Stream->Head = Stream->Tail = 0;
@@ -504,10 +504,10 @@ METHOD("rest", TYP, T) {
 	int NoOfBlocks = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) ++NoOfBlocks;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		String->Length.Value += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		Block++;
 	};
 	Stream->Head = Stream->Tail = 0;
@@ -521,7 +521,7 @@ METHOD("bytes", TYP, T) {
 	int Length = 0;
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) Length += Node->Length;
 	void *Bytes = Riva$Memory$alloc_atomic(Length);
-	Std$Address$sizedt *Address = Std$Address$new_sized(Bytes, Length);
+	Std$Address$t *Address = Std$Address$new(Bytes, Length);
 	for (node_t *Node = Stream->Head; Node; Node = Node->Next) {
 		memcpy(Bytes, Node->Chars, Node->Length);
 		Bytes += Node->Length;
@@ -545,15 +545,15 @@ static Std$Object$t *extract_string(buffer_t *Stream, node_t *EndNode, int EndOf
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) ++NoOfBlocks;
 	Std$String$t *String = Std$String$alloc(NoOfBlocks);
 	int Length = 0;
-	Std$String$block *Block = String->Blocks;
+	Std$Address$t *Block = String->Blocks;
 	for (node_t *Node = Stream->Head; Node != EndNode; Node = Node->Next) {
 		Length += (Block->Length.Value = Node->Length);
-		Block->Chars.Value = Node->Chars;
+		Block->Value = Node->Chars;
 		++Block;
 	};
 	if (EndOffset) {
 		Length += (Block->Length.Value = EndOffset);
-		Block->Chars.Value = EndNode->Chars;
+		Block->Value = EndNode->Chars;
 		if ((EndNode->Length -= EndOffset) == 0) {
 			EndNode = EndNode->Next;
 		} else {
@@ -598,7 +598,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	} else if (Term->Length.Value == 1) {
 		if (Max == 0) {
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					Result->Val = extract_string(Stream, Node, Find - Node->Chars);
 					if (--Node->Length == 0) {
@@ -616,7 +616,7 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		} else {
 			int Remaining = Max;
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((unsigned char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((unsigned char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					int Offset = Find - Node->Chars;
 					if (Remaining < Offset) {
@@ -644,8 +644,8 @@ METHOD("readx", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-			const unsigned char *Chars = Block->Chars.Value;
+		for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+			const unsigned char *Chars = Block->Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
 		if (Max == 0) {
@@ -721,7 +721,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 	} else if (Term->Length.Value == 1) {
 		if (Max == 0) {
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					Result->Val = extract_string(Stream, Node, (Find + 1) - Node->Chars);
 					return SUCCESS;
@@ -734,7 +734,7 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		} else {
 			int Remaining = Max;
 			while (Node) {
-				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Chars.Value), Node->Length);
+				unsigned char *Find = memchr(Node->Chars, *((char *)Term->Blocks->Value), Node->Length);
 				if (Find) {
 					int Offset = Find - Node->Chars;
 					if (Remaining < Offset) {
@@ -757,8 +757,8 @@ METHOD("readi", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$String$T) {
 		};
 	} else {
 		char IsTerm[256] = {0,};
-		for (const Std$String$block *Block = Term->Blocks; Block->Length.Value; Block++) {
-			const unsigned char *Chars = Block->Chars.Value;
+		for (const Std$Address$t *Block = Term->Blocks; Block->Length.Value; Block++) {
+			const unsigned char *Chars = Block->Value;
 			for (int I = 0; I < Block->Length.Value; ++I) IsTerm[Chars[I]] = 1;
 		};
 		if (Max == 0) {
@@ -857,10 +857,10 @@ METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 METHOD("write", TYP, T, TYP, Std$String$T) {
 	buffer_t *Stream = (buffer_t *)Args[0].Val;
 	int NoOfBlocks = ((Std$String$t *)Args[1].Val)->Count;
-	Std$String$block *Block = ((Std$String$t *)Args[1].Val)->Blocks;
+	Std$Address$t *Block = ((Std$String$t *)Args[1].Val)->Blocks;
 	if (Block->Length.Value) {
 		node_t *Node = new(node_t);
-		Node->Chars = Block->Chars.Value;
+		Node->Chars = Block->Value;
 		Node->Length = Block->Length.Value;
 		if (Stream->Tail) {
 			Stream->Tail->Next = Node;
@@ -871,7 +871,7 @@ METHOD("write", TYP, T, TYP, Std$String$T) {
 			node_t *Next = new(node_t);
 			Node->Next = Next;
 			Node = Next;
-			Node->Chars = Block->Chars.Value;
+			Node->Chars = Block->Value;
 			Node->Length = Block->Length.Value;
 		};
 		Stream->Tail = Node;
