@@ -315,10 +315,10 @@ SYMBOL($rest, "rest");
 SYMBOL($write, "write");
 SYMBOL($block, "block");
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T) {
 	cipher_t *Stream = Args[0].Val;
-	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 0);
+	uint8_t *Buffer = Std$Address$get_value(Args[1].Val);
+	int Bytes = IO$Stream$read(Stream->Base, Buffer, Std$Address$get_length(Args[1].Val), 0);
 	if (Bytes == -1) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
@@ -328,10 +328,10 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("read", TYP, T, TYP, Std$Address$T, VAL, $block) {
 	cipher_t *Stream = Args[0].Val;
-	uint8_t *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Bytes = IO$Stream$read(Stream->Base, Buffer, ((Std$Integer$smallt *)Args[2].Val)->Value, 1);
+	uint8_t *Buffer = Std$Address$get_value(Args[1].Val);
+	int Bytes = IO$Stream$read(Stream->Base, Buffer, Std$Address$get_length(Args[1].Val), 1);
 	if (Bytes == -1) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
 		return MESSAGE;
@@ -384,10 +384,10 @@ METHOD("read", TYP, T) {
 	};
 };
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	cipher_t *Stream = Args[0].Val;
-	char *Source = ((Std$Address$t *)Args[1].Val)->Value;
-	int Length = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Source = Std$Address$get_value(Args[1].Val);
+	int Length = Std$Address$get_length(Args[1].Val);
 	char Buffer[256];
 	int Total = 0;
 	while (Length > 256) {

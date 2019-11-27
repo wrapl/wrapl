@@ -26,6 +26,7 @@ LIBJWT_LIB := EXT_DIR / "lib/libjwt.a" => fun() do
 	--execute('CFLAGS=\"{CFLAGS}\" cmake --build . --config Release --target install')
 end
 
+riva_module("Web/Url", [file("Url.o")])
 riva_module("Web/Smtp", [file("Smtp.o")])
 riva_module("Web/JWT", [file("JWT.o")], [LIBJWT_LIB, JANSSON_LIB])
 

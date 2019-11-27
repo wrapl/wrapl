@@ -148,10 +148,10 @@ TYPED_INSTANCE(int, IO$Stream$read, ReaderT, zlib_t *Stream, char *Buffer, int C
 	return Count;
 };
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T) {
 	zlib_t *Stream = Args[0].Val;
 	char *Buffer = Std$Address$get_value(Args[1].Val);
-	int Size = Std$Integer$get_small(Args[2].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	z_streamp ZStream = Stream->ZStream;
 	IO$Stream$t *Stream0 = Stream->Target;
 	char *Buffer0 = Stream->Buffer;
@@ -202,12 +202,12 @@ TYPED_INSTANCE(int, IO$Stream$write, WriterT, zlib_t *Stream, const char *Buffer
 	return Count;
 };
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	zlib_t *Stream = Args[0].Val;
 	z_streamp ZStream = Stream->ZStream;
 	IO$Stream$t *Stream0 = Stream->Target;
-	ZStream->next_in = ((Std$Address$t *)Args[1].Val)->Value;
-	ZStream->avail_in = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	ZStream->next_in = Std$Address$get_value(Args[1].Val);
+	ZStream->avail_in = Std$Address$get_length(Args[1].Val);
 	while (ZStream->avail_in) {
 		ZStream->next_out = Stream->Buffer;
 		ZStream->avail_out = BUFFERSIZE;

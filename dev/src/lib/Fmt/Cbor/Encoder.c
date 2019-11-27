@@ -231,10 +231,10 @@ METHOD("write", TYP, T, TYP, Std$Real$T) {
 	RETURN0;
 }
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	//printf("%s()\n", __func__);
 	encoder_t *Encoder = (encoder_t *)Args[0].Val;
-	int Size = Std$Integer$get_small(Args[2].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	riva_cbor_write_bytes(Encoder->Stream, Encoder->WriteFn, Size);
 	Encoder->WriteFn(Encoder->Stream, Std$Address$get_value(Args[1].Val), Size);
 	RETURN0;

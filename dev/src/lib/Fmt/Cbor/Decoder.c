@@ -391,11 +391,11 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	RETURN0;
 }
 
-METHOD("parse", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("parse", TYP, T, TYP, Std$Address$T) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	decoder_t *Decoder = (decoder_t *)Args[0].Val;
 	void *Data = Std$Address$get_value(Args[1].Val);
-	size_t Length = Std$Integer$get_small(Args[2].Val);
+	size_t Length = Std$Address$get_length(Args[1].Val);
 	riva_cbor_read(Decoder->Reader, Data, Length);
 	RETURN0;
 }

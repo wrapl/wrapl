@@ -69,10 +69,10 @@ TYPED_INSTANCE(int, IO$Stream$write, T, parser_t *Parser, const char *Source, in
 	}
 }
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	parser_t *Parser = Args[0].Val;
 	char *String = Std$Address$get_value(Args[1].Val);
-	int Length = Std$Integer$get_small(Args[2].Val);
+	int Length = Std$Address$get_length(Args[1].Val);
 	Std$Object$t *Message = setjmp(Parser->OnError);
 	if (Message) {
 		Result->Val = Message;

@@ -10,84 +10,6 @@ typedef struct special_t {
 	const Std$Type$t *Type;
 } special_t;	
 
-/*
-TYPE(ZeroT, IO$Stream$TextReaderT, IO$Stream$ReaderT, IO$Stream$SeekerT, IO$Stream$T);
-GLOBAL(ZeroT, special_t, Zero)[1] = {{ZeroT}};
-
-TYPED_INSTANCE(void, IO$Stream$close, ZeroT, IO$Stream$t *Stream, int Mode) {
-};
-
-TYPED_INSTANCE(int, IO$Stream$eoi, ZeroT, IO$Stream$t *Stream) {
-	return 0;
-};
-
-TYPED_INSTANCE(int, IO$Stream$read, ZeroT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
-	memset(Buffer, 0, Count);
-	return Count;
-};
-
-TYPED_INSTANCE(int, IO$Stream$seek, ZeroT, IO$Stream$t *Stream, int Position, int Mode) {
-	return 0;
-};
-
-METHOD("close", TYP, ZeroT) {
-	Result->Val = IO$Stream$CloseMessage;
-	return MESSAGE;
-};
-
-METHOD("eoi", TYP, ZeroT) {
-	return FAILURE;
-};
-
-METHOD("read", TYP, ZeroT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	memset(((Std$Address$t *)Args[1].Val)->Value, 0, ((Std$Integer$smallt *)Args[2].Val)->Value);
-	Result->Val = Args[2].Val;
-	return SUCCESS;
-};
-
-METHOD("seek", TYP, ZeroT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
-	Result->Val = ZERO;
-	return SUCCESS;
-};
-
-TYPE(NullT, IO$Stream$TextWriterT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
-GLOBAL(NullT, special_t, Null)[1] = {{NullT}};
-
-TYPED_INSTANCE(void, IO$Stream$close, NullT, IO$Stream$t *Stream, int Mode) {
-};
-
-TYPED_INSTANCE(void, IO$Stream$flush, NullT, IO$Stream$t *Stream) {
-};
-
-TYPED_INSTANCE(int, IO$Stream$write, NullT, IO$Stream$t *Stream, char *Buffer, int Count, int Block) {
-	return Count;
-};
-
-TYPED_INSTANCE(int, IO$Stream$seek, NullT, IO$Stream$t *Stream, int Position, int Mode) {
-	return 0;
-};
-
-METHOD("close", TYP, NullT) {
-	Result->Val = IO$Stream$CloseMessage;
-	return MESSAGE;
-};
-
-METHOD("flush", TYP, NullT) {
-	Result->Arg = Args[0];
-	return SUCCESS;
-};
-
-METHOD("write", TYP, NullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	Result->Val = Args[2].Val;
-	return SUCCESS;
-};
-
-METHOD("seek", TYP, NullT, TYP, Std$Integer$SmallT, TYP, IO$Stream$SeekModeT) {
-	Result->Val = ZERO;
-	return SUCCESS;
-};
-*/
-
 TYPE(EmptyT, IO$Stream$TextReaderT, IO$Stream$TextWriterT, IO$Stream$ReaderT, IO$Stream$WriterT, IO$Stream$SeekerT, IO$Stream$T);
 GLOBAL(EmptyT, special_t, Empty)[1] = {{EmptyT}};
 
@@ -122,7 +44,7 @@ METHOD("eoi", TYP, EmptyT) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, EmptyT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, EmptyT, TYP, Std$Address$T) {
 	return FAILURE;
 };
 
@@ -131,7 +53,7 @@ METHOD("flush", TYP, EmptyT) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, EmptyT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, EmptyT, TYP, Std$Address$T) {
 	Result->Val = Args[2].Val;
 	return SUCCESS;
 };
@@ -176,8 +98,8 @@ METHOD("eoi", TYP, FullT) {
 	return FAILURE;
 };
 
-METHOD("read", TYP, FullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
-	memset(((Std$Address$t *)Args[1].Val)->Value, 0, ((Std$Integer$smallt *)Args[2].Val)->Value);
+METHOD("read", TYP, FullT, TYP, Std$Address$T) {
+	memset(Std$Address$get_value(Args[1].Val), 0, Std$Address$get_length(Args[1].Val));
 	Result->Val = Args[2].Val;
 	return SUCCESS;
 };
@@ -187,7 +109,7 @@ METHOD("flush", TYP, FullT) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, FullT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, FullT, TYP, Std$Address$T) {
 	Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);
 	return MESSAGE;
 };

@@ -268,9 +268,9 @@ METHOD("write", TYP, ConnectionT, TYP, OpcodeT, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-METHOD("write", TYP, ConnectionT, TYP, OpcodeT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, ConnectionT, TYP, OpcodeT, TYP, Std$Address$T, TYP) {
 	connection_t *Connection = (connection_t *)Args[0].Val;
-	int Written = mg_websocket_write(Connection->Handle, Std$Integer$get_small(Args[1].Val), Std$Address$get_value(Args[2].Val), Std$Integer$get_small(Args[3].Val));
+	int Written = mg_websocket_write(Connection->Handle, Std$Integer$get_small(Args[1].Val), Std$Address$get_value(Args[2].Val), Std$Address$get_length(Args[2].Val));
 	if (Written == 0) return FAILURE;
 	if (Written == -1) {
 		Result->Val = Std$String$new("Write Error");
@@ -526,9 +526,9 @@ METHOD("write", TYP, ClientConnectionT, TYP, OpcodeT, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-METHOD("write", TYP, ClientConnectionT, TYP, OpcodeT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, ClientConnectionT, TYP, OpcodeT, TYP, Std$Address$T) {
 	client_connection_t *Client = (client_connection_t *)Args[0].Val;
-	int Written = mg_websocket_client_write(Client->Handle, Std$Integer$get_small(Args[1].Val), Std$Address$get_value(Args[2].Val), Std$Integer$get_small(Args[3].Val));
+	int Written = mg_websocket_client_write(Client->Handle, Std$Integer$get_small(Args[1].Val), Std$Address$get_value(Args[2].Val), Std$Address$get_length(Args[2].Val));
 	if (Written == 0) return FAILURE;
 	if (Written == -1) {
 		Result->Val = Std$String$new("Write Error");

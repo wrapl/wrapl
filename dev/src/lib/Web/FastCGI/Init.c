@@ -38,10 +38,10 @@ static int fcgi_read(stream_t *Stream, char *Buffer, int Count, int Block) {
 	};
 };
 
-METHOD("read", TYP, StreamT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, StreamT, TYP, Std$Address$T) {
 	stream_t *Stream = (stream_t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesRead = fcgi_read(Stream, Buffer, Size, Count > 3 && Args[3].Val == $true);
 	if (BytesRead < 0) {
 		Result->Val = (Std$Object$t *)IO$Stream$ReadMessage;
@@ -76,10 +76,10 @@ static int fcgi_write(stream_t *Stream, char *Buffer, int Count, int Block) {
 	};
 };
 
-METHOD("write", TYP, StreamT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, StreamT, TYP, Std$Address$T) {
 	stream_t *Stream = (stream_t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesWritten = fcgi_write(Stream, Buffer, Size, Count > 3 && Args[3].Val == $true);
 	if (BytesWritten < 0) {
 		Result->Val = (Std$Object$t *)IO$Stream$WriteMessage;

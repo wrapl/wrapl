@@ -380,10 +380,10 @@ METHOD("closed", TYP, T) {
 	return FAILURE;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	size_t BytesRead = read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
 		Result->Val = IO$Stream$ReadMessage;
@@ -393,10 +393,10 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T,, VAL, $block) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	size_t BytesRead = 0;
 	while (Size) {
 		long Bytes = read(Stream->Handle, Buffer, Size);
@@ -718,10 +718,10 @@ METHOD("read", TYP, TextReaderT) {
 	};
 };
 
-METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, WriterT, TYP, Std$Address$T) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	size_t BytesWritten = write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
 		Result->Val = IO$Stream$WriteMessage;
@@ -731,10 +731,10 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("write", TYP, ReaderT, TYP, Std$Address$T, VAL, $block) {
 	IO$Windows_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	size_t BytesWritten = 0;
 	while (Size) {
 		long Bytes = write(Stream->Handle, Buffer, Size);

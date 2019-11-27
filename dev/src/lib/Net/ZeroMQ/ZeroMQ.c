@@ -609,20 +609,20 @@ METHOD("append", TYP, MsgT, TYP, Std$String$T) {
 	RETURN0;
 }
 
-METHOD("prepend", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("prepend", TYP, MsgT, TYP, Std$Address$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
-	size_t *Size = Std$Integer$get_small(Args[2].Val);
+	size_t *Size = Std$Address$get_length(Args[1].Val);
 	zmsg_pushmem(Msg->Handle, Mem, Size);
 	RETURN0;
 }
 
-METHOD("append", TYP, MsgT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("append", TYP, MsgT, TYP, Std$Address$T) {
 	msg_t *Msg = (msg_t *)Args[0].Val;
 	if (!Msg->Handle) FAIL;
 	const char *Mem = Std$Address$get_value(Args[1].Val);
-	size_t *Size = Std$Integer$get_small(Args[2].Val);
+	size_t *Size = Std$Address$get_length(Args[1].Val);
 	zmsg_addmem(Msg->Handle, Mem, Size);
 	RETURN0;
 }

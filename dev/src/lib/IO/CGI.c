@@ -33,10 +33,10 @@ static int cgi_reader_eoi(cgi_reader_t *Stream) {
 	return Stream->Remaining == 0;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T) {
 	cgi_reader_t *Stream = Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	long Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	if (Size > Stream->Remaining) Size = Stream->Remaining;
 	size_t BytesRead = read(STDIN_FILENO, Buffer, Size);
 	if (BytesRead < 0) {

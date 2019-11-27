@@ -232,14 +232,14 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	return SUCCESS;
 };
 
-METHOD("parse", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("parse", TYP, T, TYP, Std$Address$T) {
 //@t
 //@buffer
 //@length
 //:T
 //  Parses <var>length</var> bytes from <var>buffer</var> and calls the appropiate event handlers
 	yajl_handle *Handle = ((parser_t *)Args[0].Val)->Handle;
-	switch (yajl_parse(Handle, Std$Address$get_value(Args[1].Val), Std$Integer$get_small(Args[2].Val))) {
+	switch (yajl_parse(Handle, Std$Address$get_value(Args[1].Val), Std$Address$get_length(Args[1].Val))) {
 	case yajl_status_ok: break;
 	case yajl_status_client_canceled: {
 		Result->Val = Std$String$new("Parse cancelled!");

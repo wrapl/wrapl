@@ -29,11 +29,10 @@ METHOD("update", TYP, Md5T, TYP, Std$String$T) {
 	return SUCCESS;
 };
 
-METHOD("update", TYP, Md5T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("update", TYP, Md5T, TYP, Std$Address$T) {
 	md5_t *Digest = Args[0].Val;
 	Std$Address$t *Chars = Args[1].Val;
-	Std$Integer$smallt *Length = Args[2].Val;
-	md5_update(Digest->Context, Length->Value, Chars->Value);
+	md5_update(Digest->Context, Chars->Length.Value, Chars->Value);
 	Result->Arg = Args[0];
 	return SUCCESS;
 };

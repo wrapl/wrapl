@@ -379,10 +379,10 @@ METHOD("eoi", TYP, ReaderT) {
 	return FAILURE;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesRead = read(Stream->Handle, Buffer, Size);
 	if (BytesRead < 0) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
@@ -392,10 +392,10 @@ METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T, VAL, $block) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesRead = 0;
 	while (Size) {
 		int Bytes = read(Stream->Handle, Buffer, Size);
@@ -848,10 +848,10 @@ METHOD("read", TYP, TextReaderT) {
 	};
 };
 
-METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, WriterT, TYP, Std$Address$T) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesWritten = write(Stream->Handle, Buffer, Size);
 	if (BytesWritten < 0) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d: %s", __FILE__, __LINE__, strerror(Riva$System$get_errno()));
@@ -861,10 +861,10 @@ METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("write", TYP, WriterT, TYP, Std$Address$T, VAL, $block) {
 	IO$Posix$t *Stream = (IO$Posix$t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesWritten = 0;
 	while (Size) {
 		int Bytes = write(Stream->Handle, Buffer, Size);
@@ -1040,9 +1040,9 @@ METHOD("mmap", TYP, T, TYP, Std$Integer$SmallT, TYP, Std$Integer$SmallT, TYP, St
 	return SUCCESS;
 };
 
-METHOD("munmap", TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("munmap", TYP, Std$Address$T) {
 	void *Address = Std$Address$get_value(Args[0].Val);
-	size_t Length = Std$Integer$get_small(Args[1].Val);
+	size_t Length = Std$Address$get_length(Args[0].Val);
 	if (munmap(Address, Length)) {
 		Result->Val = Sys$Program$error_from_errno(IO$Stream$OpenMessageT);
 		return MESSAGE;

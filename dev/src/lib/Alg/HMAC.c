@@ -30,10 +30,10 @@ METHOD("update", TYP, Name ## T, TYP, Std$String$T) {\
 	RETURN0;\
 }\
 \
-METHOD("update", TYP, Name ## T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {\
+METHOD("update", TYP, Name ## T, TYP, Std$Address$T) {\
 	name ## _t *HMAC = Args[0].Val;\
 	hmac_ ## name ## _update(HMAC->Context,\
-		Std$Integer$get_small(Args[2].Val),\
+		Std$Address$get_length(Args[1].Val),\
 		Std$Address$get_value(Args[1].Val)\
 	);\
 	RETURN0;\

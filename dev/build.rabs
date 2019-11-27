@@ -3,13 +3,12 @@ DEV_INC := file("inc")
 DEV_LIB := file("lib")
 
 if MACHINE = "x86_64" then
-	GEN_DIR := file("gen64")
 	OBJ_DIR := "obj64"
 else
-	GEN_DIR := file("gen")
 	OBJ_DIR := "obj"
 end
 
+GEN_DIR := file(OBJ_DIR)/"gen"
 GEN_INC := GEN_DIR/"inc"
 GEN_LIB := GEN_DIR/"lib"
 GEN_DOC := GEN_DIR/"doc"

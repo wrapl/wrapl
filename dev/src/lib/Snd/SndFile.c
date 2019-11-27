@@ -322,18 +322,18 @@ METHODS(Int32T, int);
 METHODS(Float32T, float);
 METHODS(Float64T, double);
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T) {
 	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
 	void *Ptr = Std$Address$get_value(Args[1].Val);
-	sf_count_t Bytes = Std$Integer$get_small(Args[2].Val);
+	sf_count_t Bytes = Std$Address$get_length(Args[1].Val);
 	Result->Val = Std$Integer$new_small(sf_read_raw(SndFile->Handle, Ptr, Bytes));
 	return SUCCESS;
 };
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	sndfile_t *SndFile = (sndfile_t *)Args[0].Val;
 	void *Ptr = Std$Address$get_value(Args[1].Val);
-	sf_count_t Bytes = Std$Integer$get_small(Args[2].Val);
+	sf_count_t Bytes = Std$Address$get_length(Args[1].Val);
 	Result->Val = Std$Integer$new_small(sf_write_raw(SndFile->Handle, Ptr, Bytes));
 	return SUCCESS;
 };

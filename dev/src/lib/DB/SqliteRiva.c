@@ -119,12 +119,12 @@ METHOD("reset", TYP, StatementT) {
 	RETURN0;
 }
 
-METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("bind", TYP, StatementT, TYP, Std$Integer$SmallT, TYP, Std$Address$T) {
 	statement_t *S = Args[0].Val;
 	sqlite3_bind_blob(S->Handle,
 		((Std$Integer$smallt *)Args[1].Val)->Value,
 		((Std$Address$t *)Args[2].Val)->Value,
-		((Std$Integer$smallt *)Args[3].Val)->Value,
+		((Std$Address$t *)Args[2].Val)->Length.Value,
 		SQLITE_STATIC
 	);
 	RETURN0;

@@ -70,9 +70,9 @@ METHOD("mmap", TYP, T, TYP, Std$String$T) {
 	return SUCCESS;
 }
 
-METHOD("map", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("map", TYP, T, TYP, Std$Address$T) {
 	trie_t *Trie = (trie_t *)Args[0].Val;
-	Trie->Handle->map(Std$Address$get_value(Args[1].Val), Std$Integer$get_small(Args[2].Val));
+	Trie->Handle->map(Std$Address$get_value(Args[1].Val), Std$Address$get_length(Args[1].Val));
 	Result->Arg = Args[0];
 	return SUCCESS;
 }

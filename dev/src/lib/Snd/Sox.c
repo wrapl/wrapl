@@ -68,11 +68,11 @@ AMETHOD(OpenRead, TYP, Std$Address$T) {
 	return SUCCESS;
 }
 
-AMETHOD(OpenRead, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+AMETHOD(OpenRead, TYP, Std$Address$T) {
 	format_t *Format = new(format_t);
 	Format->Type = FormatT;
 	void *Buffer = Std$Address$get_value(Args[0].Val);
-	size_t Length = Std$Integer$get_small(Args[1].Val);
+	size_t Length = Std$Address$get_length(Args[0].Val);
 	// TODO: Support optional parameters
 	sox_signalinfo_t *Signal = 0;
 	sox_encodinginfo_t *Encoding = 0;

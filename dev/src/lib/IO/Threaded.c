@@ -604,7 +604,7 @@ METHOD("close", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T) {
 	buffer_t *Stream = Args[0].Val;
 	lock(Stream);
 	node_t *Node = Stream->Head;
@@ -629,9 +629,9 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	};
 	uint32_t Total = 0;
 	const char *Src = Node->Chars;
-	const char *Dst = ((Std$Address$t *)Args[1].Val)->Value;
+	const char *Dst = Std$Address$get_value(Args[1].Val);
 	uint32_t Rem0 = Node->Length;
-	uint32_t Rem1 = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	uint32_t Rem1 = Std$Address$get_length(Args[1].Val);
 	while (Rem0 <= Rem1) {
 		Dst = mempcpy(Dst, Src, Rem0);
 		Rem1 -= Rem0;
@@ -655,7 +655,7 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block) {
+METHOD("read", TYP, T, TYP, Std$Address$T, VAL, $block) {
 	buffer_t *Stream = Args[0].Val;
 	lock(Stream);
 	node_t *Node = Stream->Head;
@@ -680,9 +680,9 @@ METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT, VAL, $block)
 	};
 	uint32_t Total = 0;
 	const char *Src = Node->Chars;
-	const char *Dst = ((Std$Address$t *)Args[1].Val)->Value;
+	const char *Dst = Std$Address$get_value(Args[1].Val);
 	uint32_t Rem0 = Node->Length;
-	uint32_t Rem1 = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	uint32_t Rem1 = Std$Address$get_length(Args[1].Val);
 	while (Rem0 <= Rem1) {
 		Dst = mempcpy(Dst, Src, Rem0);
 		Rem1 -= Rem0;
@@ -1122,11 +1122,11 @@ METHOD("read", TYP, T) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	buffer_t *Stream = Args[0].Val;
-	long Length = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	long Length = Std$Address$get_length(Args[1].Val);
 	char *Chars = Riva$Memory$alloc_atomic(Length);
-	memcpy(Chars, ((Std$Address$t *)Args[1].Val)->Value, Length);
+	memcpy(Chars, Std$Address$get_value(Args[1].Val), Length);
 	node_t *Node = new(node_t);
 	Node->Length = Length;
 	Node->Chars = Chars;

@@ -53,7 +53,7 @@ static Std$String$t *next(decoder_t *Decoder, int Index) {
 				Std$String$t *Key = next(Decoder, Index + 1);
 				Key->Length.Value += Length;
 				Key->Blocks[Index].Length.Value = Length;
-				Key->Blocks[Index].Chars.Value = Chars;
+				Key->Blocks[Index].Value = Chars;
 				return Key;
 			};
 			size_t NewMax = Max * 2;
@@ -68,7 +68,7 @@ finished:
 		Std$String$t *Key = Std$String$alloc(Index + 1);
 		Key->Length.Value = Length;
 		Key->Blocks[Index].Length.Value = Length;
-		Key->Blocks[Index].Chars.Value = Chars;
+		Key->Blocks[Index].Value = Chars;
 		return Key;
 	} else {
 		return Std$String$alloc(Index);
@@ -105,7 +105,7 @@ typedef struct string_decoder_t {
 
 static void string_advance(string_decoder_t *Decoder) {
 	if (Decoder->Base.Rem = Decoder->Block->Length.Value) {
-		Decoder->Base.Next = Decoder->Block->Chars.Value;
+		Decoder->Base.Next = Decoder->Block->Value;
 		++Decoder->Block;
 	} else {
 		Decoder->Base.Next = 0;
@@ -114,7 +114,7 @@ static void string_advance(string_decoder_t *Decoder) {
 
 AMETHOD(Decode, TYP, Std$String$T) {
 	string_decoder_t Decoder[1];
-	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Chars.Value;
+	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Value;
 	Decoder->Base.Rem = ((Std$String$t *)Args[0].Val)->Blocks->Length.Value;
 	Decoder->Base.advance = string_advance;
 	Decoder->Block = ((Std$String$t *)Args[0].Val)->Blocks + 1;
@@ -149,7 +149,7 @@ GLOBAL_FUNCTION(DecodeStream, 1) {
 
 GLOBAL_FUNCTION(DecodeString, 1) {
 	string_decoder_t Decoder[1];
-	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Chars.Value;
+	Decoder->Base.Next = ((Std$String$t *)Args[0].Val)->Blocks->Value;
 	Decoder->Base.Rem = ((Std$String$t *)Args[0].Val)->Blocks->Length.Value;
 	Decoder->Base.advance = string_advance;
 	Decoder->Block = ((Std$String$t *)Args[0].Val)->Blocks + 1;
@@ -158,8 +158,8 @@ GLOBAL_FUNCTION(DecodeString, 1) {
 };
 
 Std$Object$t *_decode(const char *Chars, size_t Length) {
-	Std$String$block Blocks[1] = {
-		{{Std$Integer$SmallT, 0}, {Std$Address$T, 0}}
+	Std$Address$t Blocks[1] = {
+		{Std$Address$T, 0, {Std$Integer$SmallT, 0}}
 	};
 	string_decoder_t Decoder[1];
 	Decoder->Base.Next = Chars;
@@ -221,7 +221,7 @@ static void encode_string(Std$String$t *String, encoder_t *Encoder) {
 	Std$Address$t *Block = String->Blocks;
 	while (Block->Length.Value) {
 		size_t Length = Block->Length.Value;
-		const char *Chars = Block->Chars.Value;
+		const char *Chars = Block->Value;
 		size_t I = 0;
 		for (size_t J = 0; J < Length; ++J) {
 			char Char = Chars[J];
@@ -254,18 +254,18 @@ GLOBAL_FUNCTION(EncodeString, 1) {
 	if (Encoder.Tail->Space < BLOCK_SIZE) {
 		String = Std$String$alloc(Encoder.Count);
 		for (size_t I = 0; I < Encoder.Count - 1; ++I) {
-			String->Blocks[I].Chars.Value = Block->Chars;
+			String->Blocks[I].Value = Block->Chars;
 			String->Blocks[I].Length.Value = BLOCK_SIZE;
 			Length += BLOCK_SIZE;
 			Block = Block->Next;
 		};
-		String->Blocks[Encoder.Count - 1].Chars.Value = Block->Chars;
+		String->Blocks[Encoder.Count - 1].Value = Block->Chars;
 		String->Blocks[Encoder.Count - 1].Length.Value = BLOCK_SIZE - Block->Space;
 		String->Length.Value = Length + BLOCK_SIZE - Block->Space;
 	} else {
 		String = Std$String$alloc(Encoder.Count - 1);
 		for (size_t I = 0; I < Encoder.Count - 1; ++I) {
-			String->Blocks[I].Chars.Value = Block->Chars;
+			String->Blocks[I].Value = Block->Chars;
 			String->Blocks[I].Length.Value = BLOCK_SIZE;
 			Block = Block->Next;
 		};
@@ -302,18 +302,18 @@ GLOBAL_FUNCTION(Encode, 1) {
 	if (Encoder.Tail->Space < BLOCK_SIZE) {
 		String = Std$String$alloc(Encoder.Count);
 		for (size_t I = 0; I < Encoder.Count - 1; ++I) {
-			String->Blocks[I].Chars.Value = Block->Chars;
+			String->Blocks[I].Value = Block->Chars;
 			String->Blocks[I].Length.Value = BLOCK_SIZE;
 			Length += BLOCK_SIZE;
 			Block = Block->Next;
 		};
-		String->Blocks[Encoder.Count - 1].Chars.Value = Block->Chars;
+		String->Blocks[Encoder.Count - 1].Value = Block->Chars;
 		String->Blocks[Encoder.Count - 1].Length.Value = BLOCK_SIZE - Block->Space;
 		String->Length.Value = Length + BLOCK_SIZE - Block->Space;
 	} else {
 		String = Std$String$alloc(Encoder.Count - 1);
 		for (size_t I = 0; I < Encoder.Count - 1; ++I) {
-			String->Blocks[I].Chars.Value = Block->Chars;
+			String->Blocks[I].Value = Block->Chars;
 			String->Blocks[I].Length.Value = BLOCK_SIZE;
 			Block = Block->Next;
 		};

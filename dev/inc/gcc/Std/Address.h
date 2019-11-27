@@ -21,6 +21,7 @@ RIVA_OBJECT(Of);
 
 #define Std$Address$get_value(A) ((Std$Address$t *)A)->Value
 #define Std$Address$get_size(A) ((Std$Address$t *)A)->Length.Value
+#define Std$Address$get_length(A) ((Std$Address$t *)A)->Length.Value
 
 
 #undef RIVA_MODULE

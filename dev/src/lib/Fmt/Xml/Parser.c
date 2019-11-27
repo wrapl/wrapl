@@ -121,13 +121,13 @@ METHOD("parse", TYP, T, TYP, Std$String$T) {
 	RETURN0;
 }
 
-METHOD("parse", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("parse", TYP, T, TYP, Std$Address$T) {
 //@t
 //@string
 //:T
 //  Parses string and calls the appropriate event handlers
 	XML_Parser *Parser = ((parser_t *)Args[0].Val)->Handle;
-	switch (XML_Parse(Parser, Std$Address$get_value(Args[1].Val), Std$Integer$get_small(Args[2].Val), 0)) {
+	switch (XML_Parse(Parser, Std$Address$get_value(Args[1].Val), Std$Address$get_length(Args[1].Val), 0)) {
 	case XML_STATUS_ERROR: {
 		enum XML_Error Error = XML_GetErrorCode(Parser);
 		SEND(Std$String$new(XML_ErrorString(Error)));

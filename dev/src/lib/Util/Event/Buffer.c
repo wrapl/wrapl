@@ -53,10 +53,10 @@ TYPED_INSTANCE(int, IO$Stream$writef, T, buffer_t *Buffer, const char *Format, .
 	return Written;
 }
 
-METHOD("read", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, T, TYP, Std$Address$T) {
 	buffer_t *Buffer = (buffer_t *)Args[0].Val;
 	const void *Data = Std$Address$get_value(Args[1].Val);
-	size_t Length = Std$Integer$get_small(Args[2].Val);
+	size_t Length = Std$Address$get_length(Args[1].Val);
 	size_t Read = evbuffer_remove(Buffer->Handle, Data, Length);
 	if (Read == -1) SEND(Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__));
 	RETURN(Std$Integer$new_small(Read));
@@ -70,10 +70,10 @@ METHOD("read", TYP, T) {
 	RETURN(Std$String$new_length(Chars, Length));
 }
 
-METHOD("write", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, T, TYP, Std$Address$T) {
 	buffer_t *Buffer = (buffer_t *)Args[0].Val;
 	const void *Data = Std$Address$get_value(Args[1].Val);
-	size_t Length = Std$Integer$get_small(Args[2].Val);
+	size_t Length = Std$Address$get_length(Args[1].Val);
 	evbuffer_add(Buffer->Handle, Data, Length);
 	RETURN(Args[2].Val);
 }
@@ -126,10 +126,10 @@ METHOD("length", TYP, T) {
 	RETURN(Std$Integer$new_small(evbuffer_get_length(Buffer->Handle)));
 }
 
-METHOD("prepend", TYP, T, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("prepend", TYP, T, TYP, Std$Address$T) {
 	buffer_t *Buffer = (buffer_t *)Args[0].Val;
 	const void *Data = Std$Address$get_value(Args[1].Val);
-	size_t Length = Std$Integer$get_small(Args[2].Val);
+	size_t Length = Std$Address$get_length(Args[1].Val);
 	evbuffer_prepend(Buffer->Handle, Data, Length);
 	RETURN(Args[2].Val);
 }

@@ -293,7 +293,7 @@ TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream$t *Stream, char * restrict Buffe
 		int Read = 0;
 		Std$Function$result Result;
 		while (Count) {
-			switch (Std$Function$call($read, 3, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, Std$Integer$new_small(Count), 0, $block, 0)) {
+			switch (Std$Function$call($read, 3, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, $block, 0)) {
 			case SUSPEND: case SUCCESS: {
 				int Bytes = Std$Integer$get_small(Result.Val);
 				Buffer += Bytes;
@@ -310,7 +310,7 @@ TYPED_INSTANCE(int, _t_read, ReaderT, IO$Stream$t *Stream, char * restrict Buffe
 		return Read;
 	} else {
 		Std$Function$result Result;
-		switch (Std$Function$call($read, 2, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, Std$Integer$new_small(Count), 0)) {
+		switch (Std$Function$call($read, 2, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0)) {
 		case SUSPEND: case SUCCESS:
 			return Std$Integer$get_small(Result.Val);
 		case FAILURE:
@@ -375,7 +375,7 @@ TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream$t *Stream, const char *Buffer, 
 		Std$Function$result Result;
 		int Written = 0;
 		while (Count) {
-			switch (Std$Function$call($write, 3, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, Std$Integer$new_small(Count), 0, $block, 0)) {
+			switch (Std$Function$call($write, 3, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, $block, 0)) {
 			case SUSPEND: case SUCCESS: {
 				int Bytes = Std$Integer$get_small(Result.Val);
 				Buffer += Bytes;
@@ -392,7 +392,7 @@ TYPED_INSTANCE(int, _t_write, WriterT, IO$Stream$t *Stream, const char *Buffer, 
 		return Written;
 	} else {
 		Std$Function$result Result;
-		switch (Std$Function$call($write, 2, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0, Std$Integer$new_small(Count), 0)) {
+		switch (Std$Function$call($write, 2, &Result, Stream, 0, Std$Address$new(Buffer, Count), 0)) {
 		case SUSPEND: case SUCCESS:
 			return Std$Integer$get_small(Result.Val);
 		case FAILURE:
@@ -487,7 +487,7 @@ METHOD("eoi", TYP, ReaderT) {
 	return MESSAGE;
 };
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T) {
 //@rd
 //@buffer
 //@length
@@ -924,7 +924,7 @@ METHOD("copy", TYP, ReaderT, TYP, WriterT, TYP, Std$Integer$SmallT) {
 	return SUCCESS;
 };
 
-METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, WriterT, TYP, Std$Address$T) {
 //@wr
 //@buffer
 //@length

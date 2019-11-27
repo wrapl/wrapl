@@ -970,7 +970,7 @@ method "size", TYP, Std$Address$T
 	xor eax, eax
 	ret
 
-method "^", TYP, Std$Address$T, TYP, Std$Integer$SmallT
+method "for", TYP, Std$Address$T, TYP, Std$Integer$SmallT
 	call Std$Address$_alloc
 	mov ecx, eax
 	mov eax, [Std$Function_argument(edi).Val]
@@ -978,6 +978,20 @@ method "^", TYP, Std$Address$T, TYP, Std$Integer$SmallT
 	mov eax, [Std$Address_t(eax).Value]
 	mov edx, [Std$Integer_smallt(edx).Value]
 	mov [Std$Address_t(ecx).Value], eax
+	mov [Std$Integer_smallt(Std$Address_t(ecx).Length).Value], edx
+	xor eax, eax
+	xor edx, edx
+	ret
+	
+method "to", TYP, Std$Address$T, TYP, Std$Address$T
+	call Std$Address$_alloc
+	mov ecx, eax
+	mov eax, [Std$Function_argument(edi).Val]
+	mov edx, [Std$Function_argument(edi, 1).Val]
+	mov eax, [Std$Address_t(eax).Value]
+	mov edx, [Std$Address_t(edx).Value]
+	mov [Std$Address_t(ecx).Value], eax
+	sub edx, eax
 	mov [Std$Integer_smallt(Std$Address_t(ecx).Length).Value], edx
 	xor eax, eax
 	xor edx, edx

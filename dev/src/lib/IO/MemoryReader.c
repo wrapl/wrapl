@@ -47,7 +47,7 @@ AMETHOD(New, TYP, Std$Address$T) {
 	return SUCCESS;
 }
 
-AMETHOD(New, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+AMETHOD(New, TYP, Std$Address$T) {
 //@address
 //@length
 //:T
@@ -55,7 +55,7 @@ AMETHOD(New, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
 	reader_t *Reader = new(reader_t);
 	Reader->Type = T;
 	Reader->Address = Std$Address$get_value(Args[0].Val);
-	Reader->Length = Std$Integer$get_small(Args[1].Val);
+	Reader->Length = Std$Address$get_length(Args[0].Val);
 	Result->Val = (Std$Object$t *)Reader;
 	return SUCCESS;
 }

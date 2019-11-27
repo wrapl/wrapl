@@ -217,10 +217,10 @@ TYPED_INSTANCE(int, IO$Stream$read, ReaderT, buffered_t *Stream, char *Buffer, i
 
 SYMBOL($block, "block");
 
-METHOD("read", TYP, ReaderT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("read", TYP, ReaderT, TYP, Std$Address$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesRead = buffered_read(Stream, Buffer, Count, (Count >= 3 && Args[3].Val == $block));
 	if (BytesRead < 0) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$ReadMessageT, "%s:%d", __FILE__, __LINE__);
@@ -1605,10 +1605,10 @@ TYPED_INSTANCE(int, IO$Stream$write, WriterT, buffered_t *Stream, const char *Bu
 	return buffered_write(Stream, Buffer, Count, Block);
 };
 
-METHOD("write", TYP, WriterT, TYP, Std$Address$T, TYP, Std$Integer$SmallT) {
+METHOD("write", TYP, WriterT, TYP, Std$Address$T) {
 	buffered_t *Stream = (buffered_t *)Args[0].Val;
-	char *Buffer = ((Std$Address$t *)Args[1].Val)->Value;
-	int Size = ((Std$Integer$smallt *)Args[2].Val)->Value;
+	char *Buffer = Std$Address$get_value(Args[1].Val);
+	int Size = Std$Address$get_length(Args[1].Val);
 	int BytesWritten = buffered_write(Stream, Buffer, Size, (Count >= 3 && Args[3].Val == $block));
 	if (BytesWritten < 0) {
 		Result->Val = Sys$Program$error_new_format(IO$Stream$WriteMessageT, "%s:%d", __FILE__, __LINE__);

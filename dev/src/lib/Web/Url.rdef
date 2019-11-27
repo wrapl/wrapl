@@ -1,12 +1,5 @@
 library("IO/Stream.rlib")
 
-if WINDOWS then
-	_export = export
-	export = function(Name)
-		_export("_" .. Name, Name)
-	end
-end
-
 export("Encode")
 export("EncodeString")
 export("Decode")
