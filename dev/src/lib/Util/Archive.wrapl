@@ -53,7 +53,7 @@ DEF Details!(archive) (
 	VAR contents <- [];
 	VAR name, size, attr, time, date;
 	REP (
-		line <-proc:read;
+		line <- proc:read;
 		UNTIL line = "------------------- ----- ------------ ------------  ------------"; 
 		name <- line[54, 0];
 		size <- line[27, 39];

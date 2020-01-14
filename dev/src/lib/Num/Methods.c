@@ -50,14 +50,14 @@ METHOD("transpose", TYP, Num$Array$T) {
 METHOD("permute", TYP, Num$Array$T, TYP, Agg$List$T) {
 	Num$Array$t *Source = (Num$Array$t *)Args[0].Val;
 	int Degree = Source->Degree;
-	if (Agg$List$length(Args[1].Val) != Degree) SEND("List length must match degree");
+	if (Agg$List$length(Args[1].Val) != Degree) SEND(Std$String$new("List length must match degree"));
 	Num$Array$t *Target = Num$Array$new(Source->Format, Degree);
 	Agg$List$node *Node = Agg$List$head(Args[1].Val);
 	for (int I = 0; I < Degree; ++I) {
-		if (Node->Value->Type != Std$Integer$SmallT) SEND("Invalid index");
+		if (Node->Value->Type != Std$Integer$SmallT) SEND(Std$String$new("Invalid index"));
 		int J = Std$Integer$get_small(Node->Value);
 		if (J <= 0) J += Degree + 1;
-		if (J < 1 || J > Degree) SEND("Invalid index");
+		if (J < 1 || J > Degree) SEND(Std$String$new("Invalid index"));
 		Target->Dimensions[I] = Source->Dimensions[J - 1];
 		Node = Node->Next;
 	}
